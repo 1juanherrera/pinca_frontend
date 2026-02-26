@@ -1,7 +1,5 @@
 /* Importamos Tailwind v4 */
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
-
 
 /* 1. Definimos las variables puras (Permite cambiar temas fácil en el futuro) */
 :root {

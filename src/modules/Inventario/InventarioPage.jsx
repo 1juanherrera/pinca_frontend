@@ -11,10 +11,14 @@ import {
   Download,
   FileUp
 } from 'lucide-react';
+import { useItems } from "./api/useItems";
 
 const InventarioPage = () => {
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const { items } = useItems();
+
+    console.log(items);
 
     return (
         <div className="flex flex-col gap-3 w-full mt-1">
