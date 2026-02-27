@@ -20,7 +20,7 @@ const DataTable = ({ isDrawerOpen, setIsDrawerOpen, items }) => {
     const getCostoGalon = (item) => item?.costo_mp_galon || '-';
 
   return (
-    <div className="flex flex-col gap-3 w-full mt-1">
+    <div className="flex flex-col gap-3 w-full mt-2">
 
       {/* 3. CONTENEDOR DE LA TABLA */}
       <div className="bg-white border border-zinc-200/80 rounded-xl shadow-sm w-full overflow-hidden">

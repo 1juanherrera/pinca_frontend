@@ -12,6 +12,7 @@ import {
   FileUp
 } from 'lucide-react';
 import { useBodegas } from "./api/useBodegas";
+import { Button } from "../../shared/Button";
 
 const InventarioPage = () => {
 
@@ -21,12 +22,12 @@ const InventarioPage = () => {
     console.log(items);
 
     return (
-        <div className="flex flex-col gap-3 w-full mt-1">
+        <div className="flex flex-col w-full">
             {/* TOOLBAR (Pestañas y Botón Principal) */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between">
                 
                 {/* Pestañas de Navegación (Estilo Control Segmentado) */}
-                <div className="flex items-center p-1 bg-white border border-zinc-200/80 rounded-xl shadow-sm overflow-x-auto hide-scrollbar">
+                <div className="flex items-center bg-white border border-zinc-200/80 rounded-xl shadow-sm overflow-x-auto hide-scrollbar">
                 <button className="flex items-center gap-2 px-4 py-2 bg-zinc-100 text-zinc-900 rounded-lg text-sm font-semibold shadow-sm transition-all whitespace-nowrap">
                     <Layers size={16} className="text-zinc-500" />
                     TODOS
@@ -66,13 +67,15 @@ const InventarioPage = () => {
                     <FileUp size={18} />
                 </button>
 
-                {/* Botón Principal (Primary Action) */}
-                <button
-                onClick={() => setIsDrawerOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-zinc-900 text-white border border-transparent rounded-xl text-sm font-semibold hover:bg-zinc-800 shadow-md shadow-zinc-900/10 transition-all active:scale-95">
-                    <Plus size={18} />
-                    <span>Nuevo Producto</span>
-                </button>
+                {/* Botón Principal */}
+                <Button
+                    onClick={() => setIsDrawerOpen(true)}
+                    variant="black"
+                    icon={Plus}
+                    sizeIcon={18}
+                >
+                    Agregar Producto
+                </Button>
                 </div>
             </div>
 

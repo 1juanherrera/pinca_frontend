@@ -34,7 +34,7 @@ export const useBodegas = (id = null) => {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => apiClient.put(`/bodegas/${id}`, data),
-    onSuccess: (data, variables) => {
+    onSuccess: (variables) => {
       queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() });
       queryClient.invalidateQueries({ queryKey: bodegaKeys.detail(variables.id) });
     },
@@ -48,7 +48,7 @@ export const useBodegas = (id = null) => {
   return {
     // Listados y Datos
     bodegas: queryBodegas.data ?? [],
-    bodegaDetalle: queryInfo.data ?? null,
+    bodegasInstalacion: queryInfo.data ?? null,
     items: queryInventory.data ?? [],
     
     // Estados de carga
@@ -67,6 +67,6 @@ export const useBodegas = (id = null) => {
     isDeleting: deleteMutation.isPending,
 
     // Utilidades
-    refreshItems: () => queryClient.invalidateQueries({ queryKey: bodegaKeys.inventories(id) }),
-  };
-};
+    refresh: () => queryClient.invalidateQueries({ queryKey: bodegaKeys.inventories(id) }),
+  }
+}
