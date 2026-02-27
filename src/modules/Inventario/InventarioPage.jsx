@@ -11,12 +11,12 @@ import {
   Download,
   FileUp
 } from 'lucide-react';
-import { useItems } from "./api/useItems";
+import { useBodegas } from "./api/useBodegas";
 
 const InventarioPage = () => {
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const { items } = useItems();
+    const { items } = useBodegas();
 
     console.log(items);
 
@@ -76,7 +76,12 @@ const InventarioPage = () => {
                 </div>
             </div>
 
-            <DataTable isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen} />
+            <DataTable 
+                isDrawerOpen={isDrawerOpen} 
+                items={items} 
+                setIsDrawerOpen={setIsDrawerOpen} 
+            />
+            
         </div>
     )
 }

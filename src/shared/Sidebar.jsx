@@ -21,7 +21,7 @@ const Sidebar = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   const menuItems = [
-    { link: 'dashboard', label: 'Panel Principal', icon: LayoutDashboard },
+    { link: '', label: 'Panel Principal', icon: LayoutDashboard },
     { link: 'inventario', label: 'Inventario', icon: Package }, // Package o Boxes
     { link: 'formulaciones', label: 'Formulaciones', icon: FlaskConical }, // Representa mezclas/recetas
     { link: 'production', label: 'Producción', icon: Factory }, // Una fábrica clásica

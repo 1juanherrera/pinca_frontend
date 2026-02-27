@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import InventarioPage from "./modules/Inventario/InventarioPage";
 import Layout from "./Layout";
 import FormulacionesPage from "./modules/Formulaciones/FormulacionesPage";
+import SedePage from "./modules/sedes/sedePage";
 
 
 const App = () => {
@@ -11,6 +12,7 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
+        <Route path="/" element={<SedePage />} />
           <Route path="/inventario" element={<InventarioPage />} />
           <Route path="/formulaciones" element={<FormulacionesPage />} />
         </Route>
