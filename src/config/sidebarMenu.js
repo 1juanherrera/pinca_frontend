@@ -12,7 +12,7 @@ import {
 
 export const sidebarMenu = [
     { link: '', label: 'Panel Principal', icon: LayoutDashboard },
-    { link: 'inventario', label: 'Inventario', icon: Package }, // Package o Boxes
+    // { link: 'inventario', label: 'Inventario', icon: Package }, // Package o Boxes
     { link: 'formulaciones', label: 'Formulaciones', icon: FlaskConical }, // Representa mezclas/recetas
     { link: 'production', label: 'Producción', icon: Factory }, // Una fábrica clásica
     { link: 'billing', label: 'Facturación', icon: Receipt }, // Un recibo/factura

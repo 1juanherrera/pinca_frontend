@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { bodegaKeys } from './bodegaKeys';
 
-export const useBodegas = (id = null, page = null) => {
+export const useBodegas = (id = null) => {
   const queryClient = useQueryClient();
 
   // 1. Query: Lista de todas las bodegas
@@ -15,13 +15,6 @@ export const useBodegas = (id = null, page = null) => {
   const queryInfo = useQuery({
     queryKey: bodegaKeys.detail(id),
     queryFn: () => apiClient.get(`/instalaciones/bodegas/${id}`),
-    enabled: !!id,
-  });
-
-  // 3. Query: Inventario de esa bodega específica
-  const queryInventory = useQuery({
-    queryKey: bodegaKeys.inventories(id, page),
-    queryFn: () => apiClient.get(`/bodegas/inventario/${id}?page=${page || 1}&perPage=10`),
     enabled: !!id,
   });
 
@@ -49,11 +42,9 @@ export const useBodegas = (id = null, page = null) => {
     // Listados y Datos
     bodegas: queryBodegas.data ?? [],
     bodegasInstalacion: queryInfo.data ?? null,
-    items: queryInventory.data,
     
     // Estados de carga
     isLoadingBodegas: queryBodegas.isLoading,
-    isLoadingItems: queryInventory.isLoading,
     isLoadingInfo: queryInfo.isLoading,
 
     // Acciones
@@ -67,6 +58,6 @@ export const useBodegas = (id = null, page = null) => {
     isDeleting: deleteMutation.isPending,
 
     // Utilidades
-    refresh: () => queryClient.invalidateQueries({ queryKey: bodegaKeys.inventories(id) }),
+    refresh: () => queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() }),
   }
 }

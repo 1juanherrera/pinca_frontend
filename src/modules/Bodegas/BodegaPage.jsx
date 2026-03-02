@@ -7,12 +7,20 @@ import Card from '../../shared/Card';
 import { SkeletonCard }  from '../../shared/Skeletons';
 import { useBoundStore } from '../../store/useBoundStore';
 import BodegaForm from './components/BodegaForm';
+import { useEffect } from 'react';
 
 const BodegaPage = () => {
 
   const { id } = useParams();
   const { bodegasInstalacion, items, isLoadingBodegas } = useBodegas(id);
-  const openDrawer = useBoundStore(state => state.openDrawer);
+
+  const {openDrawer, setSedeName } = useBoundStore();
+
+  useEffect(() => {
+      if (bodegasInstalacion?.nombre) {
+          setSedeName(bodegasInstalacion.nombre);
+      }
+  }, [bodegasInstalacion, setSedeName]);
 
   return (
     <div className="flex flex-col w-full">
@@ -50,7 +58,7 @@ const BodegaPage = () => {
           const esLaBodegaActual = String(bodega.id_bodegas) === String(items?.id_bodegas);
 
           // Si coinciden, sacamos el length del inventario
-          const totalArticulos = esLaBodegaActual ? (items?.inventario?.length || 0) : 0;
+          const totalArticulos = esLaBodegaActual ? (items?.pagination?.totalItems || 0) : 0;
 
           return (
             <Card

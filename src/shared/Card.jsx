@@ -101,22 +101,22 @@ const Card = ({
 
                 const colorConfigs = {
                     green: {
-                        bg: "bg-emerald-50",
+                        bg: "bg-emerald-100",
                         icon: "text-emerald-600",
                         value: "text-emerald-600",
                     },
                     red: {
-                        bg: "bg-rose-50",
+                        bg: "bg-rose-100",
                         icon: "text-rose-700",
                         value: "text-rose-700",
                     },
                     zinc: {
-                        bg: "bg-zinc-50",
+                        bg: "bg-zinc-100",
                         icon: "text-zinc-500",
                         value: "text-zinc-600",
                     },
                     blue: {
-                        bg: "bg-blue-50",
+                        bg: "bg-blue-100",
                         icon: "text-blue-600",
                         value: "text-blue-700",
                     }

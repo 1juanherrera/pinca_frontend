@@ -6,20 +6,19 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useBoundStore } from '../../../store/useBoundStore';
-import { useBodegas } from '../../Bodegas/api/useBodegas';
 import NavTabs from './NavTabs';
 import { handleType } from '../utils/handlers';
 import { formatoPesoColombiano } from '../../../utils/formatters';
 import { useState } from 'react';
 import { SkeletonRow } from '../../../shared/Skeletons';
+import { useInventario } from '../api/useInventario';
 
 const DataTable = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const id_bodega = useBoundStore(state => state.activeBodegaId);
 
-  // Pasamos la página actual al hook
-  const { items, isLoadingItems } = useBodegas(id_bodega, currentPage);
+  const { isLoadingItems, items } = useInventario(id_bodega);
 
   const inventario = items?.inventario || [];
   const pagination = items?.pagination || { totalPages: 1, totalItems: 0 };
@@ -54,10 +53,12 @@ const DataTable = () => {
               </thead>
               <tbody className="divide-y divide-zinc-200/80">
                 {isLoadingItems ? (
+                  /* ESTADO 1: CARGANDO */
                   Array.from({ length: 10 }).map((_, i) => (
                     <SkeletonRow key={`skeleton-${i}`} />
                   ))
-                ) : (
+                ) : inventario.length > 0 ? (
+                  /* ESTADO 2: CON DATOS */
                   inventario.map((item, i) => (
                     <tr key={item.id_item_general || i} className={`hover:bg-zinc-100 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-zinc-50/50'}`}>
                       <td className="px-3 py-1 text-center text-xs font-medium text-zinc-500">{getId(item)}</td>
@@ -81,7 +82,7 @@ const DataTable = () => {
                       
                       <td className="px-3 py-1">
                         <div className="flex items-center justify-center gap-1.5">
-                          <button className="flex items-center justify-center w-8 h-8 rounded bg-zinc-100 text-zinc-600 hover:bg-zinc-800 hover:text-white transition-all active:scale-95">
+                          <button className="flex items-center justify-center w-8 h-8 rounded bg-zinc-200 text-zinc-600 hover:bg-zinc-800 hover:text-white transition-all active:scale-95">
                             <Edit size={14} />
                           </button>
                           <button className="flex items-center justify-center w-8 h-8 rounded bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-all active:scale-95">
@@ -93,7 +94,17 @@ const DataTable = () => {
                         </div>
                       </td>
                     </tr>
-                  ))
+                  )) 
+                ) : (
+                  /* ESTADO 3: VACÍO (Sin datos) */
+                  <tr>
+                    <td colSpan="9" className="px-3 py-16 text-center">
+                      <div className="flex flex-col items-center justify-center text-zinc-500 h-64">
+                        <span className="text-sm font-medium">No hay items para mostrar en este inventario.</span>
+                        <span className="text-xs text-zinc-400 mt-1">Intenta ajustando tu búsqueda o agrega un nuevo item.</span>
+                      </div>
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>

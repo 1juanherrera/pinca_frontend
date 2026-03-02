@@ -1,5 +1,6 @@
 export const createUISlice = (set) => ({
   activeTitle: 'Panel Principal',
+  sedeName: null,
   activeDrawer: null, 
   drawerPayload: null,
 
@@ -7,4 +8,6 @@ export const createUISlice = (set) => ({
   closeDrawer: () => set({ activeDrawer: null, drawerPayload: null }),
   
   setActiveTitle: (title) => set({ activeTitle: title }),
+  setSedeName: (name) => set({ sedeName: name }),
+  clearSedeName: () => set({ sedeName: null }),
 })

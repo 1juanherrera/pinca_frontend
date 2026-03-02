@@ -1,74 +1,90 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { Save } from 'lucide-react';
 import Drawer from '../../../shared/Drawer'; 
 import { FormInput } from '../../../shared/Form/FormInput';
+import { FormSelect } from '../../../shared/Form/FormSelect';
 import { useBoundStore } from '../../../store/useBoundStore';
-// import { useBodegas } from './api/useBodegas'; // Tu hook de TanStack Query
+import { useBodegas } from '../api/useBodegas';
+import { useParams } from 'react-router';
 
 const BodegaForm = () => {
-  // 1. Estado Global (Zustand)
+
+  const { id: id_instalacion } = useParams();
+
   const activeDrawer = useBoundStore(state => state.activeDrawer);
   const payload = useBoundStore(state => state.drawerPayload);
   const closeDrawer = useBoundStore(state => state.closeDrawer);
 
-  // ¿Soy yo el drawer que debe estar abierto?
   const isDrawerOpen = activeDrawer === 'BODEGA_FORM';
 
-  // 2. React Hook Form
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors }
   } = useForm();
 
-  // 3. TanStack Query (Hooks de mutación simulados)
-  // const { create, update, isCreating, isUpdating } = useBodegas();
-  const isSaving = false; // Aquí usarías: isCreating || isUpdating
+  const { create, update, isCreating, isUpdating } = useBodegas(id_instalacion);
+  const isSaving = isCreating || isUpdating;
 
-  // 4. Efecto Mágico: Pre-llenar el formulario al abrirlo
   useEffect(() => {
     if (isDrawerOpen) {
       if (payload) {
-        // MODO EDITAR: Llenamos los inputs con los datos de la fila
+        // MODO EDITAR
         reset({
           nombre: payload.nombre || '',
           descripcion: payload.descripcion || '',
+          estado: payload.estado || '1',
+          instalaciones_id: payload.instalaciones_id || id_instalacion,
         });
       } else {
-        // MODO CREAR: Limpiamos los inputs
+        // MODO CREAR
         reset({
           nombre: '',
           descripcion: '',
-        });
+          estado: '1',
+          instalaciones_id: id_instalacion, 
+        }); 
       }
     }
-  }, [isDrawerOpen, payload, reset]);
+  }, [isDrawerOpen, payload, reset, id_instalacion]);
 
-  // 5. Manejador de Guardar/Actualizar
   const onSubmit = (data) => {
     if (payload) {
-      console.log("Actualizando bodega con ID:", payload.id_bodegas, data);
-      /* ASÍ LO CONECTAS:
-      update({ id: payload.id_bodegas, data }, {
-        onSuccess: handleClose
-      });
-      */
+      update(
+        { id: payload.id_bodegas, data }, 
+        {
+          onSuccess: () => {
+            console.log("Bodega actualizada con éxito");
+            handleClose();
+          },
+          onError: (error) => {
+            console.error("Error al actualizar:", error);
+          }
+        }
+      );
     } else {
-      console.log("Creando nueva bodega:", data);
-      /* ASÍ LO CONECTAS:
-      create(data, {
-        onSuccess: handleClose
-      });
-      */
+      // Nota: RHF enviará data con estado '1' e instalaciones_id ya inyectados por el reset
+      create(
+        data, 
+        {
+          onSuccess: () => {
+            console.log("Bodega creada con éxito");
+            handleClose();
+          },
+          onError: (error) => {
+            console.error("Error al crear:", error);
+          }
+        }
+      );
     }
   };
 
-  // 6. Cerrar de forma segura
   const handleClose = () => {
-    reset(); // Limpia campos y errores visuales
-    closeDrawer(); // Dispara la acción de Zustand
+    reset(); 
+    closeDrawer(); 
   };
 
   return (
@@ -122,9 +138,27 @@ const BodegaForm = () => {
           registration={register('descripcion')} 
         />
 
+        {/* Agregamos el selector de estado */}
+        <Controller
+          name="estado"
+          control={control}
+          render={({ field }) => (
+            <FormSelect
+              label="Estado Operativo"
+              options={[
+                { value: '1', label: 'Operativo / Activa' },
+                { value: '0', label: 'Inactiva / Cerrada' }
+              ]}
+              value={field.value}       // RHF le pasa el valor actual
+              onChange={field.onChange} // RHF se entera cuando el usuario hace clic
+              error={errors.estado?.message}
+            />
+          )}
+        />
+
       </form>
     </Drawer>
-  );
-};
+  )
+}
 
 export default BodegaForm;

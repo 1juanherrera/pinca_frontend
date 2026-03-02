@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import InventarioPage from "./modules/Inventario/InventarioPage";
 import Layout from "./Layout";
 import FormulacionesPage from "./modules/Formulaciones/FormulacionesPage";
-import SedePage from "./modules/Sedes/sedePage";
+import SedePage from "./modules/sedes/sedePage";
 import BodegaPage from "./modules/Bodegas/BodegaPage";
 
 const App = () => {

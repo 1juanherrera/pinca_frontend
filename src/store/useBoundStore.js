@@ -15,7 +15,8 @@ export const useBoundStore = create(
       
       partialize: (state) => ({ 
         activeTitle: state.activeTitle,
-        activeBodegaId: state.activeBodegaId
+        activeBodegaId: state.activeBodegaId,
+        sedeName: state.sedeName,
       }),
     }
   )

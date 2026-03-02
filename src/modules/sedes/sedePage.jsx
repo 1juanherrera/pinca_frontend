@@ -4,9 +4,13 @@ import HeaderSection from '../../shared/HeaderSection';
 import { useInstalaciones } from './api/useInstalaciones';
 import Card from '../../shared/Card';
 import { SkeletonCard } from '../../shared/Skeletons'; 
+import { useBoundStore } from '../../store/useBoundStore';
+import SedeForm from './components/SedeForm';
 
 const SedePage = () => {
+
   const { instalaciones: sedes, isLoadingInstalaciones: isLoading } = useInstalaciones();
+  const { openDrawer } = useBoundStore();
 
   return (
     <div className="flex flex-col w-full">
@@ -25,7 +29,7 @@ const SedePage = () => {
 
         <Button 
             variant="black" 
-            onClick={() => console.log("Agregar Sede Click!")}
+            onClick={() => openDrawer('SEDE_FORM')}
             icon={Plus} 
         >
             Agregar Sede
@@ -35,7 +39,7 @@ const SedePage = () => {
       {/* GRID DE SEDES O SKELETONS */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-3">
         {isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => (
+          Array.from({ length: 6 }).map((_, i) => (
             <SkeletonCard key={`skeleton-${i}`} />
           ))
         ) : (
@@ -52,15 +56,26 @@ const SedePage = () => {
               onEdit={() => console.log("Editando sede:", sede.id_instalaciones)}
               onDelete={() => console.log("Borrando sede:", sede.id_instalaciones)}
               details={[
-                { icon: MapPin, label: "Dirección", value: sede.direccion || "No definida" },
-                { icon: Phone, label: "Teléfono", value: sede.telefono }
+                { 
+                  icon: MapPin, 
+                  label: "Dirección", 
+                  value: sede.direccion || "No definida" ,
+                  color: 'zinc'
+                },
+                { 
+                  icon: Phone, 
+                  label: "Teléfono", 
+                  value: sede.telefono,
+                  color: 'zinc'
+                }
               ]}
             />
           ))
         )}
       </div>
+      <SedeForm />
     </div>
-  );
+  )
 }
 
 export default SedePage;

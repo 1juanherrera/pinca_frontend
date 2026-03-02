@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import DataTable from "./Components/DataTable"
 import { 
   RefreshCw, 
@@ -11,16 +11,14 @@ import {
 import { Button, ButtonSquare } from "../../shared/Button";
 import { useParams } from "react-router";
 import { useBoundStore } from "../../store/useBoundStore";
-import { useBodegas } from "../Bodegas/api/useBodegas";
-import { FullPageLoader } from "../../shared/Loader";
 import HeaderSection from '../../shared/HeaderSection';
+import { useInventario } from "./api/useInventario";
 
 const InventarioPage = () => {
 
     const { id_bodega } = useParams();
-    const { setBodega, clearBodega } = useBoundStore();
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const { isLoadingItems, bodegasInstalacion, items } = useBodegas(id_bodega);
+    const { setBodega, clearBodega, sedeName } = useBoundStore();
+    const { isLoadingItems, items } = useInventario(id_bodega);
 
     useEffect(() => {
         setBodega(id_bodega);
@@ -38,10 +36,18 @@ const InventarioPage = () => {
                     icon={Store}
                     description="Bodegas Pinca"
                     breadcrumbs={[
-                        { label: "Administración" },
-                        { label: "Sedes", path: "/" },
-                        { label: `${isLoadingItems ? '' : `${bodegasInstalacion?.nombre || 'Bodegas'}`}`, path: `/instalaciones/bodegas/${bodegasInstalacion?.id_instalaciones}` },
-                        { label: `${isLoadingItems ? '' : `${items?.nombre || 'Bodega'}`}`, path: `/inventario/bodega/${id_bodega}` }
+                        { 
+                          label: "Administración" 
+                        },
+                        { label: "Sedes", 
+                          path: "/" 
+                        },
+                        { label: `${sedeName || 'Sede'}`, 
+                          path: items?.instalaciones_id ? `/instalaciones/bodegas/${items.instalaciones_id}` : "#"
+                        },
+                        { label: `${isLoadingItems ? '' : `${items?.nombre || 'Bodega'}`}`, 
+                          path: `/inventario/bodega/${id_bodega}` 
+                        }
                     ]}
                     />
 
@@ -73,18 +79,14 @@ const InventarioPage = () => {
 
                         <Button
                         variant="black"
-                        onClick={() => setIsDrawerOpen(true)}
                         icon={Plus}
                         >
-                        Agregar Bodega
+                        Agregar Item
                         </Button>
                     </div>
                 </div>
 
-            <DataTable 
-                isDrawerOpen={isDrawerOpen} 
-                setIsDrawerOpen={setIsDrawerOpen} 
-            />
+            <DataTable />
             
         </div>
     )
