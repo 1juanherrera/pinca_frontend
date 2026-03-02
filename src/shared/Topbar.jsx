@@ -7,12 +7,12 @@ import {
   ChevronRight, 
   LayoutDashboard 
 } from 'lucide-react';
+import { useBoundStore } from '../store/useBoundStore';
 
-const Topbar = ({ 
-  titulo = "Panel Principal",
-  isDarkMode, 
-  toggleTheme 
-}) => {
+const Topbar = () => {
+
+  const { activeTitle } = useBoundStore();
+
   return (
     <header className="h-16 px-6 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between text-zinc-400 shrink-0 w-full transition-colors duration-200">
       
@@ -32,18 +32,17 @@ const Topbar = ({
 
         {/* Título Principal */}
         <h1 className="text-lg font-semibold text-zinc-100 tracking-wide">
-          {titulo}
+          {activeTitle}
         </h1>
       </div>
 
       {/* Acciones del Usuario (Estilo Minimalista) */}
       <div className="flex items-center gap-2 sm:gap-4">
         
-        <button 
-          onClick={toggleTheme}
+        <button
           className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
         >
-          {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+          {activeTitle === "" ? <Sun size={18} /> : <Moon size={18} />}
         </button>
 
         <button className="relative p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white">

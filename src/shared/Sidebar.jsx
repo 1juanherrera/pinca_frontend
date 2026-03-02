@@ -1,36 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
-  LayoutDashboard, 
-  Package, 
-  FlaskConical, 
-  Factory, 
-  Receipt, 
-  ShoppingBag, 
-  Users, 
-  Truck, 
-  BarChart3,
   LogOut,
   Settings
 } from 'lucide-react';
 import logoPinca from '../assets/pincaicono.png';
-import { NavLink } from 'react-router';
+import { NavLink, useLocation } from 'react-router';
+import { useBoundStore } from '../store/useBoundStore';
+import { sidebarMenu } from '../config/sidebarMenu';
 
 const Sidebar = () => {
-
-  const [activeItem, setActiveItem] = useState('dashboard');
   const [isHovered, setIsHovered] = useState(false);
+  const location = useLocation();
 
-  const menuItems = [
-    { link: '', label: 'Panel Principal', icon: LayoutDashboard },
-    { link: 'inventario', label: 'Inventario', icon: Package }, // Package o Boxes
-    { link: 'formulaciones', label: 'Formulaciones', icon: FlaskConical }, // Representa mezclas/recetas
-    { link: 'production', label: 'Producción', icon: Factory }, // Una fábrica clásica
-    { link: 'billing', label: 'Facturación', icon: Receipt }, // Un recibo/factura
-    { link: 'purchases', label: 'Compras', icon: ShoppingBag }, // Diferencia visual del carrito de ventas
-    { link: 'clients', label: 'Clientes', icon: Users }, // Grupo de personas
-    { link: 'suppliers', label: 'Proveedores', icon: Truck }, // Representa logística/entregas
-    { link: 'reports', label: 'Reportes', icon: BarChart3 } // Gráfico de barras
-  ]
+  const setActiveTitle = useBoundStore((state) => state.setActiveTitle);
+  const activeTitle = useBoundStore((state) => state.activeTitle);
+
+  useEffect(() => {
+    const currentPath = location.pathname.split('/')[1] || '';
+    const currentItem = sidebarMenu.find(item => item.link === currentPath);
+    
+    if (currentItem && activeTitle !== currentItem.label) {
+      setActiveTitle(currentItem.label);
+    }
+  }, [location.pathname, activeTitle, setActiveTitle]);
 
   return (
     // CONTENEDOR FANTASMA: Reserva el espacio de los 20px (w-20) para que el layout no salte
@@ -40,7 +32,7 @@ const Sidebar = () => {
       <aside 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`absolute top-0 left-0 flex flex-col h-screen py-6 bg-surface-sidebar border-r border-gray-600 font-sans transition-all duration-300 ease-in-out ${
+        className={`absolute top-0 z-50 left-0 flex flex-col h-screen py-6 bg-surface-sidebar border-r border-gray-600 font-sans transition-all duration-300 ease-in-out ${
           isHovered 
             ? 'w-64' // Expandido con sombra flotante
             : 'w-20 px-3' // Colapsado
@@ -60,15 +52,15 @@ const Sidebar = () => {
 
         {/* Navegación */}
         <nav className="flex-1 space-y-2 overflow-y-auto p-1 overflow-x-hidden no-scrollbar">
-          {menuItems.map((item) => {
+          {sidebarMenu.map((item) => {
             const Icon = item.icon;
-            const isActive = activeItem === item.link;
+            const isActive = activeTitle === item.label;
 
             return (
               <NavLink
                 key={item.link}
                 to={`/${item.link}`}
-                onClick={() => setActiveItem(item.link)}
+                onClick={() => setActiveTitle(item.label)}
                 title={!isHovered ? item.label : ""} 
                 className={`w-full flex items-center rounded-md transition-colors duration-200 group ${
                   !isHovered ? 'justify-center p-2' : 'gap-3 px-3 py-2 text-sm font-medium'

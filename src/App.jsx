@@ -1,6 +1,6 @@
 
 import { BrowserRouter, Route, Routes } from "react-router";
-// import InventarioPage from "./modules/Inventario/InventarioPage";
+import InventarioPage from "./modules/Inventario/InventarioPage";
 import Layout from "./Layout";
 import FormulacionesPage from "./modules/Formulaciones/FormulacionesPage";
 import SedePage from "./modules/Sedes/sedePage";
@@ -13,7 +13,7 @@ const App = () => {
       <Routes>
         <Route element={<Layout />}>
         <Route path="/" element={<SedePage />} />
-          {/* <Route path="/inventario" element={<InventarioPage />} /> */}
+          <Route path="/inventario/bodega/:id_bodega" element={<InventarioPage />} />
           <Route path="/formulaciones" element={<FormulacionesPage />} />
           <Route path="/instalaciones/bodegas/:id" element={<BodegaPage />} />
         </Route>

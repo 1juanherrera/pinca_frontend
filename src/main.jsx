@@ -20,11 +20,11 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')).render(
   <QueryClientProvider client={queryClient}>
     {/* 4. Toaster para que funcionen los toast.error() del apiClient */}
-    <Toaster position="top-right" reverseOrder={false} />
+    <Toaster position="bottom-right" reverseOrder={false} />
     
     <App />
 
     {/* 5. Panel de control del caché (solo visible en desarrollo) */}
     <ReactQueryDevtools initialIsOpen={false} />
   </QueryClientProvider>
-);
+)

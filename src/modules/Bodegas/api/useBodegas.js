@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { bodegaKeys } from './bodegaKeys';
 
-export const useBodegas = (id = null) => {
+export const useBodegas = (id = null, page = null) => {
   const queryClient = useQueryClient();
 
   // 1. Query: Lista de todas las bodegas
@@ -20,8 +20,8 @@ export const useBodegas = (id = null) => {
 
   // 3. Query: Inventario de esa bodega específica
   const queryInventory = useQuery({
-    queryKey: bodegaKeys.inventories(id),
-    queryFn: () => apiClient.get(`/bodegas/inventario/${id}`),
+    queryKey: bodegaKeys.inventories(id, page),
+    queryFn: () => apiClient.get(`/bodegas/inventario/${id}?page=${page || 1}&perPage=10`),
     enabled: !!id,
   });
 
@@ -49,7 +49,7 @@ export const useBodegas = (id = null) => {
     // Listados y Datos
     bodegas: queryBodegas.data ?? [],
     bodegasInstalacion: queryInfo.data ?? null,
-    items: queryInventory.data ?? [],
+    items: queryInventory.data,
     
     // Estados de carga
     isLoadingBodegas: queryBodegas.isLoading,

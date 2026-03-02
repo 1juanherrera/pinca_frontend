@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { instalacionesKeys } from './instalacionesKeys';
+import toast from 'react-hot-toast';
 
 export const useInstalaciones = (id = null) => {
   const queryClient = useQueryClient();
@@ -21,25 +22,33 @@ export const useInstalaciones = (id = null) => {
   // --- MUTACIONES ---
   const createMutation = useMutation({
     mutationFn: (data) => apiClient.post('/instalaciones', data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: instalacionesKeys.lists() }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: instalacionesKeys.lists() });
+      toast.success('Instalación creada correctamente');
+    }
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => apiClient.put(`/instalaciones/${id}`, data),
-    onSuccess: (data, variables) => {
+    onSuccess: (variables) => {
       queryClient.invalidateQueries({ queryKey: instalacionesKeys.lists() });
       queryClient.invalidateQueries({ queryKey: instalacionesKeys.detail(variables.id) });
+      toast.success('Instalación actualizada correctamente');
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (idToDelete) => apiClient.delete(`/instalaciones/${idToDelete}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: instalacionesKeys.lists() }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: instalacionesKeys.lists() });
+      toast.success('Instalación eliminada correctamente');
+    },
   });
 
   return {
     // Listados y Datos
     instalaciones: queryinstalaciones.data ?? [],
+    isLoadingInstalaciones: queryinstalaciones.isLoading,
     instalacionDetalle: queryInfo.data ?? null,
     isLoadingInfo: queryInfo.isLoading,
 
