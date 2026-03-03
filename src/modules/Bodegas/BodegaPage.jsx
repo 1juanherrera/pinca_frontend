@@ -27,7 +27,7 @@ const BodegaPage = () => {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection
-          title={`Gestión de Bodegas - ${bodegasInstalacion?.nombre || ''}`}
+          title={`Gestión de Bodegas ${bodegasInstalacion?.nombre ? ` - ${bodegasInstalacion?.nombre}` : ''}`}
           subtitle="Sedes"
           description="Bodegas Pinca"
           icon={Building2}

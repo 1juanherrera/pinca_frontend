@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { bodegaKeys } from './bodegaKeys';
+import toast from 'react-hot-toast';
 
 export const useBodegas = (id = null) => {
   const queryClient = useQueryClient();
@@ -18,11 +19,25 @@ export const useBodegas = (id = null) => {
     enabled: !!id,
   });
 
-  // --- MUTACIONES ---
+  // --- MUTACIONES --- //
 
   const createMutation = useMutation({
     mutationFn: (data) => apiClient.post('/bodegas', data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() }),
+    // Agregamos (response, variables) para atrapar la data que enviaste en el form
+    onSuccess: (response, variables) => { 
+      
+      // 1. Invalidamos la lista general de bodegas (por si tienes una tabla global)
+      queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() });
+      
+      // 2. ¡PRECISIÓN QUIRÚRGICA! Solo invalidamos la caché de la sede actual
+      if (variables.instalaciones_id) {
+        queryClient.invalidateQueries({ 
+          queryKey: bodegaKeys.detail(variables.instalaciones_id) 
+        });
+      }
+      
+      toast.success('Bodega creada exitosamente');
+    },
   });
 
   const updateMutation = useMutation({
@@ -30,12 +45,16 @@ export const useBodegas = (id = null) => {
     onSuccess: (variables) => {
       queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() });
       queryClient.invalidateQueries({ queryKey: bodegaKeys.detail(variables.id) });
+      toast.success('Bodega actualizada exitosamente');
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (idToDelete) => apiClient.delete(`/bodegas/${idToDelete}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() });
+      toast.success('Bodega eliminada exitosamente');
+    },
   });
 
   return {

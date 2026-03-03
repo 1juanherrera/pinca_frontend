@@ -31,7 +31,7 @@ const InventarioPage = () => {
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
                     <HeaderSection
-                    title={`Gestión de Inventario${items?.nombre ? ` - ${items.nombre}` : ''}`}
+                    title={`Gestión de Inventario ${items?.nombre ? ` - ${items.nombre}` : ''}`}
                     subtitle="Sedes"
                     icon={Store}
                     description="Bodegas Pinca"
