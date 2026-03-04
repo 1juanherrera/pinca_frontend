@@ -19,7 +19,7 @@ const Drawer = ({
         {/* HEADER GENÉRICO */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200/80 bg-zinc-50/50">
           <div>
-            <h2 className="text-lg font-bold text-zinc-900">{title}</h2>
+            <h2 className="text-lg font-bold text-zinc-900 uppercase">{title}</h2>
             {description && <p className="text-xs text-zinc-500 mt-0.5">{description}</p>}
           </div>
           <button onClick={onClose} className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-200/50 rounded-xl transition-all">

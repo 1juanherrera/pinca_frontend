@@ -20,7 +20,24 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')).render(
   <QueryClientProvider client={queryClient}>
     {/* 4. Toaster para que funcionen los toast.error() del apiClient */}
-    <Toaster position="bottom-right" reverseOrder={false} />
+    <Toaster 
+      position="bottom-right"
+      toastOptions={{
+        duration: 4000,
+        success: {
+          iconTheme: {
+            primary: '#15803d',   // green-700
+            secondary: '#ffffff', // text-white 
+          },
+        },
+        error: {
+          iconTheme: {
+            primary: '#b91c1c',   // red-700
+            secondary: '#ffffff', // text-white 
+          },
+        },
+      }}
+    />
     
     <App />
 

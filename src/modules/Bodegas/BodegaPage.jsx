@@ -8,13 +8,15 @@ import { SkeletonCard }  from '../../shared/Skeletons';
 import { useBoundStore } from '../../store/useBoundStore';
 import BodegaForm from './components/BodegaForm';
 import { useEffect } from 'react';
+import ConfirmModal from '../../shared/ConfirmModal';
 
 const BodegaPage = () => {
 
   const { id } = useParams();
-  const { bodegasInstalacion, items, isLoadingBodegas } = useBodegas(id);
+  const { bodegasInstalacion, items, isLoadingBodegas, removeAsync } = useBodegas(id);
 
   const {openDrawer, setSedeName } = useBoundStore();
+  const openConfirm = useBoundStore(state => state.openConfirm);
 
   useEffect(() => {
       if (bodegasInstalacion?.nombre) {
@@ -68,8 +70,14 @@ const BodegaPage = () => {
               isActive={bodega.estado === '1'}
               linkTo={`/inventario/bodega/${bodega.id_bodegas}`}
               linkText="Ver Inventario"
-              onEdit={() => console.log("Editando:", bodega.id_bodegas)}
-              onDelete={() => console.log("Eliminando:", bodega.id_bodegas)}
+              onEdit={() => openDrawer('BODEGA_FORM', bodega)}
+              onDelete={() => openConfirm({
+                title: "Eliminar Bodega",
+                message: `¿Estás seguro de que deseas eliminar la bodega "${bodega.nombre}"?`,
+                onConfirm: async () => {
+                  await removeAsync(bodega.id_bodegas);
+                } 
+              })}
               details={[
                 {
                   icon: Package,
@@ -89,6 +97,7 @@ const BodegaPage = () => {
         })}
       </div>
       <BodegaForm />
+      <ConfirmModal />
     </div>
   )
 }

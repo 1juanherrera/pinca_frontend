@@ -11,6 +11,7 @@ const SedePage = () => {
 
   const { instalaciones: sedes, isLoadingInstalaciones: isLoading } = useInstalaciones();
   const { openDrawer } = useBoundStore();
+  // const openConfirm = useBoundStore(state => state.openConfirm);
 
   return (
     <div className="flex flex-col w-full">
@@ -54,7 +55,13 @@ const SedePage = () => {
               linkTo={`/instalaciones/bodegas/${sede.id_instalaciones}`}
               linkText="Gestionar Inventario"
               onEdit={() => console.log("Editando sede:", sede.id_instalaciones)}
-              onDelete={() => console.log("Borrando sede:", sede.id_instalaciones)}
+              // onDelete={() => openConfirm({
+              //   title: "Eliminar Sede",
+              //   message: `¿Estás seguro de que deseas eliminar la sede "${sede.nombre}"?`,
+              //   onConfirm: async () => {
+              //     await removeAsync(sede.id_instalaciones);
+              //   } 
+              // })}
               details={[
                 { 
                   icon: MapPin, 

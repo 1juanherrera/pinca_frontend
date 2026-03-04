@@ -38,7 +38,7 @@ const Card = ({
   // Lógica de selección
   const barClass = bar 
     ? (barColors[bar] || barColors.zinc) 
-    : (isActive ? 'bg-green-700' : 'bg-red-800');
+    : (isActive ? 'bg-green-700' : 'bg-red-700');
 
   return (
     <div className="group bg-white border border-zinc-200 rounded-xl shadow-sm hover:border-zinc-300 transition-all overflow-hidden flex">

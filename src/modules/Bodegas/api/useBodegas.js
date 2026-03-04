@@ -42,20 +42,31 @@ export const useBodegas = (id = null) => {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => apiClient.put(`/bodegas/${id}`, data),
-    onSuccess: (variables) => {
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: bodegaKeys.detail(variables.id) });
+      
+      // Invalidación Quirúrgica: Actualizamos la sede actual
+      if (variables.data?.instalaciones_id) {
+        queryClient.invalidateQueries({ queryKey: bodegaKeys.detail(variables.data.instalaciones_id) });
+      } else {
+        queryClient.invalidateQueries({ queryKey: bodegaKeys.details() });
+      }
+      
       toast.success('Bodega actualizada exitosamente');
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (idToDelete) => apiClient.delete(`/bodegas/${idToDelete}`),
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() });
+      
+      // Al eliminar, refrescamos cualquier grid de tarjetas que esté abierto
+      queryClient.invalidateQueries({ queryKey: bodegaKeys.details() }); 
+      
       toast.success('Bodega eliminada exitosamente');
     },
-  });
+  })
 
   return {
     // Listados y Datos
@@ -74,6 +85,7 @@ export const useBodegas = (id = null) => {
     isUpdating: updateMutation.isPending,
 
     remove: deleteMutation.mutate,
+    removeAsync: deleteMutation.mutateAsync,
     isDeleting: deleteMutation.isPending,
 
     // Utilidades

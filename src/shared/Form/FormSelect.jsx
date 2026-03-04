@@ -77,5 +77,5 @@ export const FormSelect = ({
 
       {error && <span className="text-xs text-red-500">{error}</span>}
     </div>
-  );
-};
+  )
+}
