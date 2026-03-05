@@ -23,48 +23,85 @@ export const useBodegas = (id = null) => {
 
   const createMutation = useMutation({
     mutationFn: (data) => apiClient.post('/bodegas', data),
-    // Agregamos (response, variables) para atrapar la data que enviaste en el form
     onSuccess: (response, variables) => { 
       
-      // 1. Invalidamos la lista general de bodegas (por si tienes una tabla global)
-      queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() });
-      
-      // 2. ¡PRECISIÓN QUIRÚRGICA! Solo invalidamos la caché de la sede actual
+      // MAGIA DE CREACIÓN: Inyectamos la nueva bodega directo en la memoria
       if (variables.instalaciones_id) {
-        queryClient.invalidateQueries({ 
-          queryKey: bodegaKeys.detail(variables.instalaciones_id) 
+        queryClient.setQueryData(bodegaKeys.detail(variables.instalaciones_id), (oldData) => {
+          if (!oldData) return oldData;
+          
+          // Asumimos que tu API devuelve el registro creado en 'response.data'
+          // Si no, usamos 'variables' como respaldo temporal
+          const nuevaBodega = response?.data || { ...variables, id_bodegas: Date.now() };
+
+          return {
+            ...oldData,
+            // Agregamos la nueva bodega al final de la lista existente
+            bodegas: [...(oldData.bodegas || []), nuevaBodega]
+          };
         });
       }
       
       toast.success('Bodega creada exitosamente');
+
+      // Invalidamos de fondo para asegurar que el backend y frontend sean idénticos
+      queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bodegaKeys.details() });
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => apiClient.put(`/bodegas/${id}`, data),
     onSuccess: (response, variables) => {
-      queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() });
       
-      // Invalidación Quirúrgica: Actualizamos la sede actual
+      // MAGIA DE EDICIÓN: Buscamos y actualizamos la tarjeta sin recargar la página
+      const updateFn = (oldData) => {
+        if (!oldData || !oldData.bodegas) return oldData;
+        
+        return {
+          ...oldData,
+          bodegas: oldData.bodegas.map(bodega => 
+            // Si es la bodega que editamos, combinamos los datos viejos con los nuevos
+            bodega.id_bodegas === variables.id 
+              ? { ...bodega, ...variables.data } 
+              : bodega
+          )
+        };
+      };
+
       if (variables.data?.instalaciones_id) {
-        queryClient.invalidateQueries({ queryKey: bodegaKeys.detail(variables.data.instalaciones_id) });
+        queryClient.setQueryData(bodegaKeys.detail(variables.data.instalaciones_id), updateFn);
       } else {
-        queryClient.invalidateQueries({ queryKey: bodegaKeys.details() });
+        queryClient.setQueriesData({ queryKey: bodegaKeys.details() }, updateFn);
       }
       
       toast.success('Bodega actualizada exitosamente');
+
+      // Invalidamos de fondo silenciosamente
+      queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bodegaKeys.details() });
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (idToDelete) => apiClient.delete(`/bodegas/${idToDelete}`),
-    onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() });
+    onSuccess: (response, idToDelete) => { 
       
-      // Al eliminar, refrescamos cualquier grid de tarjetas que esté abierto
-      queryClient.invalidateQueries({ queryKey: bodegaKeys.details() }); 
-      
+      // MAGIA DE ELIMINACIÓN: Filtramos y quitamos la tarjeta en 0ms
+      queryClient.setQueriesData({ queryKey: bodegaKeys.details() }, (oldData) => {
+        if (!oldData || !oldData.bodegas) return oldData;
+        
+        return {
+          ...oldData,
+          bodegas: oldData.bodegas.filter(bodega => bodega.id_bodegas !== idToDelete)
+        };
+      });
+
       toast.success('Bodega eliminada exitosamente');
+
+      // Invalidamos de fondo silenciosamente
+      queryClient.invalidateQueries({ queryKey: bodegaKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bodegaKeys.details() }); 
     },
   })
 

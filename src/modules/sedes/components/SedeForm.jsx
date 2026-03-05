@@ -114,7 +114,10 @@ const SedeForm = () => {
             className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 disabled:opacity-70 transition-all shadow-md shadow-emerald-600/20"
           >
             {isSaving ? (
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              <span className="flex items-center gap-2">
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  {payload ? 'Actualizando' : 'Guardando'}
+              </span>
             ) : (
               <><Save size={18} /> {payload ? 'Actualizar' : 'Guardar'}</>
             )}

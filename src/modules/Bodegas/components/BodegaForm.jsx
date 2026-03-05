@@ -111,7 +111,7 @@ const BodegaForm = () => {
               <span className="flex items-center gap-2">
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                   {payload ? 'Actualizando' : 'Guardando'}
-                </span>
+              </span>
             ) : (
               <><Save size={18} /> {payload ? 'Actualizar' : 'Guardar'}</>
             )}
@@ -150,8 +150,8 @@ const BodegaForm = () => {
                 { value: '1', label: 'Operativo / Activa' },
                 { value: '0', label: 'Inactiva / Cerrada' }
               ]}
-              value={field.value}       // RHF le pasa el valor actual
-              onChange={field.onChange} // RHF se entera cuando el usuario hace clic
+              value={field.value}     
+              onChange={field.onChange}
               error={errors.estado?.message}
             />
           )}

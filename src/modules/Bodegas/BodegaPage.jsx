@@ -9,11 +9,14 @@ import { useBoundStore } from '../../store/useBoundStore';
 import BodegaForm from './components/BodegaForm';
 import { useEffect } from 'react';
 import ConfirmModal from '../../shared/ConfirmModal';
+import { useInventario } from '../Inventario/api/useInventario';
 
 const BodegaPage = () => {
 
   const { id } = useParams();
-  const { bodegasInstalacion, items, isLoadingBodegas, removeAsync } = useBodegas(id);
+  const { bodegasInstalacion, isLoadingBodegas, removeAsync } = useBodegas(id);
+  const { items } = useInventario(id);
+
 
   const {openDrawer, setSedeName } = useBoundStore();
   const openConfirm = useBoundStore(state => state.openConfirm);
@@ -57,7 +60,7 @@ const BodegaPage = () => {
         ) : bodegasInstalacion?.bodegas?.map((bodega) => {
 
           // Filtramos los items que pertenecen a ESTA bodega específica
-          const esLaBodegaActual = String(bodega.id_bodegas) === String(items?.id_bodegas);
+          const esLaBodegaActual = bodega.id_bodegas === items?.id_bodegas;
 
           // Si coinciden, sacamos el length del inventario
           const totalArticulos = esLaBodegaActual ? (items?.pagination?.totalItems || 0) : 0;

@@ -13,11 +13,12 @@ import { useParams } from "react-router";
 import { useBoundStore } from "../../store/useBoundStore";
 import HeaderSection from '../../shared/HeaderSection';
 import { useInventario } from "./api/useInventario";
+import ItemFormModal from "./Components/ItemForm";
 
 const InventarioPage = () => {
 
     const { id_bodega } = useParams();
-    const { setBodega, clearBodega, sedeName } = useBoundStore();
+    const { setBodega, clearBodega, sedeName, openDrawer } = useBoundStore();
     const { isLoadingItems, items } = useInventario(id_bodega);
 
     useEffect(() => {
@@ -79,6 +80,7 @@ const InventarioPage = () => {
 
                         <Button
                         variant="black"
+                        onClick={() => openDrawer('ITEM_FORM')}
                         icon={Plus}
                         >
                         Agregar Item
@@ -87,7 +89,7 @@ const InventarioPage = () => {
                 </div>
 
             <DataTable />
-            
+            <ItemFormModal />
         </div>
     )
 }

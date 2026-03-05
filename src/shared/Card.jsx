@@ -146,7 +146,7 @@ const Card = ({
 
         {/* 3. Footer */}
         <div className="px-3 py-2 border-t border-zinc-50 bg-zinc-50/30 group-hover:bg-blue-50/50 transition-colors">
-          <NavLink to={linkTo} className="w-full flex items-center justify-center gap-2 text-[10px] font-extrabold text-zinc-500 group-hover:text-blue-600 uppercase">
+          <NavLink to={linkTo} className="w-full flex items-center justify-center gap-2 text-[10px] font-bold text-zinc-500 group-hover:text-blue-600 uppercase">
             {linkText}
             <ChevronRight size={14} />
           </NavLink>

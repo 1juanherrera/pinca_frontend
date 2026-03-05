@@ -20,28 +20,70 @@ export const useInstalaciones = (id = null) => {
   });
 
   // --- MUTACIONES ---
+
   const createMutation = useMutation({
     mutationFn: (data) => apiClient.post('/instalaciones', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: instalacionesKeys.lists() });
+    onSuccess: (response, variables) => {
+      // MAGIA: Inyectamos la nueva sede en la lista principal instantáneamente
+      queryClient.setQueryData(instalacionesKeys.lists(), (oldData) => {
+        // Si no hay datos previos, no hacemos nada
+        if (!Array.isArray(oldData)) return oldData;
+        
+        // Usamos la respuesta del backend si existe, sino armamos un objeto temporal
+        const nuevaInstalacion = response?.data || { ...variables, id_instalaciones: Date.now() };
+        
+        return [...oldData, nuevaInstalacion];
+      });
+
       toast.success('Instalación creada correctamente');
+      
+      // Invalidación silenciosa en segundo plano
+      queryClient.invalidateQueries({ queryKey: instalacionesKeys.lists() });
     }
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => apiClient.put(`/instalaciones/${id}`, data),
-    onSuccess: (variables) => {
+    onSuccess: (response, variables) => {
+      // MAGIA: Actualizamos la sede en la lista principal
+      queryClient.setQueryData(instalacionesKeys.lists(), (oldData) => {
+        if (!Array.isArray(oldData)) return oldData;
+        
+        return oldData.map(inst => 
+          inst.id_instalaciones === variables.id 
+            ? { ...inst, ...variables.data } 
+            : inst
+        );
+      });
+
+      // MAGIA: Actualizamos también la vista de detalle si el usuario está dentro de ella
+      queryClient.setQueryData(instalacionesKeys.detail(variables.id), (oldData) => {
+        if (!oldData) return oldData;
+        return { ...oldData, ...variables.data };
+      });
+
+      toast.success('Instalación actualizada correctamente');
+      
+      // Invalidaciones silenciosas
       queryClient.invalidateQueries({ queryKey: instalacionesKeys.lists() });
       queryClient.invalidateQueries({ queryKey: instalacionesKeys.detail(variables.id) });
-      toast.success('Instalación actualizada correctamente');
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (idToDelete) => apiClient.delete(`/instalaciones/${idToDelete}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: instalacionesKeys.lists() });
+    onSuccess: (response, idToDelete) => {
+      // MAGIA: Filtramos la sede eliminada de la lista en 0ms
+      queryClient.setQueryData(instalacionesKeys.lists(), (oldData) => {
+        if (!Array.isArray(oldData)) return oldData;
+        
+        return oldData.filter(inst => inst.id_instalaciones !== idToDelete);
+      });
+
       toast.success('Instalación eliminada correctamente');
+      
+      // Invalidación silenciosa
+      queryClient.invalidateQueries({ queryKey: instalacionesKeys.lists() });
     },
   });
 
@@ -60,6 +102,7 @@ export const useInstalaciones = (id = null) => {
     isUpdating: updateMutation.isPending,
 
     remove: deleteMutation.mutate,
+    removeAsync: deleteMutation.mutateAsync, // ✅ ¡Crucial para el modal global!
     isDeleting: deleteMutation.isPending,
 
     // Utilidades

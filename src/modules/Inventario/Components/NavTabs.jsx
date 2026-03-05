@@ -1,44 +1,62 @@
-import { 
-  Layers,
-  Package,
-  FlaskConical,
-  Puzzle,
-  Search
-} from 'lucide-react';
+import { FlaskConical, Layers, Package, Puzzle, Search } from "lucide-react";
+import React from "react";
 
-const NavTabs = () => {
-    return (
-        <div className="flex items-center justify-between bg-white border border-zinc-200/80 rounded-xl shadow-sm overflow-x-auto hide-scrollbar">
-            <div className='flex'>
-                <button className="flex items-center gap-2 px-4 py-2 bg-zinc-100 text-zinc-900 rounded-lg text-sm font-semibold shadow-sm transition-all whitespace-nowrap">
-                    <Layers size={16} className="text-zinc-500" />
-                    TODOS
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 text-zinc-500 hover:text-zinc-900 rounded-lg text-sm font-semibold transition-all whitespace-nowrap">
-                    <Package size={16} />
-                    PRODUCTOS
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 text-zinc-500 hover:text-zinc-900 rounded-lg text-sm font-semibold transition-all whitespace-nowrap">
-                    <FlaskConical size={16} />
-                    MATERIA PRIMA
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 text-zinc-500 hover:text-zinc-900 rounded-lg text-sm font-semibold transition-all whitespace-nowrap">
-                    <Puzzle size={16} />
-                    INSUMOS
-                </button>
-            </div>
+export const NavTabs = ({ searchTerm, setSearchTerm, catFilter, setCatFilter, isFetching, Page }) => {
+  
+  // Definimos las categorías para mapearlas limpiamente
+  const categories = [
+    { id: '', label: 'TODOS', icon: <Layers size={16} /> },
+    { id: '0', label: 'PRODUCTOS', icon: <Package size={16} /> },
+    { id: '1', label: 'MATERIA PRIMA', icon: <FlaskConical size={16} /> },
+    { id: '2', label: 'INSUMOS', icon: <Puzzle size={16} /> },
+  ];
 
-            <div className="relative group p-2 w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 ml-2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-800 transition-colors" size={16} />
-                <input 
-                type="text" 
-                placeholder="Buscar por nombre o código..." 
-                className="w-full pl-9 pr-4 py-2.5 bg-zinc-50 border border-zinc-200/80 rounded-lg text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                />
+  return (
+    <div className="flex items-center justify-between bg-white border border-zinc-200/80 rounded-xl shadow-sm overflow-x-auto hide-scrollbar p-1">
+      <div className='flex gap-1'>
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setCatFilter(cat.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap
+              ${catFilter === cat.id 
+                ? 'bg-zinc-900 text-white shadow-sm' 
+                : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+              }`}
+          >
+            {/* El icono cambia de color si está activo */}
+            {React.cloneElement(cat.icon, { 
+              className: catFilter === cat.id ? 'text-white' : 'text-zinc-500' 
+            })}
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="relative group p-1 w-full sm:w-80">
+        <Search 
+          className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors 
+            ${isFetching ? 'text-blue-500' : 'text-zinc-400 group-focus-within:text-zinc-800'}`} 
+          size={16} 
+        />
+        <input 
+          type="text" 
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            Page(1);
+            setCatFilter(''); 
+          }}
+          placeholder="Buscar por nombre o código..." 
+          className="w-full pl-10 pr-10 py-2 bg-zinc-50 border border-zinc-200/80 rounded-lg text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-zinc-900/5 focus:border-zinc-900 transition-all"
+        />
+        {/* Spinner sutil si está buscando */}
+        {isFetching && (
+          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+            <div className="w-3 h-3 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin"></div>
           </div>
-
-        </div>
-    )
-}
-
-export default NavTabs;
+        )}
+      </div>
+    </div>
+  );
+};

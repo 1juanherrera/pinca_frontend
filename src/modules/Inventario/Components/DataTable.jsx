@@ -6,19 +6,33 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useBoundStore } from '../../../store/useBoundStore';
-import NavTabs from './NavTabs';
+import { NavTabs } from './NavTabs';
 import { handleType } from '../utils/handlers';
 import { formatoPesoColombiano } from '../../../utils/formatters';
 import { useState } from 'react';
 import { SkeletonRow } from '../../../shared/Skeletons';
 import { useInventario } from '../api/useInventario';
+import { useItem } from '../api/useItem';
+import ConfirmModal from '../../../shared/ConfirmModal';
+import { getPaginationRange } from '../services/pagination';
 
 const DataTable = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [catFilter, setCatFilter] = useState('');
   const id_bodega = useBoundStore(state => state.activeBodegaId);
+  const openConfirm = useBoundStore(state => state.openConfirm);
 
-  const { isLoadingItems, items } = useInventario(id_bodega);
+  const { isLoadingItems, items, isFetching } = useInventario(
+    id_bodega, 
+    currentPage, 
+    perPage, 
+    searchTerm, 
+    catFilter
+  );
+  const { removeAsync } = useItem();
 
   const inventario = items?.inventario || [];
   const pagination = items?.pagination || { totalPages: 1, totalItems: 0 };
@@ -30,9 +44,26 @@ const DataTable = () => {
   const getId = (item) => item?.id_item_general || item.id || '-';
   const getCostoGalon = (item) => item?.costo_mp_galon || '0';
 
+  const handleSearchChange = (value) => {
+    setSearchTerm(value); // ✅ Recibe el string directo
+    setCurrentPage(1);
+  };
+
+  const handleCatChange = (value) => {
+    setCatFilter(value); // ✅ Recibe el ID directo
+    setCurrentPage(1);
+  };
+
   return (
     <>
-      <NavTabs />
+      <NavTabs 
+        searchTerm={searchTerm} 
+        setSearchTerm={handleSearchChange}
+        catFilter={catFilter}
+        setCatFilter={handleCatChange}
+        Page={setCurrentPage}
+        isFetching={isFetching}
+      />
       <div className="flex flex-col gap-3 w-full mt-2">
         <div className="bg-white border border-zinc-200/80 rounded-xl shadow-sm w-full overflow-hidden">
           
@@ -85,7 +116,15 @@ const DataTable = () => {
                           <button className="flex items-center justify-center w-8 h-8 rounded bg-zinc-200 text-zinc-600 hover:bg-zinc-800 hover:text-white transition-all active:scale-95">
                             <Edit size={14} />
                           </button>
-                          <button className="flex items-center justify-center w-8 h-8 rounded bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-all active:scale-95">
+                          <button 
+                          onClick={() => openConfirm({
+                            title: "Eliminar Item",
+                            message: `¿Estás seguro de que deseas eliminar el item "${getNombre(item)}"?`,
+                            onConfirm: async () => {
+                              await removeAsync(getId(item));
+                            } 
+                          })}
+                          className="flex items-center justify-center w-8 h-8 rounded bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-all active:scale-95">
                             <Trash2 size={14} />
                           </button>
                           <button className="flex items-center justify-center w-8 h-8 rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all active:scale-95">
@@ -110,29 +149,80 @@ const DataTable = () => {
             </table>
           </div>
 
-          {/* FOOTER DE PAGINACIÓN */}
           <div className="px-4 py-3 bg-zinc-50 border-t border-zinc-200 flex items-center justify-between">
-            <div className="text-xs text-zinc-500 font-medium">
-              Mostrando <span className="text-zinc-900">{inventario.length}</span> de <span className="text-zinc-900">{pagination?.totalItems || 0}</span> items
+            {/* Info de items */}
+            <div className="hidden sm:flex items-center gap-4">
+              {isFetching ? (
+                <div className="h-8 w-48 bg-zinc-200 animate-pulse rounded-lg"></div>
+              ) : (
+                <>
+                  <div className="text-xs text-zinc-500 font-medium">
+                    Mostrando <span className="text-zinc-900 font-bold">{inventario.length}</span> de <span className="text-zinc-900 font-bold">{pagination?.totalItems || 0}</span> items
+                  </div>
+                  
+                  <div className="flex items-center gap-2 border-l border-zinc-200 pl-4">
+                    <span className="text-xs text-zinc-500 font-medium">Filas:</span>
+                    <select
+                      value={perPage}
+                      onChange={(e) => {
+                        setPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="bg-white border border-zinc-300 text-zinc-900 text-xs font-bold rounded-lg focus:ring-zinc-950 focus:border-zinc-950 block p-1 px-2 outline-none transition-all hover:border-zinc-400"
+                    >
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                  </div>
+                </>
+              )}
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              {/* Botón Anterior */}
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1 || isLoadingItems}
-                className="p-1.5 border border-zinc-300 rounded-lg bg-white hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                disabled={currentPage === 1 || isFetching}
+                className="p-2 border border-zinc-300 rounded-lg bg-white hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 <ChevronLeft size={16} />
               </button>
               
-              <div className="text-xs font-bold text-zinc-700">
-                Página {currentPage} de {pagination?.totalPages || 1}
+              {/* Números con Elipsis y Estado de Carga */}
+              <div className="flex items-center gap-1">
+                {isFetching ? (
+                  <div className="flex gap-1">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="w-8 h-8 bg-zinc-200 animate-pulse rounded-lg"></div>
+                    ))}
+                  </div>
+                ) : (
+                  getPaginationRange(currentPage, pagination?.totalPages || 1).map((page, index) => (
+                    <button
+                      key={index}
+                      onClick={() => typeof page === 'number' && setCurrentPage(page)}
+                      disabled={page === '...' || isFetching}
+                      className={`min-w-8 h-8 flex items-center justify-center rounded-lg text-[11px] font-bold transition-all
+                        ${page === currentPage 
+                          ? 'bg-zinc-950 text-white shadow-lg shadow-zinc-200' 
+                          : page === '...' 
+                            ? 'text-zinc-400 cursor-default' 
+                            : 'bg-white border border-zinc-300 text-zinc-600 hover:border-zinc-950 hover:text-zinc-950'
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  ))
+                )}
               </div>
 
+              {/* Botón Siguiente */}
               <button
-                onClick={() => setCurrentPage(prev => prev + 1)}
-                disabled={currentPage >= (pagination?.totalPages || 1) || isLoadingItems}
-                className="p-1.5 border border-zinc-300 rounded-lg bg-white hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination?.totalPages || 1))}
+                disabled={currentPage >= (pagination?.totalPages || 1) || isFetching}
+                className="p-2 border border-zinc-300 rounded-lg bg-white hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 <ChevronRight size={16} />
               </button>
@@ -140,6 +230,7 @@ const DataTable = () => {
           </div>
         </div>
       </div>
+      <ConfirmModal />
     </>
   );
 }
