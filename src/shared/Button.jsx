@@ -48,7 +48,7 @@ export const ButtonSquare = ({ onClick, variant = "black", icon: Icon, sizeIcon 
             title={title}
             className={`flex items-center justify-center w-10 h-10 rounded-xl shadow-sm transition-all active:scale-95 ${variants[variant]}`}
         >
-            {Icon && <Icon size={sizeIcon} />}
+            {Icon && <Icon size={sizeIcon} className="pointer-events-none" />}
         </button>
     )
 }

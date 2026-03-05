@@ -5,8 +5,8 @@ import {
   Plus,
   Filter,
   Download,
-  FileUp,
-  Store
+  Store,
+  FileCog
 } from 'lucide-react';
 import { Button, ButtonSquare } from "../../shared/Button";
 import { useParams } from "react-router";
@@ -14,12 +14,14 @@ import { useBoundStore } from "../../store/useBoundStore";
 import HeaderSection from '../../shared/HeaderSection';
 import { useInventario } from "./api/useInventario";
 import ItemFormModal from "./Components/ItemForm";
+import { ExcelModal } from "./Components/ExcelModal";
 
 const InventarioPage = () => {
 
     const { id_bodega } = useParams();
     const { setBodega, clearBodega, sedeName, openDrawer } = useBoundStore();
-    const { isLoadingItems, items } = useInventario(id_bodega);
+    const { isLoadingItems, items, refresh } = useInventario(id_bodega);
+    const openModal = useBoundStore(state => state.openModal);
 
     useEffect(() => {
         setBodega(id_bodega);
@@ -55,6 +57,7 @@ const InventarioPage = () => {
                     <div className="flex gap-2">
                         <ButtonSquare
                         icon={RefreshCw}
+                        onClick={refresh}
                         sizeIcon={18}
                         title="Actualizar datos"
                         variant="white"
@@ -72,10 +75,14 @@ const InventarioPage = () => {
                             variant="white"
                         />
                         <ButtonSquare
-                            icon={FileUp}
+                            icon={FileCog}
                             sizeIcon={18}
                             title="Importar Excel"
                             variant="emerald"
+                            onClick={() => {
+                                openModal('EXPORT_EXCEL');
+                                console.log("Modal activo actualmente:", 'EXPORT_EXCEL');
+                            }}
                         />
 
                         <Button
@@ -90,6 +97,7 @@ const InventarioPage = () => {
 
             <DataTable />
             <ItemFormModal />
+            <ExcelModal data={items} />
         </div>
     )
 }

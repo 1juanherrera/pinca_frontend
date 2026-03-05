@@ -21,7 +21,7 @@ const DataTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
-  const [catFilter, setCatFilter] = useState('');
+  const [tipoFilter, setTipoFilter] = useState('');
   const id_bodega = useBoundStore(state => state.activeBodegaId);
   const openConfirm = useBoundStore(state => state.openConfirm);
 
@@ -30,7 +30,7 @@ const DataTable = () => {
     currentPage, 
     perPage, 
     searchTerm, 
-    catFilter
+    tipoFilter
   );
   const { removeAsync } = useItem();
 
@@ -49,8 +49,8 @@ const DataTable = () => {
     setCurrentPage(1);
   };
 
-  const handleCatChange = (value) => {
-    setCatFilter(value); // ✅ Recibe el ID directo
+  const handleTipoChange = (value) => {
+    setTipoFilter(value); // ✅ Recibe el ID directo
     setCurrentPage(1);
   };
 
@@ -59,8 +59,8 @@ const DataTable = () => {
       <NavTabs 
         searchTerm={searchTerm} 
         setSearchTerm={handleSearchChange}
-        catFilter={catFilter}
-        setCatFilter={handleCatChange}
+        tipoFilter={tipoFilter}
+        setTipoFilter={handleTipoChange}
         Page={setCurrentPage}
         isFetching={isFetching}
       />
@@ -83,7 +83,7 @@ const DataTable = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200/80">
-                {isLoadingItems ? (
+                {isLoadingItems || isFetching ? (
                   /* ESTADO 1: CARGANDO */
                   Array.from({ length: 10 }).map((_, i) => (
                     <SkeletonRow key={`skeleton-${i}`} />

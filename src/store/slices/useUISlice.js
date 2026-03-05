@@ -9,6 +9,17 @@ export const createUISlice = (set) => ({
     message: '',
     onConfirm: null, 
   },
+  activeModal: null,
+  modalPayload: null,
+
+  openModal: (modalName, payload = null) => set({ 
+    activeModal: modalName, 
+    modalPayload: payload 
+  }),
+  closeModal: () => set({ 
+    activeModal: null, 
+    modalPayload: null 
+  }),
 
   openDrawer: (drawerName, payload = null) => set({ activeDrawer: drawerName, drawerPayload: payload }),
   closeDrawer: () => set({ activeDrawer: null, drawerPayload: null }),

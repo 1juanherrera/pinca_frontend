@@ -1,7 +1,7 @@
 export const inventarioKeys = {
   all: ['inventario'],
   lists: () => [...inventarioKeys.all, 'list'],
-  byBodega: (id_bodega, page, perPage, search = '', categoria = '') => [
+  byBodega: (id_bodega, page, perPage, search = '', tipo = '') => [
     ...inventarioKeys.lists(), 
     'bodega', 
     id_bodega?.toString(), 
@@ -9,7 +9,7 @@ export const inventarioKeys = {
       page, 
       perPage, 
       search,   
-      categoria    
+      tipo    
     }
   ],
   details: () => [...inventarioKeys.all, 'detail'],

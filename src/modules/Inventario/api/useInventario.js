@@ -2,17 +2,17 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { inventarioKeys } from './inventarioKeys'; 
 
-// 1. Añadimos search y categoria a los argumentos
-export const useInventario = (id_bodega = null, page = 1, perPage = 10, search = '', categoria = '') => {
+// 1. Añadimos search y tipo a los argumentos
+export const useInventario = (id_bodega = null, page = 1, perPage = 10, search = '', tipo = '') => {
   const queryClient = useQueryClient();
 
   const queryInventory = useQuery({
     // 🚩 CAMBIO AQUÍ: No uses el spread [...], usa la función directamente
-    queryKey: inventarioKeys.byBodega(id_bodega, page, perPage, search, categoria),
+    queryKey: inventarioKeys.byBodega(id_bodega, page, perPage, search, tipo),
     
     queryFn: async () => {
       const response = await apiClient.get(
-        `/bodegas/inventario/${id_bodega}?page=${page}&perPage=${perPage}&search=${search}&categoria=${categoria}`
+        `/bodegas/inventario/${id_bodega}?page=${page}&perPage=${perPage}&search=${search}&tipo=${tipo}`
       );
       
       const data = response?.data !== undefined ? response.data : response;
@@ -29,8 +29,7 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
     isLoadingItems: queryInventory.isLoading,
     isError: queryInventory.isError,
     refresh: () => queryClient.invalidateQueries({ 
-      // 🚩 También corregimos el refresh
-      queryKey: inventarioKeys.byBodega(id_bodega, page, perPage, search, categoria) 
+      queryKey: inventarioKeys.byBodega(id_bodega, page, perPage, search, tipo) 
     }),
   }
 }
