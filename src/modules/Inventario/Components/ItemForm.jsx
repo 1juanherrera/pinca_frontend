@@ -26,7 +26,17 @@ const ItemFormModal = () => {
 
   // 2. TanStack Query
   const bodega_id = payload?.bodega_id || id_bodega || '';
-  const { createAsync, updateAsync, isCreating, isUpdating, materiaPrima, unidades: unidadesData, itemDetail } = useItem(payload?.id_item_general);
+  const { 
+    createAsync, 
+    updateAsync, 
+    isCreating, 
+    isUpdating, 
+    materiaPrima, 
+    unidades: unidadesData, 
+    itemDetail,
+    recetaData,
+    isLoadingReceta
+   } = useItem(payload?.id_item_general);
   const isSaving = isCreating || isUpdating;
 
   // 3. React Hook Form y FieldArray
@@ -87,6 +97,12 @@ const ItemFormModal = () => {
           return mapa[String(t).toUpperCase()] || '0'; 
         };
 
+        const formulacionesMapeadas = (recetaData || []).map(f => ({
+          id_item_general: String(f.id_item_general),
+          cantidad: f.cantidad,
+          porcentaje: f.porcentaje || 0
+        }));
+
         reset({
             nombre: dataToUse.nombre || dataToUse.nombre_item_general || '', 
             codigo: dataToUse.codigo || dataToUse.codigo_item_general || '',
@@ -108,7 +124,7 @@ const ItemFormModal = () => {
             envase: dataToUse.envase || 0, 
             etiqueta: dataToUse.etiqueta || 0, 
             plastico: dataToUse.plastico || 0,
-            formulaciones: dataToUse.formulaciones || []
+            formulaciones: formulacionesMapeadas
         })
       } else {
         reset({
@@ -136,7 +152,7 @@ const ItemFormModal = () => {
         });
       }
     }
-  }, [isModalOpen, itemDetail, payload, reset, bodega_id]);
+  }, [isModalOpen, itemDetail, payload, reset, bodega_id, recetaData]);
 
   const handleClose = () => {
     setActiveTab('basico');
@@ -370,6 +386,15 @@ const renderTabPropiedades = () => {
       value: String(mp.id_item_general),
       label: `${mp.nombre} (${mp.codigo})`
     }))];
+
+    if (isLoadingReceta) {
+      return (
+        <div className="p-10 text-center animate-pulse">
+          <FlaskConical className="mx-auto text-zinc-300 mb-2 animate-bounce" size={40} />
+          <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Cargando Receta Técnica...</p>
+        </div>
+      );
+    }
 
     return (
       <div className="p-6 animate-in fade-in space-y-4">
