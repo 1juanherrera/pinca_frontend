@@ -57,3 +57,25 @@ export const handleExport = (data, closeModal, ) => {
   XLSX.writeFile(wb, `${safeName}_${timestamp}.xlsx`);
   closeModal();
 };
+
+const tipos = {
+  '0': {
+    nombre: 'PRODUCTOS',
+    color: ' bg-blue-100 text-blue-700 border-blue-300'
+  },
+  '1': {
+    nombre: 'MATERIA PRIMA',
+    color: 'bg-purple-100 text-purple-600 border-purple-300'
+  },
+  '2': {
+    nombre: 'INSUMOS',
+    color: 'bg-yellow-100 text-yellow-600 border-yellow-300'
+  }
+};
+
+export const getTipoInfo = (value) => {
+  return tipos[value] || {
+    nombre: 'TODOS LOS ITEMS',
+    color: 'bg-gray-200 text-gray-700 border-gray-300'
+  };
+};

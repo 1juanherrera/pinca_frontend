@@ -12,6 +12,7 @@ import {
 import { InputMoneda } from '../../../shared/Form/InputMoneda';
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router';
+import { GridInput } from '../../../shared/Form/GridInput';
 
 const ItemFormModal = () => {
 
@@ -25,7 +26,7 @@ const ItemFormModal = () => {
 
   // 2. TanStack Query
   const bodega_id = payload?.bodega_id || id_bodega || '';
-  const { createAsync, updateAsync, isCreating, isUpdating, materiaPrima, unidades: unidadesData } = useItem(payload?.id_item);
+  const { createAsync, updateAsync, isCreating, isUpdating, materiaPrima, unidades: unidadesData, itemDetail } = useItem(payload?.id_item_general);
   const isSaving = isCreating || isUpdating;
 
   // 3. React Hook Form y FieldArray
@@ -62,40 +63,52 @@ const ItemFormModal = () => {
     ? allTabs.filter(tab => tab.id !== 'formulaciones') 
     : allTabs;
 
-  // LA MAGIA: Estado derivado para la pestaña actual
+  // Estado derivado para la pestaña actual
   const currentTab = tabsFiltrados.some(tab => tab.id === activeTab) ? activeTab : 'basico';
 
-  const opcionesUnidades = unidadesData?.map(u => ({
-    value: String(u.unidad_id || u.id_unidad), // Verifica si tu JSON usa id_unit o id_unidad
-    label: u.nombre
-  })) || [];
+  // Unidades para el select, mapeamos a opciones { value, label }
+  const opcionesUnidades = [
+    { value: '', label: 'SELECCIONE UNIDAD...' }, 
+    ...(unidadesData?.map(u => ({
+      value: String(u.unidad_id || u.id_unidad), 
+      label: u.nombre
+    })) || [])
+  ];
 
   // 5. Pre-llenar Datos (Efecto Mágico)
   useEffect(() => {
     if (isModalOpen) {
-      if (payload?.id_item) {
+      const dataToUse = itemDetail || payload;
+      if (dataToUse?.id_item_general) {
+
+        const normalizarTipo = (t) => {
+          if (['0', '1', '2'].includes(String(t))) return String(t);
+          const mapa = { 'PRODUCTO': '0', 'MATERIA PRIMA': '1', 'INSUMO': '2' };
+          return mapa[String(t).toUpperCase()] || '0'; 
+        };
+
         reset({
-            nombre: payload.nombre || '', 
-            codigo: payload.codigo || '', 
-            tipo: payload.tipo || '', 
-            categoria_id: payload.categoria_id || 1,
-            unidad_id: payload.unidad_id || 1,
-            viscosidad: payload.viscosidad || '', 
-            p_g: payload.p_g || '', 
-            color: payload.color || '', 
-            brillo_60: payload.brillo_60 || '', 
-            secado: payload.secado || '', 
-            cubrimiento: payload.cubrimiento || '', 
-            molienda: payload.molienda || '', 
-            ph: payload.ph || '', 
-            poder_tintoreo: payload.poder_tintoreo || '',
-            cantidad: payload.cantidad || 0, 
-            costo_unitario: payload.costo_unitario || 0, 
+            nombre: dataToUse.nombre || dataToUse.nombre_item_general || '', 
+            codigo: dataToUse.codigo || dataToUse.codigo_item_general || '',
+            tipo: normalizarTipo(dataToUse.tipo),
+            categoria_id: dataToUse.categoria_id || '',
+            unidad_id: dataToUse.unidad_id || '',
+            viscosidad: dataToUse.viscosidad || '', 
+            p_g: dataToUse.p_g || '', 
+            color: dataToUse.color || '', 
+            brillo_60: dataToUse.brillo_60 || '', 
+            secado: dataToUse.secado || '', 
+            cubrimiento: dataToUse.cubrimiento || '', 
+            molienda: dataToUse.molienda || '', 
+            ph: dataToUse.ph || '', 
+            poder_tintoreo: dataToUse.poder_tintoreo || '',
+            cantidad: dataToUse.cantidad || 0, 
+            costo_unitario: dataToUse.costo_unitario || 0, 
             bodega_id: bodega_id || 1, 
-            envase: payload.envase || 0, 
-            etiqueta: payload.etiqueta || 0, 
-            plastico: payload.plastico || 0,
-            formulaciones: payload.formulaciones || []
+            envase: dataToUse.envase || 0, 
+            etiqueta: dataToUse.etiqueta || 0, 
+            plastico: dataToUse.plastico || 0,
+            formulaciones: dataToUse.formulaciones || []
         })
       } else {
         reset({
@@ -123,12 +136,12 @@ const ItemFormModal = () => {
         });
       }
     }
-  }, [isModalOpen, payload, reset, bodega_id]);
+  }, [isModalOpen, itemDetail, payload, reset, bodega_id]);
 
   const handleClose = () => {
     setActiveTab('basico');
-    reset();               
-    closeDrawer();        
+    reset();             
+    closeDrawer();       
   };
 
   // 6. Manejadores
@@ -186,9 +199,9 @@ const ItemFormModal = () => {
       // Opcional: console.log para verificar la estructura antes de enviar
       console.log("Payload final para el backend:", payloadToSend);
 
-      if (payload?.id_item) {
+      if (payload?.id_item_general) {
         await updateAsync(
-          { id: payload.id_item, data: payloadToSend }, // Enviamos el payload corregido
+          { id: payload.id_item_general, data: payloadToSend }, // Enviamos el payload corregido
           {
             onSuccess: () => {
               console.log("Item actualizado con éxito");
@@ -219,44 +232,54 @@ const ItemFormModal = () => {
   // --- SUB-RENDERIZADOS ---
 
   const renderTabBasico = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 animate-in fade-in">
-      <div className="space-y-5">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-5 p-5 animate-in fade-in">
+      
+      {/* Fila 1: Nombre (8 col) y Código (4 col) */}
+      <div className="md:col-span-8">
         <FormInput 
-          label="Nombre del Producto" placeholder="Ej. Esmalte Sintético Blanco" required
+          label="Nombre del Producto" 
+          placeholder="Esmalte Sintético Blanco" 
+          required
           error={errors.nombre?.message}
           registration={register('nombre', { required: 'El nombre es obligatorio' })}
         />
-        
-        <div className="flex items-end gap-2">
+      </div>
+
+      <div className="md:col-span-4">
+        <div className="flex items-end gap-1.5">
           <div className="flex-1">
             <FormInput 
-              label="Código de Referencia" placeholder="Ej. REF-001" required
+              label="Código" 
+              placeholder="REF-001" 
+              required
               error={errors.codigo?.message}
               registration={register('codigo', { required: 'El código es obligatorio' })}
             />
           </div>
           <button 
-            type="button" onClick={handleGenerateCode} title="Generar código"
-            className="mb-1 p-3 text-zinc-600 bg-zinc-100 rounded-xl hover:bg-zinc-200 hover:text-zinc-900 transition-colors"
+            type="button" 
+            onClick={handleGenerateCode} 
+            title="Generar código"
+            className="group mb-px p-2.5 text-zinc-500 bg-zinc-100 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white transition-all active:scale-95"
           >
-            <Wand2 size={20} />
+            <Wand2 size={16} className="group-hover:rotate-12 transition-transform" />
           </button>
         </div>
       </div>
 
-      <div className="space-y-5">
-        
-        {/* SELECT DE TIPO */}
+      {/* Fila 2: Los 3 Selects en línea (4 col cada uno) */}
+      <div className="md:col-span-4">
         <Controller
           name="tipo"
           control={control}
           rules={{ required: 'Seleccione un tipo' }}
-          render={({ field }) => ( // 👈 ¡Faltaba extraer 'field' aquí!
+          render={({ field }) => ( 
             <FormSelect 
-              label="Tipo de Ítem" required
+              label="Tipo de Ítem" 
+              required
               error={errors.tipo?.message}
               options={[
-                { value: '', label: 'SELECCIONE TIPO...' },
+                { value: '', label: 'SELECCIONE...' },
                 { value: '0', label: 'PRODUCTO' },
                 { value: '1', label: 'MATERIA PRIMA' },
                 { value: '2', label: 'INSUMO' }
@@ -266,18 +289,20 @@ const ItemFormModal = () => {
             />
           )}
         />
+      </div>
 
-        {/* SELECT DE CATEGORÍA */}
+      <div className="md:col-span-4">
         <Controller
           name="categoria_id"
           control={control}
           rules={{ required: 'Seleccione una categoría' }}
           render={({ field }) => (
             <FormSelect 
-              label="Categoría" required
+              label="Categoría" 
+              required
               error={errors.categoria_id?.message}
               options={[
-                { value: '', label: 'SELECCIONE CATEGORÍA...' },
+                { value: '', label: 'SELECCIONE...' },
                 { value: '1', label: 'ESMALTE' },
                 { value: '2', label: 'PASTA' },
                 { value: '3', label: 'ANTICORROSIVO' },
@@ -288,58 +313,57 @@ const ItemFormModal = () => {
             />
           )}
         />
-
-        <Controller
-            name="unidad_id"
-            control={control}
-            rules={{ required: 'Seleccione unidad' }}
-            render={({ field }) => (
-              <FormSelect 
-                label="Unidad" required
-                error={errors.unidad_id?.message}
-                options={opcionesUnidades}
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
       </div>
+
+      <div className="md:col-span-4">
+        <Controller
+          name="unidad_id"
+          control={control}
+          render={({ field }) => (
+            <FormSelect 
+              label="Unidad" 
+              required
+              error={errors.unidad_id?.message}
+              options={opcionesUnidades}
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
+      </div>
+
     </div>
   );
 
-  const renderTabPropiedades = () => {
-    // Definimos la estructura de los campos para iterarlos limpiamente
-    const propiedadesFisicas = [
-      { id: 'viscosidad', label: 'Viscosidad', placeholder: 'Ej. 100 - 105 KU' },
-      { id: 'p_g', label: 'Densidad / P.G.', placeholder: 'Ej. 1.25 gal/kg' },
-      { id: 'color', label: 'Color', placeholder: 'Ej. Blanco Nieve' },
-      { id: 'brillo_60', label: 'Brillo (60°)', placeholder: 'Ej. > 85%' },
-      { id: 'secado', label: 'Tiempo de secado', placeholder: 'Ej. 2 - 4 horas' },
-      { id: 'cubrimiento', label: 'Poder Cubriente', placeholder: 'Ej. 98%' },
-      { id: 'molienda', label: 'Molienda / Finura', placeholder: 'Ej. 6 Hegman' },
-      { id: 'ph', label: 'pH', placeholder: 'Ej. 8.5 - 9.0' },
-      { id: 'poder_tintoreo', label: 'Poder Tintóreo', placeholder: 'Ej. 100%' }
-    ];
+const renderTabPropiedades = () => {
+  return (
+    <div className="animate-in fade-in duration-500">
+      {/* El contenedor ahora solo maneja la forma global */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-t border-l border-zinc-200 rounded-b-xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)]">
+        
+        <GridInput label="Viscosidad" id="viscosidad" placeholder="100 - 105 KU" registration={register('viscosidad')} error={errors.viscosidad} />
+        <GridInput label="Densidad / P.G." id="p_g" placeholder="1.25 gal/kg" registration={register('p_g')} error={errors.p_g} />
+        <GridInput label="pH" id="ph" placeholder="8.5 - 9.0" registration={register('ph')} error={errors.ph} />
 
-    return (
-      <div className="p-6 animate-in fade-in space-y-6">
+        <GridInput label="Color" id="color" placeholder="Blanco Nieve" registration={register('color')} error={errors.color} />
+        <GridInput label="Brillo (60°)" id="brillo_60" placeholder="> 85%" registration={register('brillo_60')} error={errors.brillo_60} />
+        <GridInput label="Poder Tintóreo" id="poder_tintoreo" placeholder="100%" registration={register('poder_tintoreo')} error={errors.poder_tintoreo} />
 
-        {/* Grid de 3 columnas para los inputs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {propiedadesFisicas.map((prop) => (
-            <FormInput
-              key={prop.id}
-              label={prop.label}
-              placeholder={prop.placeholder}
-              error={errors[prop.id]?.message}
-              // Conectamos cada input a React Hook Form dinámicamente
-              registration={register(prop.id)} 
-            />
-          ))}
-        </div>
+        <GridInput label="Secado" id="secado" placeholder="2 - 4 horas" registration={register('secado')} error={errors.secado} />
+        <GridInput label="Cubrimiento" id="cubrimiento" placeholder="98%" registration={register('cubrimiento')} error={errors.cubrimiento} />
+        <GridInput label="Molienda" id="molienda" placeholder="6 Hegman" registration={register('molienda')} error={errors.molienda} />
+
       </div>
-    );
-  };
+      
+      <div className="p-3 bg-zinc-50 border-t border-zinc-200">
+        <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider flex items-center gap-2">
+          <span className="w-1 h-1 bg-zinc-300 rounded-full"></span>
+          Especificaciones Técnicas Pinca S.A.S.
+        </p>
+      </div>
+    </div>
+  );
+};
 
   const renderTabFormulaciones = () => {
     const mpOptions = [{ value: '', label: 'Buscar Materia Prima...' }, ...materiaPrima.map(mp => ({
@@ -405,64 +429,74 @@ const ItemFormModal = () => {
   };
 
   const renderTabCostos = () => {
-    // Definimos los campos de costos para iterarlos y mantener el código corto
-    const camposCostos = [
-      { id: 'costo_unitario', label: 'Costo Unitario' },
-      { id: 'envase', label: 'Costo de Envase' },
-      { id: 'etiqueta', label: 'Costo de Etiqueta' },
-      { id: 'plastico', label: 'Costo de Plástico' }
-    ];
+    // Mini-componente para moneda dentro del grid
+    const GridInputMoneda = ({ label, id, control }) => (
+      <Controller
+        name={id}
+        control={control}
+        render={({ field }) => (
+          <div className="flex flex-col border-r border-b border-zinc-200 bg-white p-4 focus-within:ring-1 focus-within:ring-inset focus-within:ring-zinc-900 focus-within:z-10 transition-colors">
+            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">{label}</label>
+            <InputMoneda
+              value={field.value}
+              onChange={field.onChange}
+              error={errors[id]?.message}
+              className="border-none! p-0! bg-transparent! shadow-none! font-semibold text-zinc-900"
+            />
+          </div>
+        )}
+      />
+    );
 
     return (
-      <div className="p-6 animate-in fade-in space-y-6">
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="animate-in fade-in duration-500">
+        <div className="flex flex-col border-t border-l border-zinc-200 rounded-b-xl overflow-hidden shadow-sm">
           
-          {/* SECCIÓN 1: STOCK INICIAL (Destacada visualmente) */}
-          <div className="md:col-span-2 bg-emerald-50/50 border border-emerald-100 p-5 rounded-2xl">
-            <div className="w-full md:w-1/2">
-              <FormInput 
-                type="number"
-                step="0.01"
-                label="Cantidad Inicial (Stock)"
-                placeholder="Ej. 150"
-                error={errors.cantidad?.message}
-                // register nativo porque FormInput es un input HTML por debajo
-                registration={register('cantidad', { 
-                  required: 'Requerido',
-                  valueAsNumber: true,
-                  min: { value: 0, message: 'No puede ser negativo' }
-                })}
-              />
-            </div>
-          </div>
-
-          {/* SECCIÓN 2: DESGLOSE DE COSTOS */}
-          <div className="md:col-span-2">
-            <h4 className="text-sm font-bold text-zinc-700 mb-4">Desglose de Costos (Moneda)</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {camposCostos.map((campo) => (
-                <Controller
-                  key={campo.id}
-                  name={campo.id}
-                  control={control}
-                  rules={{ min: { value: 0, message: 'No puede ser negativo' } }}
-                  render={({ field }) => (
-                    /* Asumiendo que tu InputMoneda está preparado para recibir 'value' y 'onChange'.
-                      Si aún no lo has modernizado, puedes usar temporalmente FormInput con type="number".
-                    */
-                    <InputMoneda
-                      label={campo.label}
-                      value={field.value}
-                      onChange={field.onChange}
-                      error={errors[campo.id]?.message}
-                    />
-                  )}
+          {/* SECCIÓN DE INVENTARIO: Full Width */}
+          <div className="grid grid-cols-1 md:grid-cols-4 bg-emerald-50/20 border-b border-zinc-200">
+            <div className="md:col-span-4 p-4 flex items-center justify-between">
+              <div className="flex flex-col flex-1">
+                <label className="text-[10px] font-black text-emerald-600 uppercase mb-1">
+                  Existencias Iniciales
+                </label>
+                <input 
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  {...register('cantidad', { valueAsNumber: true })}
+                  className="w-full bg-transparent border-none p-0 text-2xl font-bold text-zinc-900 placeholder:text-zinc-200 focus:ring-0 outline-none"
                 />
-              ))}
+                {errors.cantidad && <span className="text-[9px] text-red-500 font-bold uppercase">{errors.cantidad.message}</span>}
+              </div>
+              {/* Un pequeño detalle visual de "Status" */}
+              <div className="hidden md:block px-4 py-2 bg-white border border-emerald-100 rounded-lg shadow-sm">
+                <span className="text-[10px] font-bold text-emerald-500 uppercase">Inventario</span>
+              </div>
             </div>
           </div>
 
+          {/* SECCIÓN DE COSTOS: Grid 2x2 */}
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            <GridInputMoneda label="Costo Unitario (Materia Prima)" id="costo_unitario" control={control} />
+            <GridInputMoneda label="Costo de Envase" id="envase" control={control} />
+            <GridInputMoneda label="Costo de Etiqueta" id="etiqueta" control={control} />
+            <GridInputMoneda label="Costo de Plástico" id="plastico" control={control} />
+          </div>
+
+        </div>
+
+        {/* FOOTER DE TOTALES (Opcional pero muy Pro) */}
+        <div className="mt-4 p-4 bg-zinc-900 flex items-center justify-between text-white shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+              <CircleDollarSign size={18} className="text-emerald-400" />
+            </div>
+            <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Análisis de Costos</span>
+          </div>
+          <div className="text-right">
+            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-tighter">Referencia de Valor</p>
+            <p className="text-lg font-black font-mono">ESTIMADO</p>
+          </div>
         </div>
       </div>
     );
@@ -480,7 +514,7 @@ const ItemFormModal = () => {
             </div>
             <div>
               <h2 className="text-xl font-bold text-zinc-900 tracking-tight">
-                {payload?.id_item ? 'Editar Ítem' : 'Registrar Nuevo Ítem'}
+                {payload?.id_item_general ? 'Editar Ítem' : 'Registrar Nuevo Ítem'}
               </h2>
               <p className="text-xs font-medium text-zinc-500">Gestión de Inventario y Ficha Técnica</p>
             </div>
@@ -531,7 +565,7 @@ const ItemFormModal = () => {
               {isSaving ? (
                 <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Guardando...</>
               ) : (
-                payload?.id_item ? 'Actualizar Ficha Técnica' : 'Guardar en Inventario'
+                payload?.id_item_general ? 'Actualizar Item' : 'Guardar en Inventario'
               )}
             </Button>
           </div>

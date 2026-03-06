@@ -35,9 +35,8 @@ export const NavTabs = ({ searchTerm, setSearchTerm, tipoFilter, setTipoFilter, 
 
       <div className="relative group p-1 w-full sm:w-80">
         <Search 
-          className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors 
-            ${isFetching ? 'text-blue-500' : 'text-zinc-400 group-focus-within:text-zinc-800'}`} 
-          size={16} 
+          className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors text-zinc-400 group-focus-within:text-zinc-800`} 
+          size={18} 
         />
         <input 
           type="text" 

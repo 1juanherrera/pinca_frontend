@@ -14,7 +14,6 @@ import { useBoundStore } from "../../store/useBoundStore";
 import HeaderSection from '../../shared/HeaderSection';
 import { useInventario } from "./api/useInventario";
 import ItemFormModal from "./Components/ItemForm";
-import { ExcelModal } from "./Components/ExcelModal";
 
 const InventarioPage = () => {
 
@@ -79,10 +78,7 @@ const InventarioPage = () => {
                             sizeIcon={18}
                             title="Importar Excel"
                             variant="emerald"
-                            onClick={() => {
-                                openModal('EXPORT_EXCEL');
-                                console.log("Modal activo actualmente:", 'EXPORT_EXCEL');
-                            }}
+                            onClick={() => openModal('EXPORT_EXCEL')}
                         />
 
                         <Button
@@ -97,7 +93,6 @@ const InventarioPage = () => {
 
             <DataTable />
             <ItemFormModal />
-            <ExcelModal data={items} />
         </div>
     )
 }

@@ -3,6 +3,7 @@ import apiClient from '../../../api/apiClient'; // Ajusta tus rutas
 import { itemKeys } from './itemKeys';
 import toast from 'react-hot-toast';
 import { inventarioKeys } from './inventarioKeys';
+import { useBoundStore } from '../../../store/useBoundStore';
 
 export const useItem = (id = null) => {
   const queryClient = useQueryClient();
@@ -53,28 +54,58 @@ export const useItem = (id = null) => {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => apiClient.put(`/item_general/${id}`, data),
-    onSuccess: (response, variables) => {
-      // Actualizamos el ítem en la lista principal
-      queryClient.setQueryData(itemKeys.lists(), (oldData) => {
-        if (!Array.isArray(oldData)) return oldData;
-        return oldData.map(item => 
-          item.id_item === variables.id ? { ...item, ...variables.data } : item
-        );
+    
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: inventarioKeys.all });
+      const previousInventory = queryClient.getQueriesData({ queryKey: inventarioKeys.all });
+
+      queryClient.setQueriesData({ queryKey: inventarioKeys.all }, (old) => {
+        if (!old || !old.inventario) return old;
+        return {
+          ...old,
+          inventario: old.inventario.map((item) => 
+            String(item.id_item_general || item.id_item) === String(id)
+              ? { 
+                  ...item, 
+                  ...data, // 🚩 Guarda 'MATERIA PRIMA' o 'INSUMO' directamente
+                  nombre_item_general: data.nombre,
+                  codigo_item_general: data.codigo 
+                }
+              : item
+          ),
+        };
+      });
+      return { previousInventory };
+    },
+
+    onSuccess: (updatedData, variables) => {
+      queryClient.setQueriesData({ queryKey: inventarioKeys.all }, (old) => {
+        if (!old || !old.inventario) return old;
+        return {
+          ...old,
+          inventario: old.inventario.map((item) =>
+            String(item.id_item_general || item.id_item) === String(variables.id) 
+              ? { 
+                  ...item, 
+                  ...variables.data, 
+                  nombre_item_general: variables.data.nombre 
+                } 
+              : item
+          ),
+        };
       });
 
-      // Actualizamos la vista de detalle
-      queryClient.setQueryData(itemKeys.detail(variables.id), (oldData) => {
-        if (!oldData) return oldData;
-        return { ...oldData, ...variables.data };
+      queryClient.setQueryData(itemKeys.detail(variables.id), (old) => {
+        return { ...old, ...variables.data };
       });
 
-      toast.success('Ítem actualizado correctamente');
-      
-      queryClient.invalidateQueries({ queryKey: itemKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: itemKeys.detail(variables.id) });
-      if (variables.data?.tipo === '1') {
-        queryClient.invalidateQueries({ queryKey: itemKeys.materiasPrimas() });
-      }
+      useBoundStore.setState((state) => ({
+        drawerPayload: String(state.drawerPayload?.id_item_general) === String(variables.id) 
+          ? { ...state.drawerPayload, ...variables.data, nombre_item_general: variables.data.nombre }
+          : state.drawerPayload
+      }));
+
+      toast.success('Ítem editado correctamente');
     },
   });
 

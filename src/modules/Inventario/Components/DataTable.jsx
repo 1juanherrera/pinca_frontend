@@ -15,6 +15,7 @@ import { useInventario } from '../api/useInventario';
 import { useItem } from '../api/useItem';
 import ConfirmModal from '../../../shared/ConfirmModal';
 import { getPaginationRange } from '../services/pagination';
+import { ExcelModal } from './ExcelModal';
 
 const DataTable = () => {
 
@@ -24,6 +25,7 @@ const DataTable = () => {
   const [tipoFilter, setTipoFilter] = useState('');
   const id_bodega = useBoundStore(state => state.activeBodegaId);
   const openConfirm = useBoundStore(state => state.openConfirm);
+  const openDrawer = useBoundStore(state => state.openDrawer);
 
   const { isLoadingItems, items, isFetching } = useInventario(
     id_bodega, 
@@ -32,25 +34,36 @@ const DataTable = () => {
     searchTerm, 
     tipoFilter
   );
-  const { removeAsync } = useItem();
+  const { removeAsync, items: itemData } = useItem();
+
+  const handleEdit = (item) => {
+    const idToSearch = item.id_item_general || item.id;
+    
+    // Opción A: Buscar en la data que ya tienes de useItem (si está cargada)
+    const fullItemData = itemData?.find(ig => ig.id_item_general === idToSearch);
+
+    // Si lo encuentras, lo mandas completo. Si no, mandas el 'item' de la tabla 
+    // y el Modal usará su propio useEffect para cargar lo que falte.
+    openDrawer('ITEM_FORM', fullItemData || item);
+  };
 
   const inventario = items?.inventario || [];
   const pagination = items?.pagination || { totalPages: 1, totalItems: 0 };
 
-  const getNombre = (item) => item?.nombre_item_general || item.nombre || '-';
-  const getCodigo = (item) => item?.codigo_item_general || item.codigo || '-';
-  const getTipo = (item) => (item?.nombre_tipo || item.tipo || '-').toUpperCase();
+  const getNombre = (item) => item.nombre || item.nombre_item_general || '-';
+  const getCodigo = (item) => item.codigo || item.codigo_item_general || '-';
+  const getId = (item) => item.id_item_general || item.id || '-';
   const getPrecio = (item) => item?.precio_venta || '0';
-  const getId = (item) => item?.id_item_general || item.id || '-';
   const getCostoGalon = (item) => item?.costo_mp_galon || '0';
 
+
   const handleSearchChange = (value) => {
-    setSearchTerm(value); // ✅ Recibe el string directo
+    setSearchTerm(value);
     setCurrentPage(1);
   };
 
   const handleTipoChange = (value) => {
-    setTipoFilter(value); // ✅ Recibe el ID directo
+    setTipoFilter(value);
     setCurrentPage(1);
   };
 
@@ -98,11 +111,10 @@ const DataTable = () => {
                       <td className="px-3 py-1 text-center text-xs font-bold text-zinc-700">{item.cantidad}</td>
                       
                       <td className="px-3 py-1 text-center">
-                        <span className={`inline-flex w-32 justify-center items-center px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider border ${handleType(getTipo(item))}`}>
+                        <span className={`inline-flex w-32 justify-center items-center px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider border ${handleType(item.tipo)}`}>
                           {
-                            getTipo(item) === '0' ? 'PRODUCTO' : 
-                            getTipo(item) === '1' ? 'MATERIA PRIMA' : 
-                            getTipo(item) === '2' ? 'INSUMO' : getTipo(item)
+                            String(item.tipo).includes('MATERIA') || item.tipo === '1' ? 'MATERIA PRIMA' :
+                            String(item.tipo).includes('INSUMO') || item.tipo === '2' ? 'INSUMO' : 'PRODUCTO'
                           }
                         </span>
                       </td>
@@ -113,7 +125,9 @@ const DataTable = () => {
                       
                       <td className="px-3 py-1">
                         <div className="flex items-center justify-center gap-1.5">
-                          <button className="flex items-center justify-center w-8 h-8 rounded bg-zinc-200 text-zinc-600 hover:bg-zinc-800 hover:text-white transition-all active:scale-95">
+                          <button 
+                          onClick={() => handleEdit(item)}
+                          className="flex items-center justify-center w-8 h-8 rounded bg-zinc-200 text-zinc-600 hover:bg-zinc-800 hover:text-white transition-all active:scale-95">
                             <Edit size={14} />
                           </button>
                           <button 
@@ -231,6 +245,11 @@ const DataTable = () => {
         </div>
       </div>
       <ConfirmModal />
+      <ExcelModal 
+        data={items} 
+        tipoFilter={tipoFilter} 
+        searchTerm={searchTerm}
+      />
     </>
   );
 }

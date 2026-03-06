@@ -46,9 +46,9 @@ export const ButtonSquare = ({ onClick, variant = "black", icon: Icon, sizeIcon 
         <button
             onClick={onClick}
             title={title}
-            className={`flex items-center justify-center w-10 h-10 rounded-xl shadow-sm transition-all active:scale-95 ${variants[variant]}`}
+            className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all active:scale-95 disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100 ${variants[variant]}`}
         >
-            {Icon && <Icon size={sizeIcon} className="pointer-events-none" />}
+            {Icon && <Icon size={sizeIcon} />}
         </button>
     )
 }
