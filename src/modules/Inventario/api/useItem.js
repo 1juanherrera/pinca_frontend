@@ -14,12 +14,17 @@ export const useItem = (id = null) => {
     queryFn: () => apiClient.get('/item_general'),
   });
 
-  const queryFormulacion = useQuery({
-    queryKey: ['formulaciones', id], // Nueva llave
-    queryFn: () => apiClient.get(`/formulaciones/${id}`),
-    enabled: !!id, 
-    staleTime: 0,
-  });
+const queryFormulacion = useQuery({
+  queryKey: ['formulaciones', id],
+  queryFn: async () => {
+    const response = await apiClient.get(`/formulaciones/${id}`);
+    console.log('=== RAW FORMULACION RESPONSE ===', response); // 👈
+    return response;
+  },
+  enabled: !!id,
+  staleTime: 0,
+  refetchOnMount: true,
+});
 
   // 2. Query: Detalle de UN ítem (Para el modo Editar del Modal)
   const queryInfo = useQuery({
@@ -143,8 +148,10 @@ export const useItem = (id = null) => {
     unidades: queryUnidades.data ?? [],
     isLoadingUnidades: queryUnidades.isLoading,
 
-    recetaData: queryFormulacion.data?.items || [], 
+    recetaData: queryFormulacion.data?.data?.items ?? null,
     isLoadingReceta: queryFormulacion.isLoading,
+    isFetchedReceta: queryFormulacion.isFetched,
+    isSuccessReceta: queryFormulacion.isSuccess,
 
     // Dependencias para Formularios
     materiaPrima: queryMateriasPrimas.data ?? [],

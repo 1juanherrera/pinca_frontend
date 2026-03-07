@@ -6,10 +6,10 @@ import {
   Tag, 
   Droplets, 
   DollarSign, 
-  Settings, 
-  Pencil 
+  Pencil
 } from 'lucide-react';
-// import { FormCostProducts } from './FormCostProducts';
+import { useBoundStore } from '../../../store/useBoundStore';
+import { ButtonSquare } from '../../../shared/Button';
 
 export const CostProductsTable = ({ 
     selectedProductData, 
@@ -18,7 +18,8 @@ export const CostProductsTable = ({
     recalculatedData 
 }) => {
 
-    // 1. Estado de espera (Estilo Original)
+    const openDrawer = useBoundStore(state => state.openDrawer);
+
     if (!selectedProductData) {
         return (
             <div className="bg-white rounded-lg shadow-sm p-4 text-center border border-zinc-200/60">
@@ -32,24 +33,23 @@ export const CostProductsTable = ({
                     Selecciona un producto para ver su desglose de costos
                 </p>
             </div>
-        )
+        );
     }
 
-    // 🚩 MAPEADO DE CONCEPTOS CON ICONOS LUCIDE
     const COST_DEFINITIONS = {
-        costo_mp_galon: { label: 'COSTO MP/GALÓN', name: 'costo_mp_galon', icon: <FlaskConical className="text-blue-500" size={14} /> },
-        costo_mg_kg: { label: 'COSTO MG/KG', name: 'costo_mg_kg', icon: <FlaskConical className="text-blue-500" size={14} /> },
-        costo_mod: { label: 'COSTO MOD', name: 'costo_mod', icon: <Briefcase className="text-green-500" size={14} /> },
-        envase: { label: 'ENVASE', name: 'envase', icon: <Box className="text-orange-500" size={14} /> },
-        etiqueta: { label: 'ETIQUETA', name: 'etiqueta', icon: <Tag className="text-red-500" size={14} /> },
-        bandeja: { label: 'BANDEJA', name: 'bandeja', icon: <Tag className="text-purple-500" size={14} /> },
-        plastico: { label: 'PLÁSTICO', name: 'plastico', icon: <Droplets className="text-teal-500" size={14} /> },
-    }
+        costo_mp_galon: { label: 'COSTO MP/GALÓN', icon: <FlaskConical className="text-blue-500" size={14} /> },
+        costo_mg_kg:    { label: 'COSTO MG/KG',    icon: <FlaskConical className="text-blue-500" size={14} /> },
+        costo_mod:      { label: 'COSTO MOD',       icon: <Briefcase className="text-green-500" size={14} /> },
+        envase:         { label: 'ENVASE',          icon: <Box className="text-orange-500" size={14} /> },
+        etiqueta:       { label: 'ETIQUETA',        icon: <Tag className="text-red-500" size={14} /> },
+        bandeja:        { label: 'BANDEJA',         icon: <Tag className="text-purple-500" size={14} /> },
+        plastico:       { label: 'PLÁSTICO',        icon: <Droplets className="text-teal-500" size={14} /> },
+    };
 
     return (
-        <>
         <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-zinc-200/60">
-            {/* Header con Degradado Emerald Original */}
+
+            {/* Header */}
             <div className="bg-zinc-700 text-white px-4 py-3">
                 <div className="flex items-center justify-between">
                     <div>
@@ -66,18 +66,23 @@ export const CostProductsTable = ({
                             {productDetail?.item?.nombre || selectedProductData.nombre}
                         </p>
                     </div>
-                    <div className="text-right">
-                        <div className="text-[10px] font-semibold text-white uppercase italic"> 
-                            Vol: {recalculatedData ? recalculatedData?.item?.volumen_nuevo : productDetail?.item?.volumen_base || 0}
-                        </div>
-                        <div className="text-[10px] font-semibold text-white">
-                            {productDetail?.item?.codigo || selectedProductData.codigo}
-                        </div>
-                    </div>
+
+
+                        {/* Único botón de edición — abre el drawer con todo el productDetail */}
+                        {productDetail?.costos && (
+                            <ButtonSquare
+                                icon={Pencil}
+                                onClick={() => openDrawer('COSTOS_FORM', productDetail)}
+                                title="Editar costos indirectos"
+                                variant="emerald"
+                                className="flex items-center gap-1.5 px-3 py-2 bg-blue-700 hover:bg-blue-700/25 border border-white/20 hover:border-white/40 rounded-lg text-white text-[12px] font-semibold transition-all active:scale-95"
+                            >   
+                            </ButtonSquare>
+                        )}
                 </div>
             </div>
 
-            {/* Tabla de Costos */}
+            {/* Tabla — sin columna Acciones */}
             <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
@@ -87,69 +92,53 @@ export const CostProductsTable = ({
                             </th>
                             <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
                                 <div className="flex items-center justify-center gap-1">
-                                    <DollarSign size={10} /> Valor
-                                </div>
-                            </th>  
-                            <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                                <div className="flex items-center justify-center gap-1">
                                     <DollarSign size={10} /> Original
                                 </div>
                             </th>
                             <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
                                 <div className="flex items-center justify-center gap-1">
-                                    <Settings size={10}/> Acciones
+                                    <DollarSign size={10} /> Valor Recalculado
                                 </div>
                             </th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
                         {productDetail?.costos &&
-                            Object.entries(productDetail.costos || {})
-                            .filter(([key]) => COST_DEFINITIONS[key])
-                            .map(([key, value]) => {
-                                const { label, icon } = COST_DEFINITIONS[key];
-                                return (
-                                    <tr key={key} className="hover:bg-emerald-50/30 transition-colors">
-                                        <td className="px-3 py-2 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="shrink-0 mr-3 p-1 bg-zinc-50 rounded border border-zinc-100">
-                                                    {icon}
+                            Object.entries(productDetail.costos)
+                                .filter(([key]) => COST_DEFINITIONS[key])
+                                .map(([key, value]) => {
+                                    const { label, icon } = COST_DEFINITIONS[key];
+                                    return (
+                                        <tr key={key} className="hover:bg-emerald-50/30 transition-colors">
+                                            <td className="px-3 py-2 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className="shrink-0 mr-3 p-1 bg-zinc-50 rounded border border-zinc-100">
+                                                        {icon}
+                                                    </div>
+                                                    <div className="text-xs font-semibold text-zinc-700 uppercase tracking-tighter">
+                                                        {label}
+                                                    </div>
                                                 </div>
-                                                <div className="text-xs font-semibold text-zinc-700 uppercase tracking-tighter">
-                                                    {label}
+                                            </td>
+                                            <td className="px-3 py-2 whitespace-nowrap text-center">
+                                                <div className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-gray-400">
+                                                    $ {value || '-'}
                                                 </div>
-                                            </div>
-                                        </td>
-
-                                        <td className="px-3 py-2 whitespace-nowrap text-center">
-                                            <div className={`text-xs font-bold ${value ? 'text-emerald-600' : 'text-gray-400'}`}>
-                                                {value || '-'}
-                                            </div>
-                                        </td>
-
-                                        <td className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-gray-400">
-                                            {value || '-'}
-                                        </td>
-
-                                        <td className="px-3 py-2 whitespace-nowrap">
-                                            <div className="flex justify-center">
-                                                <button
-                                                    className={`p-1.5 ${(label === "COSTO MP/GALÓN" || label === "COSTO MG/KG") ? 'hidden' : '' } text-white duration-200 transform hover:scale-110 rounded-md bg-zinc-400 hover:bg-zinc-800 cursor-pointer shadow-sm`}
-                                                    title="Editar Parámetro"
-                                                >
-                                                    <Pencil size={12} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )
-                            })
+                                            </td>
+                                            <td className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-gray-400">
+                                                <div className={`text-xs font-bold ${value ? 'text-emerald-600' : 'text-gray-400'}`}>
+                                                    $ {value || '-'}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                         }
                     </tbody>
-              
-                    {/* FOOTER DE TOTALES (Estilo Original Emerald) */}
+
+                    {/* Footer totales */}
                     <tfoot>
-                        <tr className="bg-emerald-50/50 font-semibold border-t-2 border-emerald-200">
+                        <tr className="font-semibold">
                             <td className="px-3 py-3 whitespace-nowrap">
                                 <div className="flex items-center">
                                     <div className="shrink-0 mr-3">
@@ -161,63 +150,48 @@ export const CostProductsTable = ({
                                 </div>
                             </td>
                             <td className="px-3 py-3 whitespace-nowrap text-center">
-                                <div className="text-lg font-bold text-emerald-700 tracking-tighter">
+                                <div className="text-xs font-semibold text-zinc-400">
                                     $ {productDetail?.costos?.total || 0}
                                 </div>
                             </td>
                             <td className="px-3 py-3 whitespace-nowrap text-center">
-                                <div className="text-xs font-semibold text-zinc-400">
-                                    {recalculatedData?.recalculados?.total || "-"}
+                                <div className="text-lg font-bold text-emerald-700 tracking-tighter">
+                                    $ {recalculatedData?.recalculados?.total || '-'}
                                 </div>
                             </td>
-                            <td></td>
                         </tr>
-                        <tr className="bg-zinc-900 font-semibold text-white">
+                        <tr className="bg-zinc-700 font-semibold text-white">
                             <td className="px-3 py-3 whitespace-nowrap">
                                 <div className="flex items-center">
                                     <div className="shrink-0 mr-3">
                                         <DollarSign className="text-white" size={16} />
                                     </div>
                                     <div className="text-xs font-bold uppercase">
-                                        VENTA SUGERIDA <span className="ml-1 bg-white text-zinc-900 px-1.5 py-0.5 rounded text-[9px]">50%</span>
+                                        VENTA SUGERIDA
+                                        <span className="ml-1 bg-white text-zinc-900 px-1.5 py-0.5 rounded text-[9px]">
+                                            {productDetail?.costos?.porcentaje_utilidad ?? 50}%
+                                        </span>
                                     </div>
                                 </div>
                             </td>
                             <td className="px-3 py-3 whitespace-nowrap text-center">
-                                <div className="text-lg font-bold tracking-tighter">
-                                    $ {productDetail?.costos?.precio_venta || "-"}
+                                <div className="px-3 py-3 whitespace-nowrap text-center text-xs opacity-70">
+                                    $ {productDetail?.costos?.precio_venta || '-'}
                                 </div>
                             </td>
-                            <td className="px-3 py-3 whitespace-nowrap text-center text-xs opacity-70">
-                                {recalculatedData?.recalculados?.precio_venta || "-"}
+                            <td className="text-lg font-bold tracking-tighter text-center" >
+                                $ {recalculatedData?.recalculados?.precio_venta || '-'}                                     
                             </td>
-                            <td></td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
 
-            {/* Footer de Fecha */}
+            {/* Footer fecha */}
             <div className="bg-gray-50 px-4 py-2 border-t border-gray-200 flex justify-between items-center text-[9px] font-semibold text-gray-400 uppercase">
                 <div>Pinca S.A.S — División de Costos</div>
                 <div>Calculado: {productDetail?.costos?.fecha_calculo || 'N/A'}</div>
             </div>
         </div>
-
-        {/* Modales y Notificaciones */}
-        {/* {showForm && (
-            <FormCostProducts
-                idEdit={idEdit}
-                setShowForm={setShowForm}
-                name={name}
-                eventToast={eventToast}
-                productDetail={productDetail}
-                onClose={() => {
-                    setIdEdit(null);
-                    setShowForm(false);
-                }}
-            />
-        )} */}
-        </>
-    )
-}
+    );
+};

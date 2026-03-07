@@ -24,6 +24,8 @@ const ItemFormModal = () => {
 
   const isModalOpen = activeDrawer === 'ITEM_FORM';
 
+  const itemId = isModalOpen ? payload?.id_item_general : null;
+
   // 2. TanStack Query
   const bodega_id = payload?.bodega_id || id_bodega || '';
   const { 
@@ -35,8 +37,9 @@ const ItemFormModal = () => {
     unidades: unidadesData, 
     itemDetail,
     recetaData,
-    isLoadingReceta
-   } = useItem(payload?.id_item_general);
+    isLoadingReceta,
+    isSuccessReceta
+   } = useItem(itemId);
   const isSaving = isCreating || isUpdating;
 
   // 3. React Hook Form y FieldArray
@@ -88,8 +91,11 @@ const ItemFormModal = () => {
   // 5. Pre-llenar Datos (Efecto Mágico)
   useEffect(() => {
     if (isModalOpen) {
+      
       const dataToUse = itemDetail || payload;
       if (dataToUse?.id_item_general) {
+
+         if (!isSuccessReceta) return;
 
         const normalizarTipo = (t) => {
           if (['0', '1', '2'].includes(String(t))) return String(t);
@@ -99,8 +105,8 @@ const ItemFormModal = () => {
 
         const formulacionesMapeadas = (recetaData || []).map(f => ({
           id_item_general: String(f.id_item_general),
-          cantidad: f.cantidad,
-          porcentaje: f.porcentaje || 0
+          cantidad: parseFloat(f.cantidad) || 0,
+          porcentaje: parseFloat(f.porcentaje) || 0
         }));
 
         reset({
@@ -152,7 +158,7 @@ const ItemFormModal = () => {
         });
       }
     }
-  }, [isModalOpen, itemDetail, payload, reset, bodega_id, recetaData]);
+  }, [isModalOpen, itemDetail, payload, reset, bodega_id, recetaData, isLoadingReceta, isSuccessReceta]);
 
   const handleClose = () => {
     setActiveTab('basico');
@@ -192,6 +198,7 @@ const ItemFormModal = () => {
   };
 
   const onSubmit = async (data) => {
+    console.log('tipo:', data.tipo, 'formulaciones:', data.formulaciones);
     try {
       // 1. Preparamos el payload transformando los campos que el PHP espera diferente
       const payloadToSend = {

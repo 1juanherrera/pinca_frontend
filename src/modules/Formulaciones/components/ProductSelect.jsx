@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
-  Beaker, ChevronDown, Search, Check, 
+  Beaker, ChevronDown, Loader2, Check, 
   Eraser, Package, Search as SearchIcon 
 } from 'lucide-react';
 
@@ -172,7 +172,10 @@ export const ProductSelect = ({
               ))
             ) : (
               <div className="px-4 py-6 text-center text-zinc-400 text-[10px] font-bold uppercase">
-                Sin resultados
+                <div className="flex items-center justify-center flex-col gap-2">
+                  <Loader2 className="animate-spin text-blue-700" size={25} />
+                  <span className="text-[10px] text-zinc-400">Cargando productos...</span>
+                </div>
               </div>
             )}
           </div>

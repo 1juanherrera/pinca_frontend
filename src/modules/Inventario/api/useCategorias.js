@@ -7,7 +7,6 @@ export const useCategorias = () => {
     queryKey: categoriaKeys.lists(),
     queryFn: async () => {
       const response = await apiClient.get('/categorias');
-      // Manejo de data flexible (soporta axios puro o interceptores)
       const data = response?.data !== undefined ? response.data : response;
       return data || [];
     },

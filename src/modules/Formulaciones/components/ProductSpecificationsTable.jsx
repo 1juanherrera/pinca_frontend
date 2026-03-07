@@ -99,19 +99,19 @@ export const ProductSpecificationsTable = ({
     return (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-zinc-200/60">
             {/* Header con Degradado Teal Original */}
-            <div className="bg-zinc-900 text-white px-4 py-3">
+            <div className="bg-zinc-700 text-white px-4 py-3">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="text-lg font-semibold flex items-center gap-2 tracking-tight">
                             <FlaskConical size={20} />
                             Especificaciones Técnicas
                         </h3>
-                        <p className="text-white text-[10px] font-bold uppercase opacity-90">
+                        <p className="text-white font-medium text-[11px]">
                             {selectedProductData.nombre}
                         </p>
                     </div>
                     <div className="text-right">
-                        <div className="text-[10px] font-bold text-white uppercase">
+                        <div className="text-[10px] font-semibold text-white uppercase">
                             {productDetail?.item?.codigo}
                         </div>
                     </div>
@@ -129,9 +129,6 @@ export const ProductSpecificationsTable = ({
                             <th className="px-3 py-2 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                                 Patrón / Norma
                             </th>
-                            <th className="px-3 py-2 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                                Lote
-                            </th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-zinc-50">
@@ -143,10 +140,10 @@ export const ProductSpecificationsTable = ({
                                     <tr key={key} className="hover:bg-teal-50/30 transition-colors">
                                         <td className="px-3 py-2.5 whitespace-nowrap">
                                             <div className="flex items-center">
-                                                <div className="shrink-0 mr-3 p-1.5 bg-zinc-50 rounded-md border border-zinc-100">
+                                                <div className="shrink-0 mr-3 p-1 bg-zinc-50 rounded border border-zinc-100">
                                                     {icon}
                                                 </div>
-                                                <div className="text-xs font-bold text-zinc-700 uppercase tracking-tight">
+                                                <div className="text-xs font-semibold text-zinc-700 uppercase tracking-tighter">
                                                     {label}
                                                 </div>
                                             </div>
@@ -155,12 +152,6 @@ export const ProductSpecificationsTable = ({
                                         <td className="px-3 py-2.5 whitespace-nowrap text-center">
                                             <div className="text-xs font-bold text-zinc-900 font-mono">
                                                 {formatValue(key, value)}
-                                            </div>
-                                        </td>
-
-                                        <td className="px-3 py-2.5 whitespace-nowrap text-center">
-                                            <div className="text-[10px] font-bold text-zinc-500 uppercase italic">
-                                                -
                                             </div>
                                         </td>
                                     </tr>

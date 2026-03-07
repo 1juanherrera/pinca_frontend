@@ -10,12 +10,12 @@ const KpiCard = ({ formulaciones = [], productDetail = null, recalculatedData = 
             case 'componentes': 
                 return productDetail?.formulaciones?.length || 0;
 
-            case 'costo total': { // 🚩 Abrimos llaves aquí
+            case 'costo total': {
                 const costo = recalculatedData 
                     ? recalculatedData?.recalculados?.total_costo_materia_prima 
                     : productDetail?.costos?.total_costo_materia_prima;
                 return costo ? `$ ${costo}` : '$ 0.00';
-            } // 🚩 Cerramos llaves aquí
+            } 
 
             default: 
                 return 0;

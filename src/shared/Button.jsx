@@ -15,7 +15,8 @@ export const Button = ({
         blue: "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20",
         emerald: "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20",
         white: "bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-200 shadow-sm",
-        red: "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20" // <- Añadida variante roja
+        red: "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20", // <- Añadida variante roja
+        zinc: "bg-zinc-700 hover:bg-zinc-800 text-white shadow-zinc-600/20" // <- Añadida variante gris
     }
 
     return (
@@ -23,7 +24,7 @@ export const Button = ({
             type={type}
             onClick={onClick}
             disabled={disabled}
-            className={`flex items-center justify-center gap-2 px-5 py-2.5 border border-transparent rounded-xl text-sm font-semibold shadow-md transition-all active:scale-95 disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100 ${variants[variant]} ${className}`}
+            className={`flex items-center justify-center gap-2 px-5 py-2.5 active:scale-95 hover:scale-105 border border-transparent rounded-xl text-sm font-semibold shadow-md transition-all disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100 ${variants[variant]} ${className}`}
         >
             {Icon && <Icon size={sizeIcon} />}
             {children}
@@ -44,7 +45,7 @@ export const ButtonSquare = ({ onClick, variant = "black", icon: Icon, sizeIcon 
         <button
             onClick={onClick}
             title={title}
-            className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all active:scale-95 disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100 ${variants[variant]}`}
+            className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all active:scale-95 hover:scale-105 disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100 ${variants[variant]}`}
         >
             {Icon && <Icon size={sizeIcon} />}
         </button>

@@ -73,28 +73,28 @@ export const FormulacionesTable = ({
                             <th className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                                 <div className="flex items-center justify-center gap-1">
                                     {/* Icono Lucide Scale reemplaza a FaWeight */}
-                                    <Scale size={10} className="text-gray-400" />
+                                    <Scale size={14} className="text-gray-400" />
                                     Cantidad
                                 </div>
                             </th>
                              <th className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                                 <div className="flex items-center justify-center gap-1">
                                     {/* Icono Lucide Scale reemplaza a FaWeight */}
-                                    <Scale size={10} className="text-gray-400" />
+                                    <Scale size={14} className="text-gray-400" />
                                     Cantidad Disp.
                                 </div>
                             </th>
                             <th className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                                 <div className="flex items-center justify-center gap-1">
                                     {/* Icono Lucide DollarSign reemplaza a FaDollarSign */}
-                                    <DollarSign size={10} className="text-gray-400" />
+                                    <DollarSign size={14} className="text-gray-400" />
                                     Costo Unit.
                                 </div>
                             </th>
                             <th className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                                 <div className="flex items-center justify-center gap-1">
                                     {/* Icono Lucide DollarSign reemplaza a FaDollarSign */}
-                                    <DollarSign size={10} className="text-gray-400" />
+                                    <DollarSign size={14} className="text-gray-400" />
                                     Costo Total
                                 </div>
                             </th>

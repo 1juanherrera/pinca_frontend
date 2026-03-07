@@ -34,17 +34,11 @@ const DataTable = () => {
     searchTerm, 
     tipoFilter
   );
-  const { removeAsync, items: itemData } = useItem();
+  const { removeAsync } = useItem();
 
   const handleEdit = (item) => {
-    const idToSearch = item.id_item_general || item.id;
-    
-    // Opción A: Buscar en la data que ya tienes de useItem (si está cargada)
-    const fullItemData = itemData?.find(ig => ig.id_item_general === idToSearch);
-
-    // Si lo encuentras, lo mandas completo. Si no, mandas el 'item' de la tabla 
-    // y el Modal usará su propio useEffect para cargar lo que falte.
-    openDrawer('ITEM_FORM', fullItemData || item);
+    // 👇 Siempre pasar el item de la tabla directo, sin buscar en itemData
+    openDrawer('ITEM_FORM', item);
   };
 
   const inventario = items?.inventario || [];

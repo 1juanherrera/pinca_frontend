@@ -6,13 +6,14 @@ import { FormulacionesTable } from "./components/FormulacionesTable";
 import { ProductSpecificationsTable } from "./components/ProductSpecificationsTable";
 import { CostProductsTable } from "./components/CostProductsTable";
 import { useFormulaciones } from "./api/useFormulaciones";
+import FormCostProducts from "./components/FormCostProducts ";
+import { PreparationModal } from "./components/preparationModal";
 
 const FormulacionesPage = () => {
-  // 1. ESTADOS DE CONTROL
+
   const [selectedId, setSelectedId] = useState("");
   const [nuevoVolumen, setNuevoVolumen] = useState("");
 
-  // 2. CONSUMO DE API (Data de Merco)
   const { 
     formulaciones, 
     isLoading, 
@@ -21,7 +22,6 @@ const FormulacionesPage = () => {
     isRecalculating 
   } = useFormulaciones(selectedId, nuevoVolumen);
 
-  // Encontramos el objeto del producto seleccionado para los metadatos
   const selectedProductData = formulaciones.find(
     (f) => String(f.id_item_general) === String(selectedId)
   );
@@ -92,8 +92,9 @@ const FormulacionesPage = () => {
            />
 
         </div>
-
       </div>
+      <FormCostProducts />
+      <PreparationModal />
     </div>
   );
 };
