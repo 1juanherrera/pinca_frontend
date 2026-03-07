@@ -40,7 +40,7 @@ const Sidebar = () => {
       >
 
         {/* Área del Logo */}
-        <div className={`flex items-center mb-10 overflow-hidden ${!isHovered ? 'justify-center' : 'gap-3 px-2'}`}>
+        <div className={`flex items-center mb-8 overflow-hidden ${!isHovered ? 'justify-center' : 'gap-3 px-2'}`}>
           <div className="flex items-center justify-center w-10 h-10 rounded-lg overflow-hidden shrink-0">
             <img src={logoPinca} alt="Logo Pinca" className="w-full h-full object-contain" />
           </div>
@@ -84,7 +84,7 @@ const Sidebar = () => {
         </nav>
 
         {/* Acciones Inferiores */}
-        <div className="pt-4 px-1 mt-auto border-t border-surface-sidebar-hover space-y-2 overflow-hidden">
+        {/* <div className="pt-4 px-1 mt-auto border-t border-surface-sidebar-hover space-y-2 overflow-hidden">
           <NavLink
             to="/configuracion"
             title={!isHovered ? "Configuración" : ""}
@@ -110,7 +110,7 @@ const Sidebar = () => {
               Cerrar Sesión
             </span>
           </NavLink>
-        </div>
+        </div> */}
       </aside>
     </div>
   );

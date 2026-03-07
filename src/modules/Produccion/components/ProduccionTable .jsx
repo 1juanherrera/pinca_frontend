@@ -154,9 +154,9 @@ export const ProduccionTable = ({
                 <td className="px-4 py-3 text-right">
                   <button
                     onClick={e => { e.stopPropagation(); onRowClick(row); }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all opacity-0 group-hover:opacity-100"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
                   >
-                    <Eye size={11} /> Ver
+                    <Eye size={12} /> Ver
                   </button>
                 </td>
               </tr>

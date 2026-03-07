@@ -8,18 +8,24 @@ import {
   Users, 
   Truck, 
   BarChart3,
-  Calculator 
+  Calculator,
+  FileText, 
+  Wallet
 } from 'lucide-react';
 
 export const sidebarMenu = [
     { link: '', label: 'Panel Principal', icon: LayoutDashboard },
-    // { link: 'inventario', label: 'Inventario', icon: Package }, // Package o Boxes
-    { link: 'formulaciones', label: 'Formulaciones', icon: FlaskConical }, // Representa mezclas/recetas
-    { link: 'produccion', label: 'Producción', icon: Factory }, // Una fábrica clásica
-    { link: 'billing', label: 'Facturación', icon: Receipt }, // Un recibo/factura
-    { link: 'purchases', label: 'Compras', icon: ShoppingBag }, // Diferencia visual del carrito de ventas
-    { link: 'clients', label: 'Clientes', icon: Users }, // Grupo de personas
-    { link: 'suppliers', label: 'Proveedores', icon: Truck }, // Representa logística/entregas
-    { link: 'reports', label: 'Reportes', icon: BarChart3 }, // Gráfico de barras
-    { link: 'prorrateo', label: 'Prorrateo', icon: Calculator }, // Reutiliza el ícono de reportes por su asociación con análisis y cálculos
+    { link: 'formulaciones', label: 'Formulaciones', icon: FlaskConical },
+    { link: 'produccion', label: 'Producción', icon: Factory },
+    { link: 'facturas', label: 'Facturación', icon: Receipt },
+    
+    // Nuevos elementos
+    { link: 'cotizaciones', label: 'Cotizaciones', icon: FileText },
+    { link: 'remisiones', label: 'Remisiones', icon: Truck },
+    { link: 'pagos', label: 'Pagos', icon: Wallet },
+    
+    { link: 'purchases', label: 'Compras', icon: ShoppingBag },
+    { link: 'clientes', label: 'Clientes', icon: Users },
+    { link: 'suppliers', label: 'Proveedores', icon: Truck },
+    { link: 'prorrateo', label: 'Prorrateo', icon: Calculator },
 ]

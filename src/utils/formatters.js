@@ -58,3 +58,10 @@ export const validarEntero = (valor) => {
   // Si es decimal, lo deja igual
   return valor;
 }
+
+export const fmt = (v) =>
+  new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+  }).format(Number(v) || 0);
