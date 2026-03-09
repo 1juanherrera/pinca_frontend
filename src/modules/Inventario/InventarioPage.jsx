@@ -6,7 +6,8 @@ import {
   Filter,
   Download,
   Store,
-  FileCog
+  FileCog,
+  FlaskConical
 } from 'lucide-react';
 import { Button, ButtonSquare } from "../../shared/Button";
 import { useParams } from "react-router";
@@ -81,12 +82,19 @@ const InventarioPage = () => {
                             onClick={() => openModal('EXPORT_EXCEL')}
                         />
 
+                        <ButtonSquare
+                            icon={FlaskConical}
+                            sizeIcon={18}
+                            title="Agregar Formulacion"
+                            variant="blue"
+                        />
+
                         <Button
-                        variant="black"
-                        onClick={() => openDrawer('ITEM_FORM')}
-                        icon={Plus}
-                        >
-                        Agregar Item
+                            variant="black"
+                            onClick={() => openDrawer('ITEM_FORM')}
+                            icon={Plus}
+                            >
+                            Agregar Item
                         </Button>
                     </div>
                 </div>

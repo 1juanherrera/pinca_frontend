@@ -16,7 +16,8 @@ export const Button = ({
         emerald: "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20",
         white: "bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-200 shadow-sm",
         red: "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20", // <- Añadida variante roja
-        zinc: "bg-zinc-700 hover:bg-zinc-800 text-white shadow-zinc-600/20" // <- Añadida variante gris
+        zinc: "bg-zinc-500 hover:bg-zinc-800 text-white shadow-zinc-600/20", // <- Añadida variante gris
+        orange: "bg-orange-600 hover:bg-orange-700 text-white shadow-orange-600/20" // <- Añadida variante naranja
     }
 
     return (

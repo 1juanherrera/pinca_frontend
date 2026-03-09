@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm, useFieldArray, useWatch, Controller } from 'react-hook-form';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { useItem } from '../api/useItem'; 
+import { useInventario } from '../api/useInventario';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import { Button } from '../../../shared/Button'; 
@@ -17,69 +18,64 @@ import { GridInput } from '../../../shared/Form/GridInput';
 const ItemFormModal = () => {
 
   const { id_bodega } = useParams();
+
   // 1. Estado Global
   const activeDrawer = useBoundStore(state => state.activeDrawer);
-  const payload = useBoundStore(state => state.drawerPayload);
-  const closeDrawer = useBoundStore(state => state.closeDrawer);
+  const payload      = useBoundStore(state => state.drawerPayload);
+  const closeDrawer  = useBoundStore(state => state.closeDrawer);
 
   const isModalOpen = activeDrawer === 'ITEM_FORM';
-
-  const itemId = isModalOpen ? payload?.id_item_general : null;
+  const itemId      = isModalOpen ? payload?.id_item_general : null;
+  const bodega_id   = payload?.bodega_id || id_bodega || '';
 
   // 2. TanStack Query
-  const bodega_id = payload?.bodega_id || id_bodega || '';
+  // ✅ useInventario: para CREATE y UPDATE desde bodega
   const { 
-    createAsync, 
-    updateAsync, 
-    isCreating, 
-    isUpdating, 
+    createItemAsync, 
+    isCreatingItem,
+    updateItemAsync, 
+    isUpdatingItem,
+  } = useInventario(bodega_id);
+
+  // ✅ useItem: solo para datos del formulario (unidades, materias primas)
+  const { 
     materiaPrima, 
     unidades: unidadesData, 
-    itemDetail,
-    recetaData,
-    isLoadingReceta,
-    isSuccessReceta
-   } = useItem(itemId);
-  const isSaving = isCreating || isUpdating;
+  } = useItem(itemId, false);
+
+  const isSaving = isCreatingItem || isUpdatingItem;
 
   // 3. React Hook Form y FieldArray
   const { register, control, handleSubmit, reset, setValue, formState: { errors } } = useForm({
     defaultValues: {
-      nombre: '', codigo: '', tipo: '', categoria_id: '',
-      viscosidad: '', p_g: '', color: '', brillo_60: '', secado: '', cubrimiento: '', molienda: '', ph: '', poder_tintoreo: '',
-      cantidad: 0, costo_unitario: 0, bodega_id: bodega_id, envase: 0, etiqueta: 0, plastico: 0,
+      nombre: '', codigo: '', tipo: '', categoria_id: '', unidad_id: '',
+      viscosidad: '', p_g: '', color: '', brillo_60: '', secado: '', 
+      cubrimiento: '', molienda: '', ph: '', poder_tintoreo: '',
+      cantidad: 0, costo_unitario: 0, bodega_id: bodega_id, 
+      envase: 0, etiqueta: 0, plastico: 0,
       formulaciones: [] 
     }
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "formulaciones"
-  });
+  const { fields, append, remove } = useFieldArray({ control, name: "formulaciones" });
 
-  // 4. Lógica de Pestañas (Tabs)
+  // 4. Lógica de Pestañas
   const [activeTab, setActiveTab] = useState('basico');
-  const tipoSeleccionado = useWatch({
-    control,
-    name: 'tipo',
-  });
+  const tipoSeleccionado = useWatch({ control, name: 'tipo' });
 
   const allTabs = [
-    { id: 'basico', label: 'Información Básica', icon: <FileText size={18} /> },
-    { id: 'propiedades', label: 'Propiedades', icon: <Microscope size={18} /> },
-    { id: 'formulaciones', label: 'Formulaciones', icon: <FlaskConical size={18} /> },
-    { id: 'costos', label: 'Inventario & Costos', icon: <CircleDollarSign size={18} /> }
+    { id: 'basico',        label: 'Información Básica',  icon: <FileText size={18} /> },
+    { id: 'propiedades',   label: 'Propiedades',         icon: <Microscope size={18} /> },
+    { id: 'formulaciones', label: 'Formulaciones',       icon: <FlaskConical size={18} /> },
+    { id: 'costos',        label: 'Inventario & Costos', icon: <CircleDollarSign size={18} /> }
   ];
 
-  // Si es Materia Prima ('1'), ocultamos formulaciones
   const tabsFiltrados = tipoSeleccionado === '1' 
     ? allTabs.filter(tab => tab.id !== 'formulaciones') 
     : allTabs;
 
-  // Estado derivado para la pestaña actual
   const currentTab = tabsFiltrados.some(tab => tab.id === activeTab) ? activeTab : 'basico';
 
-  // Unidades para el select, mapeamos a opciones { value, label }
   const opcionesUnidades = [
     { value: '', label: 'SELECCIONE UNIDAD...' }, 
     ...(unidadesData?.map(u => ({
@@ -88,165 +84,133 @@ const ItemFormModal = () => {
     })) || [])
   ];
 
-  // 5. Pre-llenar Datos (Efecto Mágico)
+  // 5. Pre-llenar Datos
   useEffect(() => {
-    if (isModalOpen) {
-      
-      const dataToUse = itemDetail || payload;
-      if (dataToUse?.id_item_general) {
+    if (!isModalOpen) return;
 
-         if (!isSuccessReceta) return;
+    if (payload?.id_item_general) {
+      const normalizarTipo = (t) => {
+        if (['0', '1', '2'].includes(String(t))) return String(t);
+        const mapa = { 'PRODUCTO': '0', 'MATERIA PRIMA': '1', 'INSUMO': '2' };
+        return mapa[String(t).toUpperCase()] || '0';
+      };
 
-        const normalizarTipo = (t) => {
-          if (['0', '1', '2'].includes(String(t))) return String(t);
-          const mapa = { 'PRODUCTO': '0', 'MATERIA PRIMA': '1', 'INSUMO': '2' };
-          return mapa[String(t).toUpperCase()] || '0'; 
-        };
+      // Datos técnicos vienen de payload.formulacion.item
+      const formulacionItem = payload?.formulacion?.item || {};
 
-        const formulacionesMapeadas = (recetaData || []).map(f => ({
-          id_item_general: String(f.id_item_general),
-          cantidad: parseFloat(f.cantidad) || 0,
-          porcentaje: parseFloat(f.porcentaje) || 0
-        }));
+      // Materias primas vienen de payload.formulacion.materias_primas
+      const formulacionesMapeadas = (payload?.formulacion?.materias_primas || []).map(mp => ({
+        id:              mp.id,
+        id_item_general: String(mp.materia_prima_id),
+        nombre:          mp.nombre,
+        cantidad:        parseFloat(mp.cantidad)       || 0,
+        costo_unitario:  parseFloat(mp.costo_unitario) || 0,
+      }));
 
-        reset({
-            nombre: dataToUse.nombre || dataToUse.nombre_item_general || '', 
-            codigo: dataToUse.codigo || dataToUse.codigo_item_general || '',
-            tipo: normalizarTipo(dataToUse.tipo),
-            categoria_id: dataToUse.categoria_id || '',
-            unidad_id: dataToUse.unidad_id || '',
-            viscosidad: dataToUse.viscosidad || '', 
-            p_g: dataToUse.p_g || '', 
-            color: dataToUse.color || '', 
-            brillo_60: dataToUse.brillo_60 || '', 
-            secado: dataToUse.secado || '', 
-            cubrimiento: dataToUse.cubrimiento || '', 
-            molienda: dataToUse.molienda || '', 
-            ph: dataToUse.ph || '', 
-            poder_tintoreo: dataToUse.poder_tintoreo || '',
-            cantidad: dataToUse.cantidad || 0, 
-            costo_unitario: dataToUse.costo_unitario || 0, 
-            bodega_id: bodega_id || 1, 
-            envase: dataToUse.envase || 0, 
-            etiqueta: dataToUse.etiqueta || 0, 
-            plastico: dataToUse.plastico || 0,
-            formulaciones: formulacionesMapeadas
-        })
-      } else {
-        reset({
-            nombre: '', 
-            codigo: '', 
-            tipo: '', 
-            categoria_id: '',
-            unidad_id: '',
-            viscosidad: '', 
-            p_g: '', 
-            color: '', 
-            brillo_60: '', 
-            secado: '', 
-            cubrimiento: '', 
-            molienda: '', 
-            ph: '', 
-            poder_tintoreo: '',
-            cantidad: 0, 
-            costo_unitario: 0, 
-            bodega_id: bodega_id, 
-            envase: 0, 
-            etiqueta: 0, 
-            plastico: 0,
-            formulaciones: []
-        });
-      }
+      reset({
+        nombre:         payload.nombre  || '',
+        codigo:         payload.codigo  || '',
+        tipo:           normalizarTipo(payload.tipo),
+        categoria_id:   String(payload.categoria_id || ''), 
+        unidad_id:      String(payload.unidad_id    || ''),
+        viscosidad:     formulacionItem.viscosidad   || '',
+        p_g:            formulacionItem.p_g          || '',
+        color:          formulacionItem.color        || '',
+        brillo_60:      formulacionItem.brillo_60    || '',
+        secado:         formulacionItem.secado       || '',
+        cubrimiento:    formulacionItem.cubrimiento  || '',
+        molienda:       payload.molienda       || '',
+        ph:             payload.ph             || '',
+        poder_tintoreo: payload.poder_tintoreo || '',
+        cantidad:       parseFloat(payload.cantidad)       || 0,
+        costo_unitario: parseFloat(payload.costo_unitario) || 0,
+        bodega_id:      bodega_id || 1,
+        envase:         parseFloat(formulacionItem.envase)   || 0,
+        etiqueta:       parseFloat(formulacionItem.etiqueta) || 0,
+        plastico:       parseFloat(formulacionItem.plastico) || 0,
+        formulaciones:  formulacionesMapeadas,
+      });
+
+    } else {
+      // ✅ MODO CREACIÓN: form limpio
+      reset({
+        nombre: '', codigo: '', tipo: '', categoria_id: '', unidad_id: '',
+        viscosidad: '', p_g: '', color: '', brillo_60: '', secado: '', 
+        cubrimiento: '', molienda: '', ph: '', poder_tintoreo: '',
+        cantidad: 0, costo_unitario: 0, bodega_id: bodega_id, 
+        envase: 0, etiqueta: 0, plastico: 0,
+        formulaciones: []
+      });
     }
-  }, [isModalOpen, itemDetail, payload, reset, bodega_id, recetaData, isLoadingReceta, isSuccessReceta]);
+  }, [isModalOpen, payload, reset, bodega_id]);
 
   const handleClose = () => {
     setActiveTab('basico');
-    reset();             
-    closeDrawer();       
+    reset();
+    closeDrawer();
   };
 
   // 6. Manejadores
   const handleGenerateCode = () => {
-    const nuevoCodigo = `REF-${Math.floor(Math.random() * 100000)}`; 
-    setValue('codigo', nuevoCodigo, { shouldValidate: true });
+    setValue('codigo', `REF-${Math.floor(Math.random() * 100000)}`, { shouldValidate: true });
   };
 
   const onInvalid = (errors) => {
-    console.log("Errores de validación RHF:", errors); // Útil para ti como developer
-    
-    // Determinamos en qué pestaña falló
     if (errors.nombre || errors.codigo || errors.tipo || errors.categoria_id) {
       toast.error("Revisa los campos de Información Básica");
-      setActiveTab('basico'); // Lo llevamos directo a la pestaña del error
+      setActiveTab('basico');
       return;
     }
-    
     if (errors.formulaciones) {
       toast.error("Hay errores en la Formulación");
       setActiveTab('formulaciones');
       return;
     }
-
     if (errors.cantidad || errors.costo_unitario || errors.envase || errors.etiqueta || errors.plastico) {
       toast.error("Revisa los campos de Inventario y Costos");
       setActiveTab('costos');
       return;
     }
-
     toast.error("Por favor completa los campos obligatorios");
   };
 
   const onSubmit = async (data) => {
-    console.log('tipo:', data.tipo, 'formulaciones:', data.formulaciones);
     try {
-      // 1. Preparamos el payload transformando los campos que el PHP espera diferente
       const payloadToSend = {
         ...data,
-        // El PHP mapea 'tipo' basado en strings literales
-        tipo: data.tipo === '1' ? 'MATERIA PRIMA' : data.tipo === '2' ? 'INSUMO' : 'PRODUCTO',
-        
-        // El PHP busca 'materia_prima_id' dentro del array de formulaciones
-        formulaciones: data.formulaciones.map(f => ({
-          materia_prima_id: f.id_item_general,
-          cantidad: f.cantidad,
-          porcentaje: f.porcentaje || 0
+        tipo:      data.tipo,
+        bodega_id: bodega_id,
+        // ✅ Estructura exacta que espera el backend
+        formulaciones: data.tipo !== '0' ? [] : (data.formulaciones || []).map(f => ({
+          id:               f.id,
+          materia_prima_id: Number(f.id_item_general),
+          nombre:           f.nombre || '',
+          cantidad:         f.cantidad,
+          costo_unitario:   f.costo_unitario || 0,
         }))
       };
 
-      // 2. Limpieza lógica: Si no es producto (0), no debe llevar formulación
-      if (data.tipo !== '0') {
-        payloadToSend.formulaciones = [];
-      }
-
-      // Opcional: console.log para verificar la estructura antes de enviar
-      console.log("Payload final para el backend:", payloadToSend);
-
       if (payload?.id_item_general) {
-        await updateAsync(
-          { id: payload.id_item_general, data: payloadToSend }, // Enviamos el payload corregido
+        // ✅ UPDATE → /bodegas/item/:id
+        await updateItemAsync(
+          { id: payload.id_item_general, data: payloadToSend },
           {
-            onSuccess: () => {
-              console.log("Item actualizado con éxito");
-              handleClose();
-            },
-            onError: (error) => console.error("Error al actualizar:", error)
+            onSuccess: () => handleClose(),
+            onError:   (error) => console.error('Error al actualizar:', error)
           }
         );
       } else {
-        await createAsync(
-          payloadToSend, // Enviamos el payload corregido
+        // ✅ CREATE → /bodegas/item (POST)
+        await createItemAsync(
+          payloadToSend,
           {
-            onSuccess: () => {
-              console.log("Item creado con éxito");
-              handleClose();
-            },
-            onError: (error) => console.error("Error al crear:", error)
+            onSuccess: () => handleClose(),
+            onError:   (error) => console.error('Error al crear:', error)
           }
         );
       }
     } catch (error) {
-      console.error("Error guardando el ítem:", error);
+      console.error('Error guardando el ítem:', error);
     }
   };
 
@@ -256,8 +220,6 @@ const ItemFormModal = () => {
 
   const renderTabBasico = () => (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-5 p-5 animate-in fade-in">
-      
-      {/* Fila 1: Nombre (8 col) y Código (4 col) */}
       <div className="md:col-span-8">
         <FormInput 
           label="Nombre del Producto" 
@@ -267,39 +229,30 @@ const ItemFormModal = () => {
           registration={register('nombre', { required: 'El nombre es obligatorio' })}
         />
       </div>
-
       <div className="md:col-span-4">
         <div className="flex items-end gap-1.5">
           <div className="flex-1">
             <FormInput 
-              label="Código" 
-              placeholder="REF-001" 
-              required
+              label="Código" placeholder="REF-001" required
               error={errors.codigo?.message}
               registration={register('codigo', { required: 'El código es obligatorio' })}
             />
           </div>
           <button 
-            type="button" 
-            onClick={handleGenerateCode} 
-            title="Generar código"
+            type="button" onClick={handleGenerateCode} title="Generar código"
             className="group mb-px p-2.5 text-zinc-500 bg-zinc-100 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white transition-all active:scale-95"
           >
             <Wand2 size={16} className="group-hover:rotate-12 transition-transform" />
           </button>
         </div>
       </div>
-
-      {/* Fila 2: Los 3 Selects en línea (4 col cada uno) */}
       <div className="md:col-span-4">
         <Controller
-          name="tipo"
-          control={control}
+          name="tipo" control={control}
           rules={{ required: 'Seleccione un tipo' }}
           render={({ field }) => ( 
             <FormSelect 
-              label="Tipo de Ítem" 
-              required
+              label="Tipo de Ítem" required
               error={errors.tipo?.message}
               options={[
                 { value: '', label: 'SELECCIONE...' },
@@ -307,22 +260,18 @@ const ItemFormModal = () => {
                 { value: '1', label: 'MATERIA PRIMA' },
                 { value: '2', label: 'INSUMO' }
               ]}
-              value={field.value} 
-              onChange={field.onChange} 
+              value={field.value} onChange={field.onChange} 
             />
           )}
         />
       </div>
-
       <div className="md:col-span-4">
         <Controller
-          name="categoria_id"
-          control={control}
+          name="categoria_id" control={control}
           rules={{ required: 'Seleccione una categoría' }}
           render={({ field }) => (
             <FormSelect 
-              label="Categoría" 
-              required
+              label="Categoría" required
               error={errors.categoria_id?.message}
               options={[
                 { value: '', label: 'SELECCIONE...' },
@@ -331,53 +280,40 @@ const ItemFormModal = () => {
                 { value: '3', label: 'ANTICORROSIVO' },
                 { value: '4', label: 'BARNIZ' },
               ]}
-              value={field.value}
-              onChange={field.onChange}
+              value={field.value} onChange={field.onChange}
             />
           )}
         />
       </div>
-
       <div className="md:col-span-4">
         <Controller
-          name="unidad_id"
-          control={control}
+          name="unidad_id" control={control}
           render={({ field }) => (
             <FormSelect 
-              label="Unidad" 
-              required
+              label="Unidad" required
               error={errors.unidad_id?.message}
               options={opcionesUnidades}
-              value={field.value}
-              onChange={field.onChange}
+              value={field.value} onChange={field.onChange}
             />
           )}
         />
       </div>
-
     </div>
   );
 
-const renderTabPropiedades = () => {
-  return (
+  const renderTabPropiedades = () => (
     <div className="animate-in fade-in duration-500">
-      {/* El contenedor ahora solo maneja la forma global */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-t border-l border-zinc-200 rounded-b-xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)]">
-        
-        <GridInput label="Viscosidad" id="viscosidad" placeholder="100 - 105 KU" registration={register('viscosidad')} error={errors.viscosidad} />
-        <GridInput label="Densidad / P.G." id="p_g" placeholder="1.25 gal/kg" registration={register('p_g')} error={errors.p_g} />
-        <GridInput label="pH" id="ph" placeholder="8.5 - 9.0" registration={register('ph')} error={errors.ph} />
-
-        <GridInput label="Color" id="color" placeholder="Blanco Nieve" registration={register('color')} error={errors.color} />
-        <GridInput label="Brillo (60°)" id="brillo_60" placeholder="> 85%" registration={register('brillo_60')} error={errors.brillo_60} />
-        <GridInput label="Poder Tintóreo" id="poder_tintoreo" placeholder="100%" registration={register('poder_tintoreo')} error={errors.poder_tintoreo} />
-
-        <GridInput label="Secado" id="secado" placeholder="2 - 4 horas" registration={register('secado')} error={errors.secado} />
-        <GridInput label="Cubrimiento" id="cubrimiento" placeholder="98%" registration={register('cubrimiento')} error={errors.cubrimiento} />
-        <GridInput label="Molienda" id="molienda" placeholder="6 Hegman" registration={register('molienda')} error={errors.molienda} />
-
+        <GridInput label="Viscosidad"      id="viscosidad"     placeholder="100 - 105 KU" registration={register('viscosidad')}     error={errors.viscosidad} />
+        <GridInput label="Densidad / P.G." id="p_g"            placeholder="1.25 gal/kg"  registration={register('p_g')}            error={errors.p_g} />
+        <GridInput label="pH"              id="ph"             placeholder="8.5 - 9.0"    registration={register('ph')}             error={errors.ph} />
+        <GridInput label="Color"           id="color"          placeholder="Blanco Nieve" registration={register('color')}          error={errors.color} />
+        <GridInput label="Brillo (60°)"    id="brillo_60"      placeholder="> 85%"        registration={register('brillo_60')}      error={errors.brillo_60} />
+        <GridInput label="Poder Tintóreo"  id="poder_tintoreo" placeholder="100%"         registration={register('poder_tintoreo')} error={errors.poder_tintoreo} />
+        <GridInput label="Secado"          id="secado"         placeholder="2 - 4 horas"  registration={register('secado')}         error={errors.secado} />
+        <GridInput label="Cubrimiento"     id="cubrimiento"    placeholder="98%"          registration={register('cubrimiento')}    error={errors.cubrimiento} />
+        <GridInput label="Molienda"        id="molienda"       placeholder="6 Hegman"     registration={register('molienda')}       error={errors.molienda} />
       </div>
-      
       <div className="p-3 bg-zinc-50 border-t border-zinc-200">
         <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider flex items-center gap-2">
           <span className="w-1 h-1 bg-zinc-300 rounded-full"></span>
@@ -386,22 +322,15 @@ const renderTabPropiedades = () => {
       </div>
     </div>
   );
-};
 
   const renderTabFormulaciones = () => {
-    const mpOptions = [{ value: '', label: 'Buscar Materia Prima...' }, ...materiaPrima.map(mp => ({
-      value: String(mp.id_item_general),
-      label: `${mp.nombre} (${mp.codigo})`
-    }))];
-
-    if (isLoadingReceta) {
-      return (
-        <div className="p-10 text-center animate-pulse">
-          <FlaskConical className="mx-auto text-zinc-300 mb-2 animate-bounce" size={40} />
-          <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Cargando Receta Técnica...</p>
-        </div>
-      );
-    }
+    const mpOptions = [
+      { value: '', label: 'Buscar Materia Prima...' }, 
+      ...materiaPrima.map(mp => ({
+        value: String(mp.id_item_general),
+        label: `${mp.nombre} (${mp.codigo})`
+      }))
+    ];
 
     return (
       <div className="p-6 animate-in fade-in space-y-4">
@@ -410,7 +339,10 @@ const renderTabPropiedades = () => {
             <h3 className="text-sm font-bold text-zinc-800 uppercase tracking-tight">Receta / Formulación</h3>
             <p className="text-xs text-zinc-500 mt-1">Agrega las materias primas necesarias para fabricar este producto.</p>
           </div>
-          <Button variant="emerald" onClick={() => append({ id_item_general: '', cantidad: 0 })} icon={PlusCircle}>
+          <Button 
+            variant="emerald" icon={PlusCircle}
+            onClick={() => append({ id_item_general: '', nombre: '', cantidad: 0, costo_unitario: 0 })}
+          >
             Agregar Materia Prima
           </Button>
         </div>
@@ -428,13 +360,18 @@ const renderTabPropiedades = () => {
                     name={`formulaciones.${index}.id_item_general`}
                     control={control}
                     rules={{ required: 'Seleccione un Ingrediente' }}
-                    render={({ field: selectField }) => ( // Lo llamo selectField para no confundir con el field del .map
+                    render={({ field: selectField }) => (
                       <FormSelect 
                         label={`Materia Prima ${index + 1}`}
                         options={mpOptions}
                         error={errors?.formulaciones?.[index]?.id_item_general?.message}
                         value={selectField.value}
-                        onChange={selectField.onChange}
+                        onChange={(val) => {
+                          selectField.onChange(val);
+                          // ✅ Guardamos el nombre al seleccionar
+                          const mp = materiaPrima.find(m => String(m.id_item_general) === String(val));
+                          if (mp) setValue(`formulaciones.${index}.nombre`, mp.nombre);
+                        }}
                       />
                     )}
                   />
@@ -444,6 +381,22 @@ const renderTabPropiedades = () => {
                     type="number" step="0.01" label="Cantidad"
                     error={errors?.formulaciones?.[index]?.cantidad?.message}
                     registration={register(`formulaciones.${index}.cantidad`, { required: 'Requerido', valueAsNumber: true })}
+                  />
+                </div>
+                <div className="w-36">
+                  <Controller
+                    name={`formulaciones.${index}.costo_unitario`}
+                    control={control}
+                    render={({ field: costoField }) => (
+                      <div className="flex flex-col">
+                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Costo Unit.</label>
+                        <InputMoneda
+                          value={costoField.value}
+                          onChange={costoField.onChange}
+                          className="border border-zinc-200 rounded-lg p-2 text-sm font-semibold text-zinc-900"
+                        />
+                      </div>
+                    )}
                   />
                 </div>
                 <button 
@@ -461,17 +414,14 @@ const renderTabPropiedades = () => {
   };
 
   const renderTabCostos = () => {
-    // Mini-componente para moneda dentro del grid
     const GridInputMoneda = ({ label, id, control }) => (
       <Controller
-        name={id}
-        control={control}
+        name={id} control={control}
         render={({ field }) => (
           <div className="flex flex-col border-r border-b border-zinc-200 bg-white p-4 focus-within:ring-1 focus-within:ring-inset focus-within:ring-zinc-900 focus-within:z-10 transition-colors">
             <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">{label}</label>
             <InputMoneda
-              value={field.value}
-              onChange={field.onChange}
+              value={field.value} onChange={field.onChange}
               error={errors[id]?.message}
               className="border-none! p-0! bg-transparent! shadow-none! font-semibold text-zinc-900"
             />
@@ -483,41 +433,29 @@ const renderTabPropiedades = () => {
     return (
       <div className="animate-in fade-in duration-500">
         <div className="flex flex-col border-t border-l border-zinc-200 rounded-b-xl overflow-hidden shadow-sm">
-          
-          {/* SECCIÓN DE INVENTARIO: Full Width */}
           <div className="grid grid-cols-1 md:grid-cols-4 bg-emerald-50/20 border-b border-zinc-200">
             <div className="md:col-span-4 p-4 flex items-center justify-between">
               <div className="flex flex-col flex-1">
-                <label className="text-[10px] font-black text-emerald-600 uppercase mb-1">
-                  Existencias Iniciales
-                </label>
+                <label className="text-[10px] font-black text-emerald-600 uppercase mb-1">Existencias Iniciales</label>
                 <input 
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
+                  type="number" step="0.01" placeholder="0.00"
                   {...register('cantidad', { valueAsNumber: true })}
                   className="w-full bg-transparent border-none p-0 text-2xl font-bold text-zinc-900 placeholder:text-zinc-200 focus:ring-0 outline-none"
                 />
                 {errors.cantidad && <span className="text-[9px] text-red-500 font-bold uppercase">{errors.cantidad.message}</span>}
               </div>
-              {/* Un pequeño detalle visual de "Status" */}
               <div className="hidden md:block px-4 py-2 bg-white border border-emerald-100 rounded-lg shadow-sm">
                 <span className="text-[10px] font-bold text-emerald-500 uppercase">Inventario</span>
               </div>
             </div>
           </div>
-
-          {/* SECCIÓN DE COSTOS: Grid 2x2 */}
           <div className="grid grid-cols-1 md:grid-cols-2">
             <GridInputMoneda label="Costo Unitario (Materia Prima)" id="costo_unitario" control={control} />
-            <GridInputMoneda label="Costo de Envase" id="envase" control={control} />
-            <GridInputMoneda label="Costo de Etiqueta" id="etiqueta" control={control} />
-            <GridInputMoneda label="Costo de Plástico" id="plastico" control={control} />
+            <GridInputMoneda label="Costo de Envase"                id="envase"         control={control} />
+            <GridInputMoneda label="Costo de Etiqueta"              id="etiqueta"       control={control} />
+            <GridInputMoneda label="Costo de Plástico"              id="plastico"       control={control} />
           </div>
-
         </div>
-
-        {/* FOOTER DE TOTALES (Opcional pero muy Pro) */}
         <div className="mt-4 p-4 bg-zinc-900 flex items-center justify-between text-white shadow-lg">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
@@ -556,13 +494,13 @@ const renderTabPropiedades = () => {
           </button>
         </div>
 
-        {/* Sistema de Pestañas (Navegación) */}
+        {/* Pestañas */}
         <div className="flex px-6 bg-zinc-50 border-b border-zinc-200 overflow-x-auto hide-scrollbar">
           {tabsFiltrados.map(tab => (
             <button 
               key={tab.id} type="button" onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-4 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap
-                ${currentTab === tab.id // ✅ USANDO currentTab
+                ${currentTab === tab.id
                   ? 'border-zinc-900 text-zinc-900 bg-white' 
                   : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:bg-zinc-200/50'
                 }`}
@@ -572,27 +510,24 @@ const renderTabPropiedades = () => {
           ))}
         </div>
 
-        {/* Cuerpo del Formulario Y Botones (Todo dentro del form) */}
+        {/* Formulario */}
         <form 
           id="item-form" 
           onSubmit={handleSubmit(onSubmit, onInvalid)} 
           className="flex flex-col flex-1 overflow-hidden"
         >
-          {/* Zona con Scroll para las pestañas */}
           <div className="overflow-y-auto flex-1 bg-white">
-            {currentTab === 'basico' && renderTabBasico()}
-            {currentTab === 'propiedades' && renderTabPropiedades()}
+            {currentTab === 'basico'        && renderTabBasico()}
+            {currentTab === 'propiedades'   && renderTabPropiedades()}
             {currentTab === 'formulaciones' && renderTabFormulaciones()}
-            {currentTab === 'costos' && renderTabCostos()}
+            {currentTab === 'costos'        && renderTabCostos()}
           </div>
 
-          {/* Pie del Modal (Fijo abajo, AHORA DENTRO DEL FORMULARIO) */}
+          {/* Footer */}
           <div className="flex items-center justify-end gap-3 px-6 py-5 bg-zinc-50 border-t border-zinc-200">
             <Button variant="white" onClick={handleClose} disabled={isSaving}>
               Cancelar
             </Button>
-            
-            {/* Como ya está dentro del form, no necesita la prop 'form="item-form"' */}
             <Button type="submit" disabled={isSaving} icon={isSaving ? undefined : FileText}>
               {isSaving ? (
                 <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Guardando...</>
@@ -602,7 +537,6 @@ const renderTabPropiedades = () => {
             </Button>
           </div>
         </form>
-
       </div>
     </div>
   );

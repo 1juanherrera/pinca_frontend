@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { inventarioKeys } from './inventarioKeys';
 import { useBoundStore } from '../../../store/useBoundStore';
 
-export const useItem = (id = null) => {
+export const useItem = (id = null, fetchFormulacion = true) => {
   const queryClient = useQueryClient();
 
   // 1. Query: Lista de todos los ítems (Inventario General)
@@ -18,12 +18,9 @@ const queryFormulacion = useQuery({
   queryKey: ['formulaciones', id],
   queryFn: async () => {
     const response = await apiClient.get(`/formulaciones/${id}`);
-    console.log('=== RAW FORMULACION RESPONSE ===', response); // 👈
     return response;
   },
-  enabled: !!id,
-  staleTime: 0,
-  refetchOnMount: true,
+  enabled: !!id && fetchFormulacion, // Solo se ejecuta si hay un ID y fetchFormulacion es true
 });
 
   // 2. Query: Detalle de UN ítem (Para el modo Editar del Modal)
