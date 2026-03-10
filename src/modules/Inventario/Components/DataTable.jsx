@@ -34,6 +34,7 @@ const DataTable = () => {
     searchTerm, 
     tipoFilter
   );
+  console.log('render DataTable, primer item:', items?.inventario?.[0]?.nombre);
   const { removeAsync } = useItem();
 
   const handleEdit = (item) => {
@@ -90,7 +91,7 @@ const DataTable = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200/80">
-                {isLoadingItems || isFetching ? (
+                {isLoadingItems ? (
                   /* ESTADO 1: CARGANDO */
                   Array.from({ length: 10 }).map((_, i) => (
                     <SkeletonRow key={`skeleton-${i}`} />

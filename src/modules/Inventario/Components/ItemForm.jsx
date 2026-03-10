@@ -3,6 +3,7 @@ import { useForm, useFieldArray, useWatch, Controller } from 'react-hook-form';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { useItem } from '../api/useItem'; 
 import { useInventario } from '../api/useInventario';
+import { useUpdateItem } from '../api/useUpdateItem';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import { Button } from '../../../shared/Button'; 
@@ -33,9 +34,12 @@ const ItemFormModal = () => {
   const { 
     createItemAsync, 
     isCreatingItem,
-    updateItemAsync, 
-    isUpdatingItem,
   } = useInventario(bodega_id);
+
+  const { 
+  mutateAsync: updateItemAsync, 
+  isPending: isUpdatingItem,
+} = useUpdateItem(bodega_id);
 
   // ✅ useItem: solo para datos del formulario (unidades, materias primas)
   const { 
@@ -44,6 +48,12 @@ const ItemFormModal = () => {
   } = useItem(itemId, false);
 
   const isSaving = isCreatingItem || isUpdatingItem;
+
+  // En ItemFormModal — después de la línea bodega_id
+console.log('Modal bodega_id:', bodega_id, typeof bodega_id);
+
+// En DataTable
+console.log('Table id_bodega:', id_bodega, typeof id_bodega);
 
   // 3. React Hook Form y FieldArray
   const { register, control, handleSubmit, reset, setValue, formState: { errors } } = useForm({
@@ -255,7 +265,7 @@ const ItemFormModal = () => {
               label="Tipo de Ítem" required
               error={errors.tipo?.message}
               options={[
-                { value: '', label: 'SELECCIONE...' },
+                { value: '', label: 'SELECCIONE TIPO...' },
                 { value: '0', label: 'PRODUCTO' },
                 { value: '1', label: 'MATERIA PRIMA' },
                 { value: '2', label: 'INSUMO' }
@@ -274,7 +284,7 @@ const ItemFormModal = () => {
               label="Categoría" required
               error={errors.categoria_id?.message}
               options={[
-                { value: '', label: 'SELECCIONE...' },
+                { value: '', label: 'SELECCIONE CATEGORÍA...' },
                 { value: '1', label: 'ESMALTE' },
                 { value: '2', label: 'PASTA' },
                 { value: '3', label: 'ANTICORROSIVO' },

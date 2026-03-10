@@ -4,6 +4,7 @@ import { inventarioKeys } from './inventarioKeys';
 import toast from 'react-hot-toast';
 
 export const useInventario = (id_bodega = null, page = 1, perPage = 10, search = '', tipo = '') => {
+
   const queryClient = useQueryClient();
 
   // ── GET: Inventario paginado por bodega ──────────────────────────────────
@@ -36,70 +37,76 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
   });
 
   // ── PUT: Update item desde bodega ────────────────────────────────────────
-  const updateItemMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/bodegas/item/${id}`, data),
+  // const updateItemMutation = useMutation({
+  //   mutationFn: ({ id, data }) => apiClient.put(`/bodegas/item/${id}`, data),
 
-    // Actualización optimista
-    onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries({
-        queryKey: inventarioKeys.byBodega(id_bodega, page, perPage, search, tipo)
-      });
+  //   onMutate: async ({ id, data }) => {
+  //     await queryClient.cancelQueries({
+  //       queryKey: inventarioKeys.byBodegaBase(id_bodega), 
+  //     });
 
-      const previousData = queryClient.getQueryData(
-        inventarioKeys.byBodega(id_bodega, page, perPage, search, tipo)
-      );
+  //     const allCaches = queryClient.getQueriesData({
+  //       queryKey: inventarioKeys.byBodegaBase(id_bodega),
+  //     });
 
-      queryClient.setQueryData(
-        inventarioKeys.byBodega(id_bodega, page, perPage, search, tipo),
-        (old) => {
-          if (!old?.inventario) return old;
-          return {
-            ...old,
-            inventario: old.inventario.map((item) =>
-              String(item.id_item_general) === String(id)
-                ? {
-                    ...item,
-                    ...data,
-                    formulacion: item.formulacion
-                      ? {
-                          ...item.formulacion,
-                          materias_primas: data.formulaciones
-                            ? data.formulaciones.map((mp) => ({
-                                ...mp,
-                                costo_total: mp.cantidad * mp.costo_unitario,
-                              }))
-                            : item.formulacion.materias_primas,
-                        }
-                      : null,
-                  }
-                : item
-            ),
-          };
-        }
-      );
+  //     allCaches.forEach(([queryKey, oldData]) => {
+  //       if (!oldData?.inventario) return;
 
-      return { previousData };
-    },
+  //       queryClient.setQueryData(queryKey, (old) => ({
+  //         ...old,
+  //         inventario: old.inventario.map((item) => {
+  //           if (String(item.id_item_general) !== String(id)) return item;
 
-    onSuccess: (_) => {
-      // Refrescamos para asegurar datos reales del servidor
-      queryClient.invalidateQueries({
-        queryKey: inventarioKeys.byBodega(id_bodega, page, perPage, search, tipo)
-      });
-      toast.success('Item actualizado correctamente');
-    },
+  //           const updatedItem = {
+  //             ...item,
+  //             nombre:   data.nombre   ?? item.nombre,
+  //             codigo:   data.codigo   ?? item.codigo,
+  //             tipo:     data.tipo     ?? item.tipo,
+  //             cantidad: data.cantidad ?? item.cantidad,
+  //           };
 
-    onError: (error, _, context) => {
-      // Rollback si falla
-      if (context?.previousData) {
-        queryClient.setQueryData(
-          inventarioKeys.byBodega(id_bodega, page, perPage, search, tipo),
-          context.previousData
-        );
-      }
-      toast.error(error?.response?.data?.message || 'Error al actualizar el item');
-    },
-  });
+  //           if (item.formulacion && Array.isArray(data.formulaciones)) {
+  //             updatedItem.formulacion = {
+  //               ...item.formulacion,
+  //               materias_primas: item.formulacion.materias_primas.map((mp) => {
+  //                 const mpAct = data.formulaciones.find(
+  //                   (f) => String(f.id) === String(mp.id)
+  //                 );
+  //                 if (!mpAct) return mp;
+  //                 const cantidad       = mpAct.cantidad       ?? mp.cantidad;
+  //                 const costo_unitario = mpAct.costo_unitario ?? mp.costo_unitario;
+  //                 return { ...mp, cantidad, costo_unitario, costo_total: cantidad * costo_unitario };
+  //               }),
+  //             };
+  //           }
+
+  //           return updatedItem;
+  //         }),
+  //       }));
+  //     });
+
+  //     return { allCaches };
+  //   },
+
+  //   onSuccess: () => {
+  //     toast.success('Item actualizado correctamente');
+  //   },
+
+  //   onError: (error, _, context) => {
+  //     context?.allCaches?.forEach(([queryKey, oldData]) => {
+  //       queryClient.setQueryData(queryKey, oldData);
+  //     });
+  //     toast.error(error?.response?.data?.message || 'Error al actualizar el item');
+  //   },
+
+  //   onSettled: (_data, error) => {
+  //     if (error) {
+  //       queryClient.invalidateQueries({
+  //         queryKey: inventarioKeys.byBodegaBase(id_bodega),
+  //       });
+  //     }
+  //   },
+  // });
 
   return {
     // ── Data ──
@@ -111,11 +118,6 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
     createItem:      createItemMutation.mutate,
     createItemAsync: createItemMutation.mutateAsync,
     isCreatingItem:  createItemMutation.isPending,
-
-    // ── Update ──
-    updateItem:       updateItemMutation.mutate,
-    updateItemAsync:  updateItemMutation.mutateAsync,
-    isUpdatingItem:   updateItemMutation.isPending,
 
     // ── Utils ──
     refresh: () => queryClient.invalidateQueries({
