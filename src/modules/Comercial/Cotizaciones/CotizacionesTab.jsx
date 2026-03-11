@@ -1,48 +1,40 @@
 import { useState, useMemo } from 'react';
 import {
-  ClipboardList, Plus, Send, CheckCircle2,
-  XCircle, Clock, ArrowRight, Eye, Trash2, RefreshCw,
+  ClipboardList, Send, CheckCircle2, ArrowRight, Eye, Trash2,
 } from 'lucide-react';
-import { useCotizaciones } from './api/useCotizaciones';
-import { useBoundStore } from '../../store/useBoundStore';
-import HeaderSection from '../../shared/HeaderSection';
-import { Button } from '../../shared/Button';
-import ConfirmModal from '../../shared/ConfirmModal';
-import ERPTable from '../../shared/ERPTable';
-import StatusBadge from '../../shared/StatusBadge';
-import SummaryCard from '../../shared/SummaryCard';
-import SearchFilterBar from '../../shared/SearchFilterBar';
-import AmountDisplay from '../../shared/AmountDisplay';
+
+import { useBoundStore } from '../../../store/useBoundStore';
+import ERPTable      from '../../../shared/ERPTable';
+import StatusBadge   from '../../../shared/StatusBadge';
+import SummaryCard   from '../../../shared/SummaryCard';
+import SearchFilterBar from '../../../shared/SearchFilterBar';
+import AmountDisplay from '../../../shared/AmountDisplay';
 import CotizacionDrawer from './components/CotizacionDrawer';
-import CotizacionForm from './components/CotizacionForm';
-import { fmt } from '../../utils/formatters';
+import { fmt } from '../../../utils/formatters';
+import { useCotizaciones } from './api/useCotizaciones';
 
-const CotizacionesPage = () => {
-  const {
-    cotizaciones, isLoadingCotizaciones,
-    removeAsync, cambiarEstado, convertir,
-  } = useCotizaciones();
+const CotizacionesTab = () => {
+  const { cotizaciones, isLoadingCotizaciones, removeAsync, cambiarEstado, convertir } = useCotizaciones();
+  const { openConfirm } = useBoundStore();
 
-  const { openDrawer, openConfirm } = useBoundStore();
-  const [search, setSearch]   = useState('');
-  const [filters, setFilters] = useState({ estado: '' });
+  const [search,   setSearch]   = useState('');
+  const [filters,  setFilters]  = useState({ estado: '' });
   const [selected, setSelected] = useState(null);
 
-  // ── Métricas ──────────────────────────────────────────────────────────────
+  // ── Métricas ────────────────────────────────────────────────────────────
   const metrics = useMemo(() => {
     const list = Array.isArray(cotizaciones) ? cotizaciones : [];
     return {
-      total:     list.length,
-      enviadas:  list.filter((c) => c.estado === 'Enviada').length,
-      aprobadas: list.filter((c) => c.estado === 'Aprobada').length,
-      rechazadas:list.filter((c) => c.estado === 'Rechazada').length,
+      total:        list.length,
+      enviadas:     list.filter((c) => c.estado === 'Enviada').length,
+      aprobadas:    list.filter((c) => c.estado === 'Aprobada').length,
       montoAprobado: list
         .filter((c) => c.estado === 'Aprobada')
         .reduce((acc, c) => acc + Number(c.total || 0), 0),
     };
   }, [cotizaciones]);
 
-  // ── Filtrado ──────────────────────────────────────────────────────────────
+  // ── Filtrado ─────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     const list = Array.isArray(cotizaciones) ? cotizaciones : [];
     return list.filter((c) => {
@@ -86,7 +78,9 @@ const CotizacionesPage = () => {
       label: 'Vencimiento',
       render: (v, row) => {
         const vencida = new Date(v) < new Date() && row.estado !== 'Aprobada';
-        return <span className={`text-sm ${vencida ? 'text-red-600 font-medium' : 'text-gray-600'}`}>{v}</span>;
+        return (
+          <span className={`text-sm ${vencida ? 'text-red-600 font-medium' : 'text-gray-600'}`}>{v}</span>
+        );
       },
     },
     {
@@ -107,7 +101,6 @@ const CotizacionesPage = () => {
       align: 'right',
       render: (_, row) => (
         <div className="flex items-center justify-end gap-1">
-          {/* Convertir a factura (solo Aprobadas sin factura) */}
           {row.estado === 'Aprobada' && !row.facturas_id && (
             <button
               onClick={(e) => {
@@ -149,39 +142,16 @@ const CotizacionesPage = () => {
   ];
 
   return (
-    <div className="flex flex-col w-full gap-4">
-      {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <HeaderSection
-          title="Cotizaciones"
-          subtitle="Ventas"
-          description="Gestión de propuestas comerciales a clientes"
-          icon={ClipboardList}
-          breadcrumbs={[
-            { label: 'Ventas' },
-            { label: 'Cotizaciones', path: '/cotizaciones' },
-          ]}
-        />
-        <Button variant="black" onClick={() => openDrawer('COTIZACION_FORM')} icon={Plus}>
-          Nueva Cotización
-        </Button>
-      </div>
-
-      {/* ── Métricas ── */}
+    <div className="flex flex-col gap-4">
+      {/* Métricas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <SummaryCard label="Total"      value={metrics.total}                icon={ClipboardList} color="gray"  />
-        <SummaryCard label="Enviadas"   value={metrics.enviadas}             icon={Send}          color="blue"  />
-        <SummaryCard label="Aprobadas"  value={metrics.aprobadas}            icon={CheckCircle2}  color="green" />
-        <SummaryCard
-          label="Monto Aprobado"
-          value={fmt(metrics.montoAprobado)}
-          icon={CheckCircle2}
-          color="green"
-          sub={`${metrics.rechazadas} rechazada(s)`}
-        />
+        <SummaryCard label="Total"         value={metrics.total}                icon={ClipboardList} color="gray"  />
+        <SummaryCard label="Enviadas"      value={metrics.enviadas}             icon={Send}          color="blue"  />
+        <SummaryCard label="Aprobadas"     value={metrics.aprobadas}            icon={CheckCircle2}  color="green" />
+        <SummaryCard label="Monto Aprobado" value={fmt(metrics.montoAprobado)}  icon={CheckCircle2}  color="green" />
       </div>
 
-      {/* ── Filtros ── */}
+      {/* Filtros */}
       <SearchFilterBar
         search={search}
         onSearch={setSearch}
@@ -203,7 +173,7 @@ const CotizacionesPage = () => {
         onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
       />
 
-      {/* ── Tabla ── */}
+      {/* Tabla */}
       <ERPTable
         columns={columns}
         data={filtered}
@@ -212,7 +182,7 @@ const CotizacionesPage = () => {
         onRowClick={(row) => setSelected(row)}
       />
 
-      {/* ── Drawers y modales ── */}
+      {/* Drawer de detalle */}
       <CotizacionDrawer
         cotizacionId={selected?.id_cotizaciones}
         isOpen={!!selected}
@@ -220,10 +190,8 @@ const CotizacionesPage = () => {
         onCambiarEstado={(id, estado) => cambiarEstado({ id, estado })}
         onConvertir={(id) => convertir(id)}
       />
-      <CotizacionForm />
-      <ConfirmModal />
     </div>
   );
 };
 
-export default CotizacionesPage;
+export default CotizacionesTab;

@@ -84,7 +84,7 @@ const Sidebar = () => {
         </nav>
 
         {/* Acciones Inferiores */}
-        {/* <div className="pt-4 px-1 mt-auto border-t border-surface-sidebar-hover space-y-2 overflow-hidden">
+        <div className="pt-4 px-1 mt-auto border-t border-surface-sidebar-hover space-y-2 overflow-hidden">
           <NavLink
             to="/configuracion"
             title={!isHovered ? "Configuración" : ""}
@@ -110,7 +110,7 @@ const Sidebar = () => {
               Cerrar Sesión
             </span>
           </NavLink>
-        </div> */}
+        </div>
       </aside>
     </div>
   );

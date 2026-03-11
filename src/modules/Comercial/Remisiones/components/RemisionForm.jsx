@@ -7,9 +7,9 @@
 
 import { useState } from 'react';
 import { X, Plus, Trash2, Save } from 'lucide-react';
-import { useBoundStore } from '../../../store/useBoundStore';
+import { useBoundStore } from '../../../../store/useBoundStore';
 import { useRemisiones } from '../api/useRemisiones';
-import { Button } from '../../../shared/Button';
+import { Button } from '../../../../shared/Button';
 
 const EMPTY_ITEM = { descripcion: '', cantidad: 1, unidad: 'und' };
 const UNIDADES   = ['und', 'kg', 'g', 'l', 'ml', 'm', 'caja', 'paquete', 'rollo'];

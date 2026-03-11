@@ -1,32 +1,24 @@
 import { useState, useMemo } from 'react';
 import {
-  Truck, Plus, Package, CheckCircle2,
-  Clock, MapPin, Eye, Trash2, ArrowRight, RefreshCw,
+  Truck, Package, CheckCircle2, Clock, MapPin, Eye, Trash2, ArrowRight,
 } from 'lucide-react';
+import { useBoundStore } from '../../../store/useBoundStore';
+import ERPTable        from '../../../shared/ERPTable';
+import StatusBadge     from '../../../shared/StatusBadge';
+import SummaryCard     from '../../../shared/SummaryCard';
+import SearchFilterBar from '../../../shared/SearchFilterBar';
+import RemisionDrawer  from './components/RemisionDrawer';
 import { useRemisiones } from './api/useRemisiones';
-import { useBoundStore } from '../../store/useBoundStore';
-import HeaderSection from '../../shared/HeaderSection';
-import { Button } from '../../shared/Button';
-import ConfirmModal from '../../shared/ConfirmModal';
-import ERPTable from '../../shared/ERPTable';
-import StatusBadge from '../../shared/StatusBadge';
-import SummaryCard from '../../shared/SummaryCard';
-import SearchFilterBar from '../../shared/SearchFilterBar';
-import RemisionDrawer from './components/RemisionDrawer';
-import RemisionForm from './components/RemisionForm';
 
-const RemisionesPage = () => {
-  const {
-    remisiones, isLoadingRemisiones,
-    removeAsync, cambiarEstado, convertir,
-  } = useRemisiones();
+const RemisionesTab = () => {
+  const { remisiones, isLoadingRemisiones, removeAsync, cambiarEstado, convertir } = useRemisiones();
+  const { openConfirm } = useBoundStore();
 
-  const { openDrawer, openConfirm } = useBoundStore();
-  const [search, setSearch]     = useState('');
-  const [filters, setFilters]   = useState({ estado: '' });
+  const [search,   setSearch]   = useState('');
+  const [filters,  setFilters]  = useState({ estado: '' });
   const [selected, setSelected] = useState(null);
 
-  // ── Métricas ──────────────────────────────────────────────────────────────
+  // ── Métricas ─────────────────────────────────────────────────────────────
   const metrics = useMemo(() => {
     const list = Array.isArray(remisiones) ? remisiones : [];
     return {
@@ -106,7 +98,6 @@ const RemisionesPage = () => {
       align: 'right',
       render: (_, row) => (
         <div className="flex items-center justify-end gap-1">
-          {/* Convertir a factura si no tiene */}
           {!row.facturas_id && row.estado !== 'Anulada' && (
             <button
               onClick={(e) => {
@@ -148,33 +139,16 @@ const RemisionesPage = () => {
   ];
 
   return (
-    <div className="flex flex-col w-full gap-4">
-      {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <HeaderSection
-          title="Remisiones"
-          subtitle="Logística"
-          description="Control de despachos y entregas a clientes"
-          icon={Truck}
-          breadcrumbs={[
-            { label: 'Logística' },
-            { label: 'Remisiones', path: '/remisiones' },
-          ]}
-        />
-        <Button variant="black" onClick={() => openDrawer('REMISION_FORM')} icon={Plus}>
-          Nueva Remisión
-        </Button>
-      </div>
-
-      {/* ── Métricas ── */}
+    <div className="flex flex-col gap-4">
+      {/* Métricas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <SummaryCard label="Total"       value={metrics.total}      icon={Package}      color="gray"  />
-        <SummaryCard label="Pendientes"  value={metrics.pendientes} icon={Clock}        color="amber" />
-        <SummaryCard label="Entregadas"  value={metrics.entregadas} icon={CheckCircle2} color="green" />
-        <SummaryCard label="Facturadas"  value={metrics.conFactura} icon={Truck}        color="blue"  />
+        <SummaryCard label="Total"      value={metrics.total}      icon={Package}      color="gray"  />
+        <SummaryCard label="Pendientes" value={metrics.pendientes} icon={Clock}        color="amber" />
+        <SummaryCard label="Entregadas" value={metrics.entregadas} icon={CheckCircle2} color="green" />
+        <SummaryCard label="Facturadas" value={metrics.conFactura} icon={Truck}        color="blue"  />
       </div>
 
-      {/* ── Filtros ── */}
+      {/* Filtros */}
       <SearchFilterBar
         search={search}
         onSearch={setSearch}
@@ -184,9 +158,9 @@ const RemisionesPage = () => {
             key: 'estado',
             label: 'Todos los estados',
             options: [
-              { value: 'Pendiente',  label: 'Pendiente'  },
-              { value: 'Entregada',  label: 'Entregada'  },
-              { value: 'Anulada',    label: 'Anulada'    },
+              { value: 'Pendiente', label: 'Pendiente' },
+              { value: 'Entregada', label: 'Entregada' },
+              { value: 'Anulada',   label: 'Anulada'   },
             ],
           },
         ]}
@@ -194,7 +168,7 @@ const RemisionesPage = () => {
         onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
       />
 
-      {/* ── Tabla ── */}
+      {/* Tabla */}
       <ERPTable
         columns={columns}
         data={filtered}
@@ -203,7 +177,7 @@ const RemisionesPage = () => {
         onRowClick={(row) => setSelected(row)}
       />
 
-      {/* ── Drawers y modales ── */}
+      {/* Drawer de detalle */}
       <RemisionDrawer
         remisionId={selected?.id_remisiones}
         isOpen={!!selected}
@@ -211,10 +185,8 @@ const RemisionesPage = () => {
         onCambiarEstado={(id, estado) => cambiarEstado({ id, estado })}
         onConvertir={(id) => convertir(id)}
       />
-      <RemisionForm />
-      <ConfirmModal />
     </div>
   );
 };
 
-export default RemisionesPage;
+export default RemisionesTab;

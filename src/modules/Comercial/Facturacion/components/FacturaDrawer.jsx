@@ -12,10 +12,10 @@ import {
   Truck, AlertCircle,
 } from 'lucide-react';
 import { useFactura } from '../api/useFactura';
-import DetailDrawer from '../../../shared/DetailDrawer';
-import StatusBadge from '../../../shared/StatusBadge';
-import AmountDisplay from '../../../shared/AmountDisplay';
-import { fmt } from '../../../utils/formatters';
+import DetailDrawer from '../../../../shared/DetailDrawer';
+import StatusBadge from '../../../../shared/StatusBadge';
+import AmountDisplay from '../../../../shared/AmountDisplay';
+import { fmt } from '../../../../utils/formatters';
 
 // ── Sub-componente: sección con título ────────────────────────────────────
 const Section = ({ title, icon: Icon, children }) => (

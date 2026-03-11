@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient from '../../../api/apiClient';
 import { cotizacionKeys } from './cotizacionKeys';
 import toast from 'react-hot-toast';
-import { facturaKeys } from '../../Facturas/api/facturaKeys';
+import apiClient from '../../../../api/apiClient';
+import { facturaKeys } from '../../Facturacion/api/facturaKeys';
 
 /**
  * useCotizaciones(id?, clienteId?)

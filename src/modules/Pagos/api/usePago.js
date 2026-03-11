@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { pagoKeys } from './pagoKeys';
 import toast from 'react-hot-toast';
-import { facturaKeys } from '../../Facturas/api/facturaKeys';
+import { facturaKeys } from '../../Comercial/Facturacion/api/facturaKeys';
 
 
 /**

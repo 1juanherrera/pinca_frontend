@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { remisionKeys } from './remisionKeys';
 import toast from 'react-hot-toast';
-import apiClient from '../../../api/apiClient';
-import { facturaKeys } from '../../Facturas/api/facturaKeys';
+import apiClient from '../../../../api/apiClient';
+import { facturaKeys } from '../../Facturacion/api/facturaKeys';
 /**
  * useRemisiones(id?, options?)
  *

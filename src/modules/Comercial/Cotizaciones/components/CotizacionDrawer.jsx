@@ -9,10 +9,10 @@ import {
   ArrowRight, RefreshCw, AlertCircle,
 } from 'lucide-react';
 import { useCotizaciones } from '../api/useCotizaciones';
-import { useBoundStore } from '../../../store/useBoundStore';
-import DetailDrawer from '../../../shared/DetailDrawer';
-import StatusBadge from '../../../shared/StatusBadge';
-import { fmt } from '../../../utils/formatters';
+import { useBoundStore } from '../../../../store/useBoundStore';
+import DetailDrawer from '../../../../shared/DetailDrawer';
+import StatusBadge from '../../../../shared/StatusBadge';
+import { fmt } from '../../../../utils/formatters';
 
 const Section = ({ title, icon: Icon, children }) => (
   <div className="px-5 py-4 border-b border-gray-100 last:border-b-0">

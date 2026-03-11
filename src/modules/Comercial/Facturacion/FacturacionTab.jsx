@@ -1,28 +1,23 @@
 import { useState, useMemo } from 'react';
 import {
-  FileText, Plus, DollarSign, Clock, CheckCircle2,
-  AlertTriangle, Eye, Trash2, MoreHorizontal, Receipt,
+  FileText, DollarSign, Clock, CheckCircle2, Eye, Trash2, Receipt,
 } from 'lucide-react';
+import { useBoundStore } from '../../../store/useBoundStore';
+import ERPTable        from '../../../shared/ERPTable';
+import StatusBadge     from '../../../shared/StatusBadge';
+import SummaryCard     from '../../../shared/SummaryCard';
+import SearchFilterBar from '../../../shared/SearchFilterBar';
+import AmountDisplay   from '../../../shared/AmountDisplay';
+import FacturaDrawer   from './components/FacturaDrawer';
+import { fmt } from '../../../utils/formatters';
 import { useFactura } from './api/useFactura';
-import { useBoundStore } from '../../store/useBoundStore';
-import HeaderSection from '../../shared/HeaderSection';
-import { Button } from '../../shared/Button';
-import ConfirmModal from '../../shared/ConfirmModal';
-import ERPTable from '../../shared/ERPTable';
-import StatusBadge from '../../shared/StatusBadge';
-import SummaryCard from '../../shared/SummaryCard';
-import SearchFilterBar from '../../shared/SearchFilterBar';
-import AmountDisplay from '../../shared/AmountDisplay';
-import FacturaDrawer from './components/FacturaDrawer';
-import FacturaForm from './components/FacturaForm';
-import { fmt } from '../../utils/formatters';
 
-const FacturasPage = () => {
+const FacturacionTab = () => {
   const { facturas, isLoadingFacturas, removeAsync } = useFactura();
-  const { openDrawer, openConfirm } = useBoundStore();
+  const { openConfirm } = useBoundStore();
 
-  const [search, setSearch]   = useState('');
-  const [filters, setFilters] = useState({ estado: '' });
+  const [search,   setSearch]   = useState('');
+  const [filters,  setFilters]  = useState({ estado: '' });
   const [selected, setSelected] = useState(null);
 
   // ── Métricas ─────────────────────────────────────────────────────────────
@@ -59,9 +54,7 @@ const FacturasPage = () => {
       key: 'numero',
       label: 'Número',
       render: (v) => (
-        <span className="font-mono text-xs font-semibold text-gray-800 bg-gray-100 px-2 py-0.5 rounded">
-          {v}
-        </span>
+        <span className="font-mono text-xs font-semibold text-gray-800 bg-gray-100 px-2 py-0.5 rounded">{v}</span>
       ),
     },
     {
@@ -72,12 +65,9 @@ const FacturasPage = () => {
     {
       key: 'fecha_vencimiento',
       label: 'Vencimiento',
-      render: (v, row) => {
-        const isVencida = row.estado === 'Vencida';
-        return (
-          <span className={isVencida ? 'text-red-600 font-medium' : 'text-gray-600'}>{v}</span>
-        );
-      },
+      render: (v, row) => (
+        <span className={row.estado === 'Vencida' ? 'text-red-600 font-medium' : 'text-gray-600'}>{v}</span>
+      ),
     },
     {
       key: 'total',
@@ -110,7 +100,6 @@ const FacturasPage = () => {
           <button
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
             className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
-            title="Ver detalle"
           >
             <Eye className="w-4 h-4" />
           </button>
@@ -124,7 +113,6 @@ const FacturasPage = () => {
               });
             }}
             className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
-            title="Eliminar"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -134,29 +122,12 @@ const FacturasPage = () => {
   ];
 
   return (
-    <div className="flex flex-col w-full gap-4">
-      {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <HeaderSection
-          title="Gestión de Facturas"
-          subtitle="Facturación"
-          description="Registro y seguimiento de facturas de venta"
-          icon={FileText}
-          breadcrumbs={[
-            { label: 'Facturación' },
-            { label: 'Facturas', path: '/facturas' },
-          ]}
-        />
-        <Button variant="black" onClick={() => openDrawer('FACTURA_FORM')} icon={Plus}>
-          Nueva Factura
-        </Button>
-      </div>
-
-      {/* ── Métricas ── */}
+    <div className="flex flex-col gap-4">
+      {/* Métricas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <SummaryCard label="Total Facturas"  value={metrics.total}     icon={Receipt}       color="gray"  />
-        <SummaryCard label="Pendientes"       value={metrics.pendiente} icon={Clock}          color="amber" />
-        <SummaryCard label="Pagadas"          value={metrics.pagada}    icon={CheckCircle2}   color="green" />
+        <SummaryCard label="Total Facturas"  value={metrics.total}     icon={Receipt}      color="gray"  />
+        <SummaryCard label="Pendientes"       value={metrics.pendiente} icon={Clock}        color="amber" />
+        <SummaryCard label="Pagadas"          value={metrics.pagada}    icon={CheckCircle2} color="green" />
         <SummaryCard
           label="Saldo por Cobrar"
           value={fmt(metrics.montoPendiente)}
@@ -166,7 +137,7 @@ const FacturasPage = () => {
         />
       </div>
 
-      {/* ── Filtros ── */}
+      {/* Filtros */}
       <SearchFilterBar
         search={search}
         onSearch={setSearch}
@@ -187,7 +158,7 @@ const FacturasPage = () => {
         onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
       />
 
-      {/* ── Tabla ── */}
+      {/* Tabla */}
       <ERPTable
         columns={columns}
         data={filtered}
@@ -196,16 +167,14 @@ const FacturasPage = () => {
         onRowClick={(row) => setSelected(row)}
       />
 
-      {/* ── Modales y drawers ── */}
+      {/* Drawer de detalle */}
       <FacturaDrawer
         facturaId={selected?.id_facturas}
         isOpen={!!selected}
         onClose={() => setSelected(null)}
       />
-      <FacturaForm />
-      <ConfirmModal />
     </div>
   );
 };
 
-export default FacturasPage;
+export default FacturacionTab;

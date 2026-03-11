@@ -11,9 +11,9 @@ import {
   RefreshCw, ArrowRight, AlertCircle, Building2,
 } from 'lucide-react';
 import { useRemisiones } from '../api/useRemisiones';
-import { useBoundStore } from '../../../store/useBoundStore';
-import DetailDrawer from '../../../shared/DetailDrawer';
-import StatusBadge from '../../../shared/StatusBadge';
+import { useBoundStore } from '../../../../store/useBoundStore';
+import DetailDrawer from '../../../../shared/DetailDrawer';
+import StatusBadge from '../../../../shared/StatusBadge';
 
 const Section = ({ title, icon: Icon, children }) => (
   <div className="px-5 py-4 border-b border-gray-100 last:border-b-0">

@@ -8,10 +8,10 @@ import BodegaPage from "./modules/Bodegas/BodegaPage";
 import ProduccionPage from "./modules/Produccion/ProduccionPage";
 import Prorrateo from "./modules/Prorrateo/Prorreateo";
 import ClientePage from "./modules/Clientes/ClientePage";
-import FacturasPage from "./modules/Facturas/FacturasPage";
-import CotizacionesPage from "./modules/Cotizaciones/CotizacionesPage";
 import PagosPage from "./modules/Pagos/PagosPage";
-import RemisionesPage from "./modules/Remisiones/RemisionesPage";
+import CarteraPage from "./modules/cartera/CarteraPage";
+import ComercialPage from "./modules/Comercial/ComercialPage";
+
 
 const App = () => {
   return (
@@ -23,14 +23,13 @@ const App = () => {
           <Route path="/formulaciones" element={<FormulacionesPage />} />
           <Route path="/instalaciones/bodegas/:id" element={<BodegaPage />} />
           <Route path="/produccion" element={<ProduccionPage />} />
-          <Route path="/facturas" element={<FacturasPage />} />
           <Route path="/clientes" element={<ClientePage />} />
           <Route path="/prorrateo" element={<Prorrateo />} />
           
           {/* Nuevas Rutas */}
-          <Route path="/cotizaciones" element={<CotizacionesPage />} />
           <Route path="/pagos" element={<PagosPage />} />
-          <Route path="/remisiones" element={<RemisionesPage />} />
+          <Route path="/cartera" element={<CarteraPage />} />
+          <Route path="/comercial" element={<ComercialPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

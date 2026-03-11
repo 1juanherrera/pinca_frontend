@@ -6,17 +6,17 @@ import toast from 'react-hot-toast';
 export const useUpdateItem = (id_bodega) => {
   const queryClient = useQueryClient();
 
+  // Normalizar siempre — useParams devuelve string, pero byBodegaBase hace .toString()
+  // así que ambos lados deben coincidir
+  const bodegaId = id_bodega?.toString();
+
   return useMutation({
     mutationFn: ({ id, data }) => apiClient.put(`/bodegas/item/${id}`, data),
 
     onSuccess: (_response, { id, data }) => {
-        const antesKeys = queryClient.getQueriesData({ queryKey: ['inventario'] });
-        console.log('Keys en cache:', antesKeys.map(([k]) => JSON.stringify(k)));
-        console.log('byBodegaBase que uso:', JSON.stringify(inventarioKeys.byBodegaBase(String(id_bodega))));
-
-      // Actualizar cache directamente sin refetch
+      // Actualizar optimistamente el cache
       queryClient.setQueriesData(
-        { queryKey: inventarioKeys.byBodegaBase(id_bodega) },
+        { queryKey: inventarioKeys.byBodegaBase(bodegaId) },
         (old) => {
           if (!old?.inventario) return old;
 
@@ -24,11 +24,6 @@ export const useUpdateItem = (id_bodega) => {
             ...old,
             inventario: old.inventario.map((item) => {
               if (String(item.id_item_general) !== String(id)) return item;
-
-
-    console.log('✅ old.inventario encontrado, buscando id:', id, typeof id);
-    console.log('ids en cache:', old.inventario.map(i => `${i.id_item_general}(${typeof i.id_item_general})`));
-                console.log('id RAW:', JSON.stringify(id), '| primer id cache RAW:', JSON.stringify(old.inventario[0].id_item_general));
 
               return {
                 ...item,
@@ -46,12 +41,7 @@ export const useUpdateItem = (id_bodega) => {
                         if (!mpAct) return mp;
                         const cantidad       = mpAct.cantidad       ?? mp.cantidad;
                         const costo_unitario = mpAct.costo_unitario ?? mp.costo_unitario;
-                        return {
-                          ...mp,
-                          cantidad,
-                          costo_unitario,
-                          costo_total: cantidad * costo_unitario,
-                        };
+                        return { ...mp, cantidad, costo_unitario, costo_total: cantidad * costo_unitario };
                       }),
                     }
                   : item.formulacion,
@@ -60,12 +50,18 @@ export const useUpdateItem = (id_bodega) => {
           };
         }
       );
+
+      // ✅ Siempre invalidar después del update optimista para sincronizar con el servidor
+      queryClient.invalidateQueries({
+        queryKey: inventarioKeys.byBodegaBase(bodegaId),
+      });
+
       toast.success('Item actualizado correctamente');
     },
 
     onError: (error) => {
       queryClient.invalidateQueries({
-        queryKey: inventarioKeys.byBodegaBase(id_bodega),
+        queryKey: inventarioKeys.byBodegaBase(bodegaId),
       });
       toast.error(error?.response?.data?.message || 'Error al actualizar el item');
     },
