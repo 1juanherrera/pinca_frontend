@@ -10,8 +10,9 @@ import SummaryCard   from '../../../shared/SummaryCard';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay from '../../../shared/AmountDisplay';
 import CotizacionDrawer from './components/CotizacionDrawer';
-import { fmt } from '../../../utils/formatters';
+import { fmt, formatLetterDate } from '../../../utils/formatters';
 import { useCotizaciones } from './api/useCotizaciones';
+import DateBadge from '../../../shared/DateBadge';
 
 const CotizacionesTab = () => {
   const { cotizaciones, isLoadingCotizaciones, removeAsync, cambiarEstado, convertir } = useCotizaciones();
@@ -53,9 +54,9 @@ const CotizacionesTab = () => {
   const columns = [
     {
       key: 'numero',
-      label: 'Número',
+      label: 'Codigo',
       render: (v) => (
-        <span className="font-mono text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded">{v}</span>
+        <span className="font-mono text-xs font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">{v}</span>
       ),
     },
     {
@@ -63,31 +64,32 @@ const CotizacionesTab = () => {
       label: 'Cliente',
       render: (v, row) => (
         <div>
-          <p className="text-sm font-medium text-gray-800 truncate max-w-45">{v}</p>
-          <p className="text-xs text-gray-400">{row.nombre_encargado}</p>
+          <p className="text-sm font-medium text-gray-900 truncate max-w-45">{v}</p>
+          <p className="text-xs text-gray-500">{row.nombre_encargado}</p>
         </div>
       ),
     },
     {
       key: 'fecha_cotizacion',
       label: 'Fecha',
-      render: (v) => <span className="text-sm text-gray-600">{v}</span>,
+      align: 'center',
+      render: (v) => (
+        <div className="block text-center justify-center items-center gap-1.5 px-2 py-1 rounded-md text-[12px] font-semibold uppercase">
+          {formatLetterDate(v)}
+        </div>
+      )
     },
     {
       key: 'fecha_vencimiento',
       label: 'Vencimiento',
-      render: (v, row) => {
-        const vencida = new Date(v) < new Date() && row.estado !== 'Aprobada';
-        return (
-          <span className={`text-sm ${vencida ? 'text-red-600 font-medium' : 'text-gray-600'}`}>{v}</span>
-        );
-      },
+      align: 'center',
+      render: (v) => <DateBadge date={v} />
     },
     {
       key: 'total',
       label: 'Total',
-      align: 'right',
-      render: (v) => <AmountDisplay value={v} />,
+      align: 'center',
+      render: (v) => <AmountDisplay color={1} value={v} />,
     },
     {
       key: 'estado',
@@ -97,10 +99,10 @@ const CotizacionesTab = () => {
     },
     {
       key: 'acciones',
-      label: '',
-      align: 'right',
+      label: 'Acciones',
+      align: 'center',
       render: (_, row) => (
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-center gap-1.5">
           {row.estado === 'Aprobada' && !row.facturas_id && (
             <button
               onClick={(e) => {
@@ -111,7 +113,7 @@ const CotizacionesTab = () => {
                   onConfirm: async () => convertir(row.id_cotizaciones),
                 });
               }}
-              className="p-1.5 rounded hover:bg-emerald-50 text-gray-400 hover:text-emerald-600 transition-colors"
+              className="flex items-center justify-center w-8 h-8 rounded bg-zinc-200 text-zinc-600 hover:bg-zinc-800 hover:text-white transition-all active:scale-95"
               title="Convertir a factura"
             >
               <ArrowRight className="w-4 h-4" />
@@ -119,7 +121,7 @@ const CotizacionesTab = () => {
           )}
           <button
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
-            className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
+            className="flex items-center justify-center w-8 h-8 rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all active:scale-95"
           >
             <Eye className="w-4 h-4" />
           </button>
@@ -132,7 +134,7 @@ const CotizacionesTab = () => {
                 onConfirm: async () => removeAsync(row.id_cotizaciones),
               });
             }}
-            className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
+            className="flex items-center justify-center w-8 h-8 rounded bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-all active:scale-95"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -142,9 +144,9 @@ const CotizacionesTab = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       {/* Métricas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         <SummaryCard label="Total"         value={metrics.total}                icon={ClipboardList} color="gray"  />
         <SummaryCard label="Enviadas"      value={metrics.enviadas}             icon={Send}          color="blue"  />
         <SummaryCard label="Aprobadas"     value={metrics.aprobadas}            icon={CheckCircle2}  color="green" />

@@ -106,7 +106,7 @@ const DataTable = () => {
                       <td className="px-3 py-1 text-center text-xs font-bold text-zinc-700">{item.cantidad}</td>
                       
                       <td className="px-3 py-1 text-center">
-                        <span className={`inline-flex w-32 justify-center items-center px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider border ${handleType(item.tipo)}`}>
+                        <span className={`inline-flex w-32 justify-center shadow-md items-center px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider border ${handleType(item.tipo)}`}>
                           {
                             String(item.tipo).includes('MATERIA') || item.tipo === '1' ? 'MATERIA PRIMA' :
                             String(item.tipo).includes('INSUMO') || item.tipo === '2' ? 'INSUMO' : 'PRODUCTO'

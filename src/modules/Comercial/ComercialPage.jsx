@@ -18,7 +18,7 @@ import RemisionForm from './Remisiones/components/RemisionForm';
 const TABS = [
   {
     id:          'cotizaciones',
-    label:       'Cotizaciones',
+    label:       'COTIZACIONES',
     icon:        ClipboardList,
     drawerKey:   'COTIZACION_FORM',
     btnLabel:    'Nueva Cotización',
@@ -26,7 +26,7 @@ const TABS = [
   },
   {
     id:          'remisiones',
-    label:       'Remisiones',
+    label:       'REMISIONES',
     icon:        Truck,
     drawerKey:   'REMISION_FORM',
     btnLabel:    'Nueva Remisión',
@@ -34,7 +34,7 @@ const TABS = [
   },
   {
     id:          'facturas',
-    label:       'Facturas',
+    label:       'FACTURAS',
     icon:        Receipt,
     drawerKey:   'FACTURA_FORM',
     btnLabel:    'Nueva Factura',
@@ -53,7 +53,7 @@ const ComercialPage = () => {
     <div className="flex flex-col w-full gap-0">
 
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection
           title="Comercial"
           subtitle="Ventas"
@@ -90,7 +90,7 @@ const ComercialPage = () => {
       </div>
 
       {/* ── Navegación de tabs ── */}
-      <div className="flex border-b border-zinc-200 mb-5 overflow-x-auto">
+      <div className="flex mb-3 overflow-x-auto">
         {TABS.map((t) => {
           const Icon    = t.icon;
           const active  = activeTab === t.id;
@@ -98,9 +98,9 @@ const ComercialPage = () => {
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 whitespace-nowrap transition-all
+              className={`flex items-center gap-2 px-5 py-3.5 text-sm rounded-t-lg font-semibold border-b-2 whitespace-nowrap transition-all
                 ${active
-                  ? 'border-zinc-900 text-zinc-900'
+                  ? 'border-zinc-900 text-zinc-900 bg-zinc-200'
                   : 'border-transparent text-zinc-400 hover:text-zinc-700 hover:border-zinc-300'
                 }`}
             >

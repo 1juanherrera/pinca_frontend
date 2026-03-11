@@ -1,12 +1,5 @@
-/* eslint-disable no-unused-vars */
 /**
- * SummaryCard – tarjeta de métrica/KPI para cabeceras de módulo ERP
- * Props:
- *   label:    string
- *   value:    string | number
- *   icon:     Lucide icon component
- *   color:    'blue' | 'green' | 'amber' | 'red' | 'violet' | 'gray'
- *   sub?:     string  (texto secundario pequeño)
+ * SummaryCard – con el diseño de KpiCard (Texto izquierda, Icono circular derecha)
  */
 
 const COLOR_MAP = {
@@ -22,14 +15,29 @@ const SummaryCard = ({ label, value, icon: Icon, color = 'gray', sub }) => {
   const c = COLOR_MAP[color] ?? COLOR_MAP.gray;
 
   return (
-    <div className={`rounded-lg border p-4 flex items-center gap-3 ${c.bg} ${c.border}`}>
-      <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${c.icon}`}>
-        <Icon className="w-5 h-5" />
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs text-gray-500 font-medium truncate">{label}</p>
-        <p className={`text-lg font-bold leading-tight ${c.text}`}>{value}</p>
-        {sub && <p className="text-[10px] text-gray-400 mt-0.5">{sub}</p>}
+    <div className="bg-white rounded-lg border border-zinc-200/60 shadow-sm px-3 py-2 transition-all hover:shadow-md group">
+      <div className="flex items-center justify-between">
+        
+        {/* Contenedor de Texto a la izquierda */}
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-gray-600 truncate">
+            {label}
+          </p>
+          <p className={`text-lg font-bold leading-tight ${c.text}`}>
+            {value}
+          </p>
+          {sub && (
+            <p className="text-[10px] text-gray-400 mt-0.5 truncate">
+              {sub}
+            </p>
+          )}
+        </div>
+
+        {/* Icono a la derecha - Circular con efecto hover de KpiCard */}
+        <div className={`h-10 w-10 ${c.icon} rounded-full flex items-center justify-center transition-transform group-hover:scale-110 shrink-0`}>
+          <Icon className="w-5 h-5" />
+        </div>
+
       </div>
     </div>
   );

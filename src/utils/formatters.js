@@ -65,3 +65,25 @@ export const fmt = (v) =>
     currency: 'COP',
     minimumFractionDigits: 0,
   }).format(Number(v) || 0);
+
+/**
+ * Formatea una fecha de DB (YYYY-MM-DD) a formato: "Mar 11 2026"
+*/
+export const formatLetterDate = (dateString) => {
+  if (!dateString) return "—";
+
+  const date = new Date(`${dateString}T00:00:00`);
+  
+  const options = { month: 'short', day: '2-digit', year: 'numeric' };
+  let formatted = date.toLocaleDateString('es-ES', options);
+
+  // Corregido: quitamos el escape innecesario del punto
+  formatted = formatted.replace(/[.,]/g, ""); 
+  
+  // Para que el formato sea "Mes Día Año" exacto como pediste
+  // Reordenamos las partes: [día, mes, año] -> [mes, día, año]
+  const partes = formatted.split(" ");
+  const mesCapitalizado = partes[1].charAt(0).toUpperCase() + partes[1].slice(1);
+  
+  return `${mesCapitalizado} ${partes[0]} ${partes[2]}`;
+};
