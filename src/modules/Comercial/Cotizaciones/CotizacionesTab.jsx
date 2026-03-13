@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react';
 import {
-  ClipboardList, Send, CheckCircle2, ArrowRight, Eye, Trash2,
+  ClipboardList, Send, CheckCircle2, ArrowRight, Eye, Trash2, Download, CircleAlert
 } from 'lucide-react';
-
 import { useBoundStore } from '../../../store/useBoundStore';
 import ERPTable      from '../../../shared/ERPTable';
 import StatusBadge   from '../../../shared/StatusBadge';
@@ -12,11 +11,12 @@ import AmountDisplay from '../../../shared/AmountDisplay';
 import CotizacionDrawer from './components/CotizacionDrawer';
 import { fmt, formatLetterDate } from '../../../utils/formatters';
 import { useCotizaciones } from './api/useCotizaciones';
-import DateBadge from '../../../shared/DateBadge';
+import ExportModalCotizacion from './components/ExportModalCotizacion';
 
 const CotizacionesTab = () => {
   const { cotizaciones, isLoadingCotizaciones, removeAsync, cambiarEstado, convertir } = useCotizaciones();
-  const { openConfirm } = useBoundStore();
+  const { openConfirm, openDrawer } = useBoundStore();
+
 
   const [search,   setSearch]   = useState('');
   const [filters,  setFilters]  = useState({ estado: '' });
@@ -83,7 +83,19 @@ const CotizacionesTab = () => {
       key: 'fecha_vencimiento',
       label: 'Vencimiento',
       align: 'center',
-      render: (v) => <DateBadge date={v} />
+      render: (v) => {
+        const retrasada = new Date(v) < new Date();
+        return (
+          <div
+            className={`flex-1 flex gap-2 items-center justify-center text-center px-2 py-1 rounded-md text-[12px] font-semibold uppercase ${
+              retrasada ? 'text-red-600' : 'text-gray-600'
+            }`}
+          >
+            {retrasada && <CircleAlert title="Vencida" className="w-4 h-4" />}
+            {v ?? '-'}
+          </div>
+        );
+      },
     },
     {
       key: 'total',
@@ -103,6 +115,12 @@ const CotizacionesTab = () => {
       align: 'center',
       render: (_, row) => (
         <div className="flex items-center justify-center gap-1.5">
+          <button
+            onClick={openDrawer('EXPORT_MODAL_COTIZACIONES')}
+            className="flex items-center justify-center w-7 h-7 rounded bg-zinc-200 text-zinc-600 hover:bg-zinc-500 hover:text-white transition-all active:scale-95"
+          >
+            <Download size={14} />
+          </button>
           {row.estado === 'Aprobada' && !row.facturas_id && (
             <button
               onClick={(e) => {
@@ -113,17 +131,17 @@ const CotizacionesTab = () => {
                   onConfirm: async () => convertir(row.id_cotizaciones),
                 });
               }}
-              className="flex items-center justify-center w-8 h-8 rounded bg-zinc-200 text-zinc-600 hover:bg-zinc-800 hover:text-white transition-all active:scale-95"
+              className="flex items-center justify-center w-7 h-7 rounded bg-zinc-200 text-zinc-600 hover:bg-zinc-800 hover:text-white transition-all active:scale-95"
               title="Convertir a factura"
             >
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight size={14} />
             </button>
           )}
           <button
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
-            className="flex items-center justify-center w-8 h-8 rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all active:scale-95"
+            className="flex items-center justify-center w-7 h-7 rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all active:scale-95"
           >
-            <Eye className="w-4 h-4" />
+            <Eye size={14} />
           </button>
           <button
             onClick={(e) => {
@@ -134,9 +152,9 @@ const CotizacionesTab = () => {
                 onConfirm: async () => removeAsync(row.id_cotizaciones),
               });
             }}
-            className="flex items-center justify-center w-8 h-8 rounded bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-all active:scale-95"
+            className="flex items-center justify-center w-7 h-7 rounded bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-all active:scale-95"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 size={14} />
           </button>
         </div>
       ),
@@ -192,6 +210,8 @@ const CotizacionesTab = () => {
         onCambiarEstado={(id, estado) => cambiarEstado({ id, estado })}
         onConvertir={(id) => convertir(id)}
       />
+
+      <ExportModalCotizacion data={filtered} filename="cotizaciones" />
     </div>
   );
 };

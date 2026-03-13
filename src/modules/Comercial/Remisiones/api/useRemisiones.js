@@ -179,6 +179,11 @@ export const useRemisiones = (id = null, { clienteId = null, facturaId = null } 
     convertirAsync: convertirMutation.mutateAsync,
     isConvertiendo: convertirMutation.isPending,
 
+    isFetching: queryRemisiones.isFetching,
+    isLoading: queryRemisiones.isLoading,
+    isError: queryRemisiones.isError,
+    isSuccess: queryRemisiones.isSuccess,
+
     // ── Utilidades ─────────────────────────────────────────────────────────
     refresh: () => queryClient.invalidateQueries({ queryKey: remisionKeys.lists() }),
   };

@@ -189,20 +189,19 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
 
 // ── Wrapper ──────────────────────────────────────────────────────────────────
 const CotizacionForm = () => {
-  const drawerState = useBoundStore((s) => s.drawer);
-  const closeDrawer = useBoundStore((s) => s.closeDrawer);
+  const activeDrawer = useBoundStore((s) => s.activeDrawer); 
+  const payload      = useBoundStore((s) => s.drawerPayload);
+  const closeDrawer  = useBoundStore((s) => s.closeDrawer);
 
-  if (drawerState?.type !== 'COTIZACION_FORM') return null;
-
-  const editData = drawerState?.data ?? null;
+  if (activeDrawer !== 'COTIZACION_FORM') return null;
 
   return (
     <CotizacionFormContent
-      key={editData?.id_cotizaciones ?? 'new'}
-      editData={editData}
+      key={payload?.id_cotizaciones ?? 'new'}
+      editData={payload ?? null}
       closeDrawer={closeDrawer}
     />
-  );
-};
+  )
+}
 
 export default CotizacionForm;

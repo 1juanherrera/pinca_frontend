@@ -164,17 +164,16 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
 
 // ── Wrapper ──────────────────────────────────────────────────────────────────
 const RemisionForm = () => {
-  const drawerState = useBoundStore((s) => s.drawer);
-  const closeDrawer = useBoundStore((s) => s.closeDrawer);
+  const activeDrawer = useBoundStore((s) => s.activeDrawer);  
+  const payload      = useBoundStore((s) => s.drawerPayload); 
+  const closeDrawer  = useBoundStore((s) => s.closeDrawer);
 
-  if (drawerState?.type !== 'REMISION_FORM') return null;
-
-  const editData = drawerState?.data ?? null;
+  if (activeDrawer !== 'REMISION_FORM') return null;
 
   return (
     <RemisionFormContent
-      key={editData?.id_remisiones ?? 'new'}
-      editData={editData}
+      key={payload?.id_remisiones ?? 'new'}
+      editData={payload ?? null}
       closeDrawer={closeDrawer}
     />
   );

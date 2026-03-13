@@ -196,25 +196,24 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
-// ── Wrapper — solo decide si montar. El key hace el reset automático. ────────
 const FacturaForm = () => {
-  const drawerState = useBoundStore((s) => s.drawer);
-  const closeDrawer = useBoundStore((s) => s.closeDrawer);
 
-  if (drawerState?.type !== 'FACTURA_FORM') return null;
+  const activeDrawer = useBoundStore((s) => s.activeDrawer);  
+  const payload      = useBoundStore((s) => s.drawerPayload); 
+  const closeDrawer  = useBoundStore((s) => s.closeDrawer);
 
-  const editData = drawerState?.data ?? null;
+  if (activeDrawer !== 'FACTURA_FORM') return null;
 
   return (
     <FacturaFormContent
-      key={editData?.id_facturas ?? 'new'}
-      editData={editData}
+      key={payload?.id_facturas ?? 'new'}
+      editData={payload}
       closeDrawer={closeDrawer}
     />
-  );
-};
+  )
+}
 
 export default FacturaForm;

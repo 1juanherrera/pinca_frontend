@@ -33,7 +33,7 @@ export const Button = ({
     )
 }
 
-export const ButtonSquare = ({ onClick, variant = "black", icon: Icon, sizeIcon = 18, title }) => {
+export const ButtonSquare = ({ onClick, variant = "black", icon: Icon, sizeIcon = 18, title, animate = "" }) => {
 
     const variants = {
         black: "bg-zinc-950 hover:bg-zinc-900 text-white shadow-zinc-950/20",
@@ -48,7 +48,7 @@ export const ButtonSquare = ({ onClick, variant = "black", icon: Icon, sizeIcon 
             title={title}
             className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all active:scale-95 hover:scale-105 disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100 ${variants[variant]}`}
         >
-            {Icon && <Icon size={sizeIcon} />}
+            {Icon && <Icon className={animate} size={sizeIcon} />}
         </button>
     )
 }

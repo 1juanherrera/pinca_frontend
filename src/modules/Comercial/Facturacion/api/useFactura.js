@@ -153,6 +153,11 @@ export const useFactura = (id = null) => {
     cambiarEstadoAsync: cambiarEstadoMutation.mutateAsync,
     isCambiandoEstado:  cambiarEstadoMutation.isPending,
 
+    isFetching: queryFacturas.isFetching,
+    isLoading: queryFacturas.isLoading,
+    isError: queryFacturas.isError,
+    isSuccess: queryFacturas.isSuccess,
+
     // ── Utilidades ─────────────────────────────────────────────────────────
     refresh:          () => queryClient.invalidateQueries({ queryKey: facturaKeys.lists() }),
     refreshDetalle:   () => queryClient.invalidateQueries({ queryKey: facturaKeys.detail(id) }),

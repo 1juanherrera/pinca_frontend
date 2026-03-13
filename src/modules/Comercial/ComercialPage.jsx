@@ -13,6 +13,9 @@ import CotizacionesTab from './Cotizaciones/CotizacionesTab';
 import CotizacionForm from './Cotizaciones/components/CotizacionForm';
 import FacturaForm from './Facturacion/components/FacturaForm';
 import RemisionForm from './Remisiones/components/RemisionForm';
+import { useFactura } from './Facturacion/api/useFactura';
+import { useRemisiones } from './Remisiones/api/useRemisiones';
+import { useCotizaciones } from './Cotizaciones/api/useCotizaciones';
 
 // ── Configuración de tabs ─────────────────────────────────────────────────────
 const TABS = [
@@ -44,6 +47,18 @@ const TABS = [
 
 // ── Componente principal ──────────────────────────────────────────────────────
 const ComercialPage = () => {
+
+  const { isFetching: isFetchingCotizaciones, refresh: refreshCotizaciones } = useCotizaciones();
+  const { isFetching: isFetchingFacturas, refresh: refreshFacturas } = useFactura();
+  const { isFetching: isFetchingRemisiones, refresh: refreshRemisiones } = useRemisiones();
+  const isFetching = isFetchingCotizaciones || isFetchingFacturas || isFetchingRemisiones;
+
+  const refresh = () => {
+    refreshCotizaciones();
+    refreshFacturas();
+    refreshRemisiones();
+  };
+
   const [activeTab, setActiveTab] = useState('cotizaciones');
   const { openDrawer } = useBoundStore();
 
@@ -69,6 +84,8 @@ const ComercialPage = () => {
         <div className="flex items-center gap-2">
           <ButtonSquare
             icon={RefreshCw}
+            onClick={() => refresh()}
+            animate={isFetching ? "animate-spin" : ""}
             sizeIcon={18}
             title="Actualizar"
             variant="white"

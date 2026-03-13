@@ -174,6 +174,11 @@ export const useCotizaciones = (id = null, clienteId = null) => {
     convertirAsync: convertirMutation.mutateAsync,
     isConvertiendo: convertirMutation.isPending,
 
+    isFetching: queryCotizaciones.isFetching,
+    isLoading: queryCotizaciones.isLoading,
+    isError: queryCotizaciones.isError,
+    isSuccess: queryCotizaciones.isSuccess,
+
     // ── Utilidades ─────────────────────────────────────────────────────────
     refresh: () => queryClient.invalidateQueries({ queryKey: cotizacionKeys.lists() }),
   };
