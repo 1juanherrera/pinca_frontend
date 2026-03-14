@@ -57,8 +57,8 @@ const Topbar = () => {
             <User size={16} />
           </div>
           <div className="hidden sm:block">
-            <p className="text-sm font-medium text-zinc-100 leading-none mb-1">Admin Pinca</p>
-            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider leading-none">Superusuario</p>
+            <p className="text-sm font-medium text-zinc-100 leading-none mb-1">Jorge Herrera</p>
+            <p className="text-[10px] text-zinc-500 text-center font-bold uppercase tracking-wider leading-none">Superadmin</p>
           </div>
         </button>
       </div>

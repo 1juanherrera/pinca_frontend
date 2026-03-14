@@ -107,21 +107,21 @@ const ComercialPage = () => {
       </div>
 
       {/* ── Navegación de tabs ── */}
-      <div className="flex mb-3 overflow-x-auto">
+      <div className="flex items-center gap-1.5 pb-2">
         {TABS.map((t) => {
-          const Icon    = t.icon;
-          const active  = activeTab === t.id;
+          const Icon   = t.icon;
+          const active = activeTab === t.id;
           return (
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 px-5 py-3.5 text-sm rounded-t-lg font-semibold border-b-2 whitespace-nowrap transition-all
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all
                 ${active
-                  ? 'border-zinc-900 text-zinc-900 bg-zinc-200'
-                  : 'border-transparent text-zinc-400 hover:text-zinc-700 hover:border-zinc-300'
+                  ? 'bg-zinc-900 text-white shadow-sm'
+                  : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700'
                 }`}
             >
-              <Icon size={15} />
+              <Icon size={13} />
               {t.label}
             </button>
           );

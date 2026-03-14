@@ -3,39 +3,38 @@ import {
   ClipboardList, Send, CheckCircle2, ArrowRight, Eye, Trash2, Download, CircleAlert
 } from 'lucide-react';
 import { useBoundStore } from '../../../store/useBoundStore';
-import ERPTable      from '../../../shared/ERPTable';
-import StatusBadge   from '../../../shared/StatusBadge';
-import SummaryCard   from '../../../shared/SummaryCard';
+import ERPTable        from '../../../shared/ERPTable';
+import StatusBadge     from '../../../shared/StatusBadge';
+import SummaryCard     from '../../../shared/SummaryCard';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
-import AmountDisplay from '../../../shared/AmountDisplay';
+import AmountDisplay   from '../../../shared/AmountDisplay';
 import CotizacionDrawer from './components/CotizacionDrawer';
+import ExportCotizacion from './components/ExportCotizacion';
 import { fmt, formatLetterDate } from '../../../utils/formatters';
 import { useCotizaciones } from './api/useCotizaciones';
-import ExportModalCotizacion from './components/ExportModalCotizacion';
 
 const CotizacionesTab = () => {
   const { cotizaciones, isLoadingCotizaciones, removeAsync, cambiarEstado, convertir } = useCotizaciones();
   const { openConfirm, openDrawer } = useBoundStore();
 
-
   const [search,   setSearch]   = useState('');
   const [filters,  setFilters]  = useState({ estado: '' });
   const [selected, setSelected] = useState(null);
 
-  // ── Métricas ────────────────────────────────────────────────────────────
+  // ── Métricas ─────────────────────────────────────────────────────────────
   const metrics = useMemo(() => {
     const list = Array.isArray(cotizaciones) ? cotizaciones : [];
     return {
-      total:        list.length,
-      enviadas:     list.filter((c) => c.estado === 'Enviada').length,
-      aprobadas:    list.filter((c) => c.estado === 'Aprobada').length,
+      total:         list.length,
+      enviadas:      list.filter((c) => c.estado === 'Enviada').length,
+      aprobadas:     list.filter((c) => c.estado === 'Aprobada').length,
       montoAprobado: list
         .filter((c) => c.estado === 'Aprobada')
         .reduce((acc, c) => acc + Number(c.total || 0), 0),
     };
   }, [cotizaciones]);
 
-  // ── Filtrado ─────────────────────────────────────────────────────────────
+  // ── Filtrado ──────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     const list = Array.isArray(cotizaciones) ? cotizaciones : [];
     return list.filter((c) => {
@@ -51,16 +50,18 @@ const CotizacionesTab = () => {
   }, [cotizaciones, search, filters]);
 
   // ── Columnas ──────────────────────────────────────────────────────────────
-  const columns = [
+  const columns = useMemo(() => [
     {
-      key: 'numero',
-      label: 'Codigo',
+      key:   'numero',
+      label: 'Código',
       render: (v) => (
-        <span className="font-mono text-xs font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">{v}</span>
+        <span className="font-mono text-xs font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">
+          {v}
+        </span>
       ),
     },
     {
-      key: 'nombre_empresa',
+      key:   'nombre_empresa',
       label: 'Cliente',
       render: (v, row) => (
         <div>
@@ -70,27 +71,25 @@ const CotizacionesTab = () => {
       ),
     },
     {
-      key: 'fecha_cotizacion',
+      key:   'fecha_cotizacion',
       label: 'Fecha',
       align: 'center',
       render: (v) => (
-        <div className="block text-center justify-center items-center gap-1.5 px-2 py-1 rounded-md text-[12px] font-semibold uppercase">
+        <div className="block text-center px-2 py-1 rounded-md text-[12px] font-semibold uppercase">
           {formatLetterDate(v)}
         </div>
-      )
+      ),
     },
     {
-      key: 'fecha_vencimiento',
+      key:   'fecha_vencimiento',
       label: 'Vencimiento',
       align: 'center',
       render: (v) => {
         const retrasada = new Date(v) < new Date();
         return (
-          <div
-            className={`flex-1 flex gap-2 items-center justify-center text-center px-2 py-1 rounded-md text-[12px] font-semibold uppercase ${
-              retrasada ? 'text-red-600' : 'text-gray-600'
-            }`}
-          >
+          <div className={`flex gap-2 items-center justify-center text-center px-2 py-1 rounded-md text-[12px] font-semibold uppercase ${
+            retrasada ? 'text-red-600' : 'text-gray-600'
+          }`}>
             {retrasada && <CircleAlert title="Vencida" className="w-4 h-4" />}
             {v ?? '-'}
           </div>
@@ -98,35 +97,40 @@ const CotizacionesTab = () => {
       },
     },
     {
-      key: 'total',
+      key:   'total',
       label: 'Total',
       align: 'center',
       render: (v) => <AmountDisplay color={1} value={v} />,
     },
     {
-      key: 'estado',
+      key:   'estado',
       label: 'Estado',
       align: 'center',
       render: (v) => <StatusBadge estado={v} />,
     },
     {
-      key: 'acciones',
+      key:   'acciones',
       label: 'Acciones',
       align: 'center',
       render: (_, row) => (
         <div className="flex items-center justify-center gap-1.5">
+
+          {/* Exportar */}
           <button
-            onClick={openDrawer('EXPORT_MODAL_COTIZACIONES')}
+            onClick={(e) => { e.stopPropagation(); openDrawer('EXPORT_MODAL_COTIZACIONES', row); }}
             className="flex items-center justify-center w-7 h-7 rounded bg-zinc-200 text-zinc-600 hover:bg-zinc-500 hover:text-white transition-all active:scale-95"
+            title="Exportar"
           >
             <Download size={14} />
           </button>
+
+          {/* Convertir a factura */}
           {row.estado === 'Aprobada' && !row.facturas_id && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 openConfirm({
-                  title: 'Convertir a Factura',
+                  title:   'Convertir a Factura',
                   message: `¿Convertir la cotización ${row.numero} en factura?`,
                   onConfirm: async () => convertir(row.id_cotizaciones),
                 });
@@ -137,37 +141,44 @@ const CotizacionesTab = () => {
               <ArrowRight size={14} />
             </button>
           )}
+
+          {/* Ver detalle */}
           <button
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
             className="flex items-center justify-center w-7 h-7 rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all active:scale-95"
+            title="Ver detalle"
           >
             <Eye size={14} />
           </button>
+
+          {/* Eliminar */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               openConfirm({
-                title: 'Eliminar Cotización',
+                title:   'Eliminar Cotización',
                 message: `¿Eliminar la cotización ${row.numero}?`,
                 onConfirm: async () => removeAsync(row.id_cotizaciones),
               });
             }}
             className="flex items-center justify-center w-7 h-7 rounded bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-all active:scale-95"
+            title="Eliminar"
           >
             <Trash2 size={14} />
           </button>
         </div>
       ),
     },
-  ];
+  ], [openConfirm, openDrawer, removeAsync, convertir]);
 
   return (
     <div className="flex flex-col gap-2">
+
       {/* Métricas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <SummaryCard label="Total"         value={metrics.total}                icon={ClipboardList} color="gray"  />
-        <SummaryCard label="Enviadas"      value={metrics.enviadas}             icon={Send}          color="blue"  />
-        <SummaryCard label="Aprobadas"     value={metrics.aprobadas}            icon={CheckCircle2}  color="green" />
+        <SummaryCard label="Total"          value={metrics.total}               icon={ClipboardList} color="gray"  />
+        <SummaryCard label="Enviadas"       value={metrics.enviadas}            icon={Send}          color="blue"  />
+        <SummaryCard label="Aprobadas"      value={metrics.aprobadas}           icon={CheckCircle2}  color="green" />
         <SummaryCard label="Monto Aprobado" value={fmt(metrics.montoAprobado)}  icon={CheckCircle2}  color="green" />
       </div>
 
@@ -178,7 +189,7 @@ const CotizacionesTab = () => {
         placeholder="Buscar por número, empresa o encargado..."
         filters={[
           {
-            key: 'estado',
+            key:   'estado',
             label: 'Todos los estados',
             options: [
               { value: 'Borrador',  label: 'Borrador'  },
@@ -202,7 +213,7 @@ const CotizacionesTab = () => {
         onRowClick={(row) => setSelected(row)}
       />
 
-      {/* Drawer de detalle */}
+      {/* Drawer detalle */}
       <CotizacionDrawer
         cotizacionId={selected?.id_cotizaciones}
         isOpen={!!selected}
@@ -211,7 +222,9 @@ const CotizacionesTab = () => {
         onConvertir={(id) => convertir(id)}
       />
 
-      <ExportModalCotizacion data={filtered} filename="cotizaciones" />
+      {/* Modal exportar */}
+      <ExportCotizacion data={filtered} filename="cotizaciones" />
+
     </div>
   );
 };
