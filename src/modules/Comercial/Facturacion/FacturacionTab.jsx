@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import {
-  FileText, DollarSign, Clock, CheckCircle2, Eye, Trash2, Receipt,
+  CircleAlert, DollarSign, Clock, CheckCircle2, Eye, Trash2, Receipt,
 } from 'lucide-react';
 import { useBoundStore } from '../../../store/useBoundStore';
 import ERPTable        from '../../../shared/ERPTable';
@@ -9,7 +9,7 @@ import SummaryCard     from '../../../shared/SummaryCard';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay   from '../../../shared/AmountDisplay';
 import FacturaDrawer   from './components/FacturaDrawer';
-import { fmt } from '../../../utils/formatters';
+import { fmt, formatLetterDate } from '../../../utils/formatters';
 import { useFactura } from './api/useFactura';
 
 const FacturacionTab = () => {
@@ -54,20 +54,28 @@ const FacturacionTab = () => {
       key: 'numero',
       label: 'Número',
       render: (v) => (
-        <span className="font-mono text-xs font-semibold text-gray-800 bg-gray-100 px-2 py-0.5 rounded">{v}</span>
+        <span className="font-mono text-xs font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">{v}</span>
       ),
     },
     {
       key: 'fecha_emision',
       label: 'Emisión',
-      render: (v) => <span className="text-gray-600">{v}</span>,
+      render: (v) => <span className="block rounded-md text-[12px] font-semibold uppercase">{formatLetterDate(v)}</span>,
     },
     {
       key: 'fecha_vencimiento',
       label: 'Vencimiento',
-      render: (v, row) => (
-        <span className={row.estado === 'Vencida' ? 'text-red-600 font-medium' : 'text-gray-600'}>{v}</span>
-      ),
+      render: (v) => {
+        const retrasada = new Date(v) < new Date();
+        return (
+          <div className={`flex gap-2 items-center justify-start text-center rounded-md text-[12px] font-semibold uppercase ${
+            retrasada ? 'text-red-600' : 'text-gray-600'
+          }`}>
+            {retrasada && <CircleAlert title="Vencida" className="w-4 h-4" />}
+            {v ?? '-'}
+          </div>
+        );
+      },
     },
     {
       key: 'total',

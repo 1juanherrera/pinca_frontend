@@ -125,7 +125,7 @@ const CotizacionesTab = () => {
           </button>
 
           {/* Convertir a factura */}
-          {row.estado === 'Aprobada' && !row.facturas_id && (
+          {row.estado === 'Aceptada' && !row.facturas_id && (
             <button
               onClick={(e) => {
                 e.stopPropagation();

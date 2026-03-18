@@ -9,6 +9,7 @@ import SummaryCard     from '../../../shared/SummaryCard';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import RemisionDrawer  from './components/RemisionDrawer';
 import { useRemisiones } from './api/useRemisiones';
+import { formatLetterDate } from '../../../utils/formatters';
 
 const RemisionesTab = () => {
   const { remisiones, isLoadingRemisiones, removeAsync, cambiarEstado, convertir } = useRemisiones();
@@ -51,7 +52,7 @@ const RemisionesTab = () => {
       key: 'numero',
       label: 'Número',
       render: (v) => (
-        <span className="font-mono text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded">{v}</span>
+        <span className="font-mono text-xs font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">{v}</span>
       ),
     },
     {
@@ -59,31 +60,36 @@ const RemisionesTab = () => {
       label: 'Cliente',
       render: (v, row) => (
         <div>
-          <p className="text-sm font-medium text-gray-800 truncate max-w-40">{v}</p>
-          <p className="text-xs text-gray-400">{row.nombre_encargado}</p>
+          <p className="text-sm font-medium text-gray-900 truncate max-w-45">{v}</p>
+          <p className="text-xs text-gray-500">{row.nombre_encargado}</p>
         </div>
       ),
     },
     {
       key: 'fecha_remision',
       label: 'Fecha',
-      render: (v) => <span className="text-sm text-gray-600">{v}</span>,
+      render: (v) => (
+        <div className="block rounded-md text-[12px] font-semibold uppercase">
+          {formatLetterDate(v)}
+        </div>
+      ),
     },
     {
       key: 'direccion_entrega',
       label: 'Dirección',
       render: (v) => (
-        <div className="flex items-center gap-1 text-gray-600">
-          <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-          <span className="text-xs truncate max-w-40">{v}</span>
+        <div className="flex items-center gap-1 text-gray-700">
+          <MapPin className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+          <span className="text-xs truncate">{v}</span>
         </div>
       ),
     },
     {
       key: 'numero_factura',
       label: 'Factura',
+      align: 'center',
       render: (v) => v
-        ? <span className="text-xs font-mono text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{v}</span>
+        ? <span className="text-xs block text-[11px] px-2 py-1 font-medium hover:scale-105 transition-all uppercase shadow-md text-center text-blue-600 bg-blue-100 rounded">{v}</span>
         : <span className="text-xs text-gray-400">—</span>,
     },
     {
@@ -102,13 +108,15 @@ const RemisionesTab = () => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                openConfirm({
-                  title: 'Convertir a Factura',
-                  message: `¿Convertir la remisión ${row.numero} en factura?`,
-                  onConfirm: async () => convertir(row.id_remisiones),
-                });
+                  openConfirm({
+                    title: 'Convertir a Factura',
+                    message: `¿Convertir la remisión ${row.numero} en factura?`,
+                    onConfirm: async () => convertir(row.id_remisiones),
+                    variant: 'success',          // ← verde
+                    confirmText: 'Convertir',    // ← texto del botón
+                  });
               }}
-              className="p-1.5 rounded hover:bg-emerald-50 text-gray-400 hover:text-emerald-600 transition-colors"
+              className="flex items-center justify-center w-7 h-7 rounded bg-emerald-100 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all active:scale-95"
               title="Convertir a factura"
             >
               <ArrowRight className="w-4 h-4" />
@@ -116,7 +124,7 @@ const RemisionesTab = () => {
           )}
           <button
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
-            className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
+            className="flex items-center justify-center w-7 h-7 rounded bg-blue-100 text-blue-600 hover:bg-blue-500 hover:text-white transition-all active:scale-95"
           >
             <Eye className="w-4 h-4" />
           </button>
@@ -129,7 +137,7 @@ const RemisionesTab = () => {
                 onConfirm: async () => removeAsync(row.id_remisiones),
               });
             }}
-            className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
+            className="flex items-center justify-center w-7 h-7 rounded bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-all active:scale-95"
           >
             <Trash2 className="w-4 h-4" />
           </button>

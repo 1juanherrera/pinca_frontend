@@ -51,7 +51,7 @@ const PdfTemplate = ({ cotizacion, items }) => (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
       {[
         { title: 'Datos del Cliente', rows: [['Empresa', cotizacion.nombre_empresa], ['NIT', cotizacion.nit_cliente ?? '—'], ['Encargado', cotizacion.nombre_encargado]] },
-        { title: 'Información del Documento', rows: [['Fecha', cotizacion.fecha_cotizacion], ['Vencimiento', cotizacion.fecha_vencimiento], ['Estado', cotizacion.estado]] },
+        { title: 'Información del Documento', rows: [['Fecha', cotizacion.fecha_cotizacion], ['Vencimiento', cotizacion.fecha_vencimiento], ['Estado', '-']] },
       ].map(({ title, rows }) => (
         <div key={title} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '14px', background: '#fafafa' }}>
           <div style={{ fontSize: '9px', fontWeight: '700', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>{title}</div>
@@ -205,7 +205,7 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
       [
         ['Fecha',       cotizacion.fecha_cotizacion  ?? '—'],
         ['Vencimiento', cotizacion.fecha_vencimiento ?? '—'],
-        ['Estado',      cotizacion.estado            ?? '—'],
+        ['Estado',      '—'],
       ].forEach(([k, v], i) => {
         doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(100);
         doc.text(k, M + 93, 51 + i * 5.5);
