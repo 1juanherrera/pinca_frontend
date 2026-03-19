@@ -9,7 +9,7 @@
 import { fmt } from "../utils/formatters";
 
 const AmountDisplay = ({ value, color = false }) => (
-  <span className={`px-3 py-1 text-right font-medium text-xs ${color ? 'text-emerald-700' : 'text-gray-800'}`}>
+  <span className={`py-1 text-right font-medium text-xs ${color ? 'text-emerald-700' : 'text-gray-800'}`}>
     {fmt(value)}
   </span>
 );

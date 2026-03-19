@@ -11,6 +11,7 @@ import ClientePage from "./modules/Clientes/ClientePage";
 import PagosPage from "./modules/Pagos/PagosPage";
 import CarteraPage from "./modules/cartera/CarteraPage";
 import ComercialPage from "./modules/Comercial/ComercialPage";
+import ComprasPage from "./modules/Compras/ComprasPage";
 
 
 const App = () => {
@@ -30,6 +31,7 @@ const App = () => {
           <Route path="/pagos" element={<PagosPage />} />
           <Route path="/cartera" element={<CarteraPage />} />
           <Route path="/comercial" element={<ComercialPage />} />
+          <Route path="/compras" element={<ComprasPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

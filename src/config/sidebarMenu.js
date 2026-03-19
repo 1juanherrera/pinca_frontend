@@ -16,8 +16,8 @@ export const sidebarMenu = [
     { link: 'produccion', label: 'Producción', icon: Factory },
 
     { link: 'comercial', label: 'Comercial', icon: Handbag },
-    { link: 'purchases', label: 'Compras', icon: ShoppingBag },
-    { link: 'Cartera', label: 'Cartera', icon: Wallet },
+    { link: 'compras', label: 'Compras', icon: ShoppingBag },
+    { link: 'cartera', label: 'Cartera', icon: Wallet },
     
     { link: 'clientes', label: 'Clientes', icon: Users },
     { link: 'suppliers', label: 'Proveedores', icon: Truck },
