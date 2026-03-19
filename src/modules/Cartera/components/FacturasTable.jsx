@@ -1,13 +1,13 @@
 /**
  * FacturasTable
- * Vista principal de cartera — misma estructura que FacturacionTab
- * pero con columna de mora y botón de registrar pago.
+ * Vista principal de cartera — tabla de facturas con acciones.
+ * Botones: registrar pago | gestiones de cobro | notas crédito | estado de cuenta
  */
 
 import { useState, useMemo } from 'react';
 import {
   CreditCard, Clock, CheckCircle2, Receipt,
-  DollarSign, AlertCircle,
+  DollarSign, AlertCircle, Phone, FileMinus, User,
 } from 'lucide-react';
 import ERPTable            from '../../../shared/ERPTable';
 import StatusBadge         from '../../../shared/StatusBadge';
@@ -18,13 +18,11 @@ import { fmt, formatLetterDate } from '../../../utils/formatters';
 import { calcularDiasMora, getEstadoEfectivo } from '../services/carteraService';
 import { useFactura } from '../../Comercial/Facturacion/api/useFactura';
 
-const FacturasTable = ({ onRegistrarPago, onVerDetalle }) => {
+const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, onEstadoCuenta }) => {
   const { facturas, isLoadingFacturas } = useFactura();
-
   const [search,  setSearch]  = useState('');
   const [filters, setFilters] = useState({ estado: '' });
 
-  // ── Métricas ──────────────────────────────────────────────────────────────
   const metrics = useMemo(() => {
     const list = Array.isArray(facturas) ? facturas : [];
     return {
@@ -38,7 +36,6 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle }) => {
     };
   }, [facturas]);
 
-  // ── Filtrado ──────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     const list = Array.isArray(facturas) ? facturas : [];
     return list.filter((f) => {
@@ -54,15 +51,12 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle }) => {
     });
   }, [facturas, search, filters]);
 
-  // ── Columnas ──────────────────────────────────────────────────────────────
   const columns = [
     {
       key: 'numero',
       label: 'Número',
       render: (v) => (
-        <span className="font-mono text-xs font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">
-          {v}
-        </span>
+        <span className="font-mono text-xs font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">{v}</span>
       ),
     },
     {
@@ -78,16 +72,14 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle }) => {
       key: 'fecha_emision',
       label: 'Emisión',
       render: (v) => (
-        <span className="text-[12px] font-semibold uppercase text-gray-600">
-          {formatLetterDate(v)}
-        </span>
+        <span className="text-[12px] font-semibold uppercase text-gray-600">{formatLetterDate(v)}</span>
       ),
     },
     {
       key: 'fecha_vencimiento',
       label: 'Vencimiento',
       render: (v, row) => {
-        const dias = calcularDiasMora(v);
+        const dias   = calcularDiasMora(v);
         const enMora = dias > 0 && getEstadoEfectivo(row) !== 'Pagada';
         return (
           <div className={`flex items-center gap-1.5 text-[12px] font-semibold uppercase ${enMora ? 'text-red-600' : 'text-gray-600'}`}>
@@ -118,7 +110,7 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle }) => {
       label: 'Mora',
       align: 'center',
       render: (_, row) => {
-        const dias = calcularDiasMora(row.fecha_vencimiento);
+        const dias   = calcularDiasMora(row.fecha_vencimiento);
         const enMora = dias > 0 && getEstadoEfectivo(row) !== 'Pagada';
         if (!enMora) return <span className="text-gray-300 text-xs">—</span>;
         return (
@@ -136,7 +128,7 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle }) => {
     },
     {
       key: 'acciones',
-      label: 'Acciones',
+      label: '',
       align: 'right',
       render: (_, row) => {
         const pagada = getEstadoEfectivo(row) === 'Pagada';
@@ -151,6 +143,29 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle }) => {
                 <CreditCard className="w-4 h-4" />
               </button>
             )}
+            <button
+              onClick={(e) => { e.stopPropagation(); onGestiones?.(row); }}
+              title="Gestiones de cobro"
+              className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
+            >
+              <Phone className="w-4 h-4" />
+            </button>
+            {!pagada && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onNotas?.(row); }}
+                title="Notas crédito"
+                className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
+              >
+                <FileMinus className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={(e) => { e.stopPropagation(); onEstadoCuenta?.(row); }}
+              title="Estado de cuenta"
+              className="p-1.5 rounded hover:bg-purple-50 text-gray-400 hover:text-purple-600 transition-colors"
+            >
+              <User className="w-4 h-4" />
+            </button>
           </div>
         );
       },
@@ -159,11 +174,10 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Métricas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <SummaryCard label="Total Facturas"   value={metrics.total}     icon={Receipt}      color="gray"  />
-        <SummaryCard label="Pendientes"        value={metrics.pendiente} icon={Clock}        color="amber" />
-        <SummaryCard label="Pagadas"           value={metrics.pagada}    icon={CheckCircle2} color="green" />
+        <SummaryCard label="Total Facturas"  value={metrics.total}     icon={Receipt}      color="gray"  />
+        <SummaryCard label="Pendientes"       value={metrics.pendiente} icon={Clock}        color="amber" />
+        <SummaryCard label="Pagadas"          value={metrics.pagada}    icon={CheckCircle2} color="green" />
         <SummaryCard
           label="Saldo por Cobrar"
           value={fmt(metrics.saldoTotal)}
@@ -172,8 +186,6 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle }) => {
           sub={`${metrics.vencida} vencida(s)`}
         />
       </div>
-
-      {/* Filtros */}
       <SearchFilterBar
         search={search}
         onSearch={setSearch}
@@ -193,8 +205,6 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle }) => {
         values={filters}
         onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
       />
-
-      {/* Tabla */}
       <ERPTable
         columns={columns}
         data={filtered}

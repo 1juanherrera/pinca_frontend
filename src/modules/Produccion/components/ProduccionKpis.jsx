@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { Factory, Clock, PlayCircle, CheckCircle2, TrendingUp } from 'lucide-react';
 
 const THEME = {
