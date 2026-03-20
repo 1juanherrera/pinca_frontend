@@ -2,15 +2,23 @@ import { useState, useMemo } from 'react';
 import {
   CircleAlert, DollarSign, Clock, CheckCircle2, Eye, Trash2, Receipt,
 } from 'lucide-react';
-import { useBoundStore } from '../../../store/useBoundStore';
-import ERPTable        from '../../../shared/ERPTable';
-import StatusBadge     from '../../../shared/StatusBadge';
-import SummaryCard     from '../../../shared/SummaryCard';
-import SearchFilterBar from '../../../shared/SearchFilterBar';
-import AmountDisplay   from '../../../shared/AmountDisplay';
-import FacturaDrawer   from './components/FacturaDrawer';
-import { fmt, formatLetterDate } from '../../../utils/formatters';
-import { useFactura } from './api/useFactura';
+import { useBoundStore }  from '../../../store/useBoundStore';
+import ERPTable           from '../../../shared/ERPTable';
+import StatusBadge        from '../../../shared/StatusBadge';
+import SummaryCard        from '../../../shared/SummaryCard';
+import SearchFilterBar    from '../../../shared/SearchFilterBar';
+import AmountDisplay      from '../../../shared/AmountDisplay';
+import FacturaDrawer      from './components/FacturaDrawer';
+import { fmt }            from '../../../utils/formatters';
+import { useFactura }     from './api/useFactura';
+import useTableSort       from '../../../hooks/useTableSorts';
+
+const STATUS_OPTIONS = [
+  { value: 'Pendiente', label: 'Pendiente', dot: 'bg-amber-400'   },
+  { value: 'Pagada',    label: 'Pagada',    dot: 'bg-emerald-500' },
+  { value: 'Vencida',   label: 'Vencida',   dot: 'bg-red-400'     },
+  { value: 'Anulada',   label: 'Anulada',   dot: 'bg-zinc-400'    },
+];
 
 const FacturacionTab = () => {
   const { facturas, isLoadingFacturas, removeAsync } = useFactura();
@@ -20,7 +28,6 @@ const FacturacionTab = () => {
   const [filters,  setFilters]  = useState({ estado: '' });
   const [selected, setSelected] = useState(null);
 
-  // ── Métricas ─────────────────────────────────────────────────────────────
   const metrics = useMemo(() => {
     const list = Array.isArray(facturas) ? facturas : [];
     return {
@@ -34,7 +41,6 @@ const FacturacionTab = () => {
     };
   }, [facturas]);
 
-  // ── Filtrado ──────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     const list = Array.isArray(facturas) ? facturas : [];
     return list.filter((f) => {
@@ -48,94 +54,112 @@ const FacturacionTab = () => {
     });
   }, [facturas, search, filters]);
 
-  // ── Columnas ──────────────────────────────────────────────────────────────
-  const columns = [
+  const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
+
+  const columns = useMemo(() => [
     {
-      key: 'numero',
-      label: 'Número',
+      key:       'numero',
+      label:     'Número',
+      className: 'w-28',
       render: (v) => (
-        <span className="font-mono text-xs font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">{v}</span>
+        <span className="font-mono text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
       ),
     },
     {
-      key: 'fecha_emision',
-      label: 'Emisión',
-      render: (v) => <span className="block rounded-md text-[12px] font-semibold uppercase">{formatLetterDate(v)}</span>,
+      key:       'fecha_emision',
+      label:     'Emisión',
+      className: 'w-28',
+      render: (v) => (
+        <span className="text-xs text-zinc-500 tabular-nums whitespace-nowrap">
+          {v
+            ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' })
+            : '—'}
+        </span>
+      ),
     },
     {
-      key: 'fecha_vencimiento',
-      label: 'Vencimiento',
+      key:       'fecha_vencimiento',
+      label:     'Vencimiento',
+      className: 'w-32',
       render: (v) => {
-        const retrasada = new Date(v) < new Date();
+        const retrasada = v && new Date(v) < new Date();
         return (
-          <div className={`flex gap-2 items-center justify-start text-center rounded-md text-[12px] font-semibold uppercase ${
-            retrasada ? 'text-red-600' : 'text-gray-600'
+          <div className={`inline-flex items-center gap-1.5 text-xs tabular-nums whitespace-nowrap ${
+            retrasada ? 'text-red-500 font-semibold' : 'text-zinc-500'
           }`}>
-            {retrasada && <CircleAlert title="Vencida" className="w-4 h-4" />}
-            {v ?? '-'}
+            {retrasada && <CircleAlert size={12} />}
+            {v ?? '—'}
           </div>
         );
       },
     },
     {
-      key: 'total',
-      label: 'Total',
-      align: 'right',
+      key:       'total',
+      label:     'Total',
+      align:     'right',
+      className: 'w-32',
       render: (v) => <AmountDisplay value={v} />,
     },
     {
-      key: 'saldo_pendiente',
-      label: 'Saldo',
-      align: 'right',
+      key:       'saldo_pendiente',
+      label:     'Saldo',
+      align:     'right',
+      className: 'w-32',
       render: (v) => (
-        <span className={Number(v) > 0 ? 'text-amber-700 font-mono text-sm tabular-nums' : 'text-emerald-600 font-mono text-sm tabular-nums'}>
+        <span className={`font-mono text-xs tabular-nums font-bold whitespace-nowrap ${
+          Number(v) > 0 ? 'text-amber-600' : 'text-emerald-600'
+        }`}>
           {fmt(v)}
         </span>
       ),
     },
     {
-      key: 'estado',
-      label: 'Estado',
-      align: 'center',
+      key:       'estado',
+      label:     'Estado',
+      align:     'center',
+      className: 'w-32',
       render: (v) => <StatusBadge estado={v} />,
     },
     {
-      key: 'acciones',
-      label: '',
-      align: 'right',
+      key:       'acciones',
+      label:     'Acciones',
+      align:     'right',
+      className: 'w-20 pr-10',
+      sortable:  false,
       render: (_, row) => (
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-1.5">
           <button
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
-            className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
+            title="Ver detalle"
           >
-            <Eye className="w-4 h-4" />
+            <Eye size={12} /> Ver
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
               openConfirm({
-                title: 'Eliminar Factura',
-                message: `¿Eliminar la factura ${row.numero}? Esta acción no se puede deshacer.`,
+                title:     'Eliminar Factura',
+                message:   `¿Eliminar la factura ${row.numero}? Esta acción no se puede deshacer.`,
                 onConfirm: async () => removeAsync(row.id_facturas),
               });
             }}
-            className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
+            title="Eliminar"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 size={12} />
           </button>
         </div>
       ),
     },
-  ];
+  ], [openConfirm, removeAsync]);
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Métricas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <SummaryCard label="Total Facturas"  value={metrics.total}     icon={Receipt}      color="gray"  />
-        <SummaryCard label="Pendientes"       value={metrics.pendiente} icon={Clock}        color="amber" />
-        <SummaryCard label="Pagadas"          value={metrics.pagada}    icon={CheckCircle2} color="green" />
+    <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <SummaryCard label="Total Facturas"  value={metrics.total}                  icon={Receipt}      color="gray"  />
+        <SummaryCard label="Pendientes"       value={metrics.pendiente}              icon={Clock}        color="amber" />
+        <SummaryCard label="Pagadas"          value={metrics.pagada}                 icon={CheckCircle2} color="green" />
         <SummaryCard
           label="Saldo por Cobrar"
           value={fmt(metrics.montoPendiente)}
@@ -145,37 +169,29 @@ const FacturacionTab = () => {
         />
       </div>
 
-      {/* Filtros */}
+    <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm">
       <SearchFilterBar
         search={search}
         onSearch={setSearch}
         placeholder="Buscar por número o cliente..."
-        filters={[
-          {
-            key: 'estado',
-            label: 'Todos los estados',
-            options: [
-              { value: 'Pendiente', label: 'Pendiente' },
-              { value: 'Pagada',    label: 'Pagada'    },
-              { value: 'Vencida',   label: 'Vencida'   },
-              { value: 'Anulada',   label: 'Anulada'   },
-            ],
-          },
-        ]}
         values={filters}
         onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+        statusOptions={STATUS_OPTIONS}
       />
+    </div>
 
-      {/* Tabla */}
       <ERPTable
         columns={columns}
-        data={filtered}
+        data={sorted}
         isLoading={isLoadingFacturas}
         emptyMessage="No se encontraron facturas"
+        emptySubMessage="Las facturas generadas aparecerán aquí"
         onRowClick={(row) => setSelected(row)}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        onSort={handleSort}
       />
 
-      {/* Drawer de detalle */}
       <FacturaDrawer
         facturaId={selected?.id_facturas}
         isOpen={!!selected}

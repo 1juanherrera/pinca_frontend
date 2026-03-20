@@ -280,10 +280,10 @@ openConfirm({
 | `SkeletonRow`    | Fila skeleton para tablas                                        |
 | `SkeletonCard`   | Card skeleton para grids                                         |
 | `ConfirmModal`   | Modal de confirmación global (se activa con `openConfirm`)       |
-| `ERPTable`       | Tabla estándar — props: `columns, data, isLoading, emptyMessage, onRowClick` |
+| `ERPTable`       | Tabla estándar — props: `columns, data, isLoading, emptyMessage, onRowClick, sortBy, sortDir, onSort` |
 | `StatusBadge`    | Badge de estado — prop: `estado` (string)                        |
 | `SummaryCard`    | Card de métrica — props: `label, value, icon, color, sub`        |
-| `SearchFilterBar`| Barra de búsqueda + selects de filtro                            |
+| `SearchFilterBar`| Barra búsqueda + pills de estado — ver sección 3.10              |
 | `AmountDisplay`  | Monto formateado — props: `value, color`                         |
 | `DetailDrawer`   | Panel lateral de detalle — props: `isOpen, onClose, title, subtitle, width` |
 
@@ -347,28 +347,71 @@ const MiDrawer = ({ itemId, isOpen, onClose }) => {
 
 ### 3.7 Patrón de columnas ERPTable
 
+Paleta `zinc` unificada en todos los módulos. Anchos fijos en `className` para alineación con `table-fixed`.
+
 ```js
-const columns = [
+const columns = useMemo(() => [
   {
-    key: 'numero',
-    label: 'Número',
-    render: (v) => <span className="font-mono text-xs font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">{v}</span>,
+    key:       'numero',
+    label:     'Número',
+    className: 'w-28',                         // ← ancho fijo para table-fixed
+    render: (v) => (
+      <span className="font-mono text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
+    ),
   },
   {
-    key: 'estado',
-    label: 'Estado',
-    align: 'center',
+    key:   'nombre_empresa',
+    label: 'Cliente',
+    render: (v, row) => (
+      <div className="min-w-0">
+        <p className="font-semibold text-zinc-800 text-xs leading-none truncate">{v}</p>
+        <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{row.nombre_encargado}</p>
+      </div>
+    ),
+  },
+  {
+    key:       'fecha',
+    label:     'Fecha',
+    className: 'w-28',
+    render: (v) => (
+      <span className="text-xs text-zinc-500 tabular-nums whitespace-nowrap">
+        {v ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
+      </span>
+    ),
+  },
+  {
+    key:       'estado',
+    label:     'Estado',
+    align:     'center',
+    className: 'w-28',
     render: (v) => <StatusBadge estado={v} />,
   },
   {
-    key: 'acciones',
-    label: '',
-    align: 'right',
+    key:      'acciones',
+    label:    'Acciones',
+    align:    'right',
+    className: 'w-36',
+    sortable: false,                            // ← desactiva flecha de sort
     render: (_, row) => (
-      <button onClick={(e) => { e.stopPropagation(); handleAccion(row); }}>...</button>
+      <div className="flex items-center justify-end gap-1.5">
+        {/* Botón Ver — siempre presente */}
+        <button
+          onClick={(e) => { e.stopPropagation(); handleVer(row); }}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
+        >
+          <Eye size={12} /> Ver
+        </button>
+        {/* Botón ícono — acción secundaria */}
+        <button
+          onClick={(e) => { e.stopPropagation(); handleEliminar(row); }}
+          className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
+        >
+          <Trash2 size={12} />
+        </button>
+      </div>
     ),
   },
-];
+], [deps]);
 ```
 
 ### 3.8 Patrón de página con tabs
@@ -378,38 +421,92 @@ CarteraPage.jsx          ← tabs: Dashboard | Facturas
 ComercialPage.jsx        ← tabs: Cotizaciones | Remisiones | Facturas
 ```
 
-Tab button estándar:
+Tab button estándar (ya NO usar el componente `Tab` con `border-b-2`):
 ```jsx
-const Tab = ({ label, icon: Icon, active, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-      active
-        ? 'border-gray-900 text-gray-900'
-        : 'border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-300'
-    }`}
-  >
-    <Icon className="w-4 h-4" />
-    {label}
-  </button>
-);
+const TABS = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'facturas',  label: 'Facturas',  icon: FileText        },
+];
+
+// En el JSX:
+<div className="flex items-center gap-1.5">
+  {TABS.map((t) => {
+    const Icon   = t.icon;
+    const active = tab === t.id;
+    return (
+      <button
+        key={t.id}
+        onClick={() => setTab(t.id)}
+        className={`flex items-center justify-center gap-2 px-5 py-2.5 border border-transparent rounded-xl text-sm font-semibold shadow-md transition-all active:scale-95 hover:scale-105
+          ${active ? 'bg-zinc-900 text-white shadow-sm' : 'bg-white text-zinc-500'}`}
+      >
+        <Icon size={13} />
+        {t.label}
+      </button>
+    );
+  })}
+</div>
 ```
 
 ### 3.9 Convenciones de estilo
 
-- Paleta principal: `gray-*` (módulos nuevos). `zinc-*` solo en módulos viejos (inventario).
-- Botón acción ver:      `p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600`
-- Botón acción pago:     `p-1.5 rounded hover:bg-emerald-50 text-gray-400 hover:text-emerald-600`
-- Botón acción eliminar: `p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600`
-- Botón acción gestiones:`p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600`
-- Botón acción notas:    `p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600`
-- Botón acción cliente:  `p-1.5 rounded hover:bg-purple-50 text-gray-400 hover:text-purple-600`
-- Código/número:         `font-mono text-xs font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded`
-- Fechas:                `text-[12px] font-semibold uppercase` con `formatLetterDate()`
-- Saldo positivo:        `text-amber-700 font-mono text-sm tabular-nums`
-- Saldo en cero:         `text-emerald-600 font-mono text-sm tabular-nums`
+- **Paleta unificada: `zinc-*`** en todos los módulos (Comercial, Cartera, e inventario ya lo usaba).
+- Botón Ver (principal):   `inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all`
+- Botón ícono (neutro):    `inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95`
+- Botón ícono (pago):      mismo base + `hover:bg-emerald-500 hover:text-white hover:border-emerald-500`
+- Botón ícono (eliminar):  mismo base + `hover:bg-red-500 hover:text-white hover:border-red-500`
+- Código/número:           `font-mono text-xs font-bold text-zinc-400 whitespace-nowrap`
+- Fechas:                  `text-xs text-zinc-500 tabular-nums whitespace-nowrap` con `toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' })`
+- Saldo positivo:          `text-amber-600 font-mono text-xs tabular-nums font-bold`
+- Saldo en cero:           `text-emerald-600 font-mono text-xs tabular-nums font-bold`
 - `fieldset` + `legend` para agrupar campos en formularios
-- `focus:outline-none focus:ring-2 focus:ring-gray-900` en todos los inputs
+- `focus:outline-none focus:ring-2 focus:ring-zinc-900` en todos los inputs
+
+### 3.10 SearchFilterBar — API actualizada
+
+`SearchFilterBar` tiene dos filas: búsqueda en la primera, pills de estado en la segunda.
+Si no se pasan `statusOptions`, la segunda fila no se renderiza (retrocompatible).
+
+```jsx
+// Props:
+// search, onSearch, placeholder          → fila 1: input
+// filters, values, onChange              → fila 1: selects adicionales (opcionales)
+// statusKey?    string  (default 'estado')
+// statusOptions [{ value, label, dot }]  → fila 2: pills
+// allLabel?     string  (default 'Todos')
+
+<SearchFilterBar
+  search={search}
+  onSearch={setSearch}
+  placeholder="Buscar por número o cliente..."
+  values={filters}
+  onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+  statusOptions={[
+    { value: 'Pendiente', label: 'Pendiente', dot: 'bg-amber-400'   },
+    { value: 'Pagada',    label: 'Pagada',    dot: 'bg-emerald-500' },
+    { value: 'Vencida',   label: 'Vencida',   dot: 'bg-red-400'     },
+    { value: 'Anulada',   label: 'Anulada',   dot: 'bg-zinc-400'    },
+  ]}
+/>
+```
+
+### 3.11 useTableSort — hook de ordenamiento
+
+```js
+// src/hooks/useTableSorts.js
+// Uso: const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
+// Pasar a ERPTable: data={sorted} sortBy={sortBy} sortDir={sortDir} onSort={handleSort}
+```
+
+Aplicar en todas las tabs que usen `ERPTable`. Columnas con `sortable: false` no muestran flecha.
+
+### 3.12 ERPTable — comportamiento interno
+
+- `table-fixed` + `bg-white` en el wrapper → head y body siempre alineados.
+- `className` en la columna se aplica tanto al `<th>` como al `<td>`.
+- Skeleton: 6 filas, `h-4 bg-zinc-100 rounded animate-pulse`.
+- Empty state: ícono en caja `bg-zinc-100`, texto `font-semibold text-zinc-400`, subtexto opcional.
+- Prop `EmptyIcon` para personalizar el ícono del empty state.
 
 ---
 
@@ -514,7 +611,7 @@ App/Controllers/
 
 ```
 src/modules/cartera/
-├── CarteraPage.jsx                ← tabs: Dashboard | Facturas
+├── CarteraPage.jsx                ← tabs: Dashboard | Facturas (botones zinc pill)
 │                                     maneja 5 estados de drawer
 ├── api/
 │   ├── carteraKeys.js             ← resumen, aging, estadoCuenta, pagos, gestiones, notas
@@ -528,9 +625,9 @@ src/modules/cartera/
 └── components/
     ├── DashboardCartera.jsx       ← KPIs + aging cards + tabla vencidas
     │                                 consume useResumenCartera + useAgingCartera
-    ├── FacturasTable.jsx          ← ERPTable + 4 botones por fila:
-    │                                 CreditCard | Phone | FileMinus | User
-    │                                 filtrado client-side con useMemo
+    ├── FacturasTable.jsx          ← ERPTable zinc + SearchFilterBar con statusOptions
+    │                                 useTableSort, 4 botones por fila:
+    │                                 CreditCard | Phone | FileMinus | User(Ver)
     ├── ModalRegistrarPago.jsx     ← Patrón A — overlay + panel fixed right
     │                                 validación en carteraService.validarPago
     │                                 wrapper hace if(!factura) return null
@@ -619,4 +716,4 @@ src/modules/comercial/
 
 ---
 
-*Última actualización: módulo Cartera backend completo (CarteraModel, FacturasModel, GestionesCobroModel, NotasCreditoModel, 5 controllers). Frontend: CarteraPage con tabs, DashboardCartera, FacturasTable con 4 acciones, ModalRegistrarPago, HistorialPagos, EstadoCuentaDrawer, GestionesCobroDrawer, NotasCreditoDrawer. Pendiente: mejorar diseño DashboardCartera.*
+*Última actualización: unificación de estilos UI — paleta zinc en todos los módulos, ERPTable con table-fixed + bg-white, SearchFilterBar rediseñado con pills de estado (2 filas), tabs como botones zinc pill (sin border-b-2), useTableSort hook en src/hooks/useTableSorts.js, patrón de columnas con className para anchos fijos.*

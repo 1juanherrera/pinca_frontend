@@ -1,85 +1,125 @@
-import { Loader2 } from 'lucide-react';
+import { ChevronsUpDown, ChevronUp, ChevronDown, Package } from 'lucide-react';
 
-/**
- * ERPTable – Refactorizado con el diseño visual de DataTable
- */
+const SortIcon = ({ field, sortBy, sortDir }) => {
+  if (!sortBy || sortBy !== field) return <ChevronsUpDown size={12} className="text-zinc-400" />;
+  return sortDir === 'asc'
+    ? <ChevronUp size={12} className="text-zinc-700" />
+    : <ChevronDown size={12} className="text-zinc-700" />;
+}
+
+// ─── Skeleton row ───
+const SkeletonRow = ({ colCount }) => (
+  <tr className="border-b border-zinc-100">
+    {Array.from({ length: colCount }).map((_, i) => (
+      <td key={i} className="px-4 py-3">
+        <div className="h-4 bg-zinc-100 rounded animate-pulse w-full" />
+      </td>
+    ))}
+  </tr>
+)
+
 const ERPTable = ({
   columns = [],
   data = [],
   isLoading = false,
   emptyMessage = 'No hay registros',
+  emptySubMessage = '',
+  EmptyIcon = Package,
   onRowClick,
+  sortBy,
+  sortDir,
+  onSort,
 }) => {
+  // Empty state
+  if (!isLoading && data.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
+        <div className="w-14 h-14 rounded-lg flex items-center justify-center">
+          <EmptyIcon size={24} className="text-zinc-400" />
+        </div>
+        <p className="text-sm font-semibold text-zinc-400">{emptyMessage}</p>
+        {emptySubMessage && (
+          <p className="text-xs text-zinc-400">{emptySubMessage}</p>
+        )}
+      </div>
+    )
+  }
+
   return (
-    <div className="w-full bg-white border border-zinc-200/80 rounded-xl shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm whitespace-nowrap">
-          {/* Header con el estilo exacto de DataTable */}
-          <thead className="bg-zinc-950 text-zinc-100 text-xs font-semibold uppercase tracking-wider">
-            <tr>
-              {columns.map((col) => (
+    <div className="w-full overflow-x-auto rounded-lg border border-zinc-100 shadow-sm bg-white">
+      <table className="w-full text-sm">
+        {/* Header */}
+        <thead className="bg-zinc-50 border-b border-zinc-100">
+          <tr>
+            {columns.map((col) => {
+              const alignClass =
+                col.align === 'right'
+                  ? 'text-right'
+                  : col.align === 'center'
+                  ? 'text-center'
+                  : 'text-left';
+
+              const isSortable = onSort && col.sortable !== false;
+
+              return (
                 <th
                   key={col.key}
-                  className={`px-3 py-2.5 ${
-                    col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
-                  }`}
+                  onClick={isSortable ? () => onSort(col.key) : undefined}
+                  className={`px-4 py-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest ${alignClass} ${
+                    isSortable ? 'cursor-pointer hover:text-zinc-700 select-none transition-colors' : ''
+                  } ${col.className ?? ''}`}
                 >
-                  {col.label}
+                  {isSortable ? (
+                    <div className={`flex items-center gap-1.5 ${col.align === 'right' ? 'justify-end' : col.align === 'center' ? 'justify-center' : ''}`}>
+                      {col.label}
+                      <SortIcon field={col.key} sortBy={sortBy} sortDir={sortDir} />
+                    </div>
+                  ) : (
+                    col.label
+                  )}
                 </th>
-              ))}
-            </tr>
-          </thead>
+              );
+            })}
+          </tr>
+        </thead>
 
-          {/* Cuerpo con efecto Zebra y paleta Zinc */}
-          <tbody className="divide-y divide-zinc-200/80">
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="animate-pulse">
-                  {columns.map((col) => (
-                    <td key={col.key} className="px-3 py-3">
-                      <div className="h-3 bg-zinc-100 rounded w-3/4" />
-                    </td>
-                  ))}
-                </tr>
+        {/* Body */}
+        <tbody className="divide-y divide-zinc-50">
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonRow key={i} colCount={columns.length} />
               ))
-            ) : data.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length} className="px-3 py-16 text-center">
-                  <div className="flex flex-col items-center gap-2 text-zinc-400">
-                    <Loader2 className="w-8 h-8 animate-spin text-zinc-200" />
-                    <span className="text-sm font-medium">{emptyMessage}</span>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              data.map((row, idx) => (
+            : data.map((row, idx) => (
                 <tr
-                  key={idx}
+                  key={row.id ?? idx}
                   onClick={() => onRowClick?.(row)}
-                  className={`
-                    transition-colors hover:bg-zinc-100 
-                    ${onRowClick ? 'cursor-pointer' : ''} 
-                    ${idx % 2 === 0 ? 'bg-white' : 'bg-zinc-50/50'}
-                  `}
+                  className={`transition-colors hover:bg-zinc-100 ${onRowClick ? 'cursor-pointer group' : ''}`}
                 >
-                  {columns.map((col) => (
-                    <td
-                      key={col.key}
-                      className={`px-3 py-2 text-xs text-zinc-700 ${
-                        col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
-                      }`}
-                    >
-                      {col.render ? col.render(row[col.key], row) : (row[col.key] ?? '—')}
-                    </td>
-                  ))}
+                  {columns.map((col) => {
+                    const alignClass =
+                      col.align === 'right'
+                        ? 'text-right'
+                        : col.align === 'center'
+                        ? 'text-center'
+                        : 'text-left';
+
+                    return (
+                      <td
+                        key={col.key}
+                        className={`px-4 py-3 text-xs text-zinc-700 ${alignClass} ${col.cellClassName ?? ''}`}
+                      >
+                        {col.render
+                          ? col.render(row[col.key], row)
+                          : (row[col.key] ?? <span className="text-zinc-400">—</span>)}
+                      </td>
+                    );
+                  })}
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ))}
+        </tbody>
+      </table>
     </div>
-  );
-};
+  )
+}
 
 export default ERPTable;

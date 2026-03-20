@@ -2,16 +2,25 @@ import { useState, useMemo } from 'react';
 import {
   ClipboardList, Send, CheckCircle2, ArrowRight, Eye, Trash2, Download, CircleAlert
 } from 'lucide-react';
-import { useBoundStore } from '../../../store/useBoundStore';
-import ERPTable        from '../../../shared/ERPTable';
-import StatusBadge     from '../../../shared/StatusBadge';
-import SummaryCard     from '../../../shared/SummaryCard';
-import SearchFilterBar from '../../../shared/SearchFilterBar';
-import AmountDisplay   from '../../../shared/AmountDisplay';
-import CotizacionDrawer from './components/CotizacionDrawer';
-import ExportCotizacion from './components/ExportCotizacion';
-import { fmt, formatLetterDate } from '../../../utils/formatters';
-import { useCotizaciones } from './api/useCotizaciones';
+import { useBoundStore }    from '../../../store/useBoundStore';
+import ERPTable             from '../../../shared/ERPTable';
+import StatusBadge          from '../../../shared/StatusBadge';
+import SummaryCard          from '../../../shared/SummaryCard';
+import SearchFilterBar      from '../../../shared/SearchFilterBar';
+import AmountDisplay        from '../../../shared/AmountDisplay';
+import CotizacionDrawer     from './components/CotizacionDrawer';
+import ExportCotizacion     from './components/ExportCotizacion';
+import { fmt }              from '../../../utils/formatters';
+import { useCotizaciones }  from './api/useCotizaciones';
+import useTableSort         from '../../../hooks/useTableSorts';
+
+const STATUS_OPTIONS = [
+  { value: 'Borrador',  label: 'Borrador',  dot: 'bg-zinc-400'    },
+  { value: 'Enviada',   label: 'Enviada',   dot: 'bg-blue-500'    },
+  { value: 'Aprobada',  label: 'Aprobada',  dot: 'bg-emerald-500' },
+  { value: 'Rechazada', label: 'Rechazada', dot: 'bg-red-400'     },
+  { value: 'Expirada',  label: 'Expirada',  dot: 'bg-amber-400'   },
+];
 
 const CotizacionesTab = () => {
   const { cotizaciones, isLoadingCotizaciones, removeAsync, cambiarEstado, convertir } = useCotizaciones();
@@ -21,7 +30,6 @@ const CotizacionesTab = () => {
   const [filters,  setFilters]  = useState({ estado: '' });
   const [selected, setSelected] = useState(null);
 
-  // ── Métricas ─────────────────────────────────────────────────────────────
   const metrics = useMemo(() => {
     const list = Array.isArray(cotizaciones) ? cotizaciones : [];
     return {
@@ -34,7 +42,6 @@ const CotizacionesTab = () => {
     };
   }, [cotizaciones]);
 
-  // ── Filtrado ──────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     const list = Array.isArray(cotizaciones) ? cotizaciones : [];
     return list.filter((c) => {
@@ -49,13 +56,14 @@ const CotizacionesTab = () => {
     });
   }, [cotizaciones, search, filters]);
 
-  // ── Columnas ──────────────────────────────────────────────────────────────
-  const columns = useMemo(() => [
+  const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
+
+const columns = useMemo(() => [
     {
-      key:   'numero',
-      label: 'Código',
+      key:       'numero',
+      label:     'Código',
       render: (v) => (
-        <span className="font-mono text-xs font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">
+        <span className="font-mono text-xs font-bold text-zinc-400 whitespace-nowrap">
           {v}
         </span>
       ),
@@ -65,106 +73,106 @@ const CotizacionesTab = () => {
       label: 'Cliente',
       render: (v, row) => (
         <div>
-          <p className="text-sm font-medium text-gray-900 truncate max-w-45">{v}</p>
-          <p className="text-xs text-gray-500">{row.nombre_encargado}</p>
+          <p className="font-semibold text-zinc-800 text-xs leading-none truncate uppercase">{v}</p>
+          <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{row.nombre_encargado}</p>
         </div>
       ),
     },
     {
-      key:   'fecha_cotizacion',
-      label: 'Fecha',
-      align: 'center',
+      key:       'fecha_cotizacion',
+      label:     'Fecha',
+      align:     'center',
       render: (v) => (
-        <div className="block text-center px-2 py-1 rounded-md text-[12px] font-semibold uppercase">
-          {formatLetterDate(v)}
-        </div>
+        <span className="text-xs text-zinc-500 tabular-nums whitespace-nowrap">
+          {v
+            ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' })
+            : '—'}
+        </span>
       ),
     },
     {
-      key:   'fecha_vencimiento',
-      label: 'Vencimiento',
-      align: 'center',
+      key:       'fecha_vencimiento',
+      label:     'Vencimiento',
+      align:     'center',
       render: (v) => {
-        const retrasada = new Date(v) < new Date();
+        const retrasada = v && new Date(v) < new Date();
         return (
-          <div className={`flex gap-2 items-center justify-center text-center px-2 py-1 rounded-md text-[12px] font-semibold uppercase ${
-            retrasada ? 'text-red-600' : 'text-gray-600'
+          <div className={`inline-flex items-center gap-1.5 text-xs tabular-nums whitespace-nowrap ${
+            retrasada ? 'text-red-500 font-semibold' : 'text-zinc-500'
           }`}>
-            {retrasada && <CircleAlert title="Vencida" className="w-4 h-4" />}
-            {v ?? '-'}
+            {retrasada && <CircleAlert size={12} />}
+            {v ?? '—'}
           </div>
         );
       },
     },
     {
-      key:   'total',
-      label: 'Total',
-      align: 'center',
+      key:       'total',
+      label:     'Total',
+      align:     'center',
+      className: 'w-40',
       render: (v) => <AmountDisplay color={1} value={v} />,
     },
     {
-      key:   'estado',
-      label: 'Estado',
-      align: 'center',
+      key:       'estado',
+      label:     'Estado',
+      align:     'center',
       render: (v) => <StatusBadge estado={v} />,
     },
     {
-      key:   'acciones',
-      label: 'Acciones',
-      align: 'center',
+      key:       'acciones',
+      label:     'Acciones',
+      align:     'center',
+      className: 'w-20',
+      sortable:  false,
       render: (_, row) => (
-        <div className="flex items-center justify-center gap-1.5">
-
-          {/* Exportar */}
+        <div className="flex items-center justify-end gap-1.5">
           <button
             onClick={(e) => { e.stopPropagation(); openDrawer('EXPORT_MODAL_COTIZACIONES', row); }}
-            className="flex items-center justify-center w-7 h-7 rounded bg-zinc-200 text-zinc-600 hover:bg-zinc-500 hover:text-white transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95"
             title="Exportar"
           >
-            <Download size={14} />
+            <Download size={12} />
           </button>
 
-          {/* Convertir a factura */}
           {row.estado === 'Aceptada' && !row.facturas_id && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 openConfirm({
-                  title:   'Convertir a Factura',
-                  message: `¿Convertir la cotización ${row.numero} en factura?`,
+                  title:     'Convertir a Factura',
+                  message:   `¿Convertir la cotización ${row.numero} en factura?`,
                   onConfirm: async () => convertir(row.id_cotizaciones),
                 });
               }}
-              className="flex items-center justify-center w-7 h-7 rounded bg-zinc-200 text-zinc-600 hover:bg-zinc-800 hover:text-white transition-all active:scale-95"
+              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95"
               title="Convertir a factura"
             >
-              <ArrowRight size={14} />
+              <ArrowRight size={12} />
             </button>
           )}
 
-          {/* Ver detalle */}
           <button
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
-            className="flex items-center justify-center w-7 h-7 rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all active:scale-95"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
             title="Ver detalle"
           >
-            <Eye size={14} />
+            <Eye size={12} /> Ver
           </button>
 
-          {/* Eliminar */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               openConfirm({
-                title:   'Eliminar Cotización',
-                message: `¿Eliminar la cotización ${row.numero}?`,
+                title:     'Eliminar Cotización',
+                message:   `¿Eliminar la cotización ${row.numero}?`,
                 onConfirm: async () => removeAsync(row.id_cotizaciones),
               });
             }}
-            className="flex items-center justify-center w-7 h-7 rounded bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
             title="Eliminar"
           >
-            <Trash2 size={14} />
+            <Trash2 size={12} />
           </button>
         </div>
       ),
@@ -173,47 +181,35 @@ const CotizacionesTab = () => {
 
   return (
     <div className="flex flex-col gap-2">
-
-      {/* Métricas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <SummaryCard label="Total"          value={metrics.total}               icon={ClipboardList} color="gray"  />
-        <SummaryCard label="Enviadas"       value={metrics.enviadas}            icon={Send}          color="blue"  />
-        <SummaryCard label="Aprobadas"      value={metrics.aprobadas}           icon={CheckCircle2}  color="green" />
-        <SummaryCard label="Monto Aprobado" value={fmt(metrics.montoAprobado)}  icon={CheckCircle2}  color="green" />
+        <SummaryCard label="Total"          value={metrics.total}              icon={ClipboardList} color="gray"  />
+        <SummaryCard label="Enviadas"       value={metrics.enviadas}           icon={Send}          color="blue"  />
+        <SummaryCard label="Aprobadas"      value={metrics.aprobadas}          icon={CheckCircle2}  color="green" />
+        <SummaryCard label="Monto Aprobado" value={fmt(metrics.montoAprobado)} icon={CheckCircle2}  color="green" />
       </div>
 
-      {/* Filtros */}
-      <SearchFilterBar
-        search={search}
-        onSearch={setSearch}
-        placeholder="Buscar por número, empresa o encargado..."
-        filters={[
-          {
-            key:   'estado',
-            label: 'Todos los estados',
-            options: [
-              { value: 'Borrador',  label: 'Borrador'  },
-              { value: 'Enviada',   label: 'Enviada'   },
-              { value: 'Aprobada',  label: 'Aprobada'  },
-              { value: 'Rechazada', label: 'Rechazada' },
-              { value: 'Expirada',  label: 'Expirada'  },
-            ],
-          },
-        ]}
-        values={filters}
-        onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
-      />
-
-      {/* Tabla */}
+      <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm">
+        <SearchFilterBar
+          search={search}
+          onSearch={setSearch}
+          placeholder="Buscar por número, empresa o encargado..."
+          values={filters}
+          onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+          statusOptions={STATUS_OPTIONS}
+        />
+      </div>
       <ERPTable
         columns={columns}
-        data={filtered}
+        data={sorted}
         isLoading={isLoadingCotizaciones}
         emptyMessage="No se encontraron cotizaciones"
+        emptySubMessage="Crea una cotización desde el módulo de Ventas"
         onRowClick={(row) => setSelected(row)}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        onSort={handleSort}
       />
 
-      {/* Drawer detalle */}
       <CotizacionDrawer
         cotizacionId={selected?.id_cotizaciones}
         isOpen={!!selected}
@@ -221,10 +217,7 @@ const CotizacionesTab = () => {
         onCambiarEstado={(id, estado) => cambiarEstado({ id, estado })}
         onConvertir={(id) => convertir(id)}
       />
-
-      {/* Modal exportar */}
       <ExportCotizacion data={filtered} filename="cotizaciones" />
-
     </div>
   );
 };

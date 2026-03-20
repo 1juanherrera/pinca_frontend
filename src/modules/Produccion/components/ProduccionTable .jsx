@@ -97,7 +97,7 @@ export const ProduccionTable = ({
               <tr
                 key={row.id_preparaciones}
                 onClick={() => onRowClick(row)}
-                className="hover:bg-zinc-50/80 transition-colors cursor-pointer group"
+                className="hover:bg-zinc-100 transition-colors cursor-pointer group"
               >
                 {/* # Orden */}
                 <td className="px-4 py-3">

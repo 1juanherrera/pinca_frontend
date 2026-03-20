@@ -1,17 +1,3 @@
-/**
- * CarteraPage
- * Módulo de cartera con dos tabs:
- *   - Dashboard: KPIs + aging
- *   - Facturas:  tabla + todas las acciones
- *
- * Drawers que maneja esta página:
- *   - ModalRegistrarPago   (Patrón A — form manual)
- *   - HistorialPagos       (Patrón B — DetailDrawer)
- *   - EstadoCuentaDrawer   (Patrón B — DetailDrawer)
- *   - GestionesCobroDrawer (Patrón B — DetailDrawer)
- *   - NotasCreditoDrawer   (Patrón B — DetailDrawer)
- */
-
 import { useState } from 'react';
 import { Wallet, LayoutDashboard, FileText } from 'lucide-react';
 import HeaderSection        from '../../shared/HeaderSection';
@@ -23,19 +9,10 @@ import EstadoCuentaDrawer   from './components/EstadoCuentaDrawer';
 import GestionesCobroDrawer from './components/GestionesCobroDrawer';
 import NotasCreditoDrawer   from './components/NotasCreditoDrawer';
 
-const Tab = ({ label, icon: Icon, active, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-      active
-        ? 'border-gray-900 text-gray-900'
-        : 'border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-300'
-    }`}
-  >
-    <Icon className="w-4 h-4" />
-    {label}
-  </button>
-);
+const TABS = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'facturas',  label: 'Facturas',  icon: FileText        },
+];
 
 const CarteraPage = () => {
   const [tab, setTab] = useState('dashboard');
@@ -70,12 +47,28 @@ const CarteraPage = () => {
             { label: 'Cartera', path: '/cartera' },
           ]}
         />
-      </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200 mt-2 mb-4">
-        <Tab label="Dashboard" icon={LayoutDashboard} active={tab === 'dashboard'} onClick={() => setTab('dashboard')} />
-        <Tab label="Facturas"  icon={FileText}        active={tab === 'facturas'}  onClick={() => setTab('facturas')}  />
+        {/* Tabs */}
+        <div className="flex items-center gap-1.5">
+          {TABS.map((t) => {
+            const Icon   = t.icon;
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex items-center justify-center gap-2 px-5 py-2.5 border border-transparent rounded-xl text-sm font-semibold shadow-md transition-all active:scale-95 hover:scale-105 disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100
+                  ${active
+                    ? 'bg-zinc-900 text-white shadow-sm'
+                    : 'bg-white text-zinc-500'
+                  }`}
+              >
+                <Icon size={13} />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {tab === 'dashboard' && <DashboardCartera />}
@@ -90,13 +83,10 @@ const CarteraPage = () => {
         />
       )}
 
-      {/* Patrón A */}
       <ModalRegistrarPago
         factura={facturaSeleccionada}
         onClose={() => setFacturaSeleccionada(null)}
       />
-
-      {/* Patrón B */}
       <HistorialPagos
         clienteId={clienteHistorial?.id}
         clienteNombre={clienteHistorial?.nombre}

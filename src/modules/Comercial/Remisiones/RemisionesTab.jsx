@@ -2,14 +2,20 @@ import { useState, useMemo } from 'react';
 import {
   Truck, Package, CheckCircle2, Clock, MapPin, Eye, Trash2, ArrowRight,
 } from 'lucide-react';
-import { useBoundStore } from '../../../store/useBoundStore';
-import ERPTable        from '../../../shared/ERPTable';
-import StatusBadge     from '../../../shared/StatusBadge';
-import SummaryCard     from '../../../shared/SummaryCard';
-import SearchFilterBar from '../../../shared/SearchFilterBar';
-import RemisionDrawer  from './components/RemisionDrawer';
-import { useRemisiones } from './api/useRemisiones';
-import { formatLetterDate } from '../../../utils/formatters';
+import { useBoundStore }   from '../../../store/useBoundStore';
+import ERPTable            from '../../../shared/ERPTable';
+import StatusBadge         from '../../../shared/StatusBadge';
+import SummaryCard         from '../../../shared/SummaryCard';
+import SearchFilterBar     from '../../../shared/SearchFilterBar';
+import RemisionDrawer      from './components/RemisionDrawer';
+import { useRemisiones }   from './api/useRemisiones';
+import useTableSort        from '../../../hooks/useTableSorts';
+
+const STATUS_OPTIONS = [
+  { value: 'Pendiente', label: 'Pendiente', dot: 'bg-amber-400'   },
+  { value: 'Entregada', label: 'Entregada', dot: 'bg-emerald-500' },
+  { value: 'Anulada',   label: 'Anulada',   dot: 'bg-red-400'     },
+];
 
 const RemisionesTab = () => {
   const { remisiones, isLoadingRemisiones, removeAsync, cambiarEstado, convertir } = useRemisiones();
@@ -19,7 +25,6 @@ const RemisionesTab = () => {
   const [filters,  setFilters]  = useState({ estado: '' });
   const [selected, setSelected] = useState(null);
 
-  // ── Métricas ─────────────────────────────────────────────────────────────
   const metrics = useMemo(() => {
     const list = Array.isArray(remisiones) ? remisiones : [];
     return {
@@ -30,7 +35,6 @@ const RemisionesTab = () => {
     };
   }, [remisiones]);
 
-  // ── Filtrado ──────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     const list = Array.isArray(remisiones) ? remisiones : [];
     return list.filter((r) => {
@@ -46,146 +50,147 @@ const RemisionesTab = () => {
     });
   }, [remisiones, search, filters]);
 
-  // ── Columnas ──────────────────────────────────────────────────────────────
-  const columns = [
+  const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
+
+  const columns = useMemo(() => [
     {
-      key: 'numero',
-      label: 'Número',
+      key:       'numero',
+      label:     'Número',
       render: (v) => (
-        <span className="font-mono text-xs font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">{v}</span>
+        <span className="font-mono text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
       ),
     },
     {
-      key: 'nombre_empresa',
+      key:   'nombre_empresa',
       label: 'Cliente',
       render: (v, row) => (
-        <div>
-          <p className="text-sm font-medium text-gray-900 truncate max-w-45">{v}</p>
-          <p className="text-xs text-gray-500">{row.nombre_encargado}</p>
+        <div className="min-w-0">
+          <p className="font-semibold text-zinc-800 text-xs leading-none truncate uppercase">{v}</p>
+          <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{row.nombre_encargado}</p>
         </div>
       ),
     },
     {
-      key: 'fecha_remision',
-      label: 'Fecha',
+      key:       'fecha_remision',
+      label:     'Fecha',
       render: (v) => (
-        <div className="block rounded-md text-[12px] font-semibold uppercase">
-          {formatLetterDate(v)}
-        </div>
+        <span className="text-xs text-zinc-500 tabular-nums whitespace-nowrap">
+          {v
+            ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' })
+            : '—'}
+        </span>
       ),
     },
     {
-      key: 'direccion_entrega',
+      key:   'direccion_entrega',
       label: 'Dirección',
       render: (v) => (
-        <div className="flex items-center gap-1 text-gray-700">
-          <MapPin className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-          <span className="text-xs truncate">{v}</span>
+        <div className="inline-flex items-center gap-1.5 text-xs text-zinc-600 min-w-0">
+          <MapPin size={11} className="text-zinc-400 shrink-0" />
+          <span className="truncate max-w-40">{v ?? '—'}</span>
         </div>
       ),
     },
     {
-      key: 'numero_factura',
-      label: 'Factura',
-      align: 'center',
+      key:       'numero_factura',
+      label:     'Factura',
+      align:     'center',
       render: (v) => v
-        ? <span className="text-xs block text-[11px] px-2 py-1 font-medium hover:scale-105 transition-all uppercase shadow-md text-center text-blue-600 bg-blue-100 rounded">{v}</span>
-        : <span className="text-xs text-gray-400">—</span>,
+        ? <span className="font-mono text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
+        : <span className="text-zinc-400 text-xs">—</span>,
     },
     {
-      key: 'estado',
-      label: 'Estado',
-      align: 'center',
+      key:       'estado',
+      label:     'Estado',
+      align:     'center',
       render: (v) => <StatusBadge estado={v} />,
     },
     {
-      key: 'acciones',
-      label: '',
-      align: 'right',
+      key:       'acciones',
+      label:     'Acciones',
+      align:     'right',
+      className: 'pr-15',
+      sortable:  false,
       render: (_, row) => (
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-1.5">
           {!row.facturas_id && row.estado !== 'Anulada' && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                  openConfirm({
-                    title: 'Convertir a Factura',
-                    message: `¿Convertir la remisión ${row.numero} en factura?`,
-                    onConfirm: async () => convertir(row.id_remisiones),
-                    variant: 'success',          // ← verde
-                    confirmText: 'Convertir',    // ← texto del botón
-                  });
+                openConfirm({
+                  title:       'Convertir a Factura',
+                  message:     `¿Convertir la remisión ${row.numero} en factura?`,
+                  onConfirm:   async () => convertir(row.id_remisiones),
+                  variant:     'success',
+                  confirmText: 'Convertir',
+                });
               }}
-              className="flex items-center justify-center w-7 h-7 rounded bg-emerald-100 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all active:scale-95"
+              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95"
               title="Convertir a factura"
             >
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight size={12} />
             </button>
           )}
+
           <button
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
-            className="flex items-center justify-center w-7 h-7 rounded bg-blue-100 text-blue-600 hover:bg-blue-500 hover:text-white transition-all active:scale-95"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
+            title="Ver detalle"
           >
-            <Eye className="w-4 h-4" />
+            <Eye size={12} /> Ver
           </button>
+
           <button
             onClick={(e) => {
               e.stopPropagation();
               openConfirm({
-                title: 'Eliminar Remisión',
-                message: `¿Eliminar la remisión ${row.numero}?`,
+                title:     'Eliminar Remisión',
+                message:   `¿Eliminar la remisión ${row.numero}?`,
                 onConfirm: async () => removeAsync(row.id_remisiones),
               });
             }}
-            className="flex items-center justify-center w-7 h-7 rounded bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
+            title="Eliminar"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 size={12} />
           </button>
         </div>
       ),
     },
-  ];
+  ], [openConfirm, removeAsync, convertir]);
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Métricas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         <SummaryCard label="Total"      value={metrics.total}      icon={Package}      color="gray"  />
         <SummaryCard label="Pendientes" value={metrics.pendientes} icon={Clock}        color="amber" />
         <SummaryCard label="Entregadas" value={metrics.entregadas} icon={CheckCircle2} color="green" />
         <SummaryCard label="Facturadas" value={metrics.conFactura} icon={Truck}        color="blue"  />
       </div>
 
-      {/* Filtros */}
+    <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm">
       <SearchFilterBar
         search={search}
         onSearch={setSearch}
         placeholder="Buscar por número, cliente o dirección..."
-        filters={[
-          {
-            key: 'estado',
-            label: 'Todos los estados',
-            options: [
-              { value: 'Pendiente', label: 'Pendiente' },
-              { value: 'Entregada', label: 'Entregada' },
-              { value: 'Anulada',   label: 'Anulada'   },
-            ],
-          },
-        ]}
         values={filters}
         onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+        statusOptions={STATUS_OPTIONS}
       />
-
-      {/* Tabla */}
+    </div>
+    
       <ERPTable
         columns={columns}
-        data={filtered}
+        data={sorted}
         isLoading={isLoadingRemisiones}
         emptyMessage="No se encontraron remisiones"
+        emptySubMessage="Las remisiones generadas aparecerán aquí"
         onRowClick={(row) => setSelected(row)}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        onSort={handleSort}
       />
 
-      {/* Drawer de detalle */}
       <RemisionDrawer
         remisionId={selected?.id_remisiones}
         isOpen={!!selected}

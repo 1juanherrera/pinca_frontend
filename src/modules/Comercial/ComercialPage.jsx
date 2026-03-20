@@ -69,17 +69,27 @@ const ComercialPage = () => {
 
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-        <HeaderSection
-          title="Comercial"
-          subtitle="Ventas"
-          icon={TrendingUp}
-          description={tab.description}
-          breadcrumbs={[
-            { label: 'Ventas' },
-            { label: 'Comercial', path: '/comercial' },
-            { label: tab.label },
-          ]}
-        />
+          {/* ── Navegación de tabs ── */}
+          <div className="flex items-center gap-1.5">
+            {TABS.map((t) => {
+              const Icon   = t.icon;
+              const active = activeTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setActiveTab(t.id)}
+                  className={`flex items-center justify-center gap-2 px-5 py-2.5 active:scale-95 hover:scale-105 border border-transparent rounded-xl text-sm font-semibold shadow-md transition-all disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100
+                    ${active
+                      ? 'bg-zinc-900 text-white shadow-sm'
+                      : 'bg-white text-zinc-500'
+                    }`}
+                >
+                  <Icon size={13} />
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
 
         <div className="flex items-center gap-2">
           <ButtonSquare
@@ -104,28 +114,6 @@ const ComercialPage = () => {
             {tab.btnLabel}
           </Button>
         </div>
-      </div>
-
-      {/* ── Navegación de tabs ── */}
-      <div className="flex items-center gap-1.5 pb-2">
-        {TABS.map((t) => {
-          const Icon   = t.icon;
-          const active = activeTab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all
-                ${active
-                  ? 'bg-zinc-900 text-white shadow-sm'
-                  : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700'
-                }`}
-            >
-              <Icon size={13} />
-              {t.label}
-            </button>
-          );
-        })}
       </div>
 
       {/* ── Contenido del tab activo ── */}
