@@ -86,7 +86,7 @@ const RemisionesTab = () => {
       label: 'Dirección',
       render: (v) => (
         <div className="inline-flex items-center gap-1.5 text-xs text-zinc-600 min-w-0">
-          <MapPin size={11} className="text-zinc-400 shrink-0" />
+          <MapPin size={16} className="text-zinc-500 shrink-0" />
           <span className="truncate max-w-40">{v ?? '—'}</span>
         </div>
       ),

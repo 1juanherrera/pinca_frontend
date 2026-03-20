@@ -2,7 +2,6 @@ export const inventarioKeys = {
   all: ['inventario'],
   lists: () => [...inventarioKeys.all, 'list'],
 
-  // ✅ Prefijo base — matchea TODAS las queries de una bodega
   byBodegaBase: (id_bodega) => [
     ...inventarioKeys.lists(),
     'bodega',
@@ -16,4 +15,4 @@ export const inventarioKeys = {
 
   details: () => [...inventarioKeys.all, 'detail'],
   detail:  (id_item) => [...inventarioKeys.details(), id_item?.toString()],
-};
+}

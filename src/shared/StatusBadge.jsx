@@ -31,8 +31,8 @@ const DEFAULT = { bg: 'bg-gray-200', text: 'text-gray-600', dot: 'bg-gray-400' }
 const StatusBadge = ({ estado, size = 'md' }) => {
   const s = STATUS_MAP[estado] ?? DEFAULT;
   const sizeClasses = size === 'sm'
-    ? 'text-[10px] px-1.5 py-0.5'
-    : 'text-[10px] px-2 py-1';
+    ? 'text-[10px] px-2 py-2'
+    : 'text-[10px] px-2 py-1.5';
 
   return (
     <span className={`block items-center hover:scale-105 transition-all uppercase shadow-md gap-1.5 rounded font-medium ${s.bg} ${s.text} ${sizeClasses}`}>

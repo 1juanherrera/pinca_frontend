@@ -21,19 +21,44 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
     enabled: !!id_bodega,
   });
 
+  // ── POST: Crear item en bodega ───────────────────────────────────────────
   const createItemMutation = useMutation({
     mutationFn: (data) => apiClient.post('/bodegas/item', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: inventarioKeys.byBodega(id_bodega, page, perPage, search, tipo),
+      });
+      toast.success('Item creado correctamente');
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || 'Error al crear el item');
+    },
+  });
 
-      onSuccess: () => {
-          queryClient.invalidateQueries({
-              queryKey: inventarioKeys.byBodega(id_bodega, page, perPage, search, tipo)
-          });
-          toast.success('Item creado correctamente');
-      },
+  const traspasoMutation = useMutation({
+    mutationFn: (data) => apiClient.post('/inventario/traspaso', data),
+    onSuccess: () => {
+      // Invalida TODOS los queries de inventario — origen y destino se refrescan
+      queryClient.invalidateQueries({
+        queryKey: inventarioKeys.all,   // ← la raíz común de todas las bodegas
+      });
+      toast.success('Traspaso realizado correctamente');
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || 'Error al realizar el traspaso');
+    },
+  });
 
-      onError: (error) => {
-          toast.error(error?.response?.data?.message || 'Error al crear el item');
-      },
+  const removeFromBodegaMutation = useMutation({
+    mutationFn: ({ itemId, bodegaId }) =>
+      apiClient.delete(`/inventario/${itemId}/bodega/${bodegaId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: inventarioKeys.all });
+      toast.success('Ítem eliminado del inventario');
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || 'Error al eliminar del inventario');
+    },
   });
 
   return {
@@ -43,13 +68,21 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
     isLoadingItems: queryInventory.isLoading,
     isError:        queryInventory.isError,
 
+    removeFromBodega:      removeFromBodegaMutation.mutate,
+    removeFromBodegaAsync: removeFromBodegaMutation.mutateAsync,
+    isRemoving:            removeFromBodegaMutation.isPending,
+
+    // ── Mutations ──
     createItem:      createItemMutation.mutate,
     createItemAsync: createItemMutation.mutateAsync,
     isCreatingItem:  createItemMutation.isPending,
 
+    traspasoAsync:  traspasoMutation.mutateAsync,
+    isTrashing:     traspasoMutation.isPending,
+
     // ── Utils ──
     refresh: () => queryClient.invalidateQueries({
-      queryKey: inventarioKeys.byBodega(id_bodega, page, perPage, search, tipo)
+      queryKey: inventarioKeys.byBodega(id_bodega, page, perPage, search, tipo),
     }),
   };
 };

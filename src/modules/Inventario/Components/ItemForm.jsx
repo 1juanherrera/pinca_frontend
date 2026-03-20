@@ -49,12 +49,6 @@ const ItemFormModal = () => {
 
   const isSaving = isCreatingItem || isUpdatingItem;
 
-  // En ItemFormModal — después de la línea bodega_id
-console.log('Modal bodega_id:', bodega_id, typeof bodega_id);
-
-// En DataTable
-console.log('Table id_bodega:', id_bodega, typeof id_bodega);
-
   // 3. React Hook Form y FieldArray
   const { register, control, handleSubmit, reset, setValue, formState: { errors } } = useForm({
     defaultValues: {

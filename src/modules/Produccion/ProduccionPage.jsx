@@ -137,19 +137,13 @@ const ProduccionPage = () => {
 
       {/* ── Tabla ── */}
       <div className="bg-white border border-zinc-100 rounded-2xl shadow-sm overflow-hidden">
-        {/* Sub-header de tabla */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100">
-          <p className="text-xs font-bold text-zinc-500">
-            {isLoadingByItem
-              ? 'Cargando órdenes…'
-              : `${sorted.length} ${sorted.length === 1 ? 'orden' : 'órdenes'} encontradas`}
-          </p>
+
           {filters.estado !== 'TODOS' && (
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+            <span className="text-[10px] block font-bold py-3 px-4 text-zinc-400 uppercase tracking-widest">
               Filtrado por: {filters.estado.replace('_', ' ')}
             </span>
           )}
-        </div>
+
 
         <ProduccionTable
           data={sorted}

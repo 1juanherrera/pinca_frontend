@@ -1,7 +1,7 @@
 import { ChevronsUpDown, ChevronUp, ChevronDown, Package } from 'lucide-react';
 
 const SortIcon = ({ field, sortBy, sortDir }) => {
-  if (!sortBy || sortBy !== field) return <ChevronsUpDown size={12} className="text-zinc-400" />;
+  if (!sortBy || sortBy !== field) return <ChevronsUpDown size={12} className="text-white" />;
   return sortDir === 'asc'
     ? <ChevronUp size={12} className="text-zinc-700" />
     : <ChevronDown size={12} className="text-zinc-700" />;
@@ -49,7 +49,7 @@ const ERPTable = ({
     <div className="w-full overflow-x-auto rounded-lg border border-zinc-100 shadow-sm bg-white">
       <table className="w-full text-sm">
         {/* Header */}
-        <thead className="bg-zinc-50 border-b border-zinc-100">
+        <thead className="bg-zinc-900 border-b border-zinc-100">
           <tr>
             {columns.map((col) => {
               const alignClass =
@@ -65,8 +65,8 @@ const ERPTable = ({
                 <th
                   key={col.key}
                   onClick={isSortable ? () => onSort(col.key) : undefined}
-                  className={`px-4 py-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest ${alignClass} ${
-                    isSortable ? 'cursor-pointer hover:text-zinc-700 select-none transition-colors' : ''
+                  className={`px-4 py-3 text-[10px] font-bold text-white uppercase tracking-widest ${alignClass} ${
+                    isSortable ? 'cursor-pointer hover:text-zinc-500 select-none transition-colors' : ''
                   } ${col.className ?? ''}`}
                 >
                   {isSortable ? (

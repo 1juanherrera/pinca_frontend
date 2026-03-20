@@ -48,24 +48,24 @@ const PricePreview = ({ control, costos }) => {
       <div className="flex items-center gap-2 px-4 py-2 border-b border-white/5">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
         <span className="text-[9px] font-bold tracking-widest text-zinc-500 uppercase">Preview en tiempo real</span>
-        <span className="ml-auto text-[9px] font-mono text-zinc-600">{pct}% markup</span>
+        <span className="ml-auto text-[9px] text-zinc-600">{pct}% markup</span>
       </div>
       <div className="grid grid-cols-3 divide-x divide-white/5 px-1 py-1">
         <div className="flex flex-col gap-0.5 px-4 py-3">
           <span className="text-[9px] font-bold tracking-widest text-zinc-500 uppercase">Costo Total</span>
-          <span className="text-sm font-semibold font-mono text-zinc-300 tabular-nums">{formatCOP(costoTotal)}</span>
+          <span className="text-sm font-semibold text-zinc-300 tabular-nums">{formatCOP(costoTotal)}</span>
           <span className="text-[9px] text-zinc-600">MP/galón + indirectos</span>
         </div>
         <div className="flex flex-col gap-0.5 px-4 py-3">
           <span className="text-[9px] font-bold tracking-widest text-emerald-500 uppercase">Utilidad</span>
-          <span className="text-sm font-semibold font-mono text-emerald-400 tabular-nums">{formatCOP(utilidad)}</span>
+          <span className="text-sm font-semibold text-emerald-400 tabular-nums">{formatCOP(utilidad)}</span>
           <span className="text-[9px] text-zinc-600">Ganancia bruta</span>
         </div>
         <div className="flex flex-col gap-0.5 px-4 py-3">
           <span className="text-[9px] font-bold tracking-widest text-white uppercase flex items-center gap-1">
             Venta <ArrowUpRight size={9} className="text-emerald-400" />
           </span>
-          <span className="text-sm font-semibold font-mono text-white tabular-nums">{formatCOP(ventaSugerida)}</span>
+          <span className="text-sm font-semibold text-white tabular-nums">{formatCOP(ventaSugerida)}</span>
           <span className="text-[9px] text-zinc-600">Precio sugerido</span>
         </div>
       </div>

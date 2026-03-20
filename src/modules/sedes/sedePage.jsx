@@ -1,5 +1,5 @@
-import { MapPin, Building2, Phone, Plus } from 'lucide-react';
-import { Button } from '../../shared/Button';
+import { MapPin, Building2, Phone, Plus, RefreshCw } from 'lucide-react';
+import { Button, ButtonSquare } from '../../shared/Button';
 import HeaderSection from '../../shared/HeaderSection';
 import { useInstalaciones } from './api/useInstalaciones';
 import Card from '../../shared/Card';
@@ -10,7 +10,7 @@ import ConfirmModal from '../../shared/ConfirmModal';
 
 const SedePage = () => {
 
-  const { instalaciones: sedes, isLoadingInstalaciones: isLoading, removeAsync } = useInstalaciones();
+  const { instalaciones: sedes, isLoadingInstalaciones: isLoading, removeAsync, refresh } = useInstalaciones();
   const { openDrawer } = useBoundStore();
   const openConfirm = useBoundStore(state => state.openConfirm);
 
@@ -29,13 +29,23 @@ const SedePage = () => {
           ]}
         />
 
-        <Button 
-            variant="black" 
-            onClick={() => openDrawer('SEDE_FORM')}
-            icon={Plus} 
-        >
-            Agregar Sede
-        </Button>
+        <div className="flex items-center gap-2">
+          <ButtonSquare
+            icon={RefreshCw}
+            onClick={refresh}
+            sizeIcon={18}
+            title="Actualizar datos"
+            variant="white"
+          />
+
+          <Button 
+              variant="black" 
+              onClick={() => openDrawer('SEDE_FORM')}
+              icon={Plus} 
+          >
+              Agregar Sede
+          </Button>
+        </div>
       </div>
 
       {/* GRID DE SEDES O SKELETONS */}
@@ -68,13 +78,13 @@ const SedePage = () => {
                   icon: MapPin, 
                   label: "Dirección", 
                   value: sede.direccion || "No definida" ,
-                  color: 'zinc'
+                  color: 'blue'
                 },
                 { 
                   icon: Phone, 
                   label: "Teléfono", 
                   value: sede.telefono,
-                  color: 'zinc'
+                  color: 'green'
                 }
               ]}
             />

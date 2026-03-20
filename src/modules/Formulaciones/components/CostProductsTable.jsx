@@ -120,7 +120,7 @@ export const CostProductsTable = ({
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-3 py-2 whitespace-nowrap text-center">
+                                            <td className="whitespace-nowrap text-center">
                                                 <div className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-gray-400">
                                                     $ {value || '-'}
                                                 </div>
@@ -174,7 +174,7 @@ export const CostProductsTable = ({
                                     </div>
                                 </div>
                             </td>
-                            <td className="px-3 py-3 whitespace-nowrap text-center">
+                            <td className="whitespace-nowrap text-center">
                                 <div className="px-3 py-3 whitespace-nowrap text-center text-xs opacity-70">
                                     $ {productDetail?.costos?.precio_venta || '-'}
                                 </div>

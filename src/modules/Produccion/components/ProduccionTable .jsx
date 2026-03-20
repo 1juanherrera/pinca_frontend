@@ -23,7 +23,7 @@ export const EstadoBadge = ({ estado }) => (
 
 // ─── Columnas configurables ───────────────────────────────────────────────────
 const SortIcon = ({ field, sortBy, sortDir }) => {
-  if (sortBy !== field) return <ChevronsUpDown size={12} className="text-zinc-400" />;
+  if (sortBy !== field) return <ChevronsUpDown size={12} className="text-white" />;
   return sortDir === 'asc'
     ? <ChevronUp size={12} className="text-zinc-700" />
     : <ChevronDown size={12} className="text-zinc-700" />;
@@ -32,7 +32,7 @@ const SortIcon = ({ field, sortBy, sortDir }) => {
 const TH = ({ label, field, sortBy, sortDir, onSort, className = '' }) => (
   <th
     onClick={() => onSort(field)}
-    className={`px-4 py-3 text-left text-[10px] font-bold text-zinc-400 uppercase tracking-widest cursor-pointer hover:text-zinc-700 select-none transition-colors ${className}`}
+    className={`px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest cursor-pointer hover:text-zinc-700 select-none transition-colors ${className}`}
   >
     <div className="flex items-center gap-1.5">
       {label}
@@ -76,7 +76,7 @@ export const ProduccionTable = ({
   return (
     <div className="w-full overflow-x-auto rounded-lg border border-zinc-100 shadow-sm">
       <table className="w-full text-sm">
-        <thead className="bg-zinc-50 border-b border-zinc-100">
+        <thead className="bg-zinc-900 border-b border-zinc-100">
           <tr>
             <TH label="# Orden"    field="id_preparaciones" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
             <TH label="Producto"   field="item_nombre"       sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
@@ -85,7 +85,7 @@ export const ProduccionTable = ({
             <TH label="Estado"     field="estado"            sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
             <TH label="Fecha inicio" field="fecha_inicio"    sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
             <TH label="Creado"     field="fecha_creacion"    sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
-            <th className="px-4 py-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-right">
+            <th className="px-4 py-3 text-[10px] font-bold text-white uppercase tracking-widest text-right">
               Acciones
             </th>
           </tr>

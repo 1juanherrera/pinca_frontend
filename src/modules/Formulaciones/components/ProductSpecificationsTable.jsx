@@ -150,7 +150,7 @@ export const ProductSpecificationsTable = ({
                                         </td>
 
                                         <td className="px-3 py-2.5 whitespace-nowrap text-center">
-                                            <div className="text-xs font-bold text-zinc-900 font-mono">
+                                            <div className="text-xs font-bold text-zinc-900">
                                                 {formatValue(key, value)}
                                             </div>
                                         </td>
