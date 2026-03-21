@@ -1,23 +1,17 @@
-/**
- * FacturasTable
- * Vista principal de cartera — tabla de facturas con acciones.
- * Botones: registrar pago | gestiones de cobro | notas crédito | estado de cuenta
- */
-
 import { useState, useMemo } from 'react';
 import {
   CreditCard, Clock, CheckCircle2, Receipt,
   DollarSign, AlertCircle, Phone, FileMinus, User,
 } from 'lucide-react';
-import ERPTable            from '../../../shared/ERPTable';
-import StatusBadge         from '../../../shared/StatusBadge';
-import SummaryCard         from '../../../shared/SummaryCard';
-import SearchFilterBar     from '../../../shared/SearchFilterBar';
-import AmountDisplay       from '../../../shared/AmountDisplay';
-import { fmt }             from '../../../utils/formatters';
+import ERPTable from '../../../shared/ERPTable';
+import StatusBadge from '../../../shared/StatusBadge';
+import SummaryCard from '../../../shared/SummaryCard';
+import SearchFilterBar from '../../../shared/SearchFilterBar';
+import AmountDisplay from '../../../shared/AmountDisplay';
+import { fmt } from '../../../utils/formatters';
 import { calcularDiasMora, getEstadoEfectivo } from '../services/carteraService';
-import { useFactura }      from '../../Comercial/Facturacion/api/useFactura';
-import useTableSort        from '../../../hooks/useTableSorts';
+import { useFactura } from '../../Comercial/Facturacion/api/useFactura';
+import useTableSort from '../../../hooks/useTableSorts';
 
 const STATUS_OPTIONS = [
   { value: 'Pendiente', label: 'Pendiente', dot: 'bg-amber-400'   },

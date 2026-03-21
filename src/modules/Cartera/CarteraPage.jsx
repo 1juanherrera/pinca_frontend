@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Wallet, LayoutDashboard, FileText } from 'lucide-react';
+import { Wallet, ChartArea, FileText } from 'lucide-react';
 import HeaderSection        from '../../shared/HeaderSection';
 import DashboardCartera     from './components/DashboardCartera';
 import FacturasTable        from './components/FacturasTable';
@@ -10,7 +10,7 @@ import GestionesCobroDrawer from './components/GestionesCobroDrawer';
 import NotasCreditoDrawer   from './components/NotasCreditoDrawer';
 
 const TABS = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'dashboard', label: 'Dashboard', icon: ChartArea },
   { id: 'facturas',  label: 'Facturas',  icon: FileText        },
 ];
 
@@ -57,13 +57,13 @@ const CarteraPage = () => {
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`flex items-center justify-center gap-2 px-5 py-2.5 border border-transparent rounded-xl text-sm font-semibold shadow-md transition-all active:scale-95 hover:scale-105 disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100
+                className={`flex items-center uppercase justify-center gap-2 px-5 py-2.5 border border-transparent rounded-xl text-sm font-semibold shadow-md transition-all active:scale-95 hover:scale-105 disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100
                   ${active
                     ? 'bg-zinc-900 text-white shadow-sm'
                     : 'bg-white text-zinc-500'
                   }`}
               >
-                <Icon size={13} />
+                <Icon size={14} />
                 {t.label}
               </button>
             );

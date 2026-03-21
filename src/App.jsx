@@ -9,10 +9,10 @@ import ProduccionPage from "./modules/Produccion/ProduccionPage";
 import Prorrateo from "./modules/Prorrateo/Prorreateo";
 import ClientePage from "./modules/Clientes/ClientePage";
 import PagosPage from "./modules/Pagos/PagosPage";
-import CarteraPage from "./modules/cartera/CarteraPage";
 import ComercialPage from "./modules/Comercial/ComercialPage";
 import ComprasPage from "./modules/Compras/ComprasPage";
-
+import ProveedoresPage from "./modules/Proveedores/ProveedoresPage";
+import CarteraPage from "./modules/Cartera/CarteraPage";
 
 const App = () => {
   return (
@@ -32,6 +32,7 @@ const App = () => {
           <Route path="/cartera" element={<CarteraPage />} />
           <Route path="/comercial" element={<ComercialPage />} />
           <Route path="/compras" element={<ComprasPage />} />
+          <Route path="/proveedores" element={<ProveedoresPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -18,8 +18,9 @@ export const sidebarMenu = [
     { link: 'comercial', label: 'Comercial', icon: Handbag },
     { link: 'compras', label: 'Compras', icon: ShoppingBag },
     { link: 'cartera', label: 'Cartera', icon: Wallet },
+
     
     { link: 'clientes', label: 'Clientes', icon: Users },
-    { link: 'suppliers', label: 'Proveedores', icon: Truck },
+    { link: 'proveedores', label: 'Proveedores', icon: Truck },
     { link: 'prorrateo', label: 'Prorrateo', icon: Calculator },
 ]

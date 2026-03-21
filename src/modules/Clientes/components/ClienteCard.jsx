@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import {
   Building2,
   User,

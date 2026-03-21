@@ -79,17 +79,17 @@ const ComercialPage = () => {
                   key={t.id}
                   onClick={() => setActiveTab(t.id)}
                   className={`flex items-center justify-center gap-2 px-5 py-2.5 active:scale-95 hover:scale-105 border border-transparent rounded-xl text-sm font-semibold shadow-md transition-all disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100
-                    ${active
-                      ? 'bg-zinc-900 text-white shadow-sm'
-                      : 'bg-white text-zinc-500'
-                    }`}
-                >
-                  <Icon size={13} />
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
+                  ${active
+                    ? 'bg-zinc-900 text-white shadow-sm'
+                    : 'bg-white text-zinc-500'
+                  }`}
+              >
+                <Icon size={13} />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
 
         <div className="flex items-center gap-2">
           <ButtonSquare
