@@ -1,14 +1,6 @@
-/**
- * RemisionDrawer – Panel lateral de detalle de remisión con:
- *   - Info de despacho (dirección, fechas, estado)
- *   - Ítems del despacho
- *   - Factura / inventario vinculados
- *   - Cambio de estado y conversión a factura
- */
-
 import {
   Truck, MapPin, Package, FileText,
-  RefreshCw, ArrowRight, AlertCircle, Building2,
+  RefreshCw, ArrowRight, AlertCircle, Building2, Download,
 } from 'lucide-react';
 import { useRemisiones } from '../api/useRemisiones';
 import { useBoundStore } from '../../../../store/useBoundStore';
@@ -35,8 +27,8 @@ const InfoRow = ({ label, value }) => (
 const ESTADOS = ['Pendiente', 'Entregada', 'Anulada'];
 
 const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConvertir }) => {
-  const { remisionDetalle, detalle, isLoadingDetalle } = useRemisiones(remisionId);
-  const { openConfirm } = useBoundStore();
+  const { remisionDetalle, items, isLoadingDetalle } = useRemisiones(remisionId);
+  const { openConfirm, openDrawer } = useBoundStore();
 
   const r = remisionDetalle;
 
@@ -61,11 +53,22 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
         </div>
       ) : (
         <>
-          {/* Hero con estado y dirección */}
+          {/* Hero con estado, dirección y botón PDF */}
           <div className="px-5 py-5 bg-gray-50 border-b border-gray-100">
             <div className="flex items-center justify-between mb-3">
               <StatusBadge estado={r.estado} />
-              <span className="text-xs text-gray-400">{r.fecha_remision}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">{r.fecha_remision}</span>
+                {/* Botón descargar PDF */}
+                <button
+                  onClick={() => openDrawer('EXPORT_MODAL_REMISIONES', r)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-zinc-600 border border-zinc-200 rounded-lg bg-white hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95"
+                  title="Descargar PDF"
+                >
+                  <Download className="w-3 h-3" />
+                  PDF
+                </button>
+              </div>
             </div>
             <div className="flex items-start gap-2 bg-white rounded-lg p-3 border border-gray-100">
               <MapPin className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
@@ -85,37 +88,28 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
                   key={estado}
                   onClick={() => {
                     openConfirm({
-                      title: 'Cambiar Estado',
+                      title:   'Cambiar Estado',
                       message: `¿Marcar la remisión ${r.numero} como "${estado}"?`,
-                      onConfirm: () => {
-                        onCambiarEstado?.(r.id_remisiones, estado);
-                        onClose();
-                      },
+                      onConfirm: () => { onCambiarEstado?.(r.id_remisiones, estado); onClose(); },
                     });
                   }}
-                  className="flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-200 rounded-lg
-                    bg-white hover:bg-gray-50 text-gray-600 transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-200 rounded-lg bg-white hover:bg-gray-50 text-gray-600 transition-colors"
                 >
                   <RefreshCw className="w-3 h-3" />
                   {estado}
                 </button>
               ))}
 
-              {/* Convertir a factura */}
               {!r.facturas_id && r.estado !== 'Anulada' && (
                 <button
                   onClick={() => {
                     openConfirm({
-                      title: 'Convertir a Factura',
+                      title:   'Convertir a Factura',
                       message: `¿Generar factura desde la remisión ${r.numero}?`,
-                      onConfirm: () => {
-                        onConvertir?.(r.id_remisiones);
-                        onClose();
-                      },
+                      onConfirm: () => { onConvertir?.(r.id_remisiones); onClose(); },
                     });
                   }}
-                  className="flex items-center gap-1 px-2.5 py-1 text-xs border border-emerald-200 rounded-lg
-                    bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs border border-emerald-200 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold transition-colors"
                 >
                   <ArrowRight className="w-3 h-3" />
                   Convertir a Factura
@@ -140,17 +134,17 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
 
           {/* Info remisión */}
           <Section title="Datos del Despacho" icon={Truck}>
-            <InfoRow label="Número"         value={r.numero}               />
-            <InfoRow label="Fecha"          value={r.fecha_remision}       />
-            <InfoRow label="Dirección"      value={r.direccion_entrega}    />
-            <InfoRow label="Observaciones"  value={r.observaciones}        />
-            <InfoRow label="Inventario ID"  value={r.movimiento_inventario_id} />
-            <InfoRow label="Registrado en"  value={r.creado_en}            />
+            <InfoRow label="Número"        value={r.numero}                  />
+            <InfoRow label="Fecha"         value={r.fecha_remision}          />
+            <InfoRow label="Dirección"     value={r.direccion_entrega}       />
+            <InfoRow label="Observaciones" value={r.observaciones}           />
+            <InfoRow label="Inventario ID" value={r.movimiento_inventario_id}/>
+            <InfoRow label="Registrado en" value={r.creado_en}               />
           </Section>
 
           {/* Ítems del despacho */}
           <Section title="Ítems Despachados" icon={Package}>
-            {!detalle || detalle.length === 0 ? (
+            {!items || items.length === 0 ? (
               <p className="text-xs text-gray-400 py-2">Sin ítems registrados</p>
             ) : (
               <div className="rounded-lg border border-gray-200 overflow-hidden">
@@ -158,19 +152,36 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-3 py-2 text-left text-gray-500">Producto</th>
-                      <th className="px-3 py-2 text-right text-gray-500">Cantidad</th>
-                      <th className="px-3 py-2 text-right text-gray-500">Unidad</th>
+                      <th className="px-3 py-2 text-right text-gray-500">Cant.</th>
+                      <th className="px-3 py-2 text-right text-gray-500">Vr. Unit.</th>
+                      <th className="px-3 py-2 text-right text-gray-500">Subtotal</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {detalle.map((item, idx) => (
+                    {items.map((item, idx) => (
                       <tr key={idx} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 text-gray-700 font-medium">{item.descripcion ?? item.nombre ?? `Ítem ${idx + 1}`}</td>
-                        <td className="px-3 py-2 text-right text-gray-600 font-mono tabular-nums">{item.cantidad}</td>
-                        <td className="px-3 py-2 text-right text-gray-500">{item.unidad ?? '—'}</td>
+                        <td className="px-3 py-2 text-gray-700 font-medium">{item.descripcion ?? `Ítem ${idx + 1}`}</td>
+                        <td className="px-3 py-2 text-right text-gray-600 font-mono tabular-nums">{Number(item.cantidad).toFixed(2)}</td>
+                        <td className="px-3 py-2 text-right text-gray-500 font-mono tabular-nums">
+                          {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(item.precio_unit ?? 0)}
+                        </td>
+                        <td className="px-3 py-2 text-right text-gray-800 font-semibold font-mono tabular-nums">
+                          {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(item.subtotal ?? 0)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
+                  {/* Total */}
+                  <tfoot>
+                    <tr className="bg-zinc-950">
+                      <td colSpan={3} className="px-3 py-2 text-xs font-bold text-white text-right">Total</td>
+                      <td className="px-3 py-2 text-right text-xs font-bold text-white font-mono tabular-nums">
+                        {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(
+                          items.reduce((s, i) => s + (Number(i.subtotal) || 0), 0)
+                        )}
+                      </td>
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             )}

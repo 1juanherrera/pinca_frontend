@@ -83,8 +83,6 @@ const ProduccionPage = () => {
     [filtered, sortBy, sortDir]
   );
 
-  console.log(allPreparaciones)
-
   // Opciones únicas de item para el select de filtros
   const itemOptions = useMemo(() => {
     const map = new Map();

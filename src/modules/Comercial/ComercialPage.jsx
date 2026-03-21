@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import {
-  TrendingUp, ClipboardList, Truck, Receipt,
+  ClipboardList, Truck, Receipt,
   Plus, RefreshCw, Download,
 } from 'lucide-react';
 import { useBoundStore } from '../../store/useBoundStore';
-import HeaderSection from '../../shared/HeaderSection';
 import { Button, ButtonSquare } from '../../shared/Button';
 import ConfirmModal from '../../shared/ConfirmModal';
 import RemisionesTab from './Remisiones/RemisionesTab';
@@ -13,76 +12,62 @@ import CotizacionesTab from './Cotizaciones/CotizacionesTab';
 import CotizacionForm from './Cotizaciones/components/CotizacionForm';
 import FacturaForm from './Facturacion/components/FacturaForm';
 import RemisionForm from './Remisiones/components/RemisionForm';
+import ExportRemision from './Remisiones/components/ExportRemision';
 import { useFactura } from './Facturacion/api/useFactura';
 import { useRemisiones } from './Remisiones/api/useRemisiones';
 import { useCotizaciones } from './Cotizaciones/api/useCotizaciones';
 
-// ── Configuración de tabs ─────────────────────────────────────────────────────
 const TABS = [
   {
-    id:          'cotizaciones',
-    label:       'COTIZACIONES',
-    icon:        ClipboardList,
-    drawerKey:   'COTIZACION_FORM',
-    btnLabel:    'Nueva Cotización',
-    description: 'Propuestas comerciales a clientes',
+    id:        'cotizaciones',
+    label:     'COTIZACIONES',
+    icon:      ClipboardList,
+    drawerKey: 'COTIZACION_FORM',
+    btnLabel:  'Nueva Cotización',
   },
   {
-    id:          'remisiones',
-    label:       'REMISIONES',
-    icon:        Truck,
-    drawerKey:   'REMISION_FORM',
-    btnLabel:    'Nueva Remisión',
-    description: 'Control de despachos y entregas',
+    id:        'remisiones',
+    label:     'REMISIONES',
+    icon:      Truck,
+    drawerKey: 'REMISION_FORM',
+    btnLabel:  'Nueva Remisión',
   },
   {
-    id:          'facturas',
-    label:       'FACTURAS',
-    icon:        Receipt,
-    drawerKey:   'FACTURA_FORM',
-    btnLabel:    'Nueva Factura',
-    description: 'Registro y seguimiento de facturas de venta',
+    id:        'facturas',
+    label:     'FACTURAS',
+    icon:      Receipt,
+    drawerKey: 'FACTURA_FORM',
+    btnLabel:  'Nueva Factura',
   },
 ];
 
-// ── Componente principal ──────────────────────────────────────────────────────
 const ComercialPage = () => {
-
   const { isFetching: isFetchingCotizaciones, refresh: refreshCotizaciones } = useCotizaciones();
-  const { isFetching: isFetchingFacturas, refresh: refreshFacturas } = useFactura();
-  const { isFetching: isFetchingRemisiones, refresh: refreshRemisiones } = useRemisiones();
-  const isFetching = isFetchingCotizaciones || isFetchingFacturas || isFetchingRemisiones;
+  const { isFetching: isFetchingFacturas,     refresh: refreshFacturas     } = useFactura();
+  const { isFetching: isFetchingRemisiones,   refresh: refreshRemisiones   } = useRemisiones();
 
-  const refresh = () => {
-    refreshCotizaciones();
-    refreshFacturas();
-    refreshRemisiones();
-  };
+  const isFetching = isFetchingCotizaciones || isFetchingFacturas || isFetchingRemisiones;
+  const refresh    = () => { refreshCotizaciones(); refreshFacturas(); refreshRemisiones(); };
 
   const [activeTab, setActiveTab] = useState('cotizaciones');
   const { openDrawer } = useBoundStore();
-
   const tab = TABS.find((t) => t.id === activeTab);
 
   return (
     <div className="flex flex-col w-full gap-0">
 
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-          {/* ── Navegación de tabs ── */}
-          <div className="flex items-center gap-1.5">
-            {TABS.map((t) => {
-              const Icon   = t.icon;
-              const active = activeTab === t.id;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setActiveTab(t.id)}
-                  className={`flex items-center justify-center gap-2 px-5 py-2.5 active:scale-95 hover:scale-105 border border-transparent rounded-xl text-sm font-semibold shadow-md transition-all disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100
-                  ${active
-                    ? 'bg-zinc-900 text-white shadow-sm'
-                    : 'bg-white text-zinc-500'
-                  }`}
+        <div className="flex items-center gap-1.5">
+          {TABS.map((t) => {
+            const Icon   = t.icon;
+            const active = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                className={`flex items-center justify-center gap-2 px-5 py-2.5 active:scale-95 hover:scale-105 border border-transparent rounded-xl text-sm font-semibold shadow-md transition-all
+                  ${active ? 'bg-zinc-900 text-white shadow-sm' : 'bg-white text-zinc-500'}`}
               >
                 <Icon size={13} />
                 {t.label}
@@ -94,8 +79,8 @@ const ComercialPage = () => {
         <div className="flex items-center gap-2">
           <ButtonSquare
             icon={RefreshCw}
-            onClick={() => refresh()}
-            animate={isFetching ? "animate-spin" : ""}
+            onClick={refresh}
+            animate={isFetching ? 'animate-spin' : ''}
             sizeIcon={18}
             title="Actualizar"
             variant="white"
@@ -106,30 +91,27 @@ const ComercialPage = () => {
             title="Exportar"
             variant="white"
           />
-          <Button
-            variant="black"
-            icon={Plus}
-            onClick={() => openDrawer(tab.drawerKey)}
-          >
+          <Button variant="black" icon={Plus} onClick={() => openDrawer(tab.drawerKey)}>
             {tab.btnLabel}
           </Button>
         </div>
       </div>
 
-      {/* ── Contenido del tab activo ── */}
+      {/* Contenido */}
       <div className="flex flex-col w-full">
         {activeTab === 'cotizaciones' && <CotizacionesTab />}
         {activeTab === 'remisiones'   && <RemisionesTab  />}
-        {activeTab === 'facturas'     && <FacturacionTab   />}
+        {activeTab === 'facturas'     && <FacturacionTab  />}
       </div>
 
-      {/* ── Drawers — montados una sola vez para todos los tabs ── */}
+      {/* Drawers globales */}
       <CotizacionForm />
       <RemisionForm   />
       <FacturaForm    />
+      <ExportRemision />
       <ConfirmModal   />
     </div>
-  );
-};
+  )
+}
 
 export default ComercialPage;

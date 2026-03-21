@@ -1,13 +1,14 @@
 import { useState, useMemo } from 'react';
 import {
-  BarChart2, Building2, TrendingUp, Search,
-  ChevronDown, ChevronUp, Trophy, History,
+  BarChart2, Building2, Search,
+  ChevronDown, ChevronUp, Trophy, History, Shuffle,
 } from 'lucide-react';
 import { useComparadorPorItem, useComparadorPorProveedor } from '../api/useComparador';
 import { useProveedores } from '../api/useProveedores';
 import { fmt } from '../../../utils/formatters';
 import { FormSelect } from '../../../shared/Form/FormSelect';
-import HistorialDrawer from './HistorialDrawer';
+import HistorialDrawer    from './HistorialDrawer';
+import ComparadorLibreTab from './ComparadorLibreTab';
 
 // ── Vista 1: Por ítem ─────────────────────────────────────────────────────
 const GrupoRow = ({ grupo, onHistorial }) => {
@@ -16,7 +17,6 @@ const GrupoRow = ({ grupo, onHistorial }) => {
 
   return (
     <div className="border border-zinc-100 rounded-lg overflow-hidden">
-      {/* Cabecera del grupo */}
       <button
         onClick={() => setExpanded((v) => !v)}
         className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-zinc-50/80 transition-colors text-left"
@@ -46,7 +46,6 @@ const GrupoRow = ({ grupo, onHistorial }) => {
         </div>
       </button>
 
-      {/* Detalle por proveedor */}
       {expanded && (
         <div className="border-t border-zinc-100 divide-y divide-zinc-50">
           {grupo.proveedores.map((prov) => {
@@ -108,7 +107,7 @@ const PorItemView = ({ onHistorial }) => {
   }, [grupos, search]);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm flex flex-col gap-3">
       <div className="relative">
         <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
         <input
@@ -160,7 +159,7 @@ const PorProveedorView = ({ onHistorial }) => {
     : 0;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm flex flex-col gap-3">
       <FormSelect
         label="Selecciona un proveedor"
         placeholder="Elige un proveedor..."
@@ -183,7 +182,6 @@ const PorProveedorView = ({ onHistorial }) => {
           </div>
         ) : (
           <div className="border border-zinc-100 rounded-lg overflow-hidden">
-            {/* Header */}
             <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-2 bg-zinc-50 border-b border-zinc-100">
               <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Producto</span>
               <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-right">Precio</span>
@@ -216,7 +214,6 @@ const PorProveedorView = ({ onHistorial }) => {
                         </button>
                       </div>
                     </div>
-                    {/* Barra relativa */}
                     <div className="ml-7 h-1 bg-zinc-100 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-zinc-400 rounded-full"
@@ -236,8 +233,9 @@ const PorProveedorView = ({ onHistorial }) => {
 
 // ── ComparadorTab ─────────────────────────────────────────────────────────
 const VISTAS = [
-  { id: 'por_item',      label: 'Por ítem',      icon: BarChart2   },
-  { id: 'por_proveedor', label: 'Por proveedor',  icon: Building2   },
+  { id: 'por_item',      label: 'Por ítem',      icon: BarChart2 },
+  { id: 'por_proveedor', label: 'Por proveedor',  icon: Building2 },
+  { id: 'libre',         label: 'Libre',          icon: Shuffle   },
 ];
 
 const ComparadorTab = () => {
@@ -246,7 +244,6 @@ const ComparadorTab = () => {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Selector de vista */}
       <div className="flex items-center gap-1.5">
         {VISTAS.map((v) => {
           const Icon   = v.icon;
@@ -255,7 +252,7 @@ const ComparadorTab = () => {
             <button
               key={v.id}
               onClick={() => setVista(v.id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold border transition-all ${
+              className={`flex items-center gap-1.5 px-4 py-2 uppercase rounded-lg text-xs font-semibold border transition-all ${
                 active
                   ? 'bg-zinc-900 text-white border-zinc-900'
                   : 'bg-white text-zinc-500 border-zinc-200 hover:border-zinc-400'
@@ -270,8 +267,8 @@ const ComparadorTab = () => {
 
       {vista === 'por_item'      && <PorItemView      onHistorial={setItemHistorial} />}
       {vista === 'por_proveedor' && <PorProveedorView onHistorial={setItemHistorial} />}
+      {vista === 'libre'         && <ComparadorLibreTab />}
 
-      {/* Drawer historial */}
       <HistorialDrawer
         item={itemHistorial}
         onClose={() => setItemHistorial(null)}

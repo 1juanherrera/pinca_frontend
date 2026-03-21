@@ -1,60 +1,228 @@
 /**
- * CotizacionForm – Drawer para crear / editar cotización
- * openDrawer('COTIZACION_FORM', data?)
- *
- * Patrón sin useEffect: wrapper monta CotizacionFormContent con key={id|'new'}
+ * CotizacionForm — Drawer crear / editar cotización
+ * Con select de cliente, bodega y selector de ítems del inventario.
  */
 
-import { useState } from 'react';
-import { X, Plus, Trash2, Save } from 'lucide-react';
-import { useBoundStore } from '../../../../store/useBoundStore';
+import { useState, useMemo } from 'react';
+import { X, Plus, Trash2, Save, Search, ChevronDown, User, Package, Warehouse } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { useBoundStore }   from '../../../../store/useBoundStore';
 import { useCotizaciones } from '../api/useCotizaciones';
-import { Button } from '../../../../shared/Button';
+import { useInventario }   from '../../../Inventario/api/useInventario'; // ajusta el path
+import { Button }          from '../../../../shared/Button';
+import apiClient           from '../../../../api/apiClient';
 
-const EMPTY_ITEM = { descripcion: '', cantidad: 1, precio_unitario: 0 };
-
-const buildInitialForm = (data) => ({
-  cliente_id:        data?.cliente_id        ?? '',
-  fecha_cotizacion:  data?.fecha_cotizacion   ?? '',
-  fecha_vencimiento: data?.fecha_vencimiento  ?? '',
-  descuento:         data?.descuento          ?? 0,
-  impuestos:         data?.impuestos          ?? 0,
-  retencion:         data?.retencion          ?? 0,
-  observaciones:     data?.observaciones      ?? '',
+// ─── Hooks auxiliares ─────────────────────────────────────────────────────────
+const useClientes = () => useQuery({
+  queryKey: ['clientes'],
+  queryFn:  () => apiClient.get('/clientes'),
+  staleTime: 5 * 60 * 1000,
 });
 
-// ── Contenido ────────────────────────────────────────────────────────────────
+const useBodegas = () => useQuery({
+  queryKey: ['bodegas'],
+  queryFn:  () => apiClient.get('/bodegas'),
+  staleTime: 5 * 60 * 1000,
+});
+
+const fmtCOP = (v) =>
+  Number(v).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+
+// ─── Select con búsqueda ──────────────────────────────────────────────────────
+const SearchSelect = ({ placeholder, value, onChange, options = [], loading = false, renderOption, renderValue }) => {
+  const [open,   setOpen]   = useState(false);
+  const [search, setSearch] = useState('');
+
+  const filtered = useMemo(() => {
+    if (!search) return options;
+    const q = search.toLowerCase();
+    return options.filter((o) =>
+      Object.values(o).some((v) => String(v ?? '').toLowerCase().includes(q))
+    );
+  }, [options, search]);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => { setOpen((p) => !p); setSearch(''); }}
+        className="w-full flex items-center justify-between text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900 text-left"
+      >
+        <span className={value ? 'text-gray-800' : 'text-gray-400'}>
+          {value ? renderValue(value) : placeholder}
+        </span>
+        <ChevronDown size={14} className={`text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+          <div className="p-2 border-b border-gray-100">
+            <div className="relative">
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                autoFocus
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar..."
+                className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900"
+              />
+            </div>
+          </div>
+          <div className="max-h-48 overflow-y-auto">
+            {loading ? (
+              <div className="px-3 py-4 text-center text-xs text-gray-400">Cargando...</div>
+            ) : filtered.length === 0 ? (
+              <div className="px-3 py-4 text-center text-xs text-gray-400">Sin resultados</div>
+            ) : filtered.map((opt, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => { onChange(opt); setOpen(false); }}
+                className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+              >
+                {renderOption(opt)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Form content ─────────────────────────────────────────────────────────────
 const CotizacionFormContent = ({ editData, closeDrawer }) => {
   const { createAsync, updateAsync, isCreating, isUpdating } = useCotizaciones();
+  const { data: clientes = [], isLoading: loadingClientes }  = useClientes();
+  const { data: bodegas  = [], isLoading: loadingBodegas  }  = useBodegas();
 
-  const [form, setForm]   = useState(() => buildInitialForm(editData));
-  const [items, setItems] = useState(() =>
-    editData?.items?.length ? editData.items : [{ ...EMPTY_ITEM }]
+  const [clienteMode,  setClienteMode]  = useState('select');
+  const [clienteSel,   setClienteSel]   = useState(null);
+  const [clienteLibre, setClienteLibre] = useState('');
+  const [bodegaSel,    setBodegaSel]    = useState(null);
+  const [itemSearch,   setItemSearch]   = useState('');
+  const [errors,       setErrors]       = useState({});
+
+  const [form, setForm] = useState({
+    fecha_cotizacion:  editData?.fecha_cotizacion  ?? '',
+    fecha_vencimiento: editData?.fecha_vencimiento ?? '',
+    descuento:         editData?.descuento         ?? 0,
+    impuestos:         editData?.impuestos         ?? 0,
+    retencion:         editData?.retencion         ?? 0,
+    observaciones:     editData?.observaciones     ?? '',
+  });
+
+  const [items, setItems] = useState(
+    editData?.items?.length
+      ? editData.items
+      : []
   );
 
-  const setField   = (k, v) => setForm((p) => ({ ...p, [k]: v }));
-  const setItem    = (idx, k, v) =>
-    setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, [k]: v } : it)));
-  const addItem    = () => setItems((p) => [...p, { ...EMPTY_ITEM }]);
+  // ── Inventario de la bodega seleccionada ──────────────────────────────────
+  const { items: invData, isLoadingItems: loadingInv } =
+    useInventario(bodegaSel?.id_bodegas, 1, 9999);
+  const inventario = useMemo(() => invData?.inventario ?? [], [invData]);
+
+  const inventarioFiltrado = useMemo(() => {
+    if (!itemSearch) return inventario;
+    const q = itemSearch.toLowerCase();
+    return inventario.filter((i) =>
+      i.nombre?.toLowerCase().includes(q) || i.codigo?.toLowerCase().includes(q)
+    );
+  }, [inventario, itemSearch]);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  const setField = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+
+  const setItemField = (idx, k, v) =>
+    setItems((prev) => prev.map((it, i) => {
+      if (i !== idx) return it;
+      const updated = { ...it, [k]: v };
+      if (k === 'cantidad' || k === 'precio_unit' || k === 'descuento_pct') {
+        const base = Number(updated.cantidad) * Number(updated.precio_unit);
+        const desc = base * (Number(updated.descuento_pct) / 100);
+        updated.subtotal = Math.round(base - desc);
+      }
+      return updated;
+    }));
+
+  const agregarItem = (inv) => {
+    const id  = inv.id_item_general ?? inv.item_general_id;
+    const idx = items.findIndex((i) => i.item_general_id === id);
+    if (idx >= 0) {
+      setItems((prev) => prev.map((it, i) => {
+        if (i !== idx) return it;
+        const nueva = Number(it.cantidad) + 1;
+        return { ...it, cantidad: nueva, subtotal: Math.round(nueva * Number(it.precio_unit) * (1 - Number(it.descuento_pct) / 100)) };
+      }));
+    } else {
+      const precio = Number(inv.precio_venta ?? 0);
+      setItems((prev) => [...prev, {
+        item_general_id: id,
+        descripcion:     inv.nombre,
+        cantidad:        1,
+        precio_unit:     precio,
+        descuento_pct:   0,
+        subtotal:        precio,
+        stock:           inv.cantidad ?? inv.cantidad_disponible ?? 0,
+      }]);
+    }
+  };
+
+  const agregarItemLibre = () =>
+    setItems((prev) => [...prev, {
+      item_general_id: null,
+      descripcion:     '',
+      cantidad:        1,
+      precio_unit:     0,
+      descuento_pct:   0,
+      subtotal:        0,
+    }]);
+
   const removeItem = (idx) => setItems((p) => p.filter((_, i) => i !== idx));
 
-  const subtotal = items.reduce((acc, it) => acc + Number(it.precio_unitario) * Number(it.cantidad), 0);
+  const subtotal = items.reduce((s, it) => s + (Number(it.subtotal) || 0), 0);
   const total    = subtotal - Number(form.descuento) + Number(form.impuestos) - Number(form.retencion);
-  const fmtCOP   = (v) => Number(v).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
   const handleSubmit = async () => {
-    const payload = { ...form, items, subtotal, total };
+    const errs = {};
+    if (clienteMode === 'select' && !clienteSel)          errs.cliente          = 'Selecciona un cliente';
+    if (clienteMode === 'libre'  && !clienteLibre.trim()) errs.cliente          = 'Escribe el nombre del cliente';
+    if (!form.fecha_cotizacion)                           errs.fecha_cotizacion = 'La fecha es requerida';
+    if (items.length === 0)                               errs.items            = 'Agrega al menos un ítem';
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    setErrors({});
+
+    const payload = {
+      ...form,
+      cliente_id:        clienteMode === 'select' ? clienteSel?.id_clientes : null,
+      cliente_libre:     clienteMode === 'libre'  ? clienteLibre : null,
+      fecha_vencimiento: form.fecha_vencimiento || null,
+      observaciones:     form.observaciones     || null,
+      subtotal,
+      total,
+      items: items.map((it) => ({
+        descripcion:   it.descripcion,
+        cantidad:      Number(it.cantidad),
+        precio_unit:   Number(it.precio_unit),
+        descuento_pct: Number(it.descuento_pct),
+        subtotal:      Number(it.subtotal),
+      })),
+    };
+
     if (editData) await updateAsync({ id: editData.id_cotizaciones, data: payload });
-    else await createAsync(payload);
+    else          await createAsync(payload);
     closeDrawer();
   };
 
   return (
     <>
       <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]" onClick={closeDrawer} />
-      <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200">
+      <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200">
 
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50 shrink-0">
           <div>
             <h2 className="text-sm font-bold text-gray-900">
               {editData ? 'Editar Cotización' : 'Nueva Cotización'}
@@ -66,142 +234,358 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        {/* Body — dos columnas */}
+        <div className="flex-1 overflow-hidden flex">
 
-          <fieldset className="space-y-3">
-            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wider pb-1">Datos Generales</legend>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Cliente ID *</label>
-                <input type="number" value={form.cliente_id} onChange={(e) => setField('cliente_id', e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
-                  placeholder="ID del cliente" />
+          {/* ── Columna izquierda: datos generales ── */}
+          <div className="w-80 shrink-0 border-r border-gray-100 overflow-y-auto p-5 flex flex-col gap-4">
+
+            {/* Cliente */}
+            <fieldset className="space-y-2">
+              <div className="flex items-center justify-between">
+                <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <User size={11} /> Cliente
+                </legend>
+                <button
+                  type="button"
+                  onClick={() => setClienteMode((m) => m === 'select' ? 'libre' : 'select')}
+                  className="text-[10px] text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {clienteMode === 'select' ? '+ No registrado' : '← Buscar cliente'}
+                </button>
               </div>
+
+              {clienteMode === 'select' ? (
+                <SearchSelect
+                  placeholder="Buscar cliente..."
+                  value={clienteSel}
+                  onChange={(c) => { setClienteSel(c); setErrors((p) => ({ ...p, cliente: null })); }}
+                  options={clientes}
+                  loading={loadingClientes}
+                  renderValue={(c) => c.nombre_empresa || c.nombre_encargado}
+                  renderOption={(c) => (
+                    <div>
+                      <p className="font-semibold text-gray-800">{c.nombre_empresa}</p>
+                      <p className="text-gray-400">{c.nombre_encargado} · {c.numero_documento}</p>
+                    </div>
+                  )}
+                />
+              ) : (
+                <input
+                  type="text"
+                  value={clienteLibre}
+                  onChange={(e) => { setClienteLibre(e.target.value); setErrors((p) => ({ ...p, cliente: null })); }}
+                  placeholder="Nombre del cliente..."
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              )}
+
+              {errors.cliente && <p className="text-[10px] text-red-500">{errors.cliente}</p>}
+
+              {clienteSel && clienteMode === 'select' && (
+                <div className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-xs text-blue-700 space-y-0.5">
+                  <p className="font-semibold">{clienteSel.nombre_empresa}</p>
+                  <p className="text-blue-500">{clienteSel.direccion} · {clienteSel.telefono}</p>
+                </div>
+              )}
+            </fieldset>
+
+            {/* Fechas y observaciones */}
+            <fieldset className="space-y-2">
+              <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wider pb-1">Datos Generales</legend>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Fecha *</label>
-                <input type="date" value={form.fecha_cotizacion} onChange={(e) => setField('fecha_cotizacion', e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900" />
+                <input
+                  type="date"
+                  value={form.fecha_cotizacion}
+                  onChange={(e) => { setField('fecha_cotizacion', e.target.value); setErrors((p) => ({ ...p, fecha_cotizacion: null })); }}
+                  className={`w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 ${errors.fecha_cotizacion ? 'border-red-400' : 'border-gray-200'}`}
+                />
+                {errors.fecha_cotizacion && <p className="text-[10px] text-red-500 mt-1">{errors.fecha_cotizacion}</p>}
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Vencimiento</label>
-                <input type="date" value={form.fecha_vencimiento} onChange={(e) => setField('fecha_vencimiento', e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900" />
+                <input
+                  type="date"
+                  value={form.fecha_vencimiento}
+                  min={form.fecha_cotizacion || undefined}
+                  onChange={(e) => setField('fecha_vencimiento', e.target.value)}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
               </div>
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Observaciones</label>
-              <textarea rows={2} value={form.observaciones} onChange={(e) => setField('observaciones', e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
-                placeholder="Condiciones, notas para el cliente..." />
-            </div>
-          </fieldset>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Observaciones</label>
+                <textarea
+                  rows={3}
+                  value={form.observaciones}
+                  onChange={(e) => setField('observaciones', e.target.value)}
+                  placeholder="Condiciones, notas para el cliente..."
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+                />
+              </div>
+            </fieldset>
 
-          <fieldset className="space-y-2">
-            <div className="flex items-center justify-between pb-1">
-              <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ítems</legend>
-              <button onClick={addItem} className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium">
-                <Plus className="w-3.5 h-3.5" /> Agregar ítem
-              </button>
-            </div>
-            <div className="rounded-lg border border-gray-200 overflow-hidden">
-              <table className="w-full text-xs">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-gray-500">Descripción</th>
-                    <th className="px-3 py-2 text-right text-gray-500 w-16">Cant.</th>
-                    <th className="px-3 py-2 text-right text-gray-500 w-28">P. Unit.</th>
-                    <th className="px-3 py-2 text-right text-gray-500 w-24">Subtotal</th>
-                    <th className="px-3 py-2 w-8" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {items.map((item, idx) => {
-                    const lineTotal = Number(item.precio_unitario) * Number(item.cantidad);
-                    return (
-                      <tr key={idx}>
-                        <td className="px-2 py-1.5">
-                          <input type="text" value={item.descripcion} onChange={(e) => setItem(idx, 'descripcion', e.target.value)}
-                            className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-900"
-                            placeholder="Producto / servicio" />
-                        </td>
-                        <td className="px-2 py-1.5">
-                          <input type="number" value={item.cantidad} onChange={(e) => setItem(idx, 'cantidad', e.target.value)}
-                            className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right focus:outline-none focus:ring-1 focus:ring-gray-900" min="1" />
-                        </td>
-                        <td className="px-2 py-1.5">
-                          <input type="number" value={item.precio_unitario} onChange={(e) => setItem(idx, 'precio_unitario', e.target.value)}
-                            className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right font-mono focus:outline-none focus:ring-1 focus:ring-gray-900" min="0" />
-                        </td>
-                        <td className="px-2 py-1.5 text-right font-mono text-gray-600 tabular-nums">
-                          {fmtCOP(lineTotal)}
-                        </td>
-                        <td className="px-2 py-1.5 text-center">
-                          {items.length > 1 && (
-                            <button onClick={() => removeItem(idx)} className="text-gray-400 hover:text-red-500 transition-colors">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </fieldset>
-
-          <fieldset className="space-y-3">
-            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wider pb-1">Ajustes</legend>
-            <div className="grid grid-cols-3 gap-3">
-              {[['descuento','Descuento ($)'],['impuestos','Impuestos ($)'],['retencion','Retención ($)']].map(([k, l]) => (
+            {/* Ajustes */}
+            <fieldset className="space-y-2">
+              <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wider pb-1">Ajustes</legend>
+              {[
+                ['descuento', 'Descuento ($)'],
+                ['impuestos', 'Impuestos ($)'],
+                ['retencion', 'Retención ($)'],
+              ].map(([k, l]) => (
                 <div key={k}>
                   <label className="block text-xs text-gray-500 mb-1">{l}</label>
-                  <input type="number" value={form[k]} onChange={(e) => setField(k, e.target.value)}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right font-mono focus:outline-none focus:ring-2 focus:ring-gray-900" min="0" />
+                  <input
+                    type="number"
+                    value={form[k]}
+                    min="0"
+                    onChange={(e) => setField(k, e.target.value)}
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right font-mono focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  />
                 </div>
               ))}
-            </div>
-          </fieldset>
+            </fieldset>
 
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-1.5 text-xs">
-            <div className="flex justify-between text-gray-500"><span>Subtotal</span><span className="font-mono">{fmtCOP(subtotal)}</span></div>
-            <div className="flex justify-between text-gray-500"><span>Descuento</span><span className="font-mono text-red-600">- {fmtCOP(form.descuento)}</span></div>
-            <div className="flex justify-between text-gray-500"><span>Impuestos</span><span className="font-mono">{fmtCOP(form.impuestos)}</span></div>
-            <div className="flex justify-between text-gray-500"><span>Retención</span><span className="font-mono text-red-600">- {fmtCOP(form.retencion)}</span></div>
-            <div className="border-t border-gray-300 pt-1.5 flex justify-between font-bold text-gray-900">
-              <span>Total</span><span className="font-mono text-base">{fmtCOP(total)}</span>
+            {/* Resumen de totales */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-1 text-xs">
+              {[
+                ['Subtotal',  fmtCOP(subtotal),             'text-gray-700'],
+                ['Descuento', `- ${fmtCOP(form.descuento)}`, 'text-red-600' ],
+                ['Impuestos', fmtCOP(form.impuestos),        'text-gray-700'],
+                ['Retención', `- ${fmtCOP(form.retencion)}`, 'text-red-600' ],
+              ].map(([label, val, cls]) => (
+                <div key={label} className="flex justify-between text-gray-500">
+                  <span>{label}</span>
+                  <span className={`font-mono ${cls}`}>{val}</span>
+                </div>
+              ))}
+              <div className="border-t border-gray-300 pt-1.5 flex justify-between font-bold text-gray-900">
+                <span>Total</span>
+                <span className="font-mono">{fmtCOP(total)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Columna derecha: bodega + inventario + ítems ── */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+
+            {/* Selector de bodega y búsqueda */}
+            <div className="px-4 pt-4 pb-3 border-b border-gray-100 space-y-2 shrink-0">
+              <div className="flex items-center gap-2">
+                <Warehouse size={13} className="text-gray-400" />
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bodega</span>
+                {loadingInv && bodegaSel && (
+                  <span className="text-[10px] text-blue-500 animate-pulse">Cargando inventario...</span>
+                )}
+                {!loadingInv && bodegaSel && (
+                  <span className="text-[10px] text-gray-400">{inventario.length} productos</span>
+                )}
+              </div>
+              <SearchSelect
+                placeholder="Seleccionar bodega..."
+                value={bodegaSel}
+                onChange={(b) => { setBodegaSel(b); setItemSearch(''); }}
+                options={bodegas}
+                loading={loadingBodegas}
+                renderValue={(b) => b.nombre}
+                renderOption={(b) => <span className="font-medium text-gray-800">{b.nombre}</span>}
+              />
+              {bodegaSel && (
+                <div className="relative">
+                  <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={itemSearch}
+                    onChange={(e) => setItemSearch(e.target.value)}
+                    placeholder="Buscar producto por nombre o código..."
+                    className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Lista de inventario */}
+            {bodegaSel && (
+              <div className="overflow-y-auto border-b border-gray-100" style={{ maxHeight: '200px' }}>
+                {loadingInv ? (
+                  <div className="p-4 text-center text-xs text-gray-400">Cargando inventario...</div>
+                ) : inventarioFiltrado.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-gray-400">
+                    {itemSearch ? 'Sin resultados' : 'Sin productos en esta bodega'}
+                  </div>
+                ) : inventarioFiltrado.map((inv) => {
+                  const id      = inv.id_item_general ?? inv.item_general_id;
+                  const enLista = items.some((i) => i.item_general_id === id);
+                  const stock   = Number(inv.cantidad ?? inv.cantidad_disponible ?? 0);
+                  const precio  = Number(inv.precio_venta ?? 0);
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => agregarItem(inv)}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-left border-b border-gray-50 last:border-0 transition-colors
+                        ${enLista ? 'bg-blue-50 hover:bg-blue-100' : 'hover:bg-gray-50'}`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-800 truncate">{inv.nombre}</p>
+                        <p className="text-[10px] text-gray-400 font-mono">{inv.codigo}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xs font-bold text-gray-700">{fmtCOP(precio)}</p>
+                        <p className={`text-[10px] font-medium ${stock > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                          Stock: {stock}
+                        </p>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black
+                        ${enLista ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                        {enLista ? '✓' : '+'}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Tabla de ítems seleccionados */}
+            <div className="flex-1 overflow-y-auto flex flex-col">
+              <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100 bg-gray-50 shrink-0">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Package size={11} /> Ítems ({items.length})
+                </span>
+                {errors.items && <p className="text-[10px] text-red-500">{errors.items}</p>}
+                <button
+                  type="button"
+                  onClick={agregarItemLibre}
+                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  <Plus size={12} /> Agregar libre
+                </button>
+              </div>
+
+              {items.length === 0 ? (
+                <div className="flex flex-col items-center justify-center flex-1 gap-2 text-gray-300">
+                  <Package size={28} />
+                  <p className="text-xs">
+                    {bodegaSel ? 'Selecciona productos del inventario' : 'Primero selecciona una bodega'}
+                  </p>
+                </div>
+              ) : (
+                <table className="w-full text-xs">
+                  <thead className="bg-gray-50 sticky top-0">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-gray-500 font-medium">Descripción</th>
+                      <th className="px-3 py-2 text-right text-gray-500 font-medium w-16">Cant.</th>
+                      <th className="px-3 py-2 text-right text-gray-500 font-medium w-28">P. Unit.</th>
+                      <th className="px-3 py-2 text-right text-gray-500 font-medium w-14">Desc. %</th>
+                      <th className="px-3 py-2 text-right text-gray-500 font-medium w-28">Subtotal</th>
+                      <th className="px-3 py-2 w-8" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {items.map((item, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-3 py-2">
+                          <input
+                            type="text"
+                            value={item.descripcion}
+                            onChange={(e) => setItemField(idx, 'descripcion', e.target.value)}
+                            className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-900"
+                            placeholder="Descripción"
+                          />
+                          {item.stock !== undefined && (
+                            <p className={`text-[9px] mt-0.5 font-medium ${Number(item.stock) >= Number(item.cantidad) ? 'text-emerald-500' : 'text-red-500'}`}>
+                              Stock: {item.stock}
+                            </p>
+                          )}
+                        </td>
+                        <td className="px-2 py-2">
+                          <input
+                            type="number"
+                            value={item.cantidad}
+                            min="1"
+                            onChange={(e) => setItemField(idx, 'cantidad', e.target.value)}
+                            className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right font-mono focus:outline-none focus:ring-1 focus:ring-gray-900"
+                          />
+                        </td>
+                        <td className="px-2 py-2">
+                          <input
+                            type="number"
+                            value={item.precio_unit}
+                            min="0"
+                            onChange={(e) => setItemField(idx, 'precio_unit', e.target.value)}
+                            className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right font-mono focus:outline-none focus:ring-1 focus:ring-gray-900"
+                          />
+                        </td>
+                        <td className="px-2 py-2">
+                          <input
+                            type="number"
+                            value={item.descuento_pct}
+                            min="0"
+                            max="100"
+                            onChange={(e) => setItemField(idx, 'descuento_pct', e.target.value)}
+                            className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right font-mono focus:outline-none focus:ring-1 focus:ring-gray-900"
+                          />
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono font-semibold text-gray-700 whitespace-nowrap">
+                          {fmtCOP(item.subtotal)}
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <button onClick={() => removeItem(idx)} className="text-gray-300 hover:text-red-500 transition-colors">
+                            <Trash2 size={13} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-zinc-950">
+                      <td colSpan={4} className="px-3 py-2.5 text-xs font-bold text-white text-right">Total</td>
+                      <td className="px-3 py-2.5 text-right text-sm font-bold text-white font-mono whitespace-nowrap">{fmtCOP(total)}</td>
+                      <td />
+                    </tr>
+                  </tfoot>
+                </table>
+              )}
             </div>
           </div>
         </div>
 
-        <div className="px-5 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-2">
-          <button onClick={closeDrawer} className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100">
-            Cancelar
-          </button>
-          <Button variant="black" onClick={handleSubmit} disabled={isCreating || isUpdating} icon={Save}>
-            {isCreating || isUpdating ? 'Guardando...' : editData ? 'Actualizar' : 'Crear Cotización'}
-          </Button>
+        {/* Footer */}
+        <div className="px-5 py-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center shrink-0">
+          <p className="text-xs text-gray-400">
+            {items.length} ítem(s) · <span className="font-semibold text-gray-700">{fmtCOP(total)}</span>
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={closeDrawer}
+              className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100"
+            >
+              Cancelar
+            </button>
+            <Button variant="black" onClick={handleSubmit} disabled={isCreating || isUpdating} icon={Save}>
+              {isCreating || isUpdating ? 'Guardando...' : editData ? 'Actualizar' : 'Crear Cotización'}
+            </Button>
+          </div>
         </div>
       </div>
     </>
   );
 };
 
-// ── Wrapper ──────────────────────────────────────────────────────────────────
+// ── Wrapper ───────────────────────────────────────────────────────────────────
 const CotizacionForm = () => {
-  const activeDrawer = useBoundStore((s) => s.activeDrawer); 
+  const activeDrawer = useBoundStore((s) => s.activeDrawer);
   const payload      = useBoundStore((s) => s.drawerPayload);
   const closeDrawer  = useBoundStore((s) => s.closeDrawer);
-
   if (activeDrawer !== 'COTIZACION_FORM') return null;
-
   return (
     <CotizacionFormContent
       key={payload?.id_cotizaciones ?? 'new'}
       editData={payload ?? null}
       closeDrawer={closeDrawer}
     />
-  )
-}
+  );
+};
 
 export default CotizacionForm;

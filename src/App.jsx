@@ -13,11 +13,13 @@ import ComercialPage from "./modules/Comercial/ComercialPage";
 import ComprasPage from "./modules/Compras/ComprasPage";
 import ProveedoresPage from "./modules/Proveedores/ProveedoresPage";
 import CarteraPage from "./modules/Cartera/CarteraPage";
+import { Login } from "./modules/Login/Login";
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/login" element={<Login />} />
         <Route element={<Layout />}>
           <Route path="/" element={<SedePage />} />
           <Route path="/inventario/bodega/:id_bodega" element={<InventarioPage />} />
