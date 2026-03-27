@@ -13,7 +13,9 @@ import ComercialPage from "./modules/Comercial/ComercialPage";
 import ComprasPage from "./modules/Compras/ComprasPage";
 import ProveedoresPage from "./modules/Proveedores/ProveedoresPage";
 import CarteraPage from "./modules/Cartera/CarteraPage";
+
 import { Login } from "./modules/Login/Login";
+import MovimientosPage from "./modules/Movimientos/MovimientosPage";
 
 const App = () => {
   return (
@@ -35,6 +37,7 @@ const App = () => {
           <Route path="/comercial" element={<ComercialPage />} />
           <Route path="/compras" element={<ComprasPage />} />
           <Route path="/proveedores" element={<ProveedoresPage />} />
+          <Route path="/movimientos" element={<MovimientosPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

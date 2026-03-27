@@ -8,11 +8,15 @@ import { CostProductsTable } from "./components/CostProductsTable";
 import { useFormulaciones } from "./api/useFormulaciones";
 import FormCostProducts from "./components/FormCostProducts ";
 import { PreparationModal } from "./components/preparationModal";
+import FormulacionModal from "./components/FormulacionModal";
+import { FlaskConical } from "lucide-react";
+import { Button } from "../../shared/Button";
 
 const FormulacionesPage = () => {
 
-  const [selectedId, setSelectedId] = useState("");
-  const [nuevoVolumen, setNuevoVolumen] = useState("");
+  const [selectedId,       setSelectedId]       = useState("");
+  const [nuevoVolumen,     setNuevoVolumen]      = useState("");
+  const [modalFormulacion, setModalFormulacion]  = useState(false); // ✅
 
   const { 
     formulaciones, 
@@ -29,20 +33,33 @@ const FormulacionesPage = () => {
   return (
     <div className="flex flex-col w-full gap-2">
       
-      {/* 🟢 TOP: KPIs (Tu estilo original de tarjetas con Gap-4) */}
-      <KpiCard 
-        formulaciones={formulaciones} 
-        productDetail={costosBase} 
-        recalculatedData={costosRecalculados} 
-      />
+      {/* Header con botón Nueva Formulación */}
+      <div className="flex items-center justify-between">
+        <KpiCard 
+          formulaciones={formulaciones} 
+          productDetail={costosBase} 
+          recalculatedData={costosRecalculados} 
+        />
 
-      {/* 🔍 SEARCH: Buscador Maestro */}
+        {/* ✅ Botón Nueva Formulación */}
+        <div className="shrink-0 pl-4">
+          <Button
+            variant="black"
+            icon={FlaskConical}
+            onClick={() => setModalFormulacion(true)}
+          >
+            Nueva Formulación
+          </Button>
+        </div>
+      </div>
+
+      {/* Buscador Maestro */}
       <ProductSelect
         formulaciones={formulaciones} 
         selectedProduct={selectedId} 
         onProductSelect={(id) => {
-            setSelectedId(id);
-            setNuevoVolumen(""); // Resetear simulación al cambiar producto
+          setSelectedId(id);
+          setNuevoVolumen("");
         }} 
         loading={isLoading}
         onClearSelection={() => {
@@ -51,50 +68,47 @@ const FormulacionesPage = () => {
         }}   
       />
 
-      {/* 🏗️ MAIN BODY: Grid de 12 Columnas */}
+      {/* Main Body */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         
-        {/* COLUMNA IZQUIERDA (4/12): Parámetros y Costos Indirectos */}
         <div className="lg:col-span-4 flex flex-col gap-2">
-           
-           {/* 🟣 CALCULADORA (Purple Edition) */}
-           <CostCalculator 
-              productDetail={costosBase}
-              selectedProductData={selectedProductData}
-              setNuevoVolumen={setNuevoVolumen}
-              recalculatedData={costosRecalculados}
-              isRecalculating={isRecalculating}
-              handleRecalcular={() => {}} // Disparado por el hook
-           />
-
-           {/* 🔵 ESPECIFICACIONES (Teal Edition) */}
-           <ProductSpecificationsTable 
-                selectedProductData={selectedProductData}
-                productDetail={costosBase}
-           />
+          <CostCalculator 
+            productDetail={costosBase}
+            selectedProductData={selectedProductData}
+            setNuevoVolumen={setNuevoVolumen}
+            recalculatedData={costosRecalculados}
+            isRecalculating={isRecalculating}
+            handleRecalcular={() => {}}
+          />
+          <ProductSpecificationsTable 
+            selectedProductData={selectedProductData}
+            productDetail={costosBase}
+          />
         </div>
 
-        {/* COLUMNA DERECHA (8/12): El Corazón de la Producción */}
         <div className="lg:col-span-8 flex flex-col gap-2">
-           
-           {/* 🔵 TABLA DE FORMULACIÓN (Blue Edition) */}
-           <FormulacionesTable
-                selectedProductData={selectedProductData}
-                productDetail={costosBase}
-                recalculatedData={costosRecalculados}
-           />
-
-          {/* 🟢 DESGLOSE DE COSTOS (Emerald Edition) */}
-           <CostProductsTable 
-              selectedProductData={selectedProductData}
-              productDetail={costosBase}
-              recalculatedData={costosRecalculados}
-           />
-
+          <FormulacionesTable
+            selectedProductData={selectedProductData}
+            productDetail={costosBase}
+            recalculatedData={costosRecalculados}
+          />
+          <CostProductsTable 
+            selectedProductData={selectedProductData}
+            productDetail={costosBase}
+            recalculatedData={costosRecalculados}
+          />
         </div>
       </div>
+
       <FormCostProducts />
       <PreparationModal />
+
+      {/* ✅ Modal Formulación */}
+      <FormulacionModal
+        isOpen={modalFormulacion}
+        onClose={() => setModalFormulacion(false)}
+      />
+
     </div>
   );
 };

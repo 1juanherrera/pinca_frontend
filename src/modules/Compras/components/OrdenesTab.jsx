@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ShoppingCart, CheckCircle2, XCircle, Send } from 'lucide-react';
+import { ShoppingCart, CheckCircle2, XCircle, Send, Pencil, Trash2, VariableIcon } from 'lucide-react';
 import ERPTable        from '../../../shared/ERPTable';
 import StatusBadge     from '../../../shared/StatusBadge';
 import SummaryCard     from '../../../shared/SummaryCard';
@@ -118,6 +118,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
                 openConfirm({
                   title:     'Enviar orden',
                   message:   `¿Marcar la orden ${row.numero} como enviada?`,
+                  variant:  'info',
                   onConfirm: async () => await cambiarEstadoAsync({ id: row.id_orden, estado: 'Enviada' }),
                 });
               }}
@@ -143,7 +144,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
               className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95"
               title="Editar"
             >
-              ✏
+              <Pencil size={12}/>
             </button>
           )}
 
@@ -161,7 +162,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
               className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
               title="Eliminar"
             >
-              🗑
+              <Trash2 size={12}/>
             </button>
           )}
         </div>

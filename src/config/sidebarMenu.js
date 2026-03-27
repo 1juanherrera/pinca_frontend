@@ -7,7 +7,8 @@ import {
   Truck,
   Calculator, 
   Wallet,
-  Handbag
+  Handbag,
+  ArrowDownUp
 } from 'lucide-react';
 
 export const sidebarMenu = [
@@ -22,5 +23,6 @@ export const sidebarMenu = [
     
     { link: 'clientes', label: 'Clientes', icon: Users },
     { link: 'proveedores', label: 'Proveedores', icon: Truck },
-    { link: 'prorrateo', label: 'Prorrateo', icon: Calculator },
+    // { link: 'prorrateo', label: 'Prorrateo', icon: Calculator },
+    { link: 'movimientos', label: 'Movimientos', icon: ArrowDownUp },
 ]

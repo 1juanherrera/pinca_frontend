@@ -5,7 +5,8 @@ import {
   Sun, 
   Moon, 
   ChevronRight, 
-  LayoutDashboard 
+  LayoutDashboard,
+  Calculator
 } from 'lucide-react';
 import { useBoundStore } from '../store/useBoundStore';
 
@@ -42,12 +43,12 @@ const Topbar = () => {
         <button
           className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
         >
-          {activeTitle === "" ? <Sun size={18} /> : <Moon size={18} />}
+          <Calculator size={18} />
         </button>
 
         <button className="relative p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white">
           <Bell size={18} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-yellow-500 rounded-full border border-zinc-950"></span>
+          <span className="absolute top-1.5 right-2 w-2 h-2 bg-yellow-500 rounded-full border border-zinc-950"></span>
         </button>
         
         <div className="h-5 w-px bg-zinc-800 mx-1"></div>
