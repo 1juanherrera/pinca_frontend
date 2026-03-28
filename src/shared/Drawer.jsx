@@ -14,7 +14,7 @@ const Drawer = ({
     <>
       <div className="fixed inset-0 z-40 bg-zinc-950/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
-      <div className="fixed inset-y-0 right-0 z-50 w-full max-w-lg bg-white shadow-2xl border-l border-zinc-200/80 flex flex-col transform transition-transform duration-300 ease-in-out translate-x-0">
+      <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl border-l border-zinc-200/80 flex flex-col transform transition-transform duration-300 ease-in-out translate-x-0">
         
         {/* HEADER GENÉRICO */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200/80 bg-zinc-50/50">

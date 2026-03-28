@@ -63,7 +63,7 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null) => {
   // ✅ Materias primas (tipo = 1)
   const queryMateriasPrimas = useQuery({
     queryKey: itemKeys.materiasPrimas(),
-    queryFn:  () => apiClient.get('/item_general'),
+    queryFn:  () => apiClient.get('/items'),
   });
 
   // ✅ Productos (tipo = 0)

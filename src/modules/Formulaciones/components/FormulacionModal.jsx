@@ -5,7 +5,6 @@ import { useFormulaciones } from '../api/useFormulaciones';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { Button } from '../../../shared/Button';
-import { InputMoneda } from '../../../shared/Form/InputMoneda';
 import toast from 'react-hot-toast';
 
 const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
@@ -73,7 +72,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
       materia_prima_id: String(mp.id_item_general),
       nombre:           mp.nombre,
       cantidad:         0,
-      costo_unitario:   0,
+      costo_unitario:   mp.costo_unitario ?? 0,
     });
     setSearchTerm('');
   };
@@ -91,7 +90,6 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
       materias_primas: data.materias_primas.map(mp => ({
         materia_prima_id: Number(mp.materia_prima_id),
         cantidad:         parseFloat(mp.cantidad) || 0,
-        costo_unitario:   parseFloat(mp.costo_unitario) || 0,
         porcentaje:       0,
       })),
     };
@@ -254,19 +252,14 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                           />
                         </div>
 
-                        {/* Costo unitario */}
-                        <div className="col-span-3">
-                          <Controller
-                            name={`materias_primas.${index}.costo_unitario`}
-                            control={control}
-                            render={({ field: costoField }) => (
-                              <InputMoneda
-                                value={costoField.value}
-                                onChange={costoField.onChange}
-                                className="w-full px-2 py-1.5 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 text-right"
-                              />
-                            )}
-                          />
+                        {/* Costo unitario (solo lectura) */}
+                        <div className="col-span-3 flex items-center justify-end">
+                          <span className="text-xs tabular-nums text-zinc-700 font-medium">
+                            {(() => {
+                              const mp = materiasPrimas.find(m => String(m.id_item_general) === String(field.materia_prima_id));
+                              return `$ ${Number(mp?.costo_unitario ?? 0).toLocaleString('es-CO')}`;
+                            })()}
+                          </span>
                         </div>
 
                         {/* Eliminar */}

@@ -35,11 +35,13 @@ const FormulacionesPage = () => {
       
       {/* Header con botón Nueva Formulación */}
       <div className="flex items-center justify-between">
-        <KpiCard 
-          formulaciones={formulaciones} 
-          productDetail={costosBase} 
-          recalculatedData={costosRecalculados} 
-        />
+        <div className="flex-1 min-w-0">
+          <KpiCard
+            formulaciones={formulaciones}
+            productDetail={costosBase}
+            recalculatedData={costosRecalculados}
+          />
+        </div>
 
         {/* ✅ Botón Nueva Formulación */}
         <div className="shrink-0 pl-4">
