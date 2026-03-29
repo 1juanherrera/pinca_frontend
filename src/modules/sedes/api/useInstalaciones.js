@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
-import { instalacionesKeys } from './instalacionesKeys';
 import toast from 'react-hot-toast';
+import { instalacionesKeys } from './InstalacionesKeys';
 
 export const useInstalaciones = (id = null) => {
   const queryClient = useQueryClient();

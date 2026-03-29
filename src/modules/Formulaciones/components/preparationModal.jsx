@@ -23,7 +23,7 @@ const UNIT_CONFIG = {
 };
 
 const DEFAULT_UNITS = [
-  { id_unidad: '1', nombre: 'TAMBOR',     escala: '55.00000' },
+  { id_unidad: '1', nombre: 'TAMBOR',     escala: '50.00000' },
   { id_unidad: '2', nombre: 'CUÑETE',     escala: '5.00000'  },
   { id_unidad: '3', nombre: 'GALON',      escala: '1.00000'  },
   { id_unidad: '4', nombre: '1/2 GALON',  escala: '0.50000'  },
