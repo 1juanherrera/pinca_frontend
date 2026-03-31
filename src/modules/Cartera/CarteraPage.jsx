@@ -34,7 +34,7 @@ const CarteraPage = () => {
   });
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full gap-4">
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection
@@ -48,27 +48,28 @@ const CarteraPage = () => {
           ]}
         />
 
-        {/* Tabs */}
-        <div className="flex items-center gap-1.5">
-          {TABS.map((t) => {
-            const Icon   = t.icon;
-            const active = tab === t.id;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`flex items-center uppercase justify-center gap-2 px-5 py-2.5 border border-transparent rounded-xl text-sm font-semibold shadow-md transition-all active:scale-95 hover:scale-105 disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100
-                  ${active
-                    ? 'bg-zinc-900 text-white shadow-sm'
-                    : 'bg-white text-zinc-500'
-                  }`}
-              >
-                <Icon size={14} />
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
+      </div>
+
+      {/* Navegación por tabs */}
+      <div className="flex items-center border-b border-zinc-200">
+        {TABS.map((t) => {
+          const Icon   = t.icon;
+          const active = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex items-center gap-2 px-4 pb-3 pt-1 text-sm font-semibold border-b-2 transition-all -mb-px whitespace-nowrap ${
+                active
+                  ? 'border-zinc-900 text-zinc-900'
+                  : 'border-transparent text-zinc-400 hover:text-zinc-700 hover:border-zinc-300'
+              }`}
+            >
+              <Icon size={14} />
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
       {tab === 'dashboard' && <DashboardCartera />}

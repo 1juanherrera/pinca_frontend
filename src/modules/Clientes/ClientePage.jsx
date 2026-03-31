@@ -1,6 +1,6 @@
 import { Users, Plus } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
-import { Button, ButtonSquare } from '../../shared/Button';
+import { Button } from '../../shared/Button';
 import { SkeletonCard } from '../../shared/Skeletons';
 import { useBoundStore } from '../../store/useBoundStore';
 import ClienteForm from './components/ClienteForm';
@@ -16,7 +16,7 @@ const ClientesPage = () => {
   const openConfirm = useBoundStore(state => state.openConfirm);
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full gap-4">
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection
@@ -31,11 +31,6 @@ const ClientesPage = () => {
         />
 
           <div className='flex gap-2'>
-            <ButtonSquare
-                variant="black"
-                icon={Plus}
-            />
-
             <Button
                 variant="black"
                 onClick={() => openDrawer('CLIENTE_FORM')}
@@ -46,7 +41,7 @@ const ClientesPage = () => {
           </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {isLoadingClientes ? (
           Array.from({ length: 6 }).map((_, i) => (
             <SkeletonCard key={`skeleton-${i}`} isLoading />

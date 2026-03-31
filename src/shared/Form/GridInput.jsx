@@ -3,7 +3,7 @@ export const GridInput = ({ label, id, placeholder, registration, error }) => (
     relative flex flex-col h-full bg-white transition-all duration-200
     border-r border-b border-zinc-200
     hover:bg-zinc-50/80
-    focus-within:bg-white focus-within:ring-1 focus-within:ring-inset focus-within:ring-zinc-900 focus-within:z-10
+    focus-within:bg-white focus-within:ring-1 focus-within:ring-inset focus-within:ring-zinc-400 focus-within:z-10
     ${error ? 'bg-red-50/50' : ''}
   `}>
     {/* Label: Estilo Industrial */}

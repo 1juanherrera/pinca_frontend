@@ -9,21 +9,22 @@ import { useFormulaciones } from "./api/useFormulaciones";
 import FormCostProducts from "./components/FormCostProducts ";
 import { PreparationModal } from "./components/preparationModal";
 import FormulacionModal from "./components/FormulacionModal";
-import { FlaskConical } from "lucide-react";
+import { FlaskConical, Plus } from "lucide-react";
 import { Button } from "../../shared/Button";
+import HeaderSection from "../../shared/HeaderSection";
 
 const FormulacionesPage = () => {
 
   const [selectedId,       setSelectedId]       = useState("");
   const [nuevoVolumen,     setNuevoVolumen]      = useState("");
-  const [modalFormulacion, setModalFormulacion]  = useState(false); // ✅
+  const [modalFormulacion, setModalFormulacion]  = useState(false);
 
-  const { 
-    formulaciones, 
-    isLoading, 
-    costosBase, 
-    costosRecalculados, 
-    isRecalculating 
+  const {
+    formulaciones,
+    isLoading,
+    costosBase,
+    costosRecalculados,
+    isRecalculating
   } = useFormulaciones(selectedId, nuevoVolumen);
 
   const selectedProductData = formulaciones.find(
@@ -31,50 +32,56 @@ const FormulacionesPage = () => {
   );
 
   return (
-    <div className="flex flex-col w-full gap-2">
-      
-      {/* Header con botón Nueva Formulación */}
-      <div className="flex items-center justify-between">
-        <div className="flex-1 min-w-0">
-          <KpiCard
-            formulaciones={formulaciones}
-            productDetail={costosBase}
-            recalculatedData={costosRecalculados}
-          />
-        </div>
+    <div className="flex flex-col w-full gap-4">
 
-        {/* ✅ Botón Nueva Formulación */}
-        <div className="shrink-0 pl-4">
-          <Button
-            variant="black"
-            icon={FlaskConical}
-            onClick={() => setModalFormulacion(true)}
-          >
-            Nueva Formulación
-          </Button>
-        </div>
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+        <HeaderSection
+          title="Formulaciones"
+          subtitle="Producción"
+          description="Gestión de fórmulas y costos de productos"
+          icon={FlaskConical}
+          breadcrumbs={[
+            { label: 'Producción' },
+            { label: 'Formulaciones', path: '/formulaciones' },
+          ]}
+        />
+        <Button
+          variant="black"
+          icon={Plus}
+          onClick={() => setModalFormulacion(true)}
+        >
+          Nueva Formulación
+        </Button>
       </div>
+
+      {/* KPIs */}
+      <KpiCard
+        formulaciones={formulaciones}
+        productDetail={costosBase}
+        recalculatedData={costosRecalculados}
+      />
 
       {/* Buscador Maestro */}
       <ProductSelect
-        formulaciones={formulaciones} 
-        selectedProduct={selectedId} 
+        formulaciones={formulaciones}
+        selectedProduct={selectedId}
         onProductSelect={(id) => {
           setSelectedId(id);
           setNuevoVolumen("");
-        }} 
+        }}
         loading={isLoading}
         onClearSelection={() => {
           setSelectedId("");
           setNuevoVolumen("");
-        }}   
+        }}
       />
 
       {/* Main Body */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        
-        <div className="lg:col-span-4 flex flex-col gap-2">
-          <CostCalculator 
+
+        <div className="lg:col-span-4 flex flex-col gap-4">
+          <CostCalculator
             productDetail={costosBase}
             selectedProductData={selectedProductData}
             setNuevoVolumen={setNuevoVolumen}
@@ -82,19 +89,19 @@ const FormulacionesPage = () => {
             isRecalculating={isRecalculating}
             handleRecalcular={() => {}}
           />
-          <ProductSpecificationsTable 
+          <ProductSpecificationsTable
             selectedProductData={selectedProductData}
             productDetail={costosBase}
           />
         </div>
 
-        <div className="lg:col-span-8 flex flex-col gap-2">
+        <div className="lg:col-span-8 flex flex-col gap-4">
           <FormulacionesTable
             selectedProductData={selectedProductData}
             productDetail={costosBase}
             recalculatedData={costosRecalculados}
           />
-          <CostProductsTable 
+          <CostProductsTable
             selectedProductData={selectedProductData}
             productDetail={costosBase}
             recalculatedData={costosRecalculados}
@@ -105,7 +112,6 @@ const FormulacionesPage = () => {
       <FormCostProducts />
       <PreparationModal />
 
-      {/* ✅ Modal Formulación */}
       <FormulacionModal
         isOpen={modalFormulacion}
         onClose={() => setModalFormulacion(false)}

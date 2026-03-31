@@ -58,8 +58,8 @@ const SearchFilterBar = ({
             value={search}
             onChange={(e) => onSearch?.(e.target.value)}
             placeholder={placeholder}
-            className="w-full pl-9 pr-8 py-2 text-sm border border-zinc-200 rounded-lg bg-white
-              focus:outline-none focus:ring-2 focus:ring-zinc-900 transition
+            className="w-full pl-9 pr-8 py-2 text-sm border border-zinc-200 rounded-lg bg-zinc-50
+              focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 focus:bg-white transition
               placeholder:text-zinc-300 text-zinc-700"
           />
           {search && (
@@ -78,8 +78,8 @@ const SearchFilterBar = ({
             key={f.key}
             value={values[f.key] ?? ''}
             onChange={(e) => onChange?.(f.key, e.target.value)}
-            className="px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-white text-zinc-700
-              focus:outline-none focus:ring-2 focus:ring-zinc-900 transition"
+            className="px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-zinc-50 text-zinc-700
+              focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 transition"
           >
             <option value="">{f.label}</option>
             {f.options.map((o) => (

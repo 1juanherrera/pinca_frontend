@@ -8,19 +8,19 @@ import StatusBadge from '../../../shared/StatusBadge';
 import { fmt } from '../../../utils/formatters';
 
 const InfoRow = ({ label, value, mono }) => (
-  <div className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-b-0">
-    <span className="text-xs text-gray-500">{label}</span>
-    <span className={`text-xs font-medium text-gray-800 ${mono ? 'font-mono tabular-nums' : ''}`}>
+  <div className="flex items-center justify-between py-1.5 border-b border-zinc-100 last:border-b-0">
+    <span className="text-xs text-zinc-500">{label}</span>
+    <span className={`text-xs font-medium text-zinc-800 ${mono ? 'font-mono tabular-nums' : ''}`}>
       {value ?? '—'}
     </span>
   </div>
 );
 
 const Section = ({ title, icon: Icon, children }) => (
-  <div className="px-5 py-4 border-b border-gray-100 last:border-b-0">
+  <div className="px-5 py-4 border-b border-zinc-100 last:border-b-0">
     <div className="flex items-center gap-2 mb-3">
-      <Icon className="w-4 h-4 text-gray-400" />
-      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{title}</h3>
+      <Icon size={14} className="text-zinc-400" />
+      <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">{title}</h3>
     </div>
     {children}
   </div>

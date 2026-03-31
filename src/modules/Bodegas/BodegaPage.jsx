@@ -57,7 +57,7 @@ const BodegaPage = () => {
   }, [bodegasInstalacion, setSedeName]);
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full gap-4">
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection
@@ -90,7 +90,7 @@ const BodegaPage = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {isLoadingBodegas
           ? Array.from({ length: 4 }).map((_, i) => (
               <SkeletonCard key={`skeleton-${i}`} isLoading />

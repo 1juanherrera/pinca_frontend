@@ -20,7 +20,7 @@ const KPICard = ({ icon: Icon, label, value, sub, theme = 'zinc' }) => {
     <div className="bg-white rounded-lg border border-zinc-200/60 shadow-sm px-3 py-2 transition-all hover:shadow-md group">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium text-gray-600">{label}</p>
+          <p className="text-xs font-medium text-zinc-500">{label}</p>
           <p className={`text-lg font-bold ${t.value}`}>{value}</p>
           {sub && <p className="text-[10px] text-zinc-400 font-medium">{sub}</p>}
         </div>
@@ -108,7 +108,7 @@ const DashboardCartera = () => {
   }, [aging]);
 
   return (
-    <div className="flex flex-col w-full gap-2">
+    <div className="flex flex-col w-full gap-4">
 
       {/* ── KPIs ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

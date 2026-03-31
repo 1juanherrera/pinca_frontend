@@ -32,7 +32,7 @@ const Sidebar = () => {
       <aside 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`absolute top-0 z-50 left-0 flex flex-col h-screen py-6 bg-surface-sidebar border-r border-gray-600 font-sans transition-all duration-300 ease-in-out ${
+        className={`absolute top-0 z-50 left-0 flex flex-col h-screen py-6 bg-surface-sidebar border-r border-surface-sidebar-hover font-sans transition-all duration-300 ease-in-out ${
           isHovered 
             ? 'w-64' // Expandido con sombra flotante
             : 'w-20 px-3' // Colapsado

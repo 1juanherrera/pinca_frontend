@@ -1,10 +1,10 @@
 import { ChevronsUpDown, ChevronUp, ChevronDown, Package } from 'lucide-react';
 
 const SortIcon = ({ field, sortBy, sortDir }) => {
-  if (!sortBy || sortBy !== field) return <ChevronsUpDown size={12} className="text-white" />;
+  if (!sortBy || sortBy !== field) return <ChevronsUpDown size={12} className="text-zinc-400" />;
   return sortDir === 'asc'
-    ? <ChevronUp size={12} className="text-zinc-700" />
-    : <ChevronDown size={12} className="text-zinc-700" />;
+    ? <ChevronUp size={12} className="text-white" />
+    : <ChevronDown size={12} className="text-white" />;
 }
 
 // ─── Skeleton row ───
@@ -66,7 +66,7 @@ const ERPTable = ({
                   key={col.key}
                   onClick={isSortable ? () => onSort(col.key) : undefined}
                   className={`px-4 py-3 text-[10px] font-bold text-white uppercase tracking-widest ${alignClass} ${
-                    isSortable ? 'cursor-pointer hover:text-zinc-500 select-none transition-colors' : ''
+                    isSortable ? 'cursor-pointer hover:text-zinc-300 select-none transition-colors' : ''
                   } ${col.className ?? ''}`}
                 >
                   {isSortable ? (
@@ -84,7 +84,7 @@ const ERPTable = ({
         </thead>
 
         {/* Body */}
-        <tbody className="divide-y divide-zinc-50">
+        <tbody className="divide-y divide-zinc-100">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => (
                 <SkeletonRow key={i} colCount={columns.length} />

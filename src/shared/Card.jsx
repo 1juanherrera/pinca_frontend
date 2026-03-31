@@ -1,6 +1,29 @@
 import { Edit, Trash2, ChevronRight } from 'lucide-react';
 import { NavLink } from 'react-router';
 
+const COLOR_CONFIGS = {
+  green: {
+    bg: "bg-emerald-100",
+    icon: "text-emerald-600",
+    value: "text-emerald-600",
+  },
+  red: {
+    bg: "bg-rose-100",
+    icon: "text-rose-700",
+    value: "text-rose-700",
+  },
+  zinc: {
+    bg: "bg-zinc-100",
+    icon: "text-zinc-500",
+    value: "text-zinc-600",
+  },
+  blue: {
+    bg: "bg-blue-100",
+    icon: "text-blue-600",
+    value: "text-blue-700",
+  }
+};
+
 /**
  * @param {Object} props
  * @param {string} props.title - Título principal
@@ -98,31 +121,7 @@ const Card = ({
           {/* Grid de Datos dinámico */}
           <div className="grid grid-cols-2 gap-2 border-t border-zinc-100 pt-3">
             {details.map((detail, idx) => {
-
-                const colorConfigs = {
-                    green: {
-                        bg: "bg-emerald-100",
-                        icon: "text-emerald-600",
-                        value: "text-emerald-600",
-                    },
-                    red: {
-                        bg: "bg-rose-100",
-                        icon: "text-rose-700",
-                        value: "text-rose-700",
-                    },
-                    zinc: {
-                        bg: "bg-zinc-100",
-                        icon: "text-zinc-500",
-                        value: "text-zinc-600",
-                    },
-                    blue: {
-                        bg: "bg-blue-100",
-                        icon: "text-blue-600",
-                        value: "text-blue-700",
-                    }
-                }
-
-                const config = colorConfigs[detail.color] || colorConfigs.zinc;
+                const config = COLOR_CONFIGS[detail.color] || COLOR_CONFIGS.zinc;
 
                 return (
                     <div key={idx} className="flex items-center gap-2">

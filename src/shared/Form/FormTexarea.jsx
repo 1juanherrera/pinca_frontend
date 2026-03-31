@@ -28,12 +28,11 @@ export const FormTextarea = ({
           placeholder={placeholder}
           rows={rows}
           // Las clases coinciden exactamente con tu FormInput
-          className={`w-full px-4 py-3 text-sm text-zinc-900 bg-white border rounded-xl transition-all outline-none resize-y min-h-20
-            ${error 
-              ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' 
-              : 'border-zinc-200/80 hover:border-zinc-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+          className={`w-full px-4 py-3 text-sm text-zinc-900 bg-zinc-50 border rounded-xl transition-all outline-none resize-y min-h-20
+            ${error
+              ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+              : 'border-zinc-200/80 hover:border-zinc-300 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/10'
             }
-            // Ajustamos el padding derecho si hay error para no tapar el texto con el icono
             ${error ? 'pr-10' : ''}
           `}
           {...registration} // Conexión directa con RHF

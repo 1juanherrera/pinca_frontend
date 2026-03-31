@@ -64,7 +64,7 @@ const ConfirmModal = () => {
 
   return (
     <div className="fixed inset-0 z-90 flex items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-sm transition-all duration-200">
-      <div className="w-full max-w-85 bg-white rounded-2xl shadow-xl p-5 border border-zinc-100 animate-in fade-in zoom-in-95 duration-200">
+      <div className="w-full max-w-85 bg-white rounded-2xl shadow-xl p-5 border border-zinc-100">
         <div className="flex flex-col items-center text-center">
 
           <div className={`flex items-center justify-center w-12 h-12 mb-3 rounded-full border shrink-0 ${wrapClass}`}>

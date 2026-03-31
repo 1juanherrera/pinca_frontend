@@ -24,11 +24,11 @@ export const FormInput = ({
           </span>
         )}
         
-        <input 
+        <input
           className={`w-full ${leftSymbol ? 'pl-8' : 'pl-4'} pr-4 py-2.5 bg-zinc-50 border rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:bg-white transition-all ${
-            error 
-              ? 'border-red-500 focus:ring-red-500/20' 
-              : 'border-zinc-200/80 focus:ring-blue-500/20 focus:border-blue-500'
+            error
+              ? 'border-red-400 focus:ring-red-500/20'
+              : 'border-zinc-200/80 focus:ring-zinc-900/10 focus:border-zinc-400'
           }`}
           {...registration} // <--- Esparcimos los eventos (onChange, onBlur, name, ref)
           {...props}

@@ -79,8 +79,8 @@ export const FormSelect = ({
         ref={triggerRef}
         type="button"
         onClick={() => isOpen ? setIsOpen(false) : handleOpen()}
-        className={`flex items-center justify-between w-full px-4 py-2.5 text-sm text-left bg-white border rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/20
-          ${error ? 'border-red-400 focus:border-red-500' : 'border-zinc-200/80 hover:border-zinc-300 focus:border-emerald-500'}
+        className={`flex items-center justify-between w-full px-4 py-2.5 text-sm text-left bg-zinc-50 border rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-zinc-900/10
+          ${error ? 'border-red-400 focus:border-red-500' : 'border-zinc-200/80 hover:border-zinc-300 focus:border-zinc-400'}
         `}
       >
         <span className={selectedOption ? 'text-zinc-900' : 'text-zinc-400'}>
@@ -107,12 +107,12 @@ export const FormSelect = ({
                 onChange(option.value); 
                 setIsOpen(false);       
               }}
-              className={`flex items-center justify-between w-full px-4 py-2.5 text-sm transition-colors hover:bg-zinc-100
-                ${value === option.value ? 'text-emerald-600 font-medium bg-emerald-50/50' : 'text-zinc-700'}
+              className={`flex items-center justify-between w-full px-4 py-2.5 text-sm transition-colors hover:bg-zinc-50
+                ${value === option.value ? 'text-zinc-900 font-semibold bg-zinc-100' : 'text-zinc-700'}
               `}
             >
               {option.label}
-              {value === option.value && <Check size={16} className="text-emerald-600" />}
+              {value === option.value && <Check size={16} className="text-zinc-600" />}
             </button>
           ))}
         </div>,

@@ -122,8 +122,8 @@ const columns = useMemo(() => [
     {
       key:       'acciones',
       label:     'Acciones',
-      align:     'center',
-      className: 'w-20',
+      align:     'right',
+      className: 'w-44',
       sortable:  false,
       render: (_, row) => (
         <div className="flex items-center justify-end gap-1.5">

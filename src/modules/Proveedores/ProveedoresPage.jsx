@@ -33,7 +33,7 @@ const ProveedoresPage = () => {
   }, [catalogo]);
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full gap-4">
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection
@@ -47,37 +47,41 @@ const ProveedoresPage = () => {
           ]}
         />
 
-        <div className="flex items-center gap-1.5">
-          {TABS.map((t) => {
-            const Icon   = t.icon;
-            const active = tab === t.id;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`flex items-center uppercase justify-center gap-2 px-5 py-2.5 border border-transparent rounded-xl text-sm font-semibold shadow-md transition-all active:scale-95 hover:scale-105
-                  ${active ? 'bg-zinc-900 text-white shadow-sm' : 'bg-white text-zinc-500'}`}
-              >
-                <Icon size={13} />
-                {t.label}
-              </button>
-            );
-          })}
+        {tab !== 'comparador' && (
+          <Button
+            variant="black"
+            onClick={() => openDrawer(tab === 'proveedores' ? 'PROVEEDOR_FORM' : 'ITEM_PROVEEDOR_FORM')}
+            icon={Plus}
+          >
+            {tab === 'proveedores' ? 'Agregar Proveedor' : 'Agregar Producto'}
+          </Button>
+        )}
+      </div>
 
-          {tab !== 'comparador' && (
-            <Button
-              variant="black"
-              onClick={() => openDrawer(tab === 'proveedores' ? 'PROVEEDOR_FORM' : 'ITEM_PROVEEDOR_FORM')}
-              icon={Plus}
+      {/* Navegación por tabs */}
+      <div className="flex items-center border-b border-zinc-200">
+        {TABS.map((t) => {
+          const Icon   = t.icon;
+          const active = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex items-center gap-2 px-4 pb-3 pt-1 text-sm font-semibold border-b-2 transition-all -mb-px whitespace-nowrap ${
+                active
+                  ? 'border-zinc-900 text-zinc-900'
+                  : 'border-transparent text-zinc-400 hover:text-zinc-700 hover:border-zinc-300'
+              }`}
             >
-              {tab === 'proveedores' ? 'Agregar Proveedor' : 'Agregar Producto'}
-            </Button>
-          )}
-        </div>
+              <Icon size={14} />
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
       {tab === 'proveedores' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {isLoadingProveedores
             ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} isLoading />)
             : proveedores.map((proveedor) => (
@@ -97,17 +101,9 @@ const ProveedoresPage = () => {
         </div>
       )}
 
-      {tab === 'catalogo' && (
-        <div className="mt-3">
-          <CatalogoTab />
-        </div>
-      )}
+      {tab === 'catalogo' && <CatalogoTab />}
 
-      {tab === 'comparador' && (
-        <div className="mt-3">
-          <ComparadorTab />
-        </div>
-      )}
+      {tab === 'comparador' && <ComparadorTab />}
 
       <ProveedorForm />
       <ConfirmModal />

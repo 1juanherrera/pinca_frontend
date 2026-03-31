@@ -7,36 +7,36 @@
 
 const STATUS_MAP = {
   // Facturas / Pagos
-  Pendiente:  { bg: 'bg-amber-200',   text: 'text-amber-700',   dot: 'bg-amber-500'  },
-  Pagada:     { bg: 'bg-emerald-200', text: 'text-emerald-700', dot: 'bg-emerald-500'},
-  Vencida:    { bg: 'bg-red-200',     text: 'text-red-700',     dot: 'bg-red-500'    },
-  Anulada:    { bg: 'bg-gray-200',    text: 'text-gray-500',    dot: 'bg-gray-400'   },
+  Pendiente:  { bg: 'bg-amber-100',   text: 'text-amber-700',   dot: 'bg-amber-500'  },
+  Pagada:     { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500'},
+  Vencida:    { bg: 'bg-red-100',     text: 'text-red-700',     dot: 'bg-red-500'    },
+  Anulada:    { bg: 'bg-zinc-200',    text: 'text-zinc-500',    dot: 'bg-zinc-400'   },
   // Cotizaciones
-  Borrador:   { bg: 'bg-slate-200',   text: 'text-slate-600',   dot: 'bg-slate-400'  },
-  Enviada:    { bg: 'bg-blue-200',    text: 'text-blue-700',    dot: 'bg-blue-500'   },
-  Aprobada:   { bg: 'bg-emerald-200', text: 'text-emerald-700', dot: 'bg-emerald-500'},
-  Rechazada:  { bg: 'bg-red-200',     text: 'text-red-700',     dot: 'bg-red-500'    },
-  Expirada:   { bg: 'bg-orange-200',  text: 'text-orange-700',  dot: 'bg-orange-500' },
-  Convertida: { bg: 'bg-emerald-200', text: 'text-emerald-800', dot: 'bg-emerald-500'},
+  Borrador:   { bg: 'bg-zinc-200',    text: 'text-zinc-600',    dot: 'bg-zinc-400'   },
+  Enviada:    { bg: 'bg-blue-100',    text: 'text-blue-700',    dot: 'bg-blue-500'   },
+  Aprobada:   { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500'},
+  Rechazada:  { bg: 'bg-red-100',     text: 'text-red-700',     dot: 'bg-red-500'    },
+  Expirada:   { bg: 'bg-orange-100',  text: 'text-orange-700',  dot: 'bg-orange-500' },
+  Convertida: { bg: 'bg-emerald-100', text: 'text-emerald-800', dot: 'bg-emerald-500'},
   // Remisiones
-  Entregada:  { bg: 'bg-emerald-200', text: 'text-emerald-700', dot: 'bg-emerald-500'},
+  Entregada:  { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500'},
   // Pagos
-  abono:      { bg: 'bg-blue-200',    text: 'text-blue-700',    dot: 'bg-blue-500'   },
-  pago_total: { bg: 'bg-emerald-200', text: 'text-emerald-700', dot: 'bg-emerald-500'},
-  anticipo:   { bg: 'bg-violet-200',  text: 'text-violet-700',  dot: 'bg-violet-500' },
+  abono:      { bg: 'bg-blue-100',    text: 'text-blue-700',    dot: 'bg-blue-500'   },
+  pago_total: { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500'},
+  anticipo:   { bg: 'bg-violet-100',  text: 'text-violet-700',  dot: 'bg-violet-500' },
 };
 
-const DEFAULT = { bg: 'bg-gray-200', text: 'text-gray-600', dot: 'bg-gray-400' };
+const DEFAULT = { bg: 'bg-zinc-200', text: 'text-zinc-600', dot: 'bg-zinc-400' };
 
 const StatusBadge = ({ estado, size = 'md' }) => {
   const s = STATUS_MAP[estado] ?? DEFAULT;
   const sizeClasses = size === 'sm'
-    ? 'text-[10px] px-2 py-2'
+    ? 'text-[10px] px-2 py-1'
     : 'text-[10px] px-2 py-1.5';
 
   return (
-    <span className={`block items-center hover:scale-105 transition-all uppercase shadow-md gap-1.5 rounded font-medium ${s.bg} ${s.text} ${sizeClasses}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+    <span className={`inline-flex items-center uppercase gap-1.5 rounded font-semibold ${s.bg} ${s.text} ${sizeClasses}`}>
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.dot}`} />
       {estado}
     </span>
   );

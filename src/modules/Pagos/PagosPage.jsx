@@ -23,12 +23,12 @@ const MetodoBadge = ({ metodo }) => {
     nequi:         { label: 'Nequi',         bg: 'bg-pink-50',   text: 'text-pink-700',   border: 'border-pink-100'  },
     daviplata:     { label: 'Daviplata',      bg: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-100'   },
     transferencia: { label: 'Transferencia',  bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-100'  },
-    efectivo:      { label: 'Efectivo',       bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-100' },
+    efectivo:      { label: 'Efectivo',       bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100' },
     cheque:        { label: 'Cheque',         bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-100' },
   };
-  const s = MAP[metodo?.toLowerCase()] ?? { label: metodo, bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-100' };
+  const s = MAP[metodo?.toLowerCase()] ?? { label: metodo, bg: 'bg-zinc-100', text: 'text-zinc-600', border: 'border-zinc-200' };
   return (
-    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${s.bg} ${s.text} ${s.border}`}>
+    <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded border ${s.bg} ${s.text} ${s.border}`}>
       {s.label}
     </span>
   );
@@ -74,7 +74,7 @@ const PagosPage = () => {
       key: 'numero_referencia',
       label: 'Referencia',
       render: (v) => (
-        <span className="font-mono text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
+        <span className="font-mono text-xs font-bold text-zinc-400 whitespace-nowrap">
           {v}
         </span>
       ),
@@ -83,16 +83,16 @@ const PagosPage = () => {
       key: 'nombre_empresa',
       label: 'Cliente',
       render: (v, row) => (
-        <div>
-          <p className="text-sm font-medium text-gray-800 truncate max-w-45">{v}</p>
-          <p className="text-xs text-gray-400">{row.nombre_encargado}</p>
+        <div className="min-w-0">
+          <p className="font-semibold text-zinc-800 text-xs leading-none truncate uppercase">{v}</p>
+          <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{row.nombre_encargado}</p>
         </div>
       ),
     },
     {
       key: 'fecha_pago',
       label: 'Fecha',
-      render: (v) => <span className="text-gray-600 text-sm">{v}</span>,
+      render: (v) => <span className="text-xs text-zinc-500 tabular-nums whitespace-nowrap">{v}</span>,
     },
     {
       key: 'metodo_pago',
@@ -115,12 +115,13 @@ const PagosPage = () => {
       label: '',
       align: 'right',
       render: (_, row) => (
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-1.5">
           <button
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
-            className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
+            title="Ver detalle"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
           >
-            <Eye className="w-4 h-4" />
+            <Eye size={12} /> Ver
           </button>
           <button
             onClick={(e) => {
@@ -131,9 +132,10 @@ const PagosPage = () => {
                 onConfirm: async () => removeAsync(row.id_pagos_cliente),
               });
             }}
-            className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
+            title="Eliminar"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 size={12} />
           </button>
         </div>
       ),

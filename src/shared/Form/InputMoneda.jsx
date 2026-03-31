@@ -48,10 +48,10 @@ export const InputMoneda = ({
           placeholder={placeholder}
           value={displayValue} // Usamos el valor calculado al vuelo
           onChange={handleChange}
-          className={`w-full pl-10 pr-4 py-3 text-sm text-zinc-900 bg-white border rounded-xl transition-all outline-none font-medium
-            ${error 
-              ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' 
-              : 'border-zinc-200/80 hover:border-zinc-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+          className={`w-full pl-10 pr-4 py-2.5 text-sm text-zinc-900 bg-zinc-50 border rounded-xl transition-all outline-none font-medium
+            ${error
+              ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+              : 'border-zinc-200/80 hover:border-zinc-300 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/10'
             }
             ${error ? 'pr-10' : ''}
           `}

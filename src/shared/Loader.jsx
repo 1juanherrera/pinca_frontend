@@ -1,6 +1,6 @@
 export const FullPageLoader = ({ message = "Cargando sección" }) => {
   return (
-    <div className="flex-1 z-40 min-h-full flex flex-col items-center justify-center gap-4 animate-in fade-in duration-500">
+    <div className="flex-1 z-40 min-h-full flex flex-col items-center justify-center gap-4">
       <div className="relative">
         {/* Círculo de fondo */}
         <div className="h-12 w-12 rounded-full border-4 border-zinc-200"></div>

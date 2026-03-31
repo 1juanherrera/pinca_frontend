@@ -68,7 +68,7 @@ const DataTable = () => {
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-zinc-950 text-zinc-100 text-xs font-semibold uppercase tracking-wider">
+              <thead className="bg-zinc-900 text-zinc-100 text-xs font-bold uppercase tracking-widest">
                 <tr>
                   <th className="w-16 px-3 py-2 text-center">#</th>
                   <th className="px-3 py-2">CÓDIGO</th>
@@ -81,16 +81,16 @@ const DataTable = () => {
                   <th className="px-3 py-2 text-center">ACCIONES</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200/80">
+              <tbody className="divide-y divide-zinc-100">
                 {isLoadingItems ? (
                   Array.from({ length: 10 }).map((_, i) => (
                     <SkeletonRow key={`skeleton-${i}`} />
                   ))
                 ) : inventario.length > 0 ? (
-                  inventario.map((item, i) => (
+                  inventario.map((item) => (
                     <tr
                       key={item.id_item_general || i}
-                      className={`hover:bg-zinc-100 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-zinc-50/50'}`}
+                      className="hover:bg-zinc-100 transition-colors"
                     >
                       <td className="px-3 py-1 text-center text-xs font-medium text-zinc-500">{getId(item)}</td>
                       <td className="px-3 py-1"><span className="text-xs font-mono text-zinc-500 font-bold">{getCodigo(item)}</span></td>
@@ -114,9 +114,10 @@ const DataTable = () => {
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => handleEdit(item)}
-                            className="flex items-center justify-center w-8 h-8 rounded bg-zinc-200 text-zinc-600 hover:bg-zinc-800 hover:text-white transition-all active:scale-95"
+                            title="Editar"
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95"
                           >
-                            <Edit size={14} />
+                            <Edit size={12} />
                           </button>
                           <button
                             onClick={() => openConfirm({
@@ -127,19 +128,17 @@ const DataTable = () => {
                                 bodegaId: id_bodega,
                               }),
                             })}
-                            className="flex items-center justify-center w-8 h-8 rounded bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-all active:scale-95"
+                            title="Eliminar"
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={12} />
                           </button>
                           <button
-                            onClick={() => {
-                              console.log('item completo:', item);
-                              setItemTraspaso(item, id_bodega);
-                            }}
-                            className="flex items-center justify-center w-8 h-8 rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all active:scale-95"
+                            onClick={() => setItemTraspaso(item, id_bodega)}
                             title="Traspasar a otra bodega"
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all active:scale-95"
                           >
-                            <ArrowRightLeft size={14} />
+                            <ArrowRightLeft size={12} />
                           </button>
                         </div>
                       </td>

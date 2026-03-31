@@ -30,7 +30,7 @@ const InventarioPage = () => {
     }, [id_bodega, setBodega, clearBodega]);
 
     return (
-        <div className="flex flex-col w-full">
+        <div className="flex flex-col w-full gap-4">
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
                     <HeaderSection

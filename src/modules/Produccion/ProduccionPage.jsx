@@ -5,6 +5,8 @@ import { ProduccionKPIs } from './components/ProduccionKPIs';
 import { ProduccionFilters } from './components/ProduccionFilters ';
 import { ProduccionDetailModal } from './components/ProduccionDetailModal';
 import { ProduccionTable } from './components/ProduccionTable ';
+import HeaderSection from '../../shared/HeaderSection';
+import { ButtonSquare } from '../../shared/Button';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const applyFilters = (data, filters) => {
@@ -119,7 +121,28 @@ const ProduccionPage = () => {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col w-full gap-2">
+    <div className="flex flex-col w-full gap-4">
+
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+        <HeaderSection
+          title="Producción"
+          subtitle="Operaciones"
+          description="Gestión y seguimiento de órdenes de producción"
+          icon={Factory}
+          breadcrumbs={[
+            { label: 'Operaciones' },
+            { label: 'Producción', path: '/produccion' },
+          ]}
+        />
+        <ButtonSquare
+          icon={RefreshCw}
+          onClick={refresh}
+          sizeIcon={18}
+          title="Actualizar datos"
+          variant="white"
+        />
+      </div>
 
       {/* ── KPIs ── */}
       <ProduccionKPIs data={allPreparaciones} />

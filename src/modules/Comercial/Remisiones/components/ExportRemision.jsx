@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Download, CheckCircle2, Loader2, Truck } from 'lucide-react';
+import { X, Download, CheckCircle2, Loader2, Truck, FileText, Receipt } from 'lucide-react';
 import { useBoundStore } from '../../../../store/useBoundStore';
 import { useRemisiones } from '../api/useRemisiones';
 import logo from '../../../../assets/pincaicono.png';
@@ -18,14 +18,12 @@ const EMPRESA = {
 const fmt = (n) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(n) || 0);
 
-// ── Template visual ───────────────────────────────────────────────────────────
+// ── Template carta (A4) ───────────────────────────────────────────────────────
 const PdfTemplate = ({ remision, items }) => {
   const subtotal = items.reduce((s, i) => s + (Number(i.subtotal) || 0), 0);
 
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#1a1a1a', background: '#fff', width: '794px', padding: '48px', boxSizing: 'border-box' }}>
-
-      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <img src={logo} alt="Pinca" style={{ height: '64px', objectFit: 'contain' }} />
@@ -44,10 +42,7 @@ const PdfTemplate = ({ remision, items }) => {
           </div>
         </div>
       </div>
-
       <div style={{ height: '2px', background: '#e5e7eb', marginBottom: '20px' }} />
-
-      {/* Cajas */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
         {[
           { title: 'Datos del Cliente', rows: [['Empresa', remision.nombre_empresa ?? '—'], ['NIT', remision.nit_cliente ?? '—'], ['Encargado', remision.nombre_encargado ?? '—']] },
@@ -68,8 +63,6 @@ const PdfTemplate = ({ remision, items }) => {
           </div>
         ))}
       </div>
-
-      {/* Tabla ítems */}
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px' }}>
         <thead>
           <tr style={{ background: '#1a1a1a', color: '#fff' }}>
@@ -92,8 +85,6 @@ const PdfTemplate = ({ remision, items }) => {
           )}
         </tbody>
       </table>
-
-      {/* Total */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
         <table style={{ width: '220px', borderCollapse: 'collapse' }}>
           <tbody>
@@ -104,20 +95,15 @@ const PdfTemplate = ({ remision, items }) => {
           </tbody>
         </table>
       </div>
-
-      {/* Observaciones */}
       {remision.observaciones && (
         <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px 14px', marginBottom: '20px', background: '#fafafa' }}>
           <div style={{ fontSize: '9px', fontWeight: '700', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>Observaciones</div>
           <p style={{ color: '#444', fontSize: '10.5px', lineHeight: '1.6', margin: 0 }}>{remision.observaciones}</p>
         </div>
       )}
-
       <p style={{ color: '#555', fontSize: '10px', lineHeight: '1.6', marginBottom: '32px' }}>
         El presente documento certifica la entrega de los bienes descritos anteriormente. Por favor conserve esta remisión como soporte del despacho realizado.
       </p>
-
-      {/* Footer */}
       <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <img src={logo} alt="Pinca" style={{ height: '32px', objectFit: 'contain' }} />
@@ -136,21 +122,360 @@ const PdfTemplate = ({ remision, items }) => {
   );
 };
 
+// ── Template tiquete (80 mm) ──────────────────────────────────────────────────
+const PdfTemplateTicket = ({ remision, items }) => {
+  const subtotal = items.reduce((s, i) => s + (Number(i.subtotal) || 0), 0);
+  const sep = { borderTop: '1px dashed #aaa', margin: '8px 0' };
+
+  return (
+    <div style={{ fontFamily: '"Courier New", Courier, monospace', fontSize: '9px', color: '#1a1a1a', background: '#fff', width: '302px', padding: '14px 12px', boxSizing: 'border-box' }}>
+
+      {/* Cabecera centrada */}
+      <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+        <img src={logo} alt="Pinca" style={{ height: '44px', objectFit: 'contain', marginBottom: '6px' }} />
+        <div style={{ fontWeight: '700', fontSize: '9.5px', lineHeight: '1.3' }}>PINTURAS INDUSTRIALES<br />DEL CARIBE S.A.S</div>
+        <div style={{ color: '#666', fontSize: '8px', marginTop: '4px', lineHeight: '1.6' }}>
+          <div>{EMPRESA.nit}</div>
+          <div>{EMPRESA.telefono}</div>
+          <div>{EMPRESA.ciudad}</div>
+        </div>
+      </div>
+
+      <div style={sep} />
+
+      {/* Tipo + número */}
+      <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+        <div style={{ fontWeight: '700', fontSize: '12px', letterSpacing: '3px' }}>REMISIÓN</div>
+        <div style={{ display: 'inline-block', marginTop: '5px', background: '#1a1a1a', color: '#fff', padding: '3px 12px', borderRadius: '4px', fontSize: '11px', fontWeight: '700' }}>
+          {remision.numero}
+        </div>
+      </div>
+
+      <div style={sep} />
+
+      {/* Datos del cliente */}
+      <div style={{ fontSize: '8.5px', marginBottom: '4px' }}>
+        <div style={{ fontSize: '7px', fontWeight: '700', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Cliente</div>
+        <div style={{ fontWeight: '700', fontSize: '9px' }}>{remision.nombre_empresa || '—'}</div>
+        {remision.nit_cliente      && <div style={{ color: '#555' }}>NIT: {remision.nit_cliente}</div>}
+        {remision.nombre_encargado && <div style={{ color: '#555' }}>{remision.nombre_encargado}</div>}
+        {remision.fecha_remision   && <div style={{ color: '#555' }}>Fecha: {remision.fecha_remision}</div>}
+        {remision.direccion_entrega && <div style={{ color: '#555', wordBreak: 'break-word' }}>{remision.direccion_entrega}</div>}
+        {remision.numero_factura   && <div style={{ color: '#555' }}>Factura: {remision.numero_factura}</div>}
+      </div>
+
+      <div style={sep} />
+
+      {/* Ítems */}
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px', marginBottom: '6px' }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid #ccc' }}>
+            <th style={{ textAlign: 'left', padding: '3px 0', fontWeight: '700' }}>Descripción</th>
+            <th style={{ textAlign: 'right', padding: '3px 0', fontWeight: '700', whiteSpace: 'nowrap' }}>Cant.</th>
+            <th style={{ textAlign: 'right', padding: '3px 0', fontWeight: '700', whiteSpace: 'nowrap', width: '64px' }}>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item, i) => (
+            <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+              <td style={{ padding: '3px 4px 3px 0', verticalAlign: 'top' }}>
+                <div style={{ wordBreak: 'break-word' }}>{item.descripcion}</div>
+                <div style={{ color: '#888', fontSize: '7.5px' }}>{fmt(item.precio_unit)} c/u</div>
+              </td>
+              <td style={{ textAlign: 'right', verticalAlign: 'top', padding: '3px 4px', whiteSpace: 'nowrap' }}>
+                {Number(item.cantidad).toFixed(2)}
+              </td>
+              <td style={{ textAlign: 'right', verticalAlign: 'top', padding: '3px 0', fontWeight: '600', whiteSpace: 'nowrap' }}>
+                {fmt(item.subtotal)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Total */}
+      <div style={{ borderTop: '2px solid #1a1a1a', paddingTop: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <span style={{ fontWeight: '700', fontSize: '11px' }}>TOTAL</span>
+        <span style={{ fontWeight: '700', fontSize: '13px' }}>{fmt(subtotal)}</span>
+      </div>
+
+      {/* Observaciones */}
+      {remision.observaciones && (
+        <>
+          <div style={sep} />
+          <div style={{ fontSize: '8px', marginBottom: '4px' }}>
+            <div style={{ fontSize: '7px', fontWeight: '700', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '3px' }}>Observaciones</div>
+            <div style={{ color: '#444', lineHeight: '1.5', wordBreak: 'break-word' }}>{remision.observaciones}</div>
+          </div>
+        </>
+      )}
+
+      <div style={sep} />
+
+      {/* Pie */}
+      <div style={{ textAlign: 'center', fontSize: '7.5px', color: '#999', lineHeight: '1.7' }}>
+        <div>{EMPRESA.email}</div>
+        <div>{EMPRESA.celular}</div>
+        <div style={{ marginTop: '3px' }}>Generado: {new Date().toLocaleDateString('es-CO')}</div>
+        <div>Barranquilla, Atlántico / Colombia</div>
+      </div>
+    </div>
+  );
+};
+
 // ── Modal Content ─────────────────────────────────────────────────────────────
 const ExportRemisionContent = ({ remision, closeModal }) => {
   const { items, isLoadingItems } = useRemisiones(remision.id_remisiones);
   const [isExporting, setIsExporting] = useState(false);
   const [done,        setDone]        = useState(false);
+  const [format,      setFormat]      = useState('carta');
 
   const subtotal = (items ?? []).reduce((s, i) => s + (Number(i.subtotal) || 0), 0);
+
+  // ── Descarga carta (A4) ──
+  const downloadCarta = async (doc, autoTable, logoBase64) => {
+    const W = 210, M = 14;
+
+    doc.addImage(logoBase64, 'PNG', M, 8, 24, 24);
+    doc.setFont('helvetica', 'bold');   doc.setFontSize(9);  doc.setTextColor(20);
+    doc.text(EMPRESA.nombre, 40, 14);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);  doc.setTextColor(80);
+    doc.text(EMPRESA.nit,       40, 18);
+    doc.text(EMPRESA.direccion, 40, 22);
+    doc.text(EMPRESA.web,       40, 26);
+    doc.text(EMPRESA.ciudad,    40, 30);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(22); doc.setTextColor(20);
+    doc.text('Remisión', W - M, 16, { align: 'right' });
+    doc.setFillColor(20, 20, 20);
+    doc.roundedRect(W - M - 46, 19, 46, 8, 2, 2, 'F');
+    doc.setFontSize(9); doc.setTextColor(255);
+    doc.text(remision.numero, W - M - 23, 24.5, { align: 'center' });
+
+    doc.setDrawColor(229, 231, 235); doc.setLineWidth(0.5);
+    doc.line(M, 36, W - M, 36);
+
+    doc.setFillColor(250, 250, 250); doc.setDrawColor(220); doc.setLineWidth(0.3);
+    doc.roundedRect(M,      40, 86, 28, 2, 2, 'FD');
+    doc.roundedRect(M + 90, 40, 86, 28, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(140);
+    doc.text('DATOS DEL CLIENTE',        M + 3,  45);
+    doc.text('INFORMACIÓN DEL DESPACHO', M + 93, 45);
+
+    [
+      ['Empresa',   remision.nombre_empresa   ?? '—'],
+      ['NIT',       remision.nit_cliente       ?? '—'],
+      ['Encargado', remision.nombre_encargado  ?? '—'],
+    ].forEach(([k, v], i) => {
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(100);
+      doc.text(k, M + 3, 51 + i * 5.5);
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(20);
+      doc.text(String(v), M + 24, 51 + i * 5.5);
+    });
+
+    [
+      ['Fecha',     remision.fecha_remision    ?? '—'],
+      ['Dirección', remision.direccion_entrega ?? '—'],
+      ['Factura',   remision.numero_factura    ?? '—'],
+    ].forEach(([k, v], i) => {
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(100);
+      doc.text(k, M + 93, 51 + i * 5.5);
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(20);
+      doc.text(doc.splitTextToSize(String(v), 48)[0], M + 110, 51 + i * 5.5);
+    });
+
+    autoTable(doc, {
+      startY: 76,
+      head: [['Ítem', 'Descripción', 'Cantidad', 'Vr. Unitario', 'Subtotal']],
+      body: items.map((item, i) => [
+        i + 1,
+        item.descripcion,
+        Number(item.cantidad).toFixed(2),
+        fmt(item.precio_unit),
+        fmt(item.subtotal),
+      ]),
+      styles:             { fontSize: 8, cellPadding: 3 },
+      headStyles:         { fillColor: [20, 20, 20], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 12 },
+        1: { halign: 'left' },
+        2: { halign: 'right', cellWidth: 24 },
+        3: { halign: 'right', cellWidth: 34 },
+        4: { halign: 'right', cellWidth: 32, fontStyle: 'bold' },
+      },
+      didParseCell: (data) => {
+        if (data.section === 'head') {
+          const aligns = ['center', 'left', 'right', 'right', 'right'];
+          data.cell.styles.halign = aligns[data.column.index];
+        }
+      },
+      tableWidth:         W - M * 2,
+      alternateRowStyles: { fillColor: [249, 250, 251] },
+      margin:             { left: M, right: M },
+    });
+
+    let cy = doc.lastAutoTable.finalY + 6;
+
+    doc.setFillColor(20, 20, 20);
+    doc.roundedRect(W - M - 65, cy, 65, 9, 1.5, 1.5, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255);
+    doc.text('Total', W - M - 35, cy + 5.5, { align: 'right' });
+    doc.text(fmt(subtotal), W - M - 2, cy + 5.5, { align: 'right' });
+    cy += 16;
+
+    if (remision.observaciones) {
+      doc.setFillColor(250, 250, 250); doc.setDrawColor(220); doc.setLineWidth(0.3);
+      const obsLines = doc.splitTextToSize(remision.observaciones, W - M * 2 - 6);
+      const obsH     = 12 + (obsLines.length - 1) * 4;
+      doc.roundedRect(M, cy, W - M * 2, obsH, 2, 2, 'FD');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(140);
+      doc.text('OBSERVACIONES', M + 3, cy + 5);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(60);
+      doc.text(obsLines, M + 3, cy + 10);
+      cy += obsH + 8;
+    }
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(80);
+    const notaLines = doc.splitTextToSize('El presente documento certifica la entrega de los bienes descritos anteriormente. Por favor conserve esta remisión como soporte del despacho realizado.', W - M * 2);
+    doc.text(notaLines, M, cy);
+
+    const pageH = doc.internal.pageSize.getHeight();
+    doc.setDrawColor(220); doc.setLineWidth(0.3);
+    doc.line(M, pageH - 22, W - M, pageH - 22);
+    doc.addImage(logoBase64, 'PNG', M, pageH - 20, 16, 16);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(20);
+    doc.text('Pinturas Industriales Del Caribe', M + 19, pageH - 14);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(100);
+    doc.text(EMPRESA.email,   M + 19, pageH - 10);
+    doc.text(EMPRESA.celular, M + 19, pageH - 6);
+    doc.setTextColor(160);
+    doc.text(`Generado el ${new Date().toLocaleDateString('es-CO')}`, W - M, pageH - 10, { align: 'right' });
+    doc.text('Barranquilla, Atlántico / Colombia',                    W - M, pageH - 6,  { align: 'right' });
+
+    doc.save(`${remision.numero}.pdf`);
+  };
+
+  // ── Descarga tiquete (80 mm) ──
+  const downloadTicket = async (doc, autoTable, logoBase64) => {
+    const W = 80, M = 4;
+    const estimatedH = Math.max(160, 95 + (items ?? []).length * 14 + (remision.observaciones ? 18 : 0));
+
+    // Re-crear con tamaño correcto
+    const { jsPDF } = await import('jspdf');
+    const ticketDoc = new jsPDF({ unit: 'mm', format: [W, estimatedH] });
+
+    let y = 5;
+
+    // Logo centrado
+    ticketDoc.addImage(logoBase64, 'PNG', (W - 20) / 2, y, 20, 20);
+    y += 23;
+
+    // Empresa
+    ticketDoc.setFont('helvetica', 'bold'); ticketDoc.setFontSize(7); ticketDoc.setTextColor(20);
+    ticketDoc.text('PINTURAS INDUSTRIALES', W / 2, y, { align: 'center' }); y += 3.5;
+    ticketDoc.text('DEL CARIBE S.A.S',      W / 2, y, { align: 'center' }); y += 4.5;
+    ticketDoc.setFont('helvetica', 'normal'); ticketDoc.setFontSize(6.5); ticketDoc.setTextColor(80);
+    ticketDoc.text(EMPRESA.nit,      W / 2, y, { align: 'center' }); y += 3.5;
+    ticketDoc.text(EMPRESA.telefono, W / 2, y, { align: 'center' }); y += 3.5;
+    ticketDoc.text(EMPRESA.ciudad,   W / 2, y, { align: 'center' }); y += 5;
+
+    // Separador punteado
+    ticketDoc.setDrawColor(160); ticketDoc.setLineDash([1.5, 1.5], 0); ticketDoc.setLineWidth(0.3);
+    ticketDoc.line(M, y, W - M, y); ticketDoc.setLineDash([]); y += 6;
+
+    // Tipo + número
+    ticketDoc.setFont('helvetica', 'bold'); ticketDoc.setFontSize(11); ticketDoc.setTextColor(20);
+    ticketDoc.text('REMISIÓN', W / 2, y, { align: 'center' }); y += 5;
+    ticketDoc.setFillColor(20, 20, 20);
+    ticketDoc.roundedRect((W - 38) / 2, y, 38, 7, 1.5, 1.5, 'F');
+    ticketDoc.setFontSize(8.5); ticketDoc.setTextColor(255);
+    ticketDoc.text(remision.numero, W / 2, y + 4.5, { align: 'center' }); y += 13;
+
+    // Separador
+    ticketDoc.setDrawColor(160); ticketDoc.setLineDash([1.5, 1.5], 0);
+    ticketDoc.line(M, y, W - M, y); ticketDoc.setLineDash([]); y += 5;
+
+    // Cliente
+    ticketDoc.setFont('helvetica', 'bold'); ticketDoc.setFontSize(6); ticketDoc.setTextColor(130);
+    ticketDoc.text('CLIENTE', M, y); y += 3.5;
+    const clientName = remision.nombre_empresa || remision.nombre_encargado || '—';
+    ticketDoc.setFont('helvetica', 'bold'); ticketDoc.setFontSize(7.5); ticketDoc.setTextColor(20);
+    const clientLines = ticketDoc.splitTextToSize(clientName, W - M * 2);
+    ticketDoc.text(clientLines, M, y); y += clientLines.length * 3.5 + 1.5;
+    ticketDoc.setFont('helvetica', 'normal'); ticketDoc.setFontSize(7); ticketDoc.setTextColor(80);
+    if (remision.nit_cliente)       { ticketDoc.text(`NIT: ${remision.nit_cliente}`, M, y); y += 3.5; }
+    if (remision.fecha_remision)    { ticketDoc.text(`Fecha: ${remision.fecha_remision}`, M, y); y += 3.5; }
+    if (remision.numero_factura)    { ticketDoc.text(`Factura: ${remision.numero_factura}`, M, y); y += 3.5; }
+    if (remision.direccion_entrega) {
+      const dirLines = ticketDoc.splitTextToSize(remision.direccion_entrega, W - M * 2);
+      ticketDoc.text(dirLines, M, y); y += dirLines.length * 3.5;
+    }
+    y += 3;
+
+    // Separador
+    ticketDoc.setDrawColor(160); ticketDoc.setLineDash([1.5, 1.5], 0);
+    ticketDoc.line(M, y, W - M, y); ticketDoc.setLineDash([]); y += 2;
+
+    // Tabla ítems
+    autoTable(ticketDoc, {
+      startY: y,
+      head:   [['Descripción / Cant.', 'Subtotal']],
+      body:   (items ?? []).map(item => [
+        `${item.descripcion}\n${Number(item.cantidad).toFixed(2)} × ${fmt(item.precio_unit)}`,
+        fmt(item.subtotal),
+      ]),
+      styles:     { fontSize: 6.5, cellPadding: 1.5, overflow: 'linebreak' },
+      headStyles: { fillColor: [20, 20, 20], textColor: 255, fontStyle: 'bold', fontSize: 6.5, cellPadding: 2 },
+      columnStyles: {
+        0: { halign: 'left' },
+        1: { halign: 'right', cellWidth: 22, fontStyle: 'bold' },
+      },
+      didParseCell: (data) => {
+        if (data.section === 'head') {
+          data.cell.styles.halign = data.column.index === 0 ? 'left' : 'right';
+        }
+      },
+      tableWidth:         W - M * 2,
+      alternateRowStyles: { fillColor: [249, 250, 251] },
+      margin:             { left: M, right: M },
+    });
+
+    y = ticketDoc.lastAutoTable.finalY + 3;
+
+    // Total
+    ticketDoc.setDrawColor(20); ticketDoc.setLineWidth(0.6);
+    ticketDoc.line(M, y, W - M, y); y += 5;
+    ticketDoc.setFont('helvetica', 'bold'); ticketDoc.setFontSize(10); ticketDoc.setTextColor(20);
+    ticketDoc.text('TOTAL', M, y);
+    ticketDoc.text(fmt(subtotal), W - M, y, { align: 'right' }); y += 10;
+
+    // Observaciones
+    if (remision.observaciones) {
+      ticketDoc.setDrawColor(160); ticketDoc.setLineDash([1.5, 1.5], 0);
+      ticketDoc.line(M, y, W - M, y); ticketDoc.setLineDash([]); y += 5;
+      ticketDoc.setFont('helvetica', 'bold'); ticketDoc.setFontSize(6); ticketDoc.setTextColor(130);
+      ticketDoc.text('OBSERVACIONES', M, y); y += 3.5;
+      ticketDoc.setFont('helvetica', 'normal'); ticketDoc.setFontSize(6.5); ticketDoc.setTextColor(60);
+      const obsLines = ticketDoc.splitTextToSize(remision.observaciones, W - M * 2);
+      ticketDoc.text(obsLines, M, y); y += obsLines.length * 3.5 + 3;
+    }
+
+    // Pie
+    ticketDoc.setDrawColor(160); ticketDoc.setLineDash([1.5, 1.5], 0);
+    ticketDoc.line(M, y, W - M, y); ticketDoc.setLineDash([]); y += 5;
+    ticketDoc.setFont('helvetica', 'normal'); ticketDoc.setFontSize(6.5); ticketDoc.setTextColor(120);
+    ticketDoc.text(EMPRESA.email,   W / 2, y, { align: 'center' }); y += 3.5;
+    ticketDoc.text(EMPRESA.celular, W / 2, y, { align: 'center' }); y += 5;
+    ticketDoc.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, W / 2, y, { align: 'center' }); y += 3.5;
+    ticketDoc.text('Barranquilla, Atlántico / Colombia',                  W / 2, y, { align: 'center' });
+
+    ticketDoc.save(`${remision.numero}-tiquete.pdf`);
+  };
 
   const handleDownload = async () => {
     setIsExporting(true);
     try {
       const { jsPDF } = await import('jspdf');
       const autoTable = (await import('jspdf-autotable')).default;
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const W = 210, M = 14;
 
       const logoBase64 = await fetch(logo).then(r => r.blob()).then(b => new Promise(res => {
         const reader = new FileReader();
@@ -158,132 +483,13 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
         reader.readAsDataURL(b);
       }));
 
-      // Header
-      doc.addImage(logoBase64, 'PNG', M, 8, 24, 24);
-      doc.setFont('helvetica', 'bold');   doc.setFontSize(9);  doc.setTextColor(20);
-      doc.text(EMPRESA.nombre, 40, 14);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);  doc.setTextColor(80);
-      doc.text(EMPRESA.nit,       40, 18);
-      doc.text(EMPRESA.direccion, 40, 22);
-      doc.text(EMPRESA.web,       40, 26);
-      doc.text(EMPRESA.ciudad,    40, 30);
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(22); doc.setTextColor(20);
-      doc.text('Remisión', W - M, 16, { align: 'right' });
-      doc.setFillColor(20, 20, 20);
-      doc.roundedRect(W - M - 46, 19, 46, 8, 2, 2, 'F');
-      doc.setFontSize(9); doc.setTextColor(255);
-      doc.text(remision.numero, W - M - 23, 24.5, { align: 'center' });
-
-      // Línea
-      doc.setDrawColor(229, 231, 235); doc.setLineWidth(0.5);
-      doc.line(M, 36, W - M, 36);
-
-      // Cajas
-      doc.setFillColor(250, 250, 250); doc.setDrawColor(220); doc.setLineWidth(0.3);
-      doc.roundedRect(M,      40, 86, 28, 2, 2, 'FD');
-      doc.roundedRect(M + 90, 40, 86, 28, 2, 2, 'FD');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(140);
-      doc.text('DATOS DEL CLIENTE',        M + 3,  45);
-      doc.text('INFORMACIÓN DEL DESPACHO', M + 93, 45);
-
-      [
-        ['Empresa',   remision.nombre_empresa   ?? '—'],
-        ['NIT',       remision.nit_cliente       ?? '—'],
-        ['Encargado', remision.nombre_encargado  ?? '—'],
-      ].forEach(([k, v], i) => {
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(100);
-        doc.text(k, M + 3, 51 + i * 5.5);
-        doc.setFont('helvetica', 'bold'); doc.setTextColor(20);
-        doc.text(String(v), M + 24, 51 + i * 5.5);
-      });
-
-      [
-        ['Fecha',     remision.fecha_remision    ?? '—'],
-        ['Dirección', remision.direccion_entrega ?? '—'],
-        ['Factura',   remision.numero_factura    ?? '—'],
-      ].forEach(([k, v], i) => {
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(100);
-        doc.text(k, M + 93, 51 + i * 5.5);
-        doc.setFont('helvetica', 'bold'); doc.setTextColor(20);
-        doc.text(doc.splitTextToSize(String(v), 48)[0], M + 110, 51 + i * 5.5);
-      });
-
-      // Tabla ítems
-      autoTable(doc, {
-        startY: 76,
-        head: [['Ítem', 'Descripción', 'Cantidad', 'Vr. Unitario', 'Subtotal']],
-        body: items.map((item, i) => [
-          i + 1,
-          item.descripcion,
-          Number(item.cantidad).toFixed(2),
-          fmt(item.precio_unit),
-          fmt(item.subtotal),
-        ]),
-        styles:             { fontSize: 8, cellPadding: 3 },
-        headStyles:         { fillColor: [20, 20, 20], textColor: 255, fontStyle: 'bold', fontSize: 8 },
-        columnStyles: {
-          0: { halign: 'center', cellWidth: 12 },
-          1: { halign: 'left' },
-          2: { halign: 'right', cellWidth: 24 },
-          3: { halign: 'right', cellWidth: 34 },
-          4: { halign: 'right', cellWidth: 32, fontStyle: 'bold' },
-        },
-        didParseCell: (data) => {
-          if (data.section === 'head') {
-            const aligns = ['center', 'left', 'right', 'right', 'right'];
-            data.cell.styles.halign = aligns[data.column.index];
-          }
-        },
-        tableWidth:         W - M * 2,
-        alternateRowStyles: { fillColor: [249, 250, 251] },
-        margin:             { left: M, right: M },
-      });
-
-      let cy = doc.lastAutoTable.finalY + 6;
-
-      // Total
-      doc.setFillColor(20, 20, 20);
-      doc.roundedRect(W - M - 65, cy, 65, 9, 1.5, 1.5, 'F');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255);
-      doc.text('Total', W - M - 35, cy + 5.5, { align: 'right' });
-      doc.text(fmt(subtotal), W - M - 2, cy + 5.5, { align: 'right' });
-      cy += 16;
-
-      // Observaciones
-      if (remision.observaciones) {
-        doc.setFillColor(250, 250, 250); doc.setDrawColor(220); doc.setLineWidth(0.3);
-        const obsLines = doc.splitTextToSize(remision.observaciones, W - M * 2 - 6);
-        const obsH     = 12 + (obsLines.length - 1) * 4;
-        doc.roundedRect(M, cy, W - M * 2, obsH, 2, 2, 'FD');
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(140);
-        doc.text('OBSERVACIONES', M + 3, cy + 5);
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(60);
-        doc.text(obsLines, M + 3, cy + 10);
-        cy += obsH + 8;
+      if (format === 'carta') {
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        await downloadCarta(doc, autoTable, logoBase64);
+      } else {
+        await downloadTicket(null, autoTable, logoBase64);
       }
 
-      // Nota
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(80);
-      const notaLines = doc.splitTextToSize('El presente documento certifica la entrega de los bienes descritos anteriormente. Por favor conserve esta remisión como soporte del despacho realizado.', W - M * 2);
-      doc.text(notaLines, M, cy);
-      cy += notaLines.length * 4 + 12;
-
-
-      // Pie
-      const pageH = doc.internal.pageSize.getHeight();
-      doc.setDrawColor(220); doc.setLineWidth(0.3);
-      doc.line(M, pageH - 22, W - M, pageH - 22);
-      doc.addImage(logoBase64, 'PNG', M, pageH - 20, 16, 16);
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(20);
-      doc.text('Pinturas Industriales Del Caribe', M + 19, pageH - 14);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(100);
-      doc.text(EMPRESA.email,   M + 19, pageH - 10);
-      doc.text(EMPRESA.celular, M + 19, pageH - 6);
-      doc.setTextColor(160);
-      doc.text(`Generado el ${new Date().toLocaleDateString('es-CO')}`, W - M, pageH - 10, { align: 'right' });
-      doc.text('Barranquilla, Atlántico / Colombia',                    W - M, pageH - 6,  { align: 'right' });
-
-      doc.save(`${remision.numero}.pdf`);
       setDone(true);
       setTimeout(() => { setDone(false); closeModal(); }, 1200);
     } finally {
@@ -297,6 +503,7 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
 
+          {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 bg-zinc-900 rounded-xl flex items-center justify-center">
@@ -312,6 +519,7 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
             </button>
           </div>
 
+          {/* Preview */}
           <div className="flex-1 overflow-y-auto bg-zinc-100 p-6">
             {isLoadingItems ? (
               <div className="flex items-center justify-center h-64 gap-3 text-zinc-400">
@@ -320,23 +528,53 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
               </div>
             ) : (
               <div className="flex justify-center">
-                <div className="shadow-2xl rounded-sm bg-white" style={{ width: '635px' }}>
-                  <div style={{ zoom: 0.8, width: '794px' }}>
-                    <PdfTemplate remision={remision} items={items ?? []} />
+                {format === 'carta' ? (
+                  <div className="shadow-2xl rounded-sm bg-white" style={{ width: '635px' }}>
+                    <div style={{ zoom: 0.8, width: '794px' }}>
+                      <PdfTemplate remision={remision} items={items ?? []} />
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="shadow-2xl rounded-sm bg-white">
+                    <PdfTemplateTicket remision={remision} items={items ?? []} />
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          <div className="px-5 py-4 border-t border-zinc-100 bg-zinc-50 flex items-center justify-between shrink-0">
-            <p className="text-xs text-zinc-400">
+          {/* Footer */}
+          <div className="px-5 py-4 border-t border-zinc-100 bg-zinc-50 flex items-center justify-between gap-4 shrink-0">
+            <p className="text-xs text-zinc-400 shrink-0">
               {(items ?? []).length} ítem(s) · Total: <span className="font-semibold text-zinc-700">{fmt(subtotal)}</span>
             </p>
+
+            {/* Selector de formato */}
+            <div className="flex items-center gap-0.5 bg-zinc-200/60 rounded-lg p-0.5">
+              <button
+                onClick={() => setFormat('carta')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                  format === 'carta' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
+                }`}
+              >
+                <FileText size={12} />
+                Carta
+              </button>
+              <button
+                onClick={() => setFormat('ticket')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                  format === 'ticket' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
+                }`}
+              >
+                <Receipt size={12} />
+                Tiquete
+              </button>
+            </div>
+
             <button
               onClick={handleDownload}
               disabled={isExporting || isLoadingItems}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 shrink-0
                 ${done
                   ? 'bg-emerald-500 text-white'
                   : 'bg-zinc-900 text-white hover:bg-zinc-700 disabled:opacity-50 disabled:pointer-events-none'
@@ -345,7 +583,7 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
               {done
                 ? <><CheckCircle2 size={16} /> Descargado</>
                 : isExporting
-                ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando PDF...</>
+                ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando...</>
                 : <><Download size={16} /> Descargar PDF</>
               }
             </button>

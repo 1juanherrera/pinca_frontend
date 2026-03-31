@@ -33,27 +33,26 @@ const DetailDrawer = ({ isOpen, onClose, title, subtitle, children, width = 'md'
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]"
+        className="fixed inset-0 bg-zinc-950/40 z-40 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Panel */}
       <div
         className={`fixed top-0 right-0 h-full w-full ${WIDTH_MAP[width]} bg-white shadow-2xl z-50
-          flex flex-col border-l border-gray-200`}
+          flex flex-col border-l border-zinc-200/80`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200/80 bg-zinc-50/50">
           <div>
-            <h2 className="text-sm font-bold text-gray-900">{title}</h2>
-            {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+            <h2 className="text-lg font-bold text-zinc-900 uppercase">{title}</h2>
+            {subtitle && <p className="text-xs text-zinc-500 mt-0.5">{subtitle}</p>}
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400
-              hover:bg-gray-200 hover:text-gray-600 transition-colors"
+            className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-200/50 rounded-xl transition-all"
           >
-            <X className="w-4 h-4" />
+            <X size={20} />
           </button>
         </div>
 

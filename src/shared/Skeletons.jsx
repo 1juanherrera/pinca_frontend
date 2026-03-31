@@ -55,7 +55,7 @@ export const SkeletonRow = () => (
     </td>
     {/* PRECIO */}
     <td className="px-3 py-1 text-right">
-      <div className="h-4 w-16 bg-emerald-100 rounded ml-auto"></div>
+      <div className="h-4 w-16 bg-zinc-100 rounded ml-auto"></div>
     </td>
     {/* ACCIONES */}
     <td className="px-3 py-1 text-center">

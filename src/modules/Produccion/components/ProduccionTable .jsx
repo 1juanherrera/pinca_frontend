@@ -23,16 +23,16 @@ export const EstadoBadge = ({ estado }) => (
 
 // ─── Columnas configurables ───────────────────────────────────────────────────
 const SortIcon = ({ field, sortBy, sortDir }) => {
-  if (sortBy !== field) return <ChevronsUpDown size={12} className="text-white" />;
+  if (sortBy !== field) return <ChevronsUpDown size={12} className="text-zinc-400" />;
   return sortDir === 'asc'
-    ? <ChevronUp size={12} className="text-zinc-700" />
-    : <ChevronDown size={12} className="text-zinc-700" />;
+    ? <ChevronUp size={12} className="text-white" />
+    : <ChevronDown size={12} className="text-white" />;
 };
 
 const TH = ({ label, field, sortBy, sortDir, onSort, className = '' }) => (
   <th
     onClick={() => onSort(field)}
-    className={`px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest cursor-pointer hover:text-zinc-700 select-none transition-colors ${className}`}
+    className={`px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest cursor-pointer hover:text-zinc-300 select-none transition-colors ${className}`}
   >
     <div className="flex items-center gap-1.5">
       {label}
@@ -64,7 +64,7 @@ export const ProduccionTable = ({
   if (!isLoading && data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
-        <div className="w-14 h-14 rounded-lg bg-zinc-100 flex items-center justify-center">
+        <div className="w-14 h-14 rounded-lg flex items-center justify-center">
           <Package size={24} className="text-zinc-400" />
         </div>
         <p className="text-sm font-semibold text-zinc-400">Sin órdenes de producción</p>
@@ -90,7 +90,7 @@ export const ProduccionTable = ({
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-50">
+        <tbody className="divide-y divide-zinc-100">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)
             : data.map((row) => (
