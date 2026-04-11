@@ -32,7 +32,7 @@ const Sidebar = () => {
       <aside 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`absolute top-0 z-50 left-0 flex flex-col h-screen py-6 bg-surface-sidebar border-r border-surface-sidebar-hover font-sans transition-all duration-300 ease-in-out ${
+        className={`absolute top-0 z-50 left-0 flex flex-col h-screen py-4 bg-surface-sidebar border-r border-surface-sidebar-hover font-sans transition-all duration-300 ease-in-out ${
           isHovered 
             ? 'w-64' // Expandido con sombra flotante
             : 'w-20 px-3' // Colapsado
@@ -40,7 +40,7 @@ const Sidebar = () => {
       >
 
         {/* Área del Logo */}
-        <div className={`flex items-center mb-8 overflow-hidden ${!isHovered ? 'justify-center' : 'gap-3 px-2'}`}>
+        <div className={`flex items-center mb-5 overflow-hidden ${!isHovered ? 'justify-center' : 'gap-3 px-2'}`}>
           <div className="flex items-center justify-center w-10 h-10 rounded-lg overflow-hidden shrink-0">
             <img src={logoPinca} alt="Logo Pinca" className="w-full h-full object-contain" />
           </div>
@@ -51,7 +51,7 @@ const Sidebar = () => {
         </div>
 
         {/* Navegación */}
-        <nav className="flex-1 space-y-2 overflow-y-auto p-1 overflow-x-hidden no-scrollbar">
+        <nav className="flex-1 space-y-1 overflow-y-auto p-1 overflow-x-hidden no-scrollbar">
           {sidebarMenu.map((item) => {
             const Icon = item.icon;
             const isActive = activeTitle === item.label;
@@ -64,10 +64,11 @@ const Sidebar = () => {
                 title={!isHovered ? item.label : ""} 
                 className={`w-full flex items-center rounded-md transition-colors duration-200 group ${
                   !isHovered ? 'justify-center p-2' : 'gap-3 px-3 py-2 text-sm font-medium'
-                } ${isActive 
-                  ? 'bg-brand-subtle text-white' 
+                } ${isActive
+                  ? 'bg-brand-subtle text-white'
                   : 'text-content-muted hover:bg-surface-sidebar-hover hover:text-white'
                 }`}
+
               >
                 <Icon 
                   size={18} 
@@ -84,7 +85,7 @@ const Sidebar = () => {
         </nav>
 
         {/* Acciones Inferiores */}
-        <div className="pt-4 px-1 mt-auto border-t border-surface-sidebar-hover space-y-2 overflow-hidden">
+        <div className="pt-3 px-1 mt-auto border-t border-surface-sidebar-hover space-y-1 overflow-hidden">
           <NavLink
             to="/configuracion"
             title={!isHovered ? "Configuración" : ""}

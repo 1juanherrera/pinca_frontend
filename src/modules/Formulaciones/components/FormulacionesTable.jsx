@@ -104,7 +104,7 @@ export const FormulacionesTable = ({
                     {
                         dataToShow?.formulaciones && Array.isArray(dataToShow.formulaciones) && dataToShow.formulaciones.length > 0 ? (
                             dataToShow.formulaciones.map((formulacion, index) => (
-                            <tr key={formulacion.id_item_general_formulaciones || index} className="hover:bg-gray-50 transition-colors">
+                            <tr key={`formulacion-row-${index}`} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                                 {index + 1}
                                 </td>

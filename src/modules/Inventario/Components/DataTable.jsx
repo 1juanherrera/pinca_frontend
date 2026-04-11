@@ -49,7 +49,17 @@ const DataTable = () => {
   const getId          = (item) => item.id_item_general || item.id || '-';
   const getPrecio      = (item) => item?.precio_venta    || '0';
   const getCostoUnit   = (item) => item?.costo_unitario  ?? '0';
-  const getCostoGalon  = (item) => item?.costo_mp_galon  || '0';
+
+  // Convierte cantidad (en unidades de venta) a unidades de almacenaje
+  const getStockAlmacenaje = (item) => {
+    const ev = parseFloat(item.escala_venta)      || null;
+    const ea = parseFloat(item.escala_almacenaje) || null;
+    if (!ea || !ev || !item.unidad_almacenaje) return null;
+    const factor = ea / ev;                // cuántas u. venta caben en 1 u. almacenaje
+    const qty    = parseFloat(item.cantidad) || 0;
+    const total  = qty / factor;
+    return { total, nombre: item.unidad_almacenaje };
+  };
 
   const handleSearchChange = (value) => { setSearchTerm(value); setCurrentPage(1); };
   const handleTipoChange   = (value) => { setTipoFilter(value); setCurrentPage(1); };
@@ -75,6 +85,7 @@ const DataTable = () => {
                   <th className="px-3 py-2">CÓDIGO</th>
                   <th className="px-3 py-2">NOMBRE</th>
                   <th className="px-3 py-2 text-center">CANTIDAD</th>
+                  <th className="px-3 py-2 text-center">ALMACENAJE</th>
                   <th className="px-3 py-2 text-center">TIPO</th>
                   <th className="px-3 py-2 text-center">UNIDAD</th>
                   <th className="px-3 py-2 text-right">COSTO UNIT.</th>
@@ -90,13 +101,31 @@ const DataTable = () => {
                 ) : inventario.length > 0 ? (
                   inventario.map((item) => (
                     <tr
-                      key={item.id_item_general || i}
+                      key={item.id_item_general}
                       className="hover:bg-zinc-100 transition-colors"
                     >
                       <td className="px-3 py-1 text-center text-xs font-medium text-zinc-500">{getId(item)}</td>
                       <td className="px-3 py-1"><span className="text-xs font-mono text-zinc-500 font-bold">{getCodigo(item)}</span></td>
                       <td className="px-3 py-1 font-semibold uppercase text-zinc-900 text-xs">{getNombre(item)}</td>
                       <td className="px-3 py-1 text-center text-xs font-bold text-zinc-700">{item.cantidad}</td>
+
+                      <td className="px-3 py-1 text-center">
+                        {(() => {
+                          const s = getStockAlmacenaje(item);
+                          if (!s) return <span className="text-zinc-300 text-xs">—</span>;
+                          const enteros  = Math.floor(s.total);
+                          return (
+                            <div className="flex flex-col items-center gap-0.5">
+                              <span className="text-xs font-bold text-amber-700 tabular-nums">
+                                {s.total % 1 === 0 ? enteros : s.total.toFixed(1)}
+                              </span>
+                              <span className="text-[9px] font-semibold text-amber-500 uppercase tracking-wider">
+                                {s.nombre}
+                              </span>
+                            </div>
+                          );
+                        })()}
+                      </td>
 
                       <td className="px-3 py-1 text-center">
                         <span className={`inline-flex w-32 justify-center shadow-md items-center px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider border ${handleType(item.tipo)}`}>
@@ -107,7 +136,15 @@ const DataTable = () => {
                         </span>
                       </td>
 
-                      <td className="px-3 py-1 font-semibold text-center uppercase text-zinc-900 text-xs">{item.unidad || '-'}</td>
+                      <td className="px-3 py-1 text-center">
+                        {item.unidad ? (
+                          <span className="block items-center px-2 py-0.5 rounded-md bg-zinc-100 border border-zinc-200 text-[10px] font-bold text-zinc-600 uppercase tracking-wide">
+                            {item.unidad}
+                          </span>
+                        ) : (
+                          <span className="text-zinc-300 text-xs">—</span>
+                        )}
+                      </td>
                       <td className="px-3 py-1 text-right font-medium text-xs text-zinc-700">{formatoPesoColombiano(getCostoUnit(item))}</td>
                       <td className="px-3 py-1 text-right font-medium text-xs text-emerald-600">{formatoPesoColombiano(getPrecio(item))}</td>
 
@@ -147,7 +184,7 @@ const DataTable = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="9" className="px-3 py-16 text-center">
+                    <td colSpan="10" className="px-3 py-16 text-center">
                       <div className="flex flex-col items-center justify-center text-zinc-500 h-40">
                         <span className="text-sm font-medium">No hay items para mostrar en este inventario.</span>
                         <span className="text-xs text-zinc-400 mt-1">Intenta ajustando tu búsqueda o agrega un nuevo item.</span>

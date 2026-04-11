@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import {
   X, Package, Tag, LayoutGrid, Layers, Wrench,
-  Percent, CircleDollarSign, Save, ArrowUpRight
+  Percent, CircleDollarSign, Save, ArrowUpRight,
+  TrendingUp, TrendingDown, Minus
 } from 'lucide-react';
 import { InputMoneda } from '../../../shared/Form/InputMoneda';
 import { useBoundStore } from '../../../store/useBoundStore';
@@ -73,6 +74,119 @@ const PricePreview = ({ control, costos }) => {
   );
 };
 
+// ─── Precio Manual ────────────────────────────────────────────────────────────
+const PrecioLista = ({ control, costos, precioManualActivo, setPrecioManualActivo, precioManual, setPrecioManual }) => {
+  const values       = useWatch({ control });
+  const costoBase    = parseCOP(costos?.total);
+  const indirectosBase = (
+    parseCOP(costos?.envase) + parseCOP(costos?.etiqueta) +
+    parseCOP(costos?.bandeja) + parseCOP(costos?.plastico) + parseCOP(costos?.costo_mod)
+  );
+  const totalIndirectos = COST_FIELDS.reduce((acc, f) => acc + parseCOP(values[f.id]), 0);
+  const costoMP    = costoBase - indirectosBase;
+  const costoTotal = costoMP + totalIndirectos;
+  const pct        = parseFloat(values.porcentaje_utilidad) || 0;
+  const precioCalculado = pct > 0 ? costoTotal * (1 + pct / 100) : costoTotal;
+
+  const manualNum = parseFloat(String(precioManual).replace(/\./g, '').replace(',', '.')) || 0;
+  const diff      = precioManualActivo && manualNum > 0 ? manualNum - precioCalculado : 0;
+  const diffPct   = precioCalculado > 0 ? (diff / precioCalculado) * 100 : 0;
+
+  const diffColor = diff > 0 ? 'text-emerald-500' : diff < 0 ? 'text-red-500' : 'text-zinc-400';
+  const DiffIcon  = diff > 0 ? TrendingUp : diff < 0 ? TrendingDown : Minus;
+
+  return (
+    <div className="rounded-xl border border-zinc-200 overflow-hidden">
+      {/* Header con toggle */}
+      <div className="flex items-center justify-between px-4 py-3 bg-zinc-50 border-b border-zinc-200">
+        <div>
+          <p className="text-xs font-semibold text-zinc-700 uppercase tracking-widest">
+            Precio Manual
+          </p>
+          <p className="text-[10px] text-zinc-400 mt-0.5">
+            Precio negociado independiente del markup
+          </p>
+        </div>
+
+        {/* Toggle pill */}
+        <button
+          type="button"
+          onClick={() => setPrecioManualActivo(v => !v)}
+          className={`relative flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all duration-200 ${
+            precioManualActivo
+              ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200'
+              : 'bg-white border-zinc-300 text-zinc-400 hover:border-zinc-400'
+          }`}
+        >
+          {/* Switch track */}
+          <span className={`relative inline-block w-7 h-4 rounded-full transition-colors duration-200 ${precioManualActivo ? 'bg-white/30' : 'bg-zinc-200'}`}>
+            <span className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full shadow transition-transform duration-200 ${
+              precioManualActivo ? 'translate-x-3 bg-white' : 'translate-x-0 bg-white'
+            }`} />
+          </span>
+          <span className="leading-none">
+            {precioManualActivo ? 'Activo' : 'Inactivo'}
+          </span>
+        </button>
+      </div>
+
+      {/* Comparación siempre visible */}
+      <div className="grid grid-cols-2 divide-x divide-zinc-100 bg-white">
+        {/* Precio calculado (referencia) */}
+        <div className="px-4 py-3">
+          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
+            Precio Calculado
+          </p>
+          <p className="text-sm font-semibold text-zinc-500 tabular-nums">
+            {formatCOP(precioCalculado)}
+          </p>
+          <p className="text-[9px] text-zinc-400 mt-0.5">Costo + {pct}% markup</p>
+        </div>
+
+        {/* Precio de lista */}
+        <div className="px-4 py-3">
+          <p className="text-[9px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
+            <span className={precioManualActivo ? 'text-zinc-700' : 'text-zinc-400'}>
+              Precio Manual
+            </span>
+            {precioManualActivo && (
+              <span className="bg-emerald-100 text-emerald-700 text-[8px] px-1.5 py-px rounded-full font-bold">ACTIVO</span>
+            )}
+          </p>
+          {precioManualActivo ? (
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-semibold text-zinc-500">$</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={precioManual}
+                onChange={e => setPrecioManual(e.target.value.replace(/[^0-9.,]/g, ''))}
+                placeholder="0"
+                className="flex-1 text-sm font-bold text-zinc-900 bg-transparent border-b-2 border-zinc-900 outline-none tabular-nums min-w-0 pb-0.5"
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-zinc-300 italic">— Sin fijar —</p>
+          )}
+        </div>
+      </div>
+
+      {/* Badge de diferencia */}
+      {precioManualActivo && manualNum > 0 && (
+        <div className="flex items-center justify-end gap-2 px-4 py-2 bg-zinc-50 border-t border-zinc-100">
+          <DiffIcon size={12} className={diffColor} />
+          <span className={`text-xs font-bold tabular-nums ${diffColor}`}>
+            {diff > 0 ? '+' : ''}{formatCOP(diff)}
+          </span>
+          <span className={`text-[10px] tabular-nums ${diffColor}`}>
+            ({diffPct > 0 ? '+' : ''}{diffPct.toFixed(1)}% vs calculado)
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const FormCostProducts = () => {
 
   const activeDrawer = useBoundStore(state => state.activeDrawer);
@@ -84,7 +198,13 @@ const FormCostProducts = () => {
   const item     = payload?.item;
   const idCostos = costos?.id_costos_item;
 
-  const { updateCostosAsync, isUpdating } = useCostosItem();
+  const { updateCostosAsync, isUpdating, updatePrecioManualAsync, isUpdatingPrecio } = useCostosItem();
+
+  const [precioManualActivo, setPrecioManualActivo] = useState(false);
+  const [precioManual, setPrecioManual]             = useState('');
+
+  const initialPrecioManualActivo = useRef(false);
+  const initialPrecioManual       = useRef('');
 
   const { control, handleSubmit, reset, formState: { errors, isDirty } } = useForm({
     defaultValues: {
@@ -103,8 +223,14 @@ const FormCostProducts = () => {
         costo_mod:           parseCOP(costos.costo_mod),
         porcentaje_utilidad: parseCOP(costos.porcentaje_utilidad ?? 0),
       });
+      const initActivo = !!item?.precio_manual_activo;
+      const initManual = item?.precio_venta_manual ? String(item.precio_venta_manual) : '';
+      setPrecioManualActivo(initActivo);
+      setPrecioManual(initManual);
+      initialPrecioManualActivo.current = initActivo;
+      initialPrecioManual.current       = initManual;
     }
-  }, [isOpen, costos, reset]);
+  }, [isOpen, costos, item, reset]);
 
   // 5. Handlers
   const handleClose = () => {
@@ -113,11 +239,20 @@ const FormCostProducts = () => {
   };
 
   const onSubmit = async (data) => {
-    await updateCostosAsync(
-      { id: idCostos, data },
-      { onSuccess: handleClose }  // cierra solo si el PUT fue exitoso
-    );
+    await updateCostosAsync({ id: idCostos, data });
+    await updatePrecioManualAsync({
+      itemId: item?.id,
+      data: {
+        precio_venta_manual: precioManualActivo ? parseFloat(String(precioManual).replace(/\./g, '').replace(',', '.')) || null : null,
+        precio_manual_activo: precioManualActivo ? 1 : 0,
+      },
+    });
+    handleClose();
   };
+
+  const precioManualDirty =
+    precioManualActivo !== initialPrecioManualActivo.current ||
+    precioManual       !== initialPrecioManual.current;
 
   if (!isOpen) return null;
 
@@ -254,12 +389,22 @@ const FormCostProducts = () => {
 
             <PricePreview control={control} costos={costos} />
 
+            {/* ── Precio Manual ── */}
+            <PrecioLista
+              control={control}
+              costos={costos}
+              precioManualActivo={precioManualActivo}
+              setPrecioManualActivo={setPrecioManualActivo}
+              precioManual={precioManual}
+              setPrecioManual={setPrecioManual}
+            />
+
           </div>
 
           {/* ── Footer ── */}
           <div className="flex items-center justify-between gap-3 px-6 py-4 bg-zinc-50 border-t border-zinc-100">
             <div className="flex items-center gap-1.5">
-              {isDirty ? (
+              {(isDirty || precioManualDirty) ? (
                 <>
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                   <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Cambios sin guardar</span>
@@ -282,10 +427,10 @@ const FormCostProducts = () => {
               </button>
               <button
                 type="submit"
-                disabled={isUpdating || !isDirty}
+                disabled={isUpdating || isUpdatingPrecio || (!isDirty && !precioManualDirty)}
                 className="flex items-center gap-2 px-5 py-2.5 border border-transparent rounded-xl text-sm font-semibold text-white bg-zinc-950 shadow-md shadow-zinc-950/20 hover:bg-zinc-900 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {isUpdating ? (
+                {(isUpdating || isUpdatingPrecio) ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Guardando...
@@ -293,7 +438,7 @@ const FormCostProducts = () => {
                 ) : (
                   <>
                     <Save size={15} />
-                    Guardar Costos
+                    Guardar
                   </>
                 )}
               </button>

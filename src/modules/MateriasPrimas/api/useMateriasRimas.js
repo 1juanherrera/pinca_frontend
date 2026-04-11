@@ -1,8 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { materiasRimasKeys } from './materiasRimasKeys';
 import { API_ROUTES } from '../../../api/apiRoutes';
-import toast from 'react-hot-toast';
 
 export const useMateriasRimas = (filters = {}) => {
   const queryClient = useQueryClient();
@@ -218,6 +217,7 @@ export const useMateriasRimas = (filters = {}) => {
 
       return {
         data: paginatedData,
+        allData: filteredData,
         total: filteredData.length,
         stats: {
           total_items: materiasRimas.length, // Total de materias primas en el sistema
@@ -235,37 +235,20 @@ export const useMateriasRimas = (filters = {}) => {
     retryDelay: 1000,
   });
 
-  // Mutation para exportar datos
-  const exportMutation = useMutation({
-    mutationFn: async (exportFilters) => {
-      // Por ahora simular la exportación
-      toast.success('Función de exportación lista para implementar');
-    },
-    onSuccess: () => {
-      toast.success('Datos exportados correctamente');
-    },
-    onError: (error) => {
-      toast.error(error?.response?.data?.message || 'Error al exportar los datos');
-    },
-  });
-
   return {
     // Data
     data: inventarioConsolidadoQuery.data,
+    allData: inventarioConsolidadoQuery.data?.allData || [],
     stats: inventarioConsolidadoQuery.data?.stats,
-    
+
     // Loading states
     isLoading: inventarioConsolidadoQuery.isLoading || bodegasQuery.isLoading || itemsQuery.isLoading,
     isFetching: inventarioConsolidadoQuery.isFetching,
-    
+
     // Error states
     error: inventarioConsolidadoQuery.error || bodegasQuery.error || itemsQuery.error,
     isError: inventarioConsolidadoQuery.isError || bodegasQuery.isError || itemsQuery.isError,
-    
-    // Export
-    exportData: exportMutation.mutate,
-    isExporting: exportMutation.isPending,
-    
+
     // Utils
     refresh: () => {
       queryClient.invalidateQueries({ queryKey: materiasRimasKeys.all });

@@ -7,9 +7,9 @@ import { useUpdateItem } from '../api/useUpdateItem';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import { Button } from '../../../shared/Button'; 
-import { 
-  FileText, Microscope, FlaskConical, CircleDollarSign, 
-  X, PlusCircle, Trash2, Wand2 
+import {
+  FileText, Microscope, FlaskConical, CircleDollarSign,
+  X, PlusCircle, Trash2, Wand2, Tag
 } from 'lucide-react';
 import { InputMoneda } from '../../../shared/Form/InputMoneda';
 import toast from 'react-hot-toast';
@@ -53,11 +53,13 @@ const ItemFormModal = () => {
   const { register, control, handleSubmit, reset, setValue, formState: { errors } } = useForm({
     defaultValues: {
       nombre: '', codigo: '', tipo: '', categoria_id: '', unidad_id: '',
-      viscosidad: '', p_g: '', color: '', brillo_60: '', secado: '', 
+      viscosidad: '', p_g: '', color: '', brillo_60: '', secado: '',
       cubrimiento: '', molienda: '', ph: '', poder_tintoreo: '',
-      cantidad: 0, costo_unitario: 0, bodega_id: bodega_id, 
+      cantidad: 0, costo_unitario: 0, bodega_id: bodega_id,
       envase: 0, etiqueta: 0, plastico: 0,
-      formulaciones: [] 
+      precio_venta_manual: '', precio_manual_activo: false,
+      unidad_almacenaje_id: '',
+      formulaciones: []
     }
   });
 
@@ -80,13 +82,27 @@ const ItemFormModal = () => {
 
   const currentTab = tabsFiltrados.some(tab => tab.id === activeTab) ? activeTab : 'basico';
 
+  const unidadVentaId      = useWatch({ control, name: 'unidad_id' });
+  const unidadAlmacenajeId = useWatch({ control, name: 'unidad_almacenaje_id' });
+
   const opcionesUnidades = [
-    { value: '', label: 'SELECCIONE UNIDAD...' }, 
+    { value: '', label: 'SELECCIONE UNIDAD...' },
     ...(unidadesData?.map(u => ({
-      value: String(u.unidad_id || u.id_unidad), 
-      label: u.nombre
+      value: String(u.unidad_id || u.id_unidad),
+      label: u.nombre,
     })) || [])
   ];
+
+  // Factor de conversión: cuántas unidades de venta entran en 1 unidad de almacenaje
+  const getEscala = (id) => {
+    const u = unidadesData?.find(u => String(u.unidad_id || u.id_unidad) === String(id));
+    return u?.escala ?? null;
+  };
+  const escalaVenta      = getEscala(unidadVentaId);
+  const escalaAlmacenaje = getEscala(unidadAlmacenajeId);
+  const factorConversion = escalaVenta && escalaAlmacenaje
+    ? (escalaAlmacenaje / escalaVenta)
+    : null;
 
   // 5. Pre-llenar Datos
   useEffect(() => {
@@ -129,20 +145,24 @@ const ItemFormModal = () => {
         cantidad:       parseFloat(payload.cantidad)       || 0,
         costo_unitario: parseFloat(payload.costo_unitario) || 0,
         bodega_id:      bodega_id || 1,
-        envase:         parseFloat(formulacionItem.envase)   || 0,
-        etiqueta:       parseFloat(formulacionItem.etiqueta) || 0,
-        plastico:       parseFloat(formulacionItem.plastico) || 0,
-        formulaciones:  formulacionesMapeadas,
+        envase:               parseFloat(formulacionItem.envase)   || 0,
+        etiqueta:             parseFloat(formulacionItem.etiqueta) || 0,
+        plastico:             parseFloat(formulacionItem.plastico) || 0,
+        precio_venta_manual:  payload.precio_venta_manual != null ? String(payload.precio_venta_manual) : '',
+        precio_manual_activo: !!payload.precio_manual_activo,
+        unidad_almacenaje_id: String(payload.unidad_almacenaje_id || ''),
+        formulaciones:        formulacionesMapeadas,
       });
 
     } else {
       // ✅ MODO CREACIÓN: form limpio
       reset({
         nombre: '', codigo: '', tipo: '', categoria_id: '', unidad_id: '',
-        viscosidad: '', p_g: '', color: '', brillo_60: '', secado: '', 
+        viscosidad: '', p_g: '', color: '', brillo_60: '', secado: '',
         cubrimiento: '', molienda: '', ph: '', poder_tintoreo: '',
-        cantidad: 0, costo_unitario: 0, bodega_id: bodega_id, 
+        cantidad: 0, costo_unitario: 0, bodega_id: bodega_id,
         envase: 0, etiqueta: 0, plastico: 0,
+        precio_venta_manual: '', precio_manual_activo: false,
         formulaciones: []
       });
     }
@@ -180,10 +200,16 @@ const ItemFormModal = () => {
 
   const onSubmit = async (data) => {
     try {
+      const precioManualNum = data.precio_venta_manual
+        ? parseFloat(String(data.precio_venta_manual).replace(/\./g, '').replace(',', '.')) || null
+        : null;
+
       const payloadToSend = {
         ...data,
-        tipo:      data.tipo,
-        bodega_id: bodega_id,
+        tipo:                 data.tipo,
+        bodega_id:            bodega_id,
+        precio_venta_manual:  data.precio_manual_activo ? precioManualNum : null,
+        precio_manual_activo: data.precio_manual_activo ? 1 : 0,
         // ✅ Estructura exacta que espera el backend
         formulaciones: data.tipo !== '0' ? [] : (data.formulaciones || []).map(f => ({
           id:               f.id,
@@ -435,8 +461,40 @@ const ItemFormModal = () => {
     );
 
     return (
-      <div className="animate-in fade-in duration-500">
-        <div className="flex flex-col border-t border-l border-zinc-200 rounded-b-xl overflow-hidden shadow-sm">
+      <div className="animate-in fade-in duration-500 space-y-4 p-5">
+
+        {/* ── Unidad de Almacenaje ── */}
+        <div className="rounded-xl border border-zinc-200 overflow-hidden">
+          <div className="px-4 py-2.5 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-zinc-700 uppercase tracking-widest">
+                Unidad de Almacenaje
+              </p>
+              <p className="text-[10px] text-zinc-400 mt-0.5">Presentación en la que se almacena físicamente</p>
+            </div>
+            {factorConversion && (
+              <span className="text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1 rounded-full">
+                1 {unidadesData?.find(u => String(u.unidad_id || u.id_unidad) === String(unidadAlmacenajeId))?.nombre} = {factorConversion % 1 === 0 ? factorConversion : factorConversion.toFixed(3)} {unidadesData?.find(u => String(u.unidad_id || u.id_unidad) === String(unidadVentaId))?.nombre}
+              </span>
+            )}
+          </div>
+          <div className="px-4 py-3 bg-white">
+            <Controller
+              name="unidad_almacenaje_id"
+              control={control}
+              render={({ field }) => (
+                <FormSelect
+                  label="Unidad de Almacenaje"
+                  options={opcionesUnidades}
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col border border-zinc-200 rounded-xl overflow-hidden shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-4 bg-emerald-50/20 border-b border-zinc-200">
             <div className="md:col-span-4 p-4 flex items-center justify-between">
               <div className="flex flex-col flex-1">
@@ -460,6 +518,74 @@ const ItemFormModal = () => {
             <GridInputMoneda label="Costo de Plástico"              id="plastico"       control={control} />
           </div>
         </div>
+
+        {/* ── Precio Manual ── */}
+        <Controller
+          name="precio_manual_activo"
+          control={control}
+          render={({ field: toggleField }) => (
+            <div className="mt-4 rounded-xl border border-zinc-200 overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 bg-zinc-50 border-b border-zinc-200">
+                <div>
+                  <p className="text-xs font-semibold text-zinc-700 uppercase tracking-widest flex items-center gap-1.5">
+                    <Tag size={12} className="text-zinc-400" />
+                    Precio Manual
+                  </p>
+                  <p className="text-[10px] text-zinc-400 mt-0.5">
+                    Precio de venta fijo independiente del markup calculado
+                  </p>
+                </div>
+                {/* Toggle pill */}
+                <button
+                  type="button"
+                  onClick={() => toggleField.onChange(!toggleField.value)}
+                  className={`relative flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all duration-200 ${
+                    toggleField.value
+                      ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200'
+                      : 'bg-white border-zinc-300 text-zinc-400 hover:border-zinc-400'
+                  }`}
+                >
+                  <span className={`relative inline-block w-7 h-4 rounded-full transition-colors duration-200 ${toggleField.value ? 'bg-white/30' : 'bg-zinc-200'}`}>
+                    <span className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full shadow transition-transform duration-200 ${toggleField.value ? 'translate-x-3 bg-white' : 'bg-white'}`} />
+                  </span>
+                  <span className="leading-none">{toggleField.value ? 'Activo' : 'Inactivo'}</span>
+                </button>
+              </div>
+
+              {/* Input precio */}
+              <div className="px-4 py-3 bg-white">
+                {toggleField.value ? (
+                  <Controller
+                    name="precio_venta_manual"
+                    control={control}
+                    render={({ field }) => (
+                      <div>
+                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">
+                          Precio de Venta Manual
+                        </p>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-semibold text-zinc-500">$</span>
+                          <InputMoneda
+                            value={field.value}
+                            onChange={field.onChange}
+                            className="flex-1 text-sm font-bold text-zinc-900 border border-zinc-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-zinc-950 focus:border-transparent outline-none transition-all bg-zinc-50 focus:bg-white"
+                          />
+                        </div>
+                        <p className="text-[10px] text-zinc-400 mt-1">
+                          Este precio reemplazará el calculado al momento de la venta
+                        </p>
+                      </div>
+                    )}
+                  />
+                ) : (
+                  <p className="text-sm text-zinc-300 italic py-1">— Sin precio manual fijado —</p>
+                )}
+              </div>
+            </div>
+          )}
+        />
+
         <div className="mt-4 p-4 bg-zinc-900 flex items-center justify-between text-white shadow-lg">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">

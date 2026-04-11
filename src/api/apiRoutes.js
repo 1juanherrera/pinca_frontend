@@ -14,8 +14,9 @@ export const API_ROUTES = {
     INVENTARIO: (id) => `/bodegas/inventario/${id}`,
   },
   ITEMS: {
-    GENERAL: '/item_general',
-    DETAIL: (id) => `/item_general/${id}`,
+    GENERAL:        '/item_general',
+    DETAIL:         (id) => `/item_general/${id}`,
+    PRECIO_MANUAL:  (id) => `/item_general/${id}/precio-manual`,
   },
   // Rutas de Cartera y Pagos
   CARTERA: {

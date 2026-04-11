@@ -1,5 +1,6 @@
 import {
   Package,
+  Boxes,
   Bell,
   User,
   ChevronRight,
@@ -41,9 +42,22 @@ const Topbar = () => {
 
         <NavLink
           to="/materias-primas"
-          className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
+          title="Materias Primas"
+          className={({ isActive }) =>
+            `p-2 rounded-full transition-colors ${isActive ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'}`
+          }
         >
           <Package size={18} />
+        </NavLink>
+
+        <NavLink
+          to="/productos"
+          title="Productos"
+          className={({ isActive }) =>
+            `p-2 rounded-full transition-colors ${isActive ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'}`
+          }
+        >
+          <Boxes size={18} />
         </NavLink>
 
         <button
