@@ -103,6 +103,8 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
   const [bodegaSel,    setBodegaSel]    = useState(null);
   const [itemSearch,   setItemSearch]   = useState('');
   const [errors,       setErrors]       = useState({});
+  const [ivaActivo,    setIvaActivo]    = useState(() => Number(editData?.impuestos ?? 0) > 0);
+  const [ivaPct,       setIvaPct]       = useState(19);
 
   const [form, setForm] = useState({
     fecha_cotizacion:  editData?.fecha_cotizacion  ?? '',
@@ -182,8 +184,10 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
 
   const removeItem = (idx) => setItems((p) => p.filter((_, i) => i !== idx));
 
-  const subtotal = items.reduce((s, it) => s + (Number(it.subtotal) || 0), 0);
-  const total    = subtotal - Number(form.descuento) + Number(form.impuestos) - Number(form.retencion);
+  const subtotal  = items.reduce((s, it) => s + (Number(it.subtotal) || 0), 0);
+  const baseIva   = subtotal - Number(form.descuento);
+  const impuestos = ivaActivo ? Math.round(baseIva * ivaPct / 100) : Number(form.impuestos);
+  const total     = subtotal - Number(form.descuento) + impuestos - Number(form.retencion);
 
   const handleSubmit = async () => {
     const errs = {};
@@ -200,6 +204,7 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
       cliente_libre:     clienteMode === 'libre'  ? clienteLibre : null,
       fecha_vencimiento: form.fecha_vencimiento || null,
       observaciones:     form.observaciones     || null,
+      impuestos,
       subtotal,
       total,
       items: items.map((it) => ({
@@ -328,22 +333,52 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
             {/* Ajustes */}
             <fieldset className="space-y-2">
               <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wider pb-1">Ajustes</legend>
-              {[
-                ['descuento', 'Descuento ($)'],
-                ['impuestos', 'Impuestos ($)'],
-                ['retencion', 'Retención ($)'],
-              ].map(([k, l]) => (
-                <div key={k}>
-                  <label className="block text-xs text-gray-500 mb-1">{l}</label>
-                  <input
-                    type="number"
-                    value={form[k]}
-                    min="0"
-                    onChange={(e) => setField(k, e.target.value)}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right font-mono focus:outline-none focus:ring-2 focus:ring-gray-900"
-                  />
+
+              {/* Descuento */}
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Descuento ($)</label>
+                <input type="number" value={form.descuento} min="0" onChange={(e) => setField('descuento', e.target.value)}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right font-mono focus:outline-none focus:ring-2 focus:ring-gray-900" />
+              </div>
+
+              {/* IVA toggle */}
+              <div className="rounded-lg border border-gray-200 p-2.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-gray-600">IVA</label>
+                  <button
+                    type="button"
+                    onClick={() => setIvaActivo(v => !v)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${ivaActivo ? 'bg-blue-600' : 'bg-gray-200'}`}
+                  >
+                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${ivaActivo ? 'translate-x-4' : 'translate-x-1'}`} />
+                  </button>
                 </div>
-              ))}
+                {ivaActivo ? (
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-gray-500 shrink-0">%:</label>
+                    <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                      <input type="number" value={ivaPct} min="0" max="100"
+                        onChange={(e) => setIvaPct(Number(e.target.value))}
+                        className="w-14 text-sm px-2 py-1 text-right font-mono focus:outline-none" />
+                      <span className="px-2 text-xs text-gray-500 bg-gray-50 border-l border-gray-200 py-1">%</span>
+                    </div>
+                    <span className="text-xs text-blue-600 font-semibold font-mono ml-auto">{fmtCOP(impuestos)}</span>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Impuestos manuales ($)</label>
+                    <input type="number" value={form.impuestos} min="0" onChange={(e) => setField('impuestos', e.target.value)}
+                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right font-mono focus:outline-none focus:ring-2 focus:ring-gray-900" />
+                  </div>
+                )}
+              </div>
+
+              {/* Retención */}
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Retención ($)</label>
+                <input type="number" value={form.retencion} min="0" onChange={(e) => setField('retencion', e.target.value)}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right font-mono focus:outline-none focus:ring-2 focus:ring-gray-900" />
+              </div>
             </fieldset>
 
             {/* Resumen de totales */}
@@ -351,7 +386,7 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
               {[
                 ['Subtotal',  fmtCOP(subtotal),             'text-gray-700'],
                 ['Descuento', `- ${fmtCOP(form.descuento)}`, 'text-red-600' ],
-                ['Impuestos', fmtCOP(form.impuestos),        'text-gray-700'],
+                [`IVA${ivaActivo ? ` (${ivaPct}%)` : ''}`, fmtCOP(impuestos), 'text-gray-700'],
                 ['Retención', `- ${fmtCOP(form.retencion)}`, 'text-red-600' ],
               ].map(([label, val, cls]) => (
                 <div key={label} className="flex justify-between text-gray-500">

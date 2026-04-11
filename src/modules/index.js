@@ -6,6 +6,7 @@ export * from './Compras/ComprasPage';
 export * from './Formulaciones/FormulacionesPage';
 export * from './Inventario/InventarioPage';
 export * from './Login/Login';
+export { default as MateriasRimasPage } from './MateriasRimas/MateriasRimasPage';
 export * from './Movimientos/MovimientosPage';
 export * from './Pagos/PagosPage';
 export * from './Prorrateo/Prorreateo';

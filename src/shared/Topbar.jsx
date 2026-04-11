@@ -1,14 +1,13 @@
-import { 
-  Search, 
-  Bell, 
-  User, 
-  Sun, 
-  Moon, 
-  ChevronRight, 
+import {
+  Package,
+  Bell,
+  User,
+  ChevronRight,
   LayoutDashboard,
   Calculator
 } from 'lucide-react';
 import { useBoundStore } from '../store/useBoundStore';
+import { NavLink } from 'react-router';
 
 const Topbar = () => {
 
@@ -16,10 +15,10 @@ const Topbar = () => {
 
   return (
     <header className="h-16 px-6 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between text-zinc-400 shrink-0 w-full transition-colors duration-200">
-      
+
       {/* Título con Contexto y Jerarquía */}
       <div className="flex-1 flex items-center">
-        
+
         {/* Ícono dinámico de la sección */}
         <div className="hidden sm:flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-800/50 text-zinc-400 mr-3 border border-zinc-800">
           <LayoutDashboard size={16} />
@@ -39,7 +38,14 @@ const Topbar = () => {
 
       {/* Acciones del Usuario (Estilo Minimalista) */}
       <div className="flex items-center gap-2 sm:gap-4">
-        
+
+        <NavLink
+          to="/materias-primas"
+          className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
+        >
+          <Package size={18} />
+        </NavLink>
+
         <button
           className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
         >
@@ -50,9 +56,9 @@ const Topbar = () => {
           <Bell size={18} />
           <span className="absolute top-1.5 right-2 w-2 h-2 bg-yellow-500 rounded-full border border-zinc-950"></span>
         </button>
-        
+
         <div className="h-5 w-px bg-zinc-800 mx-1"></div>
-        
+
         <button className="flex items-center gap-3 hover:bg-zinc-800/80 p-1 pr-3 rounded-full border border-zinc-800/50 hover:border-zinc-700 transition-all text-left">
           <div className="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-300">
             <User size={16} />

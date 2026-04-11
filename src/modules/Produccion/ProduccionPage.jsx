@@ -7,6 +7,7 @@ import { ProduccionDetailModal } from './components/ProduccionDetailModal';
 import { ProduccionTable } from './components/ProduccionTable ';
 import HeaderSection from '../../shared/HeaderSection';
 import { ButtonSquare } from '../../shared/Button';
+import ExportProduccion from './components/ExportProduccion';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const applyFilters = (data, filters) => {
@@ -158,14 +159,11 @@ const ProduccionPage = () => {
 
       {/* ── Tabla ── */}
       <div className="bg-white border border-zinc-100 rounded-2xl shadow-sm overflow-hidden">
-
-          {filters.estado !== 'TODOS' && (
-            <span className="text-[10px] block font-bold py-3 px-4 text-zinc-400 uppercase tracking-widest">
-              Filtrado por: {filters.estado.replace('_', ' ')}
-            </span>
-          )}
-
-
+        {filters.estado !== 'TODOS' && (
+          <span className="text-[10px] block font-bold py-3 px-4 text-zinc-400 uppercase tracking-widest">
+            Filtrado por: {filters.estado.replace('_', ' ')}
+          </span>
+        )}
         <ProduccionTable
           data={sorted}
           isLoading={isLoadingByItem}
@@ -185,6 +183,8 @@ const ProduccionPage = () => {
         />
       )}
 
+      {/* ── Modal de exportación ── */}
+      <ExportProduccion />
     </div>
   );
 };

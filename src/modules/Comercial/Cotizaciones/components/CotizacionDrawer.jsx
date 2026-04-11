@@ -6,7 +6,7 @@
 
 import {
   ClipboardList, Building2, Calendar, DollarSign,
-  ArrowRight, RefreshCw, AlertCircle,
+  ArrowRight, RefreshCw, AlertCircle, Download,
 } from 'lucide-react';
 import { useCotizaciones } from '../api/useCotizaciones';
 import { useBoundStore } from '../../../../store/useBoundStore';
@@ -66,9 +66,19 @@ const CotizacionDrawer = ({ cotizacionId, isOpen, onClose, onCambiarEstado, onCo
               <p className="text-xs text-gray-500 mb-1">Estado actual</p>
               <StatusBadge estado={c.estado} />
             </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-500">Total cotización</p>
-              <p className="text-2xl font-bold text-gray-900 font-mono tabular-nums">{fmt(c.total)}</p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => openDrawer('EXPORT_MODAL_COTIZACIONES', c)}
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-zinc-600 border border-zinc-200 rounded-lg bg-white hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95"
+                title="Descargar PDF"
+              >
+                <Download className="w-3 h-3" />
+                PDF
+              </button>
+              <div className="text-right">
+                <p className="text-xs text-gray-500">Total cotización</p>
+                <p className="text-2xl font-bold text-gray-900 font-mono tabular-nums">{fmt(c.total)}</p>
+              </div>
             </div>
           </div>
 

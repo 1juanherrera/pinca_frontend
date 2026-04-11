@@ -3,7 +3,7 @@ import {
   X, Stamp, FlaskConical, TrendingUp, Package, ArrowRight, Layers,
   Cylinder, GlassWater, TestTube, Pipette, CheckCircle2, ChevronRight,
   Loader2, AlertCircle, ClipboardList, CalendarDays, StickyNote, Boxes,
-  Sparkles, Split
+  Sparkles, Split, Zap, ChevronDown, ChevronUp, Plus, Trash2
 } from 'lucide-react';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { formatCOP, parseCOP } from '../utils/handlers';
@@ -203,12 +203,131 @@ const MateriasPanel = ({ formulaciones, titulo }) => {
   );
 };
 
+// ─── Categorías de costos indirectos ─────────────────────────────────────────
+const CATS_CI = [
+  { value: 'servicios',     label: 'Servicios'     },
+  { value: 'mano_de_obra',  label: 'Mano de Obra'  },
+  { value: 'instalaciones', label: 'Instalaciones' },
+  { value: 'otros',         label: 'Otros'         },
+];
+
+const EMPTY_CI = { nombre: '', categoria: 'otros', valor_aplicado: '' };
+
+// ─── Selector/constructor de costos indirectos ────────────────────────────────
+const IndirectCostSelector = ({ selected, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(EMPTY_CI);
+
+  const agregar = () => {
+    if (!form.nombre.trim() || !form.valor_aplicado) return;
+    onChange([...selected, {
+      nombre:         form.nombre.trim(),
+      categoria:      form.categoria,
+      valor_aplicado: Number(form.valor_aplicado),
+      _key:           Date.now(),
+    }]);
+    setForm(EMPTY_CI);
+  };
+
+  const eliminar = (idx) => onChange(selected.filter((_, i) => i !== idx));
+
+  const total = selected.reduce((s, c) => s + Number(c.valor_aplicado), 0);
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center justify-between w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-600 hover:border-zinc-400 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Zap size={12} className="text-amber-500" />
+          <span>Costos Indirectos</span>
+          {selected.length > 0 && (
+            <span className="bg-amber-100 text-amber-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+              {selected.length}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {selected.length > 0 && (
+            <span className="text-[10px] font-mono font-bold text-amber-600">
+              +${total.toLocaleString('es-CO')}
+            </span>
+          )}
+          {open ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+        </div>
+      </button>
+
+      {open && (
+        <div className="border border-zinc-200 rounded-xl overflow-hidden">
+          {/* Lista de costos agregados */}
+          {selected.map((c, i) => (
+            <div key={c._key ?? i} className="flex items-center gap-2 px-3 py-2 bg-amber-50 border-b border-amber-100">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-zinc-800 truncate">{c.nombre}</p>
+                <p className="text-[9px] text-zinc-400 capitalize">{c.categoria.replace('_', ' ')}</p>
+              </div>
+              <span className="text-xs font-mono font-bold text-amber-700 shrink-0">
+                ${Number(c.valor_aplicado).toLocaleString('es-CO')}
+              </span>
+              <button type="button" onClick={() => eliminar(i)}
+                className="p-1 text-zinc-300 hover:text-red-500 transition-colors shrink-0">
+                <Trash2 size={11} />
+              </button>
+            </div>
+          ))}
+
+          {/* Formulario para agregar */}
+          <div className="p-3 bg-white flex flex-col gap-2">
+            <input
+              value={form.nombre}
+              onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))}
+              onKeyDown={e => e.key === 'Enter' && agregar()}
+              placeholder="Nombre del costo (ej: Energía, Arriendo…)"
+              className="w-full text-xs border border-zinc-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={form.categoria}
+                onChange={e => setForm(p => ({ ...p, categoria: e.target.value }))}
+                className="text-xs border border-zinc-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-zinc-900 bg-white"
+              >
+                {CATS_CI.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </select>
+              <div className="flex items-center border border-zinc-200 rounded-lg overflow-hidden focus-within:ring-1 focus-within:ring-zinc-900">
+                <span className="px-2 text-[10px] text-zinc-400 bg-zinc-50 border-r border-zinc-200 py-1.5">$</span>
+                <input
+                  type="number" min="0"
+                  value={form.valor_aplicado}
+                  onChange={e => setForm(p => ({ ...p, valor_aplicado: e.target.value }))}
+                  onKeyDown={e => e.key === 'Enter' && agregar()}
+                  placeholder="0"
+                  className="flex-1 px-2 py-1.5 text-xs font-mono focus:outline-none"
+                />
+              </div>
+            </div>
+            <button
+              type="button" onClick={agregar}
+              disabled={!form.nombre.trim() || !form.valor_aplicado}
+              className="flex items-center justify-center gap-1.5 w-full py-1.5 text-xs font-semibold bg-zinc-900 text-white rounded-lg hover:bg-zinc-700 disabled:opacity-40 transition-colors"
+            >
+              <Plus size={11} /> Agregar costo
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─── Sub-formulario: preparación única (sin residuo) ─────────────────────────
 const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onSuccess }) => {
-  const [observaciones, setObservaciones] = useState('');
-  const [fechaInicio,   setFechaInicio]   = useState('');
-  const [fechaFin,      setFechaFin]      = useState('');
-  const [error,         setError]         = useState(null);
+  const [observaciones,  setObservaciones]  = useState('');
+  const [fechaInicio,    setFechaInicio]    = useState('');
+  const [fechaFin,       setFechaFin]       = useState('');
+  const [error,          setError]          = useState(null);
+  const [selectedCostos, setSelectedCostos] = useState([]);
   const { createAsync, isCreating } = usePreparaciones(null, item?.id);
 
   const escala   = parseFloat(unidad.escala);
@@ -228,6 +347,11 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
         detalle: formulaciones.map(mp => ({
           item_general_id: mp.item_general_id,
           cantidad: parseFloat(mp.cantidad_recalculada ?? mp.cantidad ?? 0),
+        })),
+        costos_indirectos: selectedCostos.map(c => ({
+          nombre:         c.nombre,
+          categoria:      c.categoria,
+          valor_aplicado: c.valor_aplicado,
         })),
       });
       onSuccess([data]);
@@ -268,6 +392,7 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
             observaciones={observaciones} setObservaciones={setObservaciones}
             error={error}
           />
+          <IndirectCostSelector selected={selectedCostos} onChange={setSelectedCostos} />
         </div>
         <div className="px-5 py-4 border-t border-zinc-100 bg-zinc-50 shrink-0">
           <button
@@ -292,13 +417,14 @@ const CombinacionForm = ({
   unidadPrincipal, unidades, item, volumen, formulaciones = [],
   combinacionSugerida, onBack, onSuccess,
 }) => {
-  const [observaciones, setObservaciones] = useState('');
-  const [fechaInicio,   setFechaInicio]   = useState('');
-  const [fechaFin,      setFechaFin]      = useState('');
-  const [error,         setError]         = useState(null);
-  const [creando,       setCreando]       = useState(false);
-  const [modoSegunda,   setModoSegunda]   = useState('sugerida'); // 'sugerida' | 'manual'
-  const [segundaUnidad, setSegundaUnidad] = useState(null);
+  const [observaciones,  setObservaciones]  = useState('');
+  const [fechaInicio,    setFechaInicio]    = useState('');
+  const [fechaFin,       setFechaFin]       = useState('');
+  const [error,          setError]          = useState(null);
+  const [creando,        setCreando]        = useState(false);
+  const [modoSegunda,    setModoSegunda]    = useState('sugerida'); // 'sugerida' | 'manual'
+  const [segundaUnidad,  setSegundaUnidad]  = useState(null);
+  const [selectedCostos, setSelectedCostos] = useState([]);
 
   const { createAsync } = usePreparaciones(null, item?.id);
 
@@ -340,7 +466,8 @@ const CombinacionForm = ({
     setCreando(true);
     const creadas = [];
     try {
-      for (const orden of ordenesActivas) {
+      for (let idx = 0; idx < ordenesActivas.length; idx++) {
+        const orden = ordenesActivas[idx];
         const detalle = escalarFormulaciones(formulaciones, orden.volumenCubierto, volumen);
         const data = await createAsync({
           item_general_id: item?.id,
@@ -350,6 +477,11 @@ const CombinacionForm = ({
           fecha_fin:       fechaFin    || null,
           observaciones:   observaciones.trim() || null,
           detalle,
+          // Solo la primera orden lleva los costos indirectos (evitar duplicación)
+          costos_indirectos: idx === 0 ? selectedCostos.map(c => ({
+            costos_indirectos_id: c.costos_indirectos_id,
+            valor_aplicado:       c.valor_aplicado,
+          })) : [],
         });
         creadas.push(data);
       }
@@ -489,6 +621,7 @@ const CombinacionForm = ({
             observaciones={observaciones} setObservaciones={setObservaciones}
             error={error}
           />
+          <IndirectCostSelector selected={selectedCostos} onChange={setSelectedCostos} />
         </div>
 
         <div className="px-5 py-4 border-t border-zinc-100 bg-zinc-50 shrink-0">

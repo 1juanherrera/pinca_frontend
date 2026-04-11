@@ -29,24 +29,26 @@ const ClienteForm = () => {
   useEffect(() => {
     if (isDrawerOpen) {
       if (payload) {
-        // MODO EDITAR
         reset({
           nombre_encargado: payload.nombre_encargado || '',
           nombre_empresa:   payload.nombre_empresa   || '',
           numero_documento: payload.numero_documento || '',
           direccion:        payload.direccion        || '',
+          ciudad:           payload.ciudad           || '',
+          plazo_pago:       String(payload.plazo_pago ?? '30'),
           telefono:         payload.telefono         || '',
           email:            payload.email            || '',
-          tipo:             payload.tipo             || '2',
-          estado:           payload.estado           || '1',
+          tipo:             String(payload.tipo)     || '2',
+          estado:           String(payload.estado)   || '1',
         });
       } else {
-        // MODO CREAR
         reset({
           nombre_encargado: '',
           nombre_empresa:   '',
           numero_documento: '',
           direccion:        '',
+          ciudad:           '',
+          plazo_pago:       '30',
           telefono:         '',
           email:            '',
           tipo:             '2',
@@ -128,7 +130,8 @@ const ClienteForm = () => {
                 label="Tipo de Cliente"
                 options={[
                   { value: '2', label: 'Empresa' },
-                  { value: '1', label: 'Particular' },
+                  { value: '1', label: 'Personal' },
+                  { value: '3', label: 'Ferretería' },
                 ]}
                 value={field.value}
                 onChange={field.onChange}
@@ -204,11 +207,39 @@ const ClienteForm = () => {
           />
         </div>
 
-        <FormInput
-          label="Dirección"
-          placeholder="Calle, ciudad"
-          error={errors.direccion?.message}
-          registration={register('direccion')}
+        <div className="grid grid-cols-2 gap-4">
+          <FormInput
+            label="Dirección"
+            placeholder="Calle 99 # 6-59"
+            error={errors.direccion?.message}
+            registration={register('direccion')}
+          />
+          <FormInput
+            label="Ciudad"
+            placeholder="Barranquilla"
+            error={errors.ciudad?.message}
+            registration={register('ciudad')}
+          />
+        </div>
+
+        <Controller
+          name="plazo_pago"
+          control={control}
+          render={({ field }) => (
+            <FormSelect
+              label="Plazo de pago"
+              options={[
+                { value: '0',  label: 'Contado (0 días)' },
+                { value: '15', label: '15 días' },
+                { value: '30', label: '30 días' },
+                { value: '60', label: '60 días' },
+                { value: '90', label: '90 días' },
+              ]}
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.plazo_pago?.message}
+            />
+          )}
         />
 
       </form>

@@ -6,6 +6,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { carteraKeys } from './carteraKeys';
 import { facturaKeys } from '../../Comercial/Facturacion/api/facturaKeys';
 import toast from 'react-hot-toast';
@@ -16,7 +17,7 @@ import toast from 'react-hot-toast';
 export const useResumenCartera = () => {
   const query = useQuery({
     queryKey: carteraKeys.resumen(),
-    queryFn:  () => apiClient.get('/cartera/resumen'),
+    queryFn:  () => apiClient.get(API_ROUTES.CARTERA.RESUMEN),
   });
 
   return {
@@ -77,10 +78,20 @@ export const usePagos = () => {
   const queryClient = useQueryClient();
 
   const registrarMutation = useMutation({
-    mutationFn: (payload) => apiClient.post('/pagos_cliente', payload),
+    mutationFn: (payload) => {
+      console.log('Enviando datos de pago:', payload); // Debug
+      return apiClient.post(API_ROUTES.PAGOS.CREATE, payload);
+    },
 
     onSuccess: (response, variables) => {
-      const nuevoPago = response?.data ?? { ...variables, id_pagos_cliente: Date.now() };
+      console.log('Respuesta exitosa:', response); // Debug
+      
+      // Asegurar que la respuesta tenga el formato correcto
+      const nuevoPago = response?.data || response || { 
+        ...variables, 
+        id_pagos_cliente: Date.now(),
+        fecha_registro: new Date().toISOString()
+      };
 
       // Update optimista historial cliente
       if (variables.clientes_id) {
@@ -115,7 +126,15 @@ export const usePagos = () => {
       }
     },
 
-    onError: (err) => toast.error(err?.message ?? 'Error al registrar el pago'),
+    onError: (err) => {
+      console.error('Error en registrar pago:', err); // Debug
+      console.error('Respuesta del servidor:', err.response?.data); // Debug
+      
+      const errorMessage = err?.response?.data?.message || 
+                          err?.message || 
+                          'Error al registrar el pago';
+      toast.error(errorMessage);
+    }
   });
 
   const eliminarMutation = useMutation({

@@ -41,6 +41,25 @@ const inputCls = (error) =>
 const RegistrarPagoContent = ({ factura, onClose }) => {
   const hoy = new Date().toISOString().split('T')[0];
 
+  // Verificar que la factura tenga los campos necesarios
+  if (!factura?.id_facturas) {
+    console.error('Factura inválida:', factura);
+    return (
+      <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px] flex items-center justify-center">
+        <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+          <h3 className="text-lg font-bold text-red-600 mb-2">Error</h3>
+          <p className="text-gray-600 mb-4">La factura seleccionada no tiene un ID válido.</p>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const [form, setForm]     = useState({
     monto:             '',
     tipo:              'abono',
@@ -68,14 +87,23 @@ const RegistrarPagoContent = ({ factura, onClose }) => {
   };
 
   const handleSubmit = async () => {
+    console.log('Iniciando registro de pago...'); // Debug
+    
     const { valid, errors: errs } = validarPago({
       ...form,
       facturas_id:     factura.id_facturas,
       saldo_pendiente: saldo,
     });
-    if (!valid) { setErrors(errs); return; }
+    
+    console.log('Resultado validación:', { valid, errors: errs }); // Debug
+    
+    if (!valid) { 
+      setErrors(errs); 
+      console.log('Errores de validación:', errs); // Debug
+      return; 
+    }
 
-    await registrarPagoAsync({
+    const payload = {
       facturas_id:       factura.id_facturas,
       clientes_id:       factura.cliente_id,
       monto:             Number(form.monto),
@@ -84,9 +112,23 @@ const RegistrarPagoContent = ({ factura, onClose }) => {
       numero_referencia: form.numero_referencia || null,
       observaciones:     form.observaciones     || null,
       fecha_pago:        form.fecha_pago,
-    });
+    };
 
-    onClose();
+    console.log('Payload enviado:', payload); // Debug
+
+    try {
+      await registrarPagoAsync(payload);
+      console.log('Pago registrado exitosamente'); // Debug
+      onClose();
+    } catch (error) {
+      console.error('Error al registrar pago:', error); // Debug
+      
+      // Mostrar errores específicos si el servidor los devuelve
+      if (error?.response?.data?.errors) {
+        const serverErrors = error.response.data.errors;
+        setErrors(serverErrors);
+      }
+    }
   };
 
   return (

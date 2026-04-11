@@ -13,9 +13,10 @@ import ComercialPage from "./modules/Comercial/ComercialPage";
 import ComprasPage from "./modules/Compras/ComprasPage";
 import ProveedoresPage from "./modules/Proveedores/ProveedoresPage";
 import CarteraPage from "./modules/Cartera/CarteraPage";
-
 import { Login } from "./modules/Login/Login";
 import MovimientosPage from "./modules/Movimientos/MovimientosPage";
+import RentabilidadPage from "./modules/Rentabilidad/RentabilidadPage";
+import MateriasRimasPage from "./modules/MateriasRimas/MateriasRimasPage";
 
 const App = () => {
   return (
@@ -30,7 +31,8 @@ const App = () => {
           <Route path="/produccion" element={<ProduccionPage />} />
           <Route path="/clientes" element={<ClientePage />} />
           <Route path="/prorrateo" element={<Prorrateo />} />
-          
+          <Route path="/materias-primas" element={<MateriasRimasPage />} />
+
           {/* Nuevas Rutas */}
           <Route path="/pagos" element={<PagosPage />} />
           <Route path="/cartera" element={<CarteraPage />} />
@@ -38,6 +40,7 @@ const App = () => {
           <Route path="/compras" element={<ComprasPage />} />
           <Route path="/proveedores" element={<ProveedoresPage />} />
           <Route path="/movimientos" element={<MovimientosPage />} />
+          <Route path="/rentabilidad" element={<RentabilidadPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -44,11 +44,12 @@ const DataTable = () => {
   const inventario = items?.inventario || [];
   const pagination = items?.pagination || { totalPages: 1, totalItems: 0 };
 
-  const getNombre    = (item) => item.nombre || item.nombre_item_general || '-';
-  const getCodigo    = (item) => item.codigo || item.codigo_item_general || '-';
-  const getId        = (item) => item.id_item_general || item.id || '-';
-  const getPrecio    = (item) => item?.precio_venta || '0';
-  const getCostoGalon = (item) => item?.costo_mp_galon || '0';
+  const getNombre      = (item) => item.nombre || item.nombre_item_general || '-';
+  const getCodigo      = (item) => item.codigo || item.codigo_item_general || '-';
+  const getId          = (item) => item.id_item_general || item.id || '-';
+  const getPrecio      = (item) => item?.precio_venta    || '0';
+  const getCostoUnit   = (item) => item?.costo_unitario  ?? '0';
+  const getCostoGalon  = (item) => item?.costo_mp_galon  || '0';
 
   const handleSearchChange = (value) => { setSearchTerm(value); setCurrentPage(1); };
   const handleTipoChange   = (value) => { setTipoFilter(value); setCurrentPage(1); };
@@ -76,8 +77,8 @@ const DataTable = () => {
                   <th className="px-3 py-2 text-center">CANTIDAD</th>
                   <th className="px-3 py-2 text-center">TIPO</th>
                   <th className="px-3 py-2 text-center">UNIDAD</th>
-                  <th className="px-3 py-2 text-right">COSTO</th>
-                  <th className="px-3 py-2 text-right">PRECIO</th>
+                  <th className="px-3 py-2 text-right">COSTO UNIT.</th>
+                  <th className="px-3 py-2 text-right">PRECIO VENTA</th>
                   <th className="px-3 py-2 text-center">ACCIONES</th>
                 </tr>
               </thead>
@@ -107,7 +108,7 @@ const DataTable = () => {
                       </td>
 
                       <td className="px-3 py-1 font-semibold text-center uppercase text-zinc-900 text-xs">{item.unidad || '-'}</td>
-                      <td className="px-3 py-1 text-right font-medium text-xs text-zinc-700">{formatoPesoColombiano(getCostoGalon(item))}</td>
+                      <td className="px-3 py-1 text-right font-medium text-xs text-zinc-700">{formatoPesoColombiano(getCostoUnit(item))}</td>
                       <td className="px-3 py-1 text-right font-medium text-xs text-emerald-600">{formatoPesoColombiano(getPrecio(item))}</td>
 
                       <td className="px-3 py-1">

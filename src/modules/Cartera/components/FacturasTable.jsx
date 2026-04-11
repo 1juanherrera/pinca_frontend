@@ -20,10 +20,19 @@ const STATUS_OPTIONS = [
   { value: 'Parcial',   label: 'Parcial',   dot: 'bg-blue-400'    },
 ];
 
+const SECTOR_LABEL = { '1': 'Personal', '2': 'Empresa', '3': 'Ferretería' };
+
+const SECTOR_OPTIONS = [
+  { value: '',  label: 'Todos los sectores' },
+  { value: '2', label: 'Empresas'    },
+  { value: '3', label: 'Ferreterías' },
+  { value: '1', label: 'Personales'  },
+];
+
 const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, onEstadoCuenta }) => {
   const { facturas, isLoadingFacturas } = useFactura();
   const [search,  setSearch]  = useState('');
-  const [filters, setFilters] = useState({ estado: '' });
+  const [filters, setFilters] = useState({ estado: '', sector: '' });
 
   const metrics = useMemo(() => {
     const list = Array.isArray(facturas) ? facturas : [];
@@ -46,10 +55,12 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
         !q ||
         f.numero?.toLowerCase().includes(q) ||
         f.nombre_empresa?.toLowerCase().includes(q) ||
-        f.nombre_encargado?.toLowerCase().includes(q);
+        f.nombre_encargado?.toLowerCase().includes(q) ||
+        f.ciudad?.toLowerCase().includes(q);
       const estadoEfectivo = getEstadoEfectivo(f);
-      const matchEstado = !filters.estado || estadoEfectivo === filters.estado;
-      return matchSearch && matchEstado;
+      const matchEstado  = !filters.estado || estadoEfectivo === filters.estado;
+      const matchSector  = !filters.sector || String(f.cliente_tipo) === filters.sector;
+      return matchSearch && matchEstado && matchSector;
     });
   }, [facturas, search, filters]);
 
@@ -73,7 +84,8 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
             {row.nombre_empresa || row.nombre_encargado || `#${row.cliente_id}`}
           </p>
           <p className="text-[10px] text-zinc-400 mt-0.5 truncate">
-            {row.nombre_empresa ? 'Empresa' : 'Particular'}
+            {SECTOR_LABEL[String(row.cliente_tipo)] ?? 'Cliente'}
+            {row.ciudad ? ` · ${row.ciudad}` : ''}
           </p>
         </div>
       ),
@@ -206,15 +218,33 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
         />
       </div>
 
-      <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm">
-        <SearchFilterBar
-          search={search}
-          onSearch={setSearch}
-          placeholder="Buscar por número o cliente..."
-          values={filters}
-          onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
-          statusOptions={STATUS_OPTIONS}
-        />
+      <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm flex flex-wrap items-end gap-3">
+        <div className="flex-1 min-w-48">
+          <SearchFilterBar
+            search={search}
+            onSearch={setSearch}
+            placeholder="Buscar por número, cliente o ciudad..."
+            values={filters}
+            onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+            statusOptions={STATUS_OPTIONS}
+          />
+        </div>
+        {/* Filtro de sector */}
+        <div className="flex items-center gap-2 shrink-0">
+          {SECTOR_OPTIONS.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setFilters((p) => ({ ...p, sector: value }))}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                filters.sector === value
+                  ? 'bg-zinc-900 text-white border-zinc-900'
+                  : 'bg-white text-zinc-500 border-zinc-200 hover:border-zinc-400'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <ERPTable
