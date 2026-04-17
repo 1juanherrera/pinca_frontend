@@ -18,6 +18,7 @@ import MovimientosPage from "./modules/Movimientos/MovimientosPage";
 import RentabilidadPage from "./modules/Rentabilidad/RentabilidadPage";
 import MateriasPrimasPage from "./modules/MateriasPrimas/MateriasPrimasPage";
 import ProductosPage from "./modules/Productos/ProductosPage";
+import TamboresPage from "./modules/Tambores/TamboresPage";
 
 const App = () => {
   return (
@@ -43,6 +44,7 @@ const App = () => {
           <Route path="/proveedores" element={<ProveedoresPage />} />
           <Route path="/movimientos" element={<MovimientosPage />} />
           <Route path="/rentabilidad" element={<RentabilidadPage />} />
+          <Route path="/tambores" element={<TamboresPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

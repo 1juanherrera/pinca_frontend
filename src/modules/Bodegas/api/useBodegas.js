@@ -32,7 +32,7 @@ export const useBodegas = (id = null) => {
           
           // Asumimos que tu API devuelve el registro creado en 'response.data'
           // Si no, usamos 'variables' como respaldo temporal
-          const nuevaBodega = response?.data || { ...variables, id_bodegas: Date.now() };
+          const nuevaBodega = { ...variables, id_bodegas: response?.id };
 
           return {
             ...oldData,

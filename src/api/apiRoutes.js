@@ -40,6 +40,12 @@ export const API_ROUTES = {
     CREATE: '/notas_credito',
     ANULAR: (id) => `/notas_credito/${id}/anular`,
   },
+  TAMBORES: {
+    LIST: '/tambores',
+    DETAIL: (id) => `/tambores/${id}`,
+    DISPONIBLES: '/tambores/disponibles',
+    CONSUMIR: (id) => `/tambores/${id}/consumir`,
+  },
   FORMULACIONES: '/formulaciones',
   PROVEEDORES: '/proveedores',
   CLIENTES: '/clientes',
