@@ -1,14 +1,14 @@
-import { FlaskConical, Layers, Package, Puzzle, Search } from "lucide-react";
+import { AlertCircle, FlaskConical, Layers, Package, Puzzle, Search } from "lucide-react";
 import React from "react";
 
-export const NavTabs = ({ searchTerm, setSearchTerm, tipoFilter, setTipoFilter, isFetching, Page }) => {
-  
-  // Definimos las categorías para mapearlas limpiamente
+export const NavTabs = ({ searchTerm, setSearchTerm, tipoFilter, setTipoFilter, isFetching, Page, pendientesCount = 0 }) => {
+
   const tipos = [
-    { id: '', label: 'TODOS', icon: <Layers size={16} /> },
-    { id: '0', label: 'PRODUCTOS', icon: <Package size={16} /> },
-    { id: '1', label: 'MATERIA PRIMA', icon: <FlaskConical size={16} /> },
-    { id: '2', label: 'INSUMOS', icon: <Puzzle size={16} /> },
+    { id: '',           label: 'TODOS',        icon: <Layers size={16} /> },
+    { id: '0',          label: 'PRODUCTOS',    icon: <Package size={16} /> },
+    { id: '1',          label: 'MATERIA PRIMA',icon: <FlaskConical size={16} /> },
+    { id: '2',          label: 'INSUMOS',      icon: <Puzzle size={16} /> },
+    { id: 'pendientes', label: 'PENDIENTES',   icon: <AlertCircle size={16} />, badge: pendientesCount },
   ];
 
   return (
@@ -17,18 +17,28 @@ export const NavTabs = ({ searchTerm, setSearchTerm, tipoFilter, setTipoFilter, 
         {tipos.map((tipo) => (
           <button
             key={tipo.id}
-            onClick={() => setTipoFilter(tipo.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap
-              ${tipoFilter === tipo.id 
-                ? 'bg-zinc-900 text-white shadow-sm' 
-                : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+            onClick={() => { setTipoFilter(tipo.id); Page(1); }}
+            className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap
+              ${tipoFilter === tipo.id
+                ? tipo.id === 'pendientes'
+                  ? 'bg-amber-500 text-white shadow-sm'
+                  : 'bg-zinc-900 text-white shadow-sm'
+                : tipo.id === 'pendientes' && tipo.badge > 0
+                  ? 'text-amber-600 hover:bg-amber-50'
+                  : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
           >
-            {/* El icono cambia de color si está activo */}
-            {React.cloneElement(tipo.icon, { 
-              className: tipoFilter === tipo.id ? 'text-white' : 'text-zinc-500' 
+            {React.cloneElement(tipo.icon, {
+              className: tipoFilter === tipo.id ? 'text-white' : tipo.id === 'pendientes' && tipo.badge > 0 ? 'text-amber-500' : 'text-zinc-500'
             })}
             {tipo.label}
+            {tipo.badge > 0 && (
+              <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black ${
+                tipoFilter === tipo.id ? 'bg-white/30 text-white' : 'bg-amber-500 text-white'
+              }`}>
+                {tipo.badge}
+              </span>
+            )}
           </button>
         ))}
       </div>

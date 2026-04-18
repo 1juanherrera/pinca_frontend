@@ -1,15 +1,21 @@
-import { 
-  Edit, 
-  Trash2, 
+import {
+  Edit,
+  Trash2,
   ArrowRightLeft,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FlaskConical,
+  Info,
+  Pencil,
+  Check,
+  X as XIcon,
 } from 'lucide-react';
+import TamboresItemModal from './TamboresItemModal';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { NavTabs } from './NavTabs';
 import { handleType } from '../utils/handlers';
 import { formatoPesoColombiano } from '../../../utils/formatters';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { SkeletonRow } from '../../../shared/Skeletons';
 import { useInventario } from '../api/useInventario';
 import ConfirmModal from '../../../shared/ConfirmModal';
@@ -24,13 +30,18 @@ const DataTable = () => {
   const [perPage,     setPerPage]     = useState(10);
   const [searchTerm,  setSearchTerm]  = useState('');
   const [tipoFilter,  setTipoFilter]  = useState('');
-  const [itemTraspaso, setItemTraspaso] = useState(null); // ← item seleccionado para traspaso
+  const [itemTraspaso,  setItemTraspaso]  = useState(null);
+  const [itemDetalle,   setItemDetalle]   = useState(null);
+  const [editingCantidad, setEditingCantidad] = useState(null); // id_inventario en edición
+  const [editVal,         setEditVal]         = useState('');
+  const editInputRef = useRef(null);
 
   const id_bodega   = useBoundStore(state => state.activeBodegaId); // ← lista global de bodegas
   const openConfirm = useBoundStore(state => state.openConfirm);
   const openDrawer  = useBoundStore(state => state.openDrawer);
 
-  const { isLoadingItems, items, isFetching, traspasoAsync, isTrashing, removeFromBodegaAsync } = useInventario(
+  const { isLoadingItems, items, isFetching, traspasoAsync, isTrashing,
+          removeFromBodegaAsync, patchCantidadAsync, pendientesCount } = useInventario(
     id_bodega,
     currentPage,
     perPage,
@@ -64,6 +75,21 @@ const DataTable = () => {
   const handleSearchChange = (value) => { setSearchTerm(value); setCurrentPage(1); };
   const handleTipoChange   = (value) => { setTipoFilter(value); setCurrentPage(1); };
 
+  const startEditCantidad = (item) => {
+    setEditingCantidad(item.id_inventario);
+    setEditVal(item.cantidad ?? '');
+    setTimeout(() => editInputRef.current?.select(), 30);
+  };
+
+  const cancelEdit = () => { setEditingCantidad(null); setEditVal(''); };
+
+  const confirmEdit = async (item) => {
+    const val = parseFloat(editVal);
+    if (isNaN(val) || val < 0) { cancelEdit(); return; }
+    await patchCantidadAsync({ inventarioId: item.id_inventario, cantidad: val });
+    cancelEdit();
+  };
+
   return (
     <>
       <NavTabs
@@ -73,8 +99,9 @@ const DataTable = () => {
         setTipoFilter={handleTipoChange}
         Page={setCurrentPage}
         isFetching={isFetching}
+        pendientesCount={pendientesCount}
       />
-      <div className="flex flex-col gap-3 w-full mt-2">
+      <div className="flex flex-col gap-3 w-full">
         <div className="bg-white border border-zinc-200/80 rounded-xl shadow-sm w-full overflow-hidden">
 
           <div className="overflow-x-auto">
@@ -107,7 +134,41 @@ const DataTable = () => {
                       <td className="px-3 py-1 text-center text-xs font-medium text-zinc-500">{getId(item)}</td>
                       <td className="px-3 py-1"><span className="text-xs font-mono text-zinc-500 font-bold">{getCodigo(item)}</span></td>
                       <td className="px-3 py-1 font-semibold uppercase text-zinc-900 text-xs">{getNombre(item)}</td>
-                      <td className="px-3 py-1 text-center text-xs font-bold text-zinc-700">{item.cantidad}</td>
+                      <td className="px-3 py-1 text-center">
+                        {editingCantidad === item.id_inventario ? (
+                          <div className="flex items-center justify-center gap-1">
+                            <input
+                              ref={editInputRef}
+                              type="number" min="0" step="1"
+                              value={editVal}
+                              onChange={e => setEditVal(e.target.value)}
+                              onKeyDown={e => { if (e.key === 'Enter') confirmEdit(item); if (e.key === 'Escape') cancelEdit(); }}
+                              className="w-16 text-center text-xs font-bold border border-amber-400 rounded-lg px-1 py-1 focus:outline-none focus:ring-1 focus:ring-amber-400 bg-white"
+                            />
+                            <button onClick={() => confirmEdit(item)} className="w-5 h-5 flex items-center justify-center rounded text-emerald-600 hover:bg-emerald-50 transition-all">
+                              <Check size={11} />
+                            </button>
+                            <button onClick={cancelEdit} className="w-5 h-5 flex items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 transition-all">
+                              <XIcon size={11} />
+                            </button>
+                          </div>
+                        ) : item.cantidad === null || item.cantidad === undefined ? (
+                          <button
+                            onClick={() => startEditCantidad(item)}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-dashed border-amber-300 bg-amber-50 text-amber-600 text-[10px] font-semibold hover:bg-amber-100 transition-all group"
+                          >
+                            <Pencil size={9} className="group-hover:scale-110 transition-transform" />
+                            Pendiente
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => startEditCantidad(item)}
+                            className="text-xs font-bold text-zinc-700 hover:text-amber-600 transition-colors group"
+                          >
+                            {item.cantidad}
+                          </button>
+                        )}
+                      </td>
 
                       <td className="px-3 py-1 text-center">
                         {(() => {
@@ -177,6 +238,13 @@ const DataTable = () => {
                             className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all active:scale-95"
                           >
                             <ArrowRightLeft size={12} />
+                          </button>
+                          <button
+                            onClick={() => setItemDetalle(item)}
+                            title="Ver tambores"
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all active:scale-95"
+                          >
+                            <Info size={12} />
                           </button>
                         </div>
                       </td>
@@ -277,6 +345,14 @@ const DataTable = () => {
         tipoFilter={tipoFilter}
         searchTerm={searchTerm}
       />
+
+      {itemDetalle && (
+        <TamboresItemModal
+          item={itemDetalle}
+          bodegaId={id_bodega}
+          onClose={() => setItemDetalle(null)}
+        />
+      )}
 
       {/* TraspasoModal — se monta solo cuando hay un item seleccionado */}
       {itemTraspaso && (

@@ -25,6 +25,5 @@ export const sidebarMenu = [
 
   { link: 'clientes', label: 'Clientes', icon: Users },
   { link: 'proveedores', label: 'Proveedores', icon: Truck },
-  { link: 'movimientos', label: 'Movimientos', icon: ArrowDownUp },
-  { link: 'tambores',   label: 'Tambores',    icon: Cylinder },
+  { link: 'movimientos', label: 'Movimientos', icon: ArrowDownUp }
 ]

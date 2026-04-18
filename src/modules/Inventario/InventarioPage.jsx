@@ -1,13 +1,15 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import DataTable from "./Components/DataTable"
-import { 
-  RefreshCw, 
+import ConteoRapidoModal from "./Components/ConteoRapidoModal";
+import {
+  RefreshCw,
   Plus,
   Filter,
   Download,
   Store,
   FileCog,
-  FlaskConical
+  FlaskConical,
+  ClipboardList
 } from 'lucide-react';
 import { Button, ButtonSquare } from "../../shared/Button";
 import { useParams } from "react-router";
@@ -20,8 +22,9 @@ const InventarioPage = () => {
 
     const { id_bodega } = useParams();
     const { setBodega, clearBodega, sedeName, openDrawer } = useBoundStore();
-    const { isLoadingItems, items, refresh } = useInventario(id_bodega);
+    const { isLoadingItems, items, refresh, pendientesCount } = useInventario(id_bodega);
     const openModal = useBoundStore(state => state.openModal);
+    const [conteoOpen, setConteoOpen] = useState(false);
 
     useEffect(() => {
         setBodega(id_bodega);
@@ -81,6 +84,20 @@ const InventarioPage = () => {
                             variant="emerald"
                             onClick={() => openModal('EXPORT_EXCEL')}
                         />
+                        <div className="relative">
+                          <ButtonSquare
+                            icon={ClipboardList}
+                            sizeIcon={18}
+                            title="Conteo rápido — completar cantidades pendientes"
+                            variant="amber"
+                            onClick={() => setConteoOpen(true)}
+                          />
+                          {pendientesCount > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black px-1 pointer-events-none">
+                              {pendientesCount}
+                            </span>
+                          )}
+                        </div>
 
                         <ButtonSquare
                             icon={FlaskConical}
@@ -101,6 +118,7 @@ const InventarioPage = () => {
 
             <DataTable />
             <ItemFormModal />
+            {conteoOpen && <ConteoRapidoModal onClose={() => setConteoOpen(false)} />}
         </div>
     )
 }
