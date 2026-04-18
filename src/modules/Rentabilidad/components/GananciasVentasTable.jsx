@@ -5,19 +5,19 @@ import { fmt } from '../../../utils/formatters';
 
 const columns = [
   {
-    key: 'numero_factura',
+    key: 'numero',
     label: 'Factura',
     render: (v) => (
-      <span className="font-mono text-xs font-bold text-zinc-400">{v}</span>
+      <span className=" text-xs font-bold text-zinc-400">{v}</span>
     ),
   },
   {
-    key: 'cliente_nombre',
+    key: 'nombre_empresa',
     label: 'Cliente',
     render: (v, row) => (
       <div>
-        <p className="text-xs font-semibold text-zinc-800 truncate uppercase">{v}</p>
-        <p className="text-[10px] text-zinc-400">{row.fecha ? new Date(row.fecha + 'T00:00:00').toLocaleDateString('es-CO') : '—'}</p>
+        <p className="text-xs font-semibold text-zinc-800 truncate uppercase">{v || row.nombre_encargado}</p>
+        <p className="text-[10px] text-zinc-400">{row.fecha_emision ? new Date(row.fecha_emision + 'T00:00:00').toLocaleDateString('es-CO') : '—'}</p>
       </div>
     ),
   },
@@ -26,7 +26,7 @@ const columns = [
     label: 'Ventas',
     align: 'right',
     render: (v) => (
-      <span className="text-xs font-mono tabular-nums text-green-700 font-semibold">{fmt(v)}</span>
+      <span className="text-xs  tabular-nums text-green-700 font-semibold">{fmt(v)}</span>
     ),
   },
   {
@@ -34,7 +34,7 @@ const columns = [
     label: 'Costos',
     align: 'right',
     render: (v) => (
-      <span className="text-xs font-mono tabular-nums text-red-600">{fmt(v ?? 0)}</span>
+      <span className="text-xs  tabular-nums text-red-600">{fmt(v ?? 0)}</span>
     ),
   },
   {
@@ -45,7 +45,7 @@ const columns = [
       const utilidad = (row.total ?? 0) - (row.costo_total ?? 0);
       const isPositive = utilidad >= 0;
       return (
-        <span className={`text-xs font-mono tabular-nums font-semibold ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+        <span className={`text-xs  tabular-nums font-semibold ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {fmt(utilidad)}
         </span>
       );
@@ -61,7 +61,7 @@ const columns = [
       const margen = total > 0 ? ((total - costo) / total * 100) : 0;
       const isPositive = margen >= 0;
       return (
-        <span className={`text-xs font-mono tabular-nums font-bold ${isPositive ? 'text-emerald-700' : 'text-red-700'}`}>
+        <span className={`text-xs  tabular-nums font-bold ${isPositive ? 'text-emerald-700' : 'text-red-700'}`}>
           {margen.toFixed(1)}%
         </span>
       );
@@ -102,21 +102,21 @@ const GananciasVentasTable = ({ ventas, isLoading }) => {
           <div className="flex items-center gap-8">
             <div className="text-right">
               <p className="text-zinc-400 font-normal text-[10px]">Total Ventas</p>
-              <p className="font-mono tabular-nums text-green-300">{fmt(totales.totalVentas)}</p>
+              <p className=" tabular-nums text-green-300">{fmt(totales.totalVentas)}</p>
             </div>
             <div className="text-right">
               <p className="text-zinc-400 font-normal text-[10px]">Total Costos</p>
-              <p className="font-mono tabular-nums text-red-300">{fmt(totales.totalCostos)}</p>
+              <p className=" tabular-nums text-red-300">{fmt(totales.totalCostos)}</p>
             </div>
             <div className="text-right">
               <p className="text-zinc-400 font-normal text-[10px]">Utilidad Bruta</p>
-              <p className={`font-mono tabular-nums text-base ${totales.utilidadBruta >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+              <p className={` tabular-nums text-base ${totales.utilidadBruta >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
                 {fmt(totales.utilidadBruta)}
               </p>
             </div>
             <div className="text-right">
               <p className="text-zinc-400 font-normal text-[10px]">Margen Promedio</p>
-              <p className={`font-mono tabular-nums text-sm ${totales.margenPromedio >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+              <p className={` tabular-nums text-sm ${totales.margenPromedio >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
                 {totales.margenPromedio.toFixed(1)}%
               </p>
             </div>

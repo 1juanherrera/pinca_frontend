@@ -114,7 +114,7 @@ const CostosIndirectosSection = ({ preparacionId, costos = [], onUpdated }) => {
                         type="number" min="0"
                         value={editForm.valor_aplicado}
                         onChange={e => setEditForm(p => ({ ...p, valor_aplicado: e.target.value }))}
-                        className="flex-1 px-2 py-1 text-xs font-mono focus:outline-none"
+                        className="flex-1 px-2 py-1 text-xs  focus:outline-none"
                       />
                     </div>
                     <button onClick={() => saveEdit(c.id)} disabled={updateMutation.isPending}
@@ -133,7 +133,7 @@ const CostosIndirectosSection = ({ preparacionId, costos = [], onUpdated }) => {
                     <p className="text-xs font-semibold text-zinc-800 truncate">{c.nombre}</p>
                     <p className="text-[9px] text-zinc-400 capitalize">{c.categoria?.replace('_', ' ')}</p>
                   </div>
-                  <span className="text-xs font-mono font-bold text-amber-700 shrink-0">{fmtCOP(c.valor_aplicado)}</span>
+                  <span className="text-xs  font-bold text-amber-700 shrink-0">{fmtCOP(c.valor_aplicado)}</span>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <button onClick={() => startEdit(c)}
                       className="p-1 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-md transition-colors">
@@ -150,7 +150,7 @@ const CostosIndirectosSection = ({ preparacionId, costos = [], onUpdated }) => {
           ))}
           <div className="flex justify-between px-3 py-2 bg-zinc-50">
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Total</span>
-            <span className="text-xs font-black font-mono text-zinc-800">{fmtCOP(total)}</span>
+            <span className="text-xs font-black  text-zinc-800">{fmtCOP(total)}</span>
           </div>
         </div>
       )}
@@ -179,7 +179,7 @@ const CostosIndirectosSection = ({ preparacionId, costos = [], onUpdated }) => {
                 value={form.valor_aplicado}
                 onChange={e => setForm(p => ({ ...p, valor_aplicado: e.target.value }))}
                 placeholder="0"
-                className="flex-1 px-2 py-1.5 text-xs font-mono focus:outline-none"
+                className="flex-1 px-2 py-1.5 text-xs  focus:outline-none"
               />
             </div>
           </div>
@@ -225,7 +225,7 @@ const MateriaPrimaRow = ({ item, index }) => (
     </div>
     <div className="flex-1 min-w-0">
       <p className="text-xs font-semibold text-zinc-800 leading-none truncate">{item.nombre}</p>
-      <p className="text-[10px] text-zinc-400 font-mono mt-0.5">{item.codigo}</p>
+      <p className="text-[10px] text-zinc-400  mt-0.5">{item.codigo}</p>
     </div>
     <div className="text-right shrink-0">
       <p className="text-xs font-bold text-zinc-800 tabular-nums">
@@ -297,7 +297,7 @@ export const ProduccionDetailModal = ({ preparacion, onClose, onUpdated }) => {
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-bold text-zinc-900 leading-none">
                   Orden{' '}
-                  <span className="font-mono text-zinc-400">
+                  <span className=" text-zinc-400">
                     #{String(preparacion.id_preparaciones).padStart(4, '0')}
                   </span>
                 </h2>

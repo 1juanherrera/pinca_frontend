@@ -143,7 +143,7 @@ const RegistrarPagoContent = ({ factura, onClose }) => {
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
           <div>
             <h2 className="text-sm font-bold text-gray-900">Registrar pago</h2>
-            <p className="text-xs text-gray-500 mt-0.5 font-mono">{factura.numero}</p>
+            <p className="text-xs text-gray-500 mt-0.5 ">{factura.numero}</p>
           </div>
           <button
             onClick={onClose}
@@ -160,11 +160,11 @@ const RegistrarPagoContent = ({ factura, onClose }) => {
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-1.5 text-xs">
             <div className="flex justify-between text-gray-500">
               <span>Total factura</span>
-              <span className="font-mono font-semibold text-gray-800">{fmt(factura.total)}</span>
+              <span className=" font-semibold text-gray-800">{fmt(factura.total)}</span>
             </div>
             <div className="flex justify-between text-gray-500">
               <span>Saldo pendiente</span>
-              <span className="font-mono font-bold text-amber-700">{fmt(saldo)}</span>
+              <span className=" font-bold text-amber-700">{fmt(saldo)}</span>
             </div>
             <div className="flex justify-between text-gray-500">
               <span>Estado</span>

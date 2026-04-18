@@ -146,7 +146,7 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
                       </td>
                       <td className="px-2 py-1.5">
                         <input type="number" value={item.precio_unitario} onChange={(e) => setItem(idx, 'precio_unitario', e.target.value)}
-                          className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right font-mono focus:outline-none focus:ring-1 focus:ring-gray-900" min="0" />
+                          className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right  focus:outline-none focus:ring-1 focus:ring-gray-900" min="0" />
                       </td>
                       <td className="px-2 py-1.5 text-center">
                         {items.length > 1 && (
@@ -169,7 +169,7 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
             <div>
               <label className="block text-xs text-gray-500 mb-1">Descuento ($)</label>
               <input type="number" value={form.descuento} onChange={(e) => setField('descuento', e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right font-mono focus:outline-none focus:ring-2 focus:ring-gray-900" min="0" />
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right  focus:outline-none focus:ring-2 focus:ring-gray-900" min="0" />
             </div>
 
             {/* IVA toggle */}
@@ -191,18 +191,18 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
                     <input
                       type="number" value={ivaPct} min="0" max="100"
                       onChange={(e) => setIvaPct(Number(e.target.value))}
-                      className="w-16 text-sm px-2 py-1.5 text-right font-mono focus:outline-none"
+                      className="w-16 text-sm px-2 py-1.5 text-right  focus:outline-none"
                     />
                     <span className="px-2 text-xs text-gray-500 bg-gray-50 border-l border-gray-200 py-1.5">%</span>
                   </div>
-                  <span className="text-xs text-blue-600 font-semibold font-mono ml-auto">{fmtCOP(impuestos)}</span>
+                  <span className="text-xs text-blue-600 font-semibold  ml-auto">{fmtCOP(impuestos)}</span>
                 </div>
               )}
               {!ivaActivo && (
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Impuestos manuales ($)</label>
                   <input type="number" value={form.impuestos} onChange={(e) => setField('impuestos', e.target.value)}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right font-mono focus:outline-none focus:ring-2 focus:ring-gray-900" min="0" />
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right  focus:outline-none focus:ring-2 focus:ring-gray-900" min="0" />
                 </div>
               )}
             </div>
@@ -211,20 +211,20 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
             <div>
               <label className="block text-xs text-gray-500 mb-1">Retención ($)</label>
               <input type="number" value={form.retencion} onChange={(e) => setField('retencion', e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right font-mono focus:outline-none focus:ring-2 focus:ring-gray-900" min="0" />
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right  focus:outline-none focus:ring-2 focus:ring-gray-900" min="0" />
             </div>
           </fieldset>
 
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-1.5 text-xs">
-            <div className="flex justify-between text-gray-500"><span>Subtotal</span><span className="font-mono">{fmtCOP(subtotal)}</span></div>
-            <div className="flex justify-between text-gray-500"><span>Descuento</span><span className="font-mono text-red-600">- {fmtCOP(form.descuento)}</span></div>
+            <div className="flex justify-between text-gray-500"><span>Subtotal</span><span className="">{fmtCOP(subtotal)}</span></div>
+            <div className="flex justify-between text-gray-500"><span>Descuento</span><span className=" text-red-600">- {fmtCOP(form.descuento)}</span></div>
             <div className="flex justify-between text-gray-500">
               <span>IVA{ivaActivo ? ` (${ivaPct}%)` : ' / Impuestos'}</span>
-              <span className="font-mono">{fmtCOP(impuestos)}</span>
+              <span className="">{fmtCOP(impuestos)}</span>
             </div>
-            <div className="flex justify-between text-gray-500"><span>Retención</span><span className="font-mono text-red-600">- {fmtCOP(form.retencion)}</span></div>
+            <div className="flex justify-between text-gray-500"><span>Retención</span><span className=" text-red-600">- {fmtCOP(form.retencion)}</span></div>
             <div className="border-t border-gray-300 pt-1.5 flex justify-between font-bold text-gray-900">
-              <span>Total</span><span className="font-mono text-base">{fmtCOP(total)}</span>
+              <span>Total</span><span className=" text-base">{fmtCOP(total)}</span>
             </div>
           </div>
         </div>

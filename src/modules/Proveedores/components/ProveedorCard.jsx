@@ -102,7 +102,7 @@ const ProveedorCard = ({ proveedor, totalProductos = null, onEdit, onDelete }) =
         {proveedor.numero_documento && (
           <div className="flex items-center gap-2.5">
             <FileText size={13} className="text-slate-300 shrink-0" />
-            <span className="text-xs font-mono text-slate-600 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md">
+            <span className="text-xs  text-slate-600 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md">
               {proveedor.numero_documento}
             </span>
           </div>
@@ -163,7 +163,7 @@ const ProveedorCard = ({ proveedor, totalProductos = null, onEdit, onDelete }) =
       {/* Footer */}
       <div className="mx-5 border-t border-slate-100" />
       <div className="px-5 py-3 flex items-center justify-end">
-        <span className="text-xs font-mono text-slate-300">
+        <span className="text-xs  text-slate-300">
           #{String(proveedor.id_proveedor).padStart(4, '0')}
         </span>
       </div>

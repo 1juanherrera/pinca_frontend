@@ -139,7 +139,7 @@ const ConteoRapidoModal = ({ onClose }) => {
                         <AlertCircle size={11} className="shrink-0 text-orange-400" />
                       )}
                     </div>
-                    <p className="text-[10px] font-mono text-zinc-400">{item.codigo}</p>
+                    <p className="text-[10px]  text-zinc-400">{item.codigo}</p>
                   </div>
 
                   {/* Input cantidad */}
@@ -183,7 +183,7 @@ const ConteoRapidoModal = ({ onClose }) => {
         {pendientesFiltrados.length > 0 && (
           <div className="px-5 py-3 border-t border-zinc-100 bg-zinc-50 rounded-b-2xl">
             <p className="text-[10px] text-zinc-400 text-center">
-              Presiona <kbd className="px-1 py-0.5 rounded bg-zinc-200 text-zinc-600 text-[9px] font-mono">Enter</kbd> para guardar y avanzar al siguiente
+              Presiona <kbd className="px-1 py-0.5 rounded bg-zinc-200 text-zinc-600 text-[9px] ">Enter</kbd> para guardar y avanzar al siguiente
             </p>
           </div>
         )}

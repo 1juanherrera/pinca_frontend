@@ -43,7 +43,7 @@ const RecibirLineaModal = ({ linea, onClose, onConfirm, isSubmitting }) => {
             <p className="text-xs font-bold text-zinc-800 uppercase leading-none">
               {linea.item_nombre ?? linea.descripcion}
             </p>
-            <p className="text-[10px] text-zinc-400 font-mono">{linea.item_codigo}</p>
+            <p className="text-[10px] text-zinc-400 ">{linea.item_codigo}</p>
             <div className="flex items-center gap-3 pt-1">
               <span className="text-[10px] text-zinc-400">
                 Pedido: <span className="font-bold text-zinc-700">{linea.cantidad}</span>

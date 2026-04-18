@@ -1,6 +1,8 @@
 import { Calendar } from 'lucide-react';
 
 const PERIODOS = [
+  { id: 'dia',       label: 'Hoy'          },
+  { id: 'semana',    label: 'Esta semana'  },
   { id: 'mes',       label: 'Este mes'     },
   { id: 'trimestre', label: 'Trimestre'    },
   { id: 'anio',      label: 'Este año'     },
@@ -14,6 +16,13 @@ export const getDateRange = (periodoId) => {
   const toStr  = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
   switch (periodoId) {
+    case 'dia':
+      return { desde: toStr(hoy), hasta: toStr(hoy) };
+    case 'semana': {
+      const lunes = new Date(hoy);
+      lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7));
+      return { desde: toStr(lunes), hasta: toStr(hoy) };
+    }
     case 'mes': {
       const desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
       return { desde: toStr(desde), hasta: toStr(hoy) };

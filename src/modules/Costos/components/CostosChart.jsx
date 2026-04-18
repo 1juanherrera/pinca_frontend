@@ -32,12 +32,12 @@ const CustomTooltip = ({ active, payload, label }) => {
       {payload.map((p) => (
         <div key={p.name} className="flex justify-between gap-6 py-0.5">
           <span style={{ color: p.color }} className="font-medium">{p.name}</span>
-          <span className="font-mono tabular-nums text-zinc-700">{fmt(p.value)}</span>
+          <span className=" tabular-nums text-zinc-700">{fmt(p.value)}</span>
         </div>
       ))}
       <div className="border-t border-zinc-100 mt-2 pt-2 flex justify-between">
         <span className="font-semibold text-zinc-600">Total</span>
-        <span className="font-mono tabular-nums font-bold text-zinc-900">{fmt(total)}</span>
+        <span className=" tabular-nums font-bold text-zinc-900">{fmt(total)}</span>
       </div>
     </div>
   );

@@ -42,7 +42,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       {ventas && (
         <div className="flex justify-between gap-6 py-0.5">
           <span style={{ color: ventas.color }} className="font-medium">{ventas.name}</span>
-          <span className="font-mono tabular-nums text-zinc-700">{fmt(ventas.value)}</span>
+          <span className=" tabular-nums text-zinc-700">{fmt(ventas.value)}</span>
         </div>
       )}
       
@@ -50,25 +50,25 @@ const CustomTooltip = ({ active, payload, label }) => {
       {costos.map((p) => (
         <div key={p.name} className="flex justify-between gap-6 py-0.5">
           <span style={{ color: p.color }} className="font-medium">{p.name}</span>
-          <span className="font-mono tabular-nums text-zinc-700">{fmt(p.value)}</span>
+          <span className=" tabular-nums text-zinc-700">{fmt(p.value)}</span>
         </div>
       ))}
       
       <div className="border-t border-zinc-100 mt-2 pt-2">
         <div className="flex justify-between">
           <span className="font-semibold text-zinc-600">Total Costos</span>
-          <span className="font-mono tabular-nums font-bold text-red-600">{fmt(totalCostos)}</span>
+          <span className=" tabular-nums font-bold text-red-600">{fmt(totalCostos)}</span>
         </div>
         <div className="flex justify-between">
           <span className="font-semibold text-zinc-600">Utilidad Bruta</span>
-          <span className={`font-mono tabular-nums font-bold ${utilidad >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <span className={` tabular-nums font-bold ${utilidad >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {fmt(utilidad)}
           </span>
         </div>
         {margen && (
           <div className="flex justify-between">
             <span className="font-semibold text-zinc-600">Margen</span>
-            <span className={`font-mono tabular-nums font-bold ${margen.value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <span className={` tabular-nums font-bold ${margen.value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {margen.value.toFixed(1)}%
             </span>
           </div>

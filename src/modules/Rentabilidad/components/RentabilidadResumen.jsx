@@ -33,7 +33,7 @@ const MetricCard = ({ title, value, subtitle, icon: Icon, theme = 'default', tre
           </div>
         )}
       </div>
-      <p className="text-2xl font-bold font-mono mb-1">{value}</p>
+      <p className="text-2xl font-bold  mb-1">{value}</p>
       {subtitle && <p className="text-xs opacity-70">{subtitle}</p>}
     </div>
   );

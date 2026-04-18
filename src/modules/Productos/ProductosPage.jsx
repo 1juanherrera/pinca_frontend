@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
+import { Package } from 'lucide-react';
 import ProductosTable from './components/ProductosTable';
 import ProductosFilters from './components/ProductosFilters';
 import ProductosStats from './components/ProductosStats';
 import { useProductos } from './api/useProductos';
 import { useBoundStore } from '../../store/useBoundStore';
+import HeaderSection from '../../shared/HeaderSection';
 import { fmt } from '../../utils/formatters';
 import logo from '../../assets/pincaicono.png';
 
@@ -205,7 +207,21 @@ const ProductosPage = () => {
   const stats       = data?.stats || {};
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col w-full gap-4">
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+        <HeaderSection
+          title="Productos"
+          subtitle="Inventario"
+          description="Inventario consolidado de productos terminados por bodega"
+          icon={Package}
+          breadcrumbs={[
+            { label: 'Inventario' },
+            { label: 'Productos', path: '/productos' },
+          ]}
+        />
+      </div>
+
       <ProductosStats
         stats={stats}
         onExportExcel={exportToExcel}
@@ -219,7 +235,7 @@ const ProductosPage = () => {
         onSearch={handleSearch}
       />
 
-      <div className="bg-white rounded-lg border border-zinc-200 overflow-hidden">
+      <div className="bg-white border border-zinc-100 rounded-2xl shadow-sm overflow-hidden">
         <ProductosTable
           productos={productos}
           isLoading={isLoading}

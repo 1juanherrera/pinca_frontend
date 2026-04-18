@@ -8,7 +8,7 @@ const columns = [
     key:   'numero',
     label: 'Orden',
     render: (v) => (
-      <span className="font-mono text-xs font-bold text-zinc-400">{v}</span>
+      <span className=" text-xs font-bold text-zinc-400">{v}</span>
     ),
   },
   {
@@ -42,7 +42,7 @@ const columns = [
     label: 'Total',
     align: 'right',
     render: (v) => (
-      <span className="text-xs font-mono tabular-nums font-bold text-amber-700">{fmt(v)}</span>
+      <span className="text-xs  tabular-nums font-bold text-amber-700">{fmt(v)}</span>
     ),
   },
 ];
@@ -65,7 +65,7 @@ const CostosComprasTable = ({ ordenes, isLoading }) => {
           <span className="text-zinc-300">{ordenes.length} orden(es)</span>
           <div className="text-right">
             <p className="text-zinc-400 font-normal text-[10px]">Total Compras</p>
-            <p className="font-mono tabular-nums text-base text-amber-300">{fmt(totalGeneral)}</p>
+            <p className=" tabular-nums text-base text-amber-300">{fmt(totalGeneral)}</p>
           </div>
         </div>
       )}

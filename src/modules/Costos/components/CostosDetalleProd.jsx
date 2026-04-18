@@ -49,7 +49,7 @@ const CostosDetalleProd = ({ orden, onClose }) => {
         <div className="flex items-start justify-between px-6 py-5 border-b border-zinc-100 shrink-0">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-mono text-sm font-bold text-zinc-900">{numeroOrden}</span>
+              <span className=" text-sm font-bold text-zinc-900">{numeroOrden}</span>
               <StatusBadge estado={orden.estado} />
             </div>
             <p className="text-xs font-semibold text-zinc-700 uppercase">{orden.item_nombre}</p>
@@ -72,17 +72,17 @@ const CostosDetalleProd = ({ orden, onClose }) => {
         <div className="grid grid-cols-3 divide-x divide-zinc-100 border-b border-zinc-100 shrink-0">
           <div className="px-4 py-3 text-center">
             <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Costo MP</p>
-            <p className="text-sm font-black font-mono text-blue-700">{fmt(orden.costo_mp_total)}</p>
+            <p className="text-sm font-black  text-blue-700">{fmt(orden.costo_mp_total)}</p>
           </div>
           <div className="px-4 py-3 text-center">
             <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Indirectos</p>
-            <p className={`text-sm font-black font-mono ${Number(orden.costo_indirectos_total) > 0 ? 'text-violet-700' : 'text-zinc-300'}`}>
+            <p className={`text-sm font-black  ${Number(orden.costo_indirectos_total) > 0 ? 'text-violet-700' : 'text-zinc-300'}`}>
               {fmt(orden.costo_indirectos_total)}
             </p>
           </div>
           <div className="px-4 py-3 text-center">
             <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Total</p>
-            <p className="text-sm font-black font-mono text-zinc-900">{fmt(orden.costo_total)}</p>
+            <p className="text-sm font-black  text-zinc-900">{fmt(orden.costo_total)}</p>
           </div>
         </div>
 
@@ -114,7 +114,7 @@ const CostosDetalleProd = ({ orden, onClose }) => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-semibold text-zinc-800 truncate leading-tight">{mp.nombre}</p>
-                          <p className="text-[10px] text-zinc-400 font-mono">{mp.codigo}</p>
+                          <p className="text-[10px] text-zinc-400 ">{mp.codigo}</p>
                         </div>
                         <div className="text-right shrink-0">
                           <p className="text-xs font-bold tabular-nums text-zinc-700">
@@ -134,7 +134,7 @@ const CostosDetalleProd = ({ orden, onClose }) => {
                   <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600">
                     <DollarSign size={9} className="inline mb-0.5" /> Subtotal MP
                   </span>
-                  <span className="text-xs font-black font-mono text-blue-700">{fmt(orden.costo_mp_total)}</span>
+                  <span className="text-xs font-black  text-blue-700">{fmt(orden.costo_mp_total)}</span>
                 </div>
               </div>
 
@@ -163,7 +163,7 @@ const CostosDetalleProd = ({ orden, onClose }) => {
                               {CAT_LABEL[ci.categoria] ?? ci.categoria}
                             </span>
                           </div>
-                          <span className="text-xs font-mono font-bold text-violet-700 shrink-0">
+                          <span className="text-xs  font-bold text-violet-700 shrink-0">
                             {fmt(ci.valor_aplicado)}
                           </span>
                         </div>
@@ -175,7 +175,7 @@ const CostosDetalleProd = ({ orden, onClose }) => {
                       <span className="text-[10px] font-bold uppercase tracking-widest text-violet-600">
                         <DollarSign size={9} className="inline mb-0.5" /> Subtotal Indirectos
                       </span>
-                      <span className="text-xs font-black font-mono text-violet-700">{fmt(orden.costo_indirectos_total)}</span>
+                      <span className="text-xs font-black  text-violet-700">{fmt(orden.costo_indirectos_total)}</span>
                     </div>
                   </>
                 )}
@@ -189,7 +189,7 @@ const CostosDetalleProd = ({ orden, onClose }) => {
         <div className="shrink-0 border-t border-zinc-100 bg-zinc-50 px-6 py-4 flex items-center justify-between">
           <div>
             <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400">Costo Total</p>
-            <p className="text-lg font-black font-mono text-zinc-900">{fmt(orden.costo_total)}</p>
+            <p className="text-lg font-black  text-zinc-900">{fmt(orden.costo_total)}</p>
           </div>
           <button
             onClick={onClose}

@@ -58,7 +58,7 @@ const ComercialPage = () => {
     <div className="flex flex-col w-full gap-4">
 
       {/* ── Fila 1: identidad + acciones ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection
           title="Comercial"
           icon={Handbag}
@@ -104,12 +104,9 @@ const ComercialPage = () => {
         })}
       </div>
 
-      {/* ── Contenido del tab activo ── */}
-      <div className="flex flex-col w-full">
-        {activeTab === 'cotizaciones' && <CotizacionesTab />}
-        {activeTab === 'remisiones'   && <RemisionesTab  />}
-        {activeTab === 'facturas'     && <FacturacionTab  />}
-      </div>
+      {activeTab === 'cotizaciones' && <CotizacionesTab />}
+      {activeTab === 'remisiones'   && <RemisionesTab  />}
+      {activeTab === 'facturas'     && <FacturacionTab  />}
 
       {/* Drawers globales */}
       <CotizacionForm />

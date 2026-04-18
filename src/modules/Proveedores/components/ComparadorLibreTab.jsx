@@ -84,7 +84,7 @@ const ItemSearch = ({ onAdd, seleccionados }) => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-zinc-800 truncate">{item.nombre}</p>
-                  <p className="text-[10px] text-zinc-400 font-mono">
+                  <p className="text-[10px] text-zinc-400 ">
                     {item.codigo}{item.proveedor && ` · ${item.proveedor}`}
                   </p>
                 </div>
@@ -133,7 +133,7 @@ const ItemCard = ({ item, onQuitar, mejores }) => {
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-xs font-bold text-zinc-800 leading-snug">{item.nombre}</p>
-            <p className="text-[10px] font-mono text-zinc-400 mt-0.5">{item.codigo}</p>
+            <p className="text-[10px]  text-zinc-400 mt-0.5">{item.codigo}</p>
             {item.proveedor && (
               <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{item.proveedor}</p>
             )}

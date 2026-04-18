@@ -74,7 +74,7 @@ const CostoForm = ({ inicial, onSave, onClose, isSaving }) => {
                   value={form.valor_mensual}
                   onChange={e => set('valor_mensual', e.target.value)}
                   placeholder="0"
-                  className="flex-1 px-3 py-2 text-sm font-mono font-semibold focus:outline-none"
+                  className="flex-1 px-3 py-2 text-sm  font-semibold focus:outline-none"
                 />
               </div>
             </div>
@@ -130,7 +130,7 @@ const CostosIndirectosPage = () => {
   }));
 
   return (
-    <div className="flex flex-col gap-4 w-full">
+    <div className="flex flex-col w-full gap-4">
       <HeaderSection
         title="Costos Indirectos"
         description="Gestión de costos fijos mensuales: servicios, mano de obra e instalaciones."
@@ -145,10 +145,10 @@ const CostosIndirectosPage = () => {
 
       {/* KPIs */}
       {resumen && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white border border-zinc-100 rounded-2xl p-4 shadow-sm col-span-2 md:col-span-1">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Total Mensual</p>
-            <p className="text-xl font-black text-zinc-900 font-mono">{fmtCOP(resumen.total_mensual)}</p>
+            <p className="text-xl font-black text-zinc-900 ">{fmtCOP(resumen.total_mensual)}</p>
           </div>
           {CATEGORIAS.map(({ value, label, icon: Icon, color }) => {
             const cat = resumen.por_categoria?.find(c => c.categoria === value);
@@ -158,7 +158,7 @@ const CostosIndirectosPage = () => {
                   <Icon size={13} />
                   <p className="text-[10px] font-bold uppercase tracking-widest">{label}</p>
                 </div>
-                <p className="text-base font-black font-mono">{fmtCOP(cat?.total ?? 0)}</p>
+                <p className="text-base font-black ">{fmtCOP(cat?.total ?? 0)}</p>
                 <p className="text-[10px] mt-0.5">{cat?.cantidad ?? 0} ítem(s)</p>
               </div>
             );
@@ -168,11 +168,11 @@ const CostosIndirectosPage = () => {
 
       {/* Tabla por categoría */}
       {isLoading ? (
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           {[1,2,3].map(i => <div key={i} className="h-12 bg-zinc-100 rounded-xl animate-pulse" />)}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           {porCategoria.map(({ value, label, icon: Icon, color, items, total }) => (
             <div key={value} className="bg-white border border-zinc-100 rounded-2xl shadow-sm overflow-hidden">
               <div className={`flex items-center justify-between px-5 py-3 border-b border-zinc-100 ${color}`}>
@@ -181,7 +181,7 @@ const CostosIndirectosPage = () => {
                   <span className="text-xs font-bold uppercase tracking-widest">{label}</span>
                   <span className="text-[10px] bg-white/60 px-1.5 py-0.5 rounded font-semibold">{items.length}</span>
                 </div>
-                <span className="text-sm font-black font-mono">{fmtCOP(total)}</span>
+                <span className="text-sm font-black ">{fmtCOP(total)}</span>
               </div>
 
               {items.length === 0 ? (
@@ -192,7 +192,7 @@ const CostosIndirectosPage = () => {
                     {items.map(item => (
                       <tr key={item.id_costos_indirectos} className="hover:bg-zinc-50 transition-colors group">
                         <td className="px-5 py-3 font-semibold text-zinc-800">{item.nombre}</td>
-                        <td className="px-5 py-3 text-right font-mono font-bold text-zinc-700">{fmtCOP(item.valor_mensual)}</td>
+                        <td className="px-5 py-3 text-right  font-bold text-zinc-700">{fmtCOP(item.valor_mensual)}</td>
                         <td className="px-5 py-3 text-center">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold border ${
                             item.activo ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-zinc-50 text-zinc-400 border-zinc-100'

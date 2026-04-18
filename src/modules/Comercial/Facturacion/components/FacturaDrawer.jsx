@@ -32,7 +32,7 @@ const Section = ({ title, icon: Icon, children }) => (
 const InfoRow = ({ label, value, mono }) => (
   <div className="flex items-center justify-between py-1">
     <span className="text-xs text-gray-500">{label}</span>
-    <span className={`text-xs font-medium text-gray-800 ${mono ? 'font-mono tabular-nums' : ''}`}>
+    <span className={`text-xs font-medium text-gray-800 ${mono ? ' tabular-nums' : ''}`}>
       {value ?? '—'}
     </span>
   </div>
@@ -80,7 +80,7 @@ const FacturaDrawer = ({ facturaId, isOpen, onClose }) => {
             </div>
             <div className="text-right">
               <p className="text-xs text-gray-500">Total factura</p>
-              <p className="text-xl font-bold text-gray-900 font-mono tabular-nums">{fmt(f.total)}</p>
+              <p className="text-xl font-bold text-gray-900  tabular-nums">{fmt(f.total)}</p>
             </div>
           </div>
 
@@ -118,8 +118,8 @@ const FacturaDrawer = ({ facturaId, isOpen, onClose }) => {
                       <tr key={idx} className="hover:bg-gray-50">
                         <td className="px-3 py-2 text-gray-700">{item.descripcion ?? item.nombre ?? `Ítem ${idx + 1}`}</td>
                         <td className="px-3 py-2 text-right text-gray-600">{item.cantidad}</td>
-                        <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-600">{fmt(item.precio_unitario)}</td>
-                        <td className="px-3 py-2 text-right font-mono tabular-nums font-semibold text-gray-800">{fmt(item.total)}</td>
+                        <td className="px-3 py-2 text-right  tabular-nums text-gray-600">{fmt(item.precio_unitario)}</td>
+                        <td className="px-3 py-2 text-right  tabular-nums font-semibold text-gray-800">{fmt(item.total)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -137,11 +137,11 @@ const FacturaDrawer = ({ facturaId, isOpen, onClose }) => {
               <InfoRow label="Retención"   value={`- ${fmt(f.retencion)}`} mono />
               <div className="border-t border-gray-200 mt-2 pt-2 flex justify-between">
                 <span className="text-sm font-bold text-gray-800">Total</span>
-                <span className="text-sm font-bold font-mono tabular-nums text-gray-900">{fmt(f.total)}</span>
+                <span className="text-sm font-bold  tabular-nums text-gray-900">{fmt(f.total)}</span>
               </div>
               <div className="flex justify-between pt-1">
                 <span className="text-xs font-semibold text-amber-600">Saldo pendiente</span>
-                <span className="text-xs font-bold font-mono tabular-nums text-amber-700">{fmt(f.saldo_pendiente)}</span>
+                <span className="text-xs font-bold  tabular-nums text-amber-700">{fmt(f.saldo_pendiente)}</span>
               </div>
             </div>
           </Section>

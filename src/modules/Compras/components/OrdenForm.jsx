@@ -271,7 +271,7 @@ const OrdenForm = () => {
                     >
                       <div>
                         <p className="text-xs font-semibold text-zinc-800">{item.nombre}</p>
-                        <p className="text-[10px] text-zinc-400 font-mono">{item.codigo} · {fmt(item.precio_unitario)}</p>
+                        <p className="text-[10px] text-zinc-400 ">{item.codigo} · {fmt(item.precio_unitario)}</p>
                       </div>
                       <Plus size={12} className="text-zinc-400 shrink-0" />
                     </button>
@@ -297,7 +297,7 @@ const OrdenForm = () => {
                   <div key={idx} className="px-3 py-2.5 flex items-center gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-zinc-800 truncate">{linea.item_nombre}</p>
-                      <p className="text-[10px] text-zinc-400 font-mono">{linea.item_codigo}</p>
+                      <p className="text-[10px] text-zinc-400 ">{linea.item_codigo}</p>
                     </div>
                     <input
                       type="number"

@@ -54,7 +54,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
       label:     'Número',
       className: 'w-28',
       render: (v) => (
-        <span className="font-mono text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
+        <span className=" text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
       ),
     },
     {

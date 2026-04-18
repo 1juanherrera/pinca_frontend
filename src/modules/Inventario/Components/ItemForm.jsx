@@ -595,7 +595,7 @@ const ItemFormModal = () => {
           </div>
           <div className="text-right">
             <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-tighter">Referencia de Valor</p>
-            <p className="text-lg font-black font-mono">ESTIMADO</p>
+            <p className="text-lg font-black ">ESTIMADO</p>
           </div>
         </div>
       </div>

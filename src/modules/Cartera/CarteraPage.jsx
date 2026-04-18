@@ -47,7 +47,6 @@ const CarteraPage = () => {
             { label: 'Cartera', path: '/cartera' },
           ]}
         />
-
       </div>
 
       {/* Navegación por tabs */}

@@ -4,8 +4,10 @@ import { useTambores, useCrearTambores } from './api/useTambores';
 import TamborForm from './components/TamborForm';
 import TamborDetalle from './components/TamborDetalle';
 import Drawer from '../../shared/Drawer';
-import { Button } from '../../shared/Button';
+import { Button, ButtonSquare } from '../../shared/Button';
 import ERPTable from '../../shared/ErpTable';
+import HeaderSection from '../../shared/HeaderSection';
+import SearchFilterBar from '../../shared/SearchFilterBar';
 
 export const ESTADO_TAMBOR = {
   0: { label: 'Cerrado',  bg: 'bg-zinc-100',    text: 'text-zinc-600',    dot: 'bg-zinc-400'    },
@@ -44,7 +46,7 @@ const TamboresPage = () => {
       key: 'cantidad_actual',
       label: 'Cant. Actual',
       render: (value, row) => (
-        <span className="font-mono text-sm">
+        <span className=" text-sm">
           {value} / {row.cantidad_inicial}
         </span>
       ),
@@ -66,59 +68,44 @@ const TamboresPage = () => {
   ];
 
   return (
-    <div className="p-6 flex flex-col gap-5">
-      {/* Encabezado */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-            <FlaskConical size={20} className="text-blue-600" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-zinc-900">Tambores</h1>
-            <p className="text-xs text-zinc-500">Trazabilidad de tambores de materias primas</p>
-          </div>
-        </div>
+    <div className="flex flex-col w-full gap-4">
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+        <HeaderSection
+          title="Tambores"
+          subtitle="Inventario"
+          description="Trazabilidad de tambores de materias primas"
+          icon={FlaskConical}
+          breadcrumbs={[
+            { label: 'Inventario' },
+            { label: 'Tambores', path: '/tambores' },
+          ]}
+        />
         <div className="flex items-center gap-2">
-          <button
+          <ButtonSquare
+            icon={RefreshCw}
             onClick={() => refetch()}
-            className="p-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-all"
-            title="Actualizar"
-          >
-            <RefreshCw size={16} />
-          </button>
-          <Button variant="blue" onClick={() => setFormOpen(true)}>
-            <Plus size={15} />
+            sizeIcon={18}
+            title="Actualizar datos"
+            variant="white"
+          />
+          <Button variant="black" icon={Plus} onClick={() => setFormOpen(true)}>
             Nuevo Tambor
           </Button>
         </div>
       </div>
 
-      {/* Filtros */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <input
-          type="text"
+      <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm">
+        <SearchFilterBar
+          search={filters.search}
+          onSearch={(v) => setFilters(f => ({ ...f, search: v }))}
           placeholder="Buscar por nº tambor o material..."
-          value={filters.search}
-          onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
-          className="px-3 py-2 rounded-lg border border-zinc-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 w-64"
+          values={filters}
+          onChange={(key, val) => setFilters(f => ({ ...f, [key]: val }))}
+          statusKey="estado"
+          statusOptions={ESTADO_OPTS.filter(o => o.value !== '')}
+          allLabel="Todos los estados"
         />
-        <select
-          value={filters.estado}
-          onChange={(e) => setFilters(f => ({ ...f, estado: e.target.value }))}
-          className="px-3 py-2 rounded-lg border border-zinc-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300"
-        >
-          {ESTADO_OPTS.map(o => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-        {(filters.search || filters.estado) && (
-          <button
-            onClick={() => setFilters({ search: '', estado: '' })}
-            className="text-xs text-zinc-400 hover:text-zinc-700 underline"
-          >
-            Limpiar filtros
-          </button>
-        )}
       </div>
 
       {/* Tabla */}

@@ -162,7 +162,7 @@ export const ProductSelect = ({
                   `}
                 >
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-blue-500 font-mono leading-none mb-1">
+                    <span className="text-[10px] text-blue-500  leading-none mb-1">
                         {f.codigo_item_general}
                     </span>
                     <span className="uppercase">{f.nombre}</span>

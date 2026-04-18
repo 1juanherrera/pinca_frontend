@@ -161,7 +161,7 @@ const ClienteCard = ({
         {cliente.numero_documento && (
           <div className="flex items-center gap-2.5">
             <FileText size={13} className="text-zinc-300 shrink-0" />
-            <span className="text-xs font-mono text-zinc-600 bg-zinc-50 border border-zinc-200 px-2 py-0.5 rounded-md">
+            <span className="text-xs  text-zinc-600 bg-zinc-50 border border-zinc-200 px-2 py-0.5 rounded-md">
               {cliente.numero_documento}
             </span>
           </div>
@@ -250,7 +250,7 @@ const ClienteCard = ({
           </span>
         </div>
 
-        <span className="text-xs font-mono text-zinc-300">
+        <span className="text-xs  text-zinc-300">
           #{String(cliente.id_clientes).padStart(4, '0')}
         </span>
       </div>

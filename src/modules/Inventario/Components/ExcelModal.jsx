@@ -67,7 +67,7 @@ export const ExcelModal = ({ data, tipoFilter, searchTerm }) => {
                 {searchTerm && (
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-zinc-500">Búsqueda</span>
-                    <span className="text-xs font-mono font-bold text-zinc-800 uppercase">"{searchTerm}"</span>
+                    <span className="text-xs  font-bold text-zinc-800 uppercase">"{searchTerm}"</span>
                   </div>
                 )}
 

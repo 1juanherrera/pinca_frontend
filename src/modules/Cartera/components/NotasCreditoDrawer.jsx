@@ -25,12 +25,12 @@ const NotaRow = ({ nota, onAnular }) => {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-xs font-semibold text-gray-800">{nota.numero}</span>
+          <span className=" text-xs font-semibold text-gray-800">{nota.numero}</span>
           <StatusBadge estado={nota.estado} />
         </div>
         <div className="flex items-center justify-between mt-1">
           <span className="text-[11px] text-gray-500">{nota.fecha} · {nota.motivo}</span>
-          <span className={`text-sm font-bold font-mono tabular-nums ${anulada ? 'text-gray-400 line-through' : 'text-red-700'}`}>
+          <span className={`text-sm font-bold  tabular-nums ${anulada ? 'text-gray-400 line-through' : 'text-red-700'}`}>
             - {fmt(nota.monto)}
           </span>
         </div>
@@ -156,7 +156,7 @@ const NotasCreditoDrawer = ({ facturaId, clienteId, numeroFactura, saldoPendient
       {!isLoadingNotas && notas.length > 0 && (
         <div className="px-5 py-3 bg-red-50 border-b border-red-100 flex items-center justify-between">
           <span className="text-xs text-red-700 font-semibold">Total notas activas</span>
-          <span className="text-sm font-bold text-red-800 font-mono">- {fmt(totalActivas)}</span>
+          <span className="text-sm font-bold text-red-800 ">- {fmt(totalActivas)}</span>
         </div>
       )}
 

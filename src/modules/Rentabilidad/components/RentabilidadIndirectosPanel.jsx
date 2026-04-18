@@ -32,7 +32,7 @@ const RentabilidadIndirectosPanel = ({ lista, porCategoria, totalMensual, isLoad
                 <Icon className="w-4 h-4" />
                 <span className="text-xs font-semibold">{cfg.label}</span>
               </div>
-              <p className="text-base font-bold font-mono">{fmt(cat.total)}</p>
+              <p className="text-base font-bold ">{fmt(cat.total)}</p>
               <p className="text-[10px] opacity-60">{cat.cantidad} ítem(s)</p>
             </div>
           );
@@ -64,7 +64,7 @@ const RentabilidadIndirectosPanel = ({ lista, porCategoria, totalMensual, isLoad
                         {cfg.label}
                       </div>
                     </td>
-                    <td className="px-4 py-2.5 text-right font-mono tabular-nums text-violet-700 font-semibold">
+                    <td className="px-4 py-2.5 text-right  tabular-nums text-violet-700 font-semibold">
                       {fmt(item.valor_mensual)}
                     </td>
                     <td className="px-4 py-2.5 text-center">
@@ -88,7 +88,7 @@ const RentabilidadIndirectosPanel = ({ lista, porCategoria, totalMensual, isLoad
           <span className="text-zinc-300">{lista.length} ítem(s) activos</span>
           <div className="text-right">
             <p className="text-zinc-400 font-normal text-[10px]">Total mensual</p>
-            <p className="font-mono tabular-nums text-base text-violet-300">{fmt(totalMensual)}</p>
+            <p className=" tabular-nums text-base text-violet-300">{fmt(totalMensual)}</p>
           </div>
         </div>
       )}

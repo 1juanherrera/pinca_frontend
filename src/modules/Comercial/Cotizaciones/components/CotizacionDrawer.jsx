@@ -27,7 +27,7 @@ const Section = ({ title, icon: Icon, children }) => (
 const InfoRow = ({ label, value, mono }) => (
   <div className="flex items-center justify-between py-1 border-b border-gray-50 last:border-b-0">
     <span className="text-xs text-gray-500">{label}</span>
-    <span className={`text-xs font-medium text-gray-800 ${mono ? 'font-mono tabular-nums' : ''}`}>{value ?? '—'}</span>
+    <span className={`text-xs font-medium text-gray-800 ${mono ? ' tabular-nums' : ''}`}>{value ?? '—'}</span>
   </div>
 );
 
@@ -77,7 +77,7 @@ const CotizacionDrawer = ({ cotizacionId, isOpen, onClose, onCambiarEstado, onCo
               </button>
               <div className="text-right">
                 <p className="text-xs text-gray-500">Total cotización</p>
-                <p className="text-2xl font-bold text-gray-900 font-mono tabular-nums">{fmt(c.total)}</p>
+                <p className="text-2xl font-bold text-gray-900  tabular-nums">{fmt(c.total)}</p>
               </div>
             </div>
           </div>
@@ -171,8 +171,8 @@ const CotizacionDrawer = ({ cotizacionId, isOpen, onClose, onCambiarEstado, onCo
                       <tr key={idx} className="hover:bg-gray-50">
                         <td className="px-3 py-2 text-gray-700">{item.descripcion ?? `Ítem ${idx + 1}`}</td>
                         <td className="px-3 py-2 text-right text-gray-600">{item.cantidad}</td>
-                        <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-600">{fmt(item.precio_unitario)}</td>
-                        <td className="px-3 py-2 text-right font-mono tabular-nums font-semibold text-gray-800">{fmt(item.total)}</td>
+                        <td className="px-3 py-2 text-right  tabular-nums text-gray-600">{fmt(item.precio_unitario)}</td>
+                        <td className="px-3 py-2 text-right  tabular-nums font-semibold text-gray-800">{fmt(item.total)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -189,7 +189,7 @@ const CotizacionDrawer = ({ cotizacionId, isOpen, onClose, onCambiarEstado, onCo
             <InfoRow label="Retención"  value={`- ${fmt(c.retencion)}`} mono />
             <div className="border-t border-gray-200 mt-2 pt-2 flex justify-between">
               <span className="text-sm font-bold text-gray-800">Total</span>
-              <span className="text-sm font-bold font-mono tabular-nums text-gray-900">{fmt(c.total)}</span>
+              <span className="text-sm font-bold  tabular-nums text-gray-900">{fmt(c.total)}</span>
             </div>
           </Section>
 

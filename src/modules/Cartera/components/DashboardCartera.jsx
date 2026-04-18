@@ -39,7 +39,7 @@ const columnsVencidas = [
     key: 'numero',
     label: 'Factura',
     render: (v) => (
-      <span className="font-mono text-[11px] font-medium text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded">
+      <span className=" text-[11px] font-medium text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded">
         {v}
       </span>
     ),
@@ -82,7 +82,7 @@ const columnsVencidas = [
     label: 'Saldo',
     align: 'right',
     render: (v) => (
-      <span className="font-mono text-xs font-semibold tabular-nums text-zinc-900">{fmt(v)}</span>
+      <span className=" text-xs font-semibold tabular-nums text-zinc-900">{fmt(v)}</span>
     ),
   },
   {

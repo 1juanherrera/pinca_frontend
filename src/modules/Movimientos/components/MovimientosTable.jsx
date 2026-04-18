@@ -63,12 +63,12 @@ export const MovimientosTable = ({ data, meta, isLoading, onPageChange }) => {
               const sign = mov.tipo_movimiento === 'ENTRADA' ? '+' : (mov.tipo_movimiento === 'SALIDA' ? '-' : '');
               return (
                 <tr key={mov.id_movimiento_inventario} className="group hover:bg-zinc-50/50 transition-colors">
-                  <td className="px-5 py-2.5 text-xs text-zinc-400 font-mono text-center">
+                  <td className="px-5 py-2.5 text-xs text-zinc-400  text-center">
                     {mov.id_movimiento_inventario}
                   </td>
                   <td className="px-5 py-2.5">
                     <p className="text-xs font-semibold text-zinc-700">{new Date(mov.fecha_movimiento).toLocaleDateString('es-CO')}</p>
-                    <p className="text-[10px] text-zinc-400 font-mono">{new Date(mov.fecha_movimiento).toLocaleTimeString('es-CO', {hour: '2-digit', minute:'2-digit'})}</p>
+                    <p className="text-[10px] text-zinc-400 ">{new Date(mov.fecha_movimiento).toLocaleTimeString('es-CO', {hour: '2-digit', minute:'2-digit'})}</p>
                   </td>
                   <td className="px-5 py-2.5">
                     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[10px] font-bold tracking-wide uppercase ${getBadgeColor(mov.tipo_movimiento)}`}>
@@ -81,7 +81,7 @@ export const MovimientosTable = ({ data, meta, isLoading, onPageChange }) => {
                       <span className="text-xs font-semibold text-zinc-800 truncate max-w-[200px]" title={mov.item_nombre}>
                         {mov.item_nombre || 'Ítem Eliminado'}
                       </span>
-                      <span className="text-[10px] font-mono text-zinc-400">
+                      <span className="text-[10px]  text-zinc-400">
                         {mov.item_codigo} • {mov.bodega_nombre || 'Bodega 1'}
                       </span>
                     </div>
@@ -102,7 +102,7 @@ export const MovimientosTable = ({ data, meta, isLoading, onPageChange }) => {
                     </div>
                   </td>
                   <td className="px-5 py-2.5 text-right">
-                    <span className="text-xs font-mono font-medium text-zinc-500">
+                    <span className="text-xs  font-medium text-zinc-500">
                       {mov.costo_unitario > 0 ? fmt(mov.costo_unitario) : '—'}
                     </span>
                   </td>

@@ -151,7 +151,7 @@ const OrdenDrawer = ({ ordenId, isOpen, onClose }) => {
                             <p className="text-xs font-semibold text-zinc-800 truncate">
                               {linea.item_nombre ?? linea.descripcion ?? '—'}
                             </p>
-                            <p className="text-[10px] text-zinc-400 font-mono mt-0.5">{linea.item_codigo}</p>
+                            <p className="text-[10px] text-zinc-400  mt-0.5">{linea.item_codigo}</p>
                             <div className="flex items-center gap-3 mt-1.5">
                               <span className="text-[10px] text-zinc-500 tabular-nums">
                                 Cant: <span className="font-bold">{linea.cantidad}</span>

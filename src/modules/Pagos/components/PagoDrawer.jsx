@@ -10,7 +10,7 @@ import { fmt } from '../../../utils/formatters';
 const InfoRow = ({ label, value, mono }) => (
   <div className="flex items-center justify-between py-1.5 border-b border-zinc-100 last:border-b-0">
     <span className="text-xs text-zinc-500">{label}</span>
-    <span className={`text-xs font-medium text-zinc-800 ${mono ? 'font-mono tabular-nums' : ''}`}>
+    <span className={`text-xs font-medium text-zinc-800 ${mono ? ' tabular-nums' : ''}`}>
       {value ?? '—'}
     </span>
   </div>
@@ -40,7 +40,7 @@ const PagoDrawer = ({ pago, isOpen, onClose }) => {
       <div className="px-5 py-5 bg-emerald-50 border-b border-emerald-100 flex items-center justify-between">
         <div>
           <p className="text-xs text-emerald-600 font-medium">Monto del pago</p>
-          <p className="text-2xl font-bold text-emerald-800 font-mono tabular-nums">{fmt(pago.monto)}</p>
+          <p className="text-2xl font-bold text-emerald-800  tabular-nums">{fmt(pago.monto)}</p>
         </div>
         <StatusBadge estado={pago.tipo} />
       </div>

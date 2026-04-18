@@ -15,7 +15,7 @@ const SedePage = () => {
   const openConfirm = useBoundStore(state => state.openConfirm);
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full gap-4">
     
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection
@@ -49,7 +49,7 @@ const SedePage = () => {
       </div>
 
       {/* GRID DE SEDES O SKELETONS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <SkeletonCard key={`skeleton-${i}`} />

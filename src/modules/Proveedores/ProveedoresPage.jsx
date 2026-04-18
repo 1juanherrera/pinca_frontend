@@ -6,10 +6,11 @@ import { SkeletonCard } from '../../shared/Skeletons';
 import ConfirmModal    from '../../shared/ConfirmModal';
 import { useBoundStore } from '../../store/useBoundStore';
 import { useProveedores } from './api/useProveedores';
-import ProveedorCard   from './components/ProveedorCard';
-import ProveedorForm   from './components/ProveedorForm';
-import CatalogoTab     from './components/CatalogoTab';
-import ComparadorTab   from './components/ComparadorTab';
+import ProveedorCard       from './components/ProveedorCard';
+import ProveedorForm       from './components/ProveedorForm';
+import ItemProveedorForm   from './components/ItemProveedorForm';
+import CatalogoTab         from './components/CatalogoTab';
+import ComparadorTab       from './components/ComparadorTab';
 
 const TABS = [
   { id: 'proveedores', label: 'Proveedores', icon: Truck     },
@@ -106,6 +107,7 @@ const ProveedoresPage = () => {
       {tab === 'comparador' && <ComparadorTab />}
 
       <ProveedorForm />
+      <ItemProveedorForm />
       <ConfirmModal />
     </div>
   );

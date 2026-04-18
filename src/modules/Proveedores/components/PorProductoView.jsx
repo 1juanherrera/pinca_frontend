@@ -8,7 +8,7 @@ const Stat = ({ label, value, isMejor }) => (
     <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{label}</span>
     <div className="flex items-center gap-1.5">
       {isMejor && <Trophy size={10} className="text-emerald-500" />}
-      <span className={`text-xs font-mono font-bold ${isMejor ? 'text-emerald-700' : 'text-zinc-700'}`}>
+      <span className={`text-xs  font-bold ${isMejor ? 'text-emerald-700' : 'text-zinc-700'}`}>
         {value ? fmt(value) : '—'}
       </span>
     </div>
@@ -116,7 +116,7 @@ const PorProductoView = ({ onHistorial }) => {
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-zinc-800 leading-snug">{prov.nombre_empresa || prov.nombre_encargado}</p>
-                        <p className="text-[10px] font-mono text-zinc-400 mt-1">Cód: {prov.codigo}</p>
+                        <p className="text-[10px]  text-zinc-400 mt-1">Cód: {prov.codigo}</p>
                       </div>
                       <button
                         onClick={() => onHistorial(prov)}

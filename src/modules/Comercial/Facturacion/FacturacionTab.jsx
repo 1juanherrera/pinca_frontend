@@ -62,7 +62,7 @@ const FacturacionTab = () => {
       label:     'Número',
       className: 'w-28',
       render: (v) => (
-        <span className="font-mono text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
+        <span className=" text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
       ),
     },
     {
@@ -106,7 +106,7 @@ const FacturacionTab = () => {
       align:     'right',
       className: 'w-32',
       render: (v) => (
-        <span className={`font-mono text-xs tabular-nums font-bold whitespace-nowrap ${
+        <span className={` text-xs tabular-nums font-bold whitespace-nowrap ${
           Number(v) > 0 ? 'text-amber-600' : 'text-emerald-600'
         }`}>
           {fmt(v)}

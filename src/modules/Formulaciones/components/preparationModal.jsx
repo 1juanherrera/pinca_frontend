@@ -180,7 +180,7 @@ const MateriasPanel = ({ formulaciones, titulo }) => {
               </div>
               <div className="flex-1 min-w-0 relative z-10">
                 <p className="text-xs font-semibold text-zinc-800 leading-none truncate">{mp.materia_prima_nombre ?? mp.nombre}</p>
-                <p className="text-[10px] font-mono text-zinc-400 mt-0.5 leading-none">{mp.materia_prima_codigo ?? mp.codigo ?? '—'}</p>
+                <p className="text-[10px]  text-zinc-400 mt-0.5 leading-none">{mp.materia_prima_codigo ?? mp.codigo ?? '—'}</p>
               </div>
               <div className="w-16 shrink-0 relative z-10 flex flex-col items-center gap-0.5">
                 <div className="w-full h-1 bg-zinc-100 rounded-full overflow-hidden">
@@ -251,7 +251,7 @@ const IndirectCostSelector = ({ selected, onChange }) => {
         </div>
         <div className="flex items-center gap-2">
           {selected.length > 0 && (
-            <span className="text-[10px] font-mono font-bold text-amber-600">
+            <span className="text-[10px]  font-bold text-amber-600">
               +${total.toLocaleString('es-CO')}
             </span>
           )}
@@ -268,7 +268,7 @@ const IndirectCostSelector = ({ selected, onChange }) => {
                 <p className="text-xs font-semibold text-zinc-800 truncate">{c.nombre}</p>
                 <p className="text-[9px] text-zinc-400 capitalize">{c.categoria.replace('_', ' ')}</p>
               </div>
-              <span className="text-xs font-mono font-bold text-amber-700 shrink-0">
+              <span className="text-xs  font-bold text-amber-700 shrink-0">
                 ${Number(c.valor_aplicado).toLocaleString('es-CO')}
               </span>
               <button type="button" onClick={() => eliminar(i)}
@@ -303,7 +303,7 @@ const IndirectCostSelector = ({ selected, onChange }) => {
                   onChange={e => setForm(p => ({ ...p, valor_aplicado: e.target.value }))}
                   onKeyDown={e => e.key === 'Enter' && agregar()}
                   placeholder="0"
-                  className="flex-1 px-2 py-1.5 text-xs font-mono focus:outline-none"
+                  className="flex-1 px-2 py-1.5 text-xs  focus:outline-none"
                 />
               </div>
             </div>
@@ -696,7 +696,7 @@ const CombinacionForm = ({
                       {formulacionesEscaladas.slice(0, 4).map((mp, j) => (
                         <div key={j} className="flex items-center justify-between px-4 py-1.5 border-b border-zinc-50 last:border-0">
                           <span className="text-[10px] text-zinc-600 truncate max-w-[60%]">{mp.materia_prima_nombre ?? formulaciones[j]?.nombre ?? '—'}</span>
-                          <span className="text-[10px] font-mono font-bold text-zinc-700">{mp.cantidad.toFixed(3)}</span>
+                          <span className="text-[10px]  font-bold text-zinc-700">{mp.cantidad.toFixed(3)}</span>
                         </div>
                       ))}
                       {formulaciones.length > 4 && (

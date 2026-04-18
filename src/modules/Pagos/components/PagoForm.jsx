@@ -87,7 +87,7 @@ const PagoFormContent = ({ editData, closeDrawer }) => {
             <div>
               <label className={labelClass}>Monto <span className="text-red-500">*</span></label>
               <input type="number" value={form.monto} onChange={(e) => setField('monto', e.target.value)}
-                className={`${inputClass} text-right font-mono`} placeholder="0" min="0" />
+                className={`${inputClass} text-right `} placeholder="0" min="0" />
             </div>
           </div>
 
@@ -115,7 +115,7 @@ const PagoFormContent = ({ editData, closeDrawer }) => {
           <div>
             <label className={labelClass}>Número de Referencia</label>
             <input type="text" value={form.numero_referencia} onChange={(e) => setField('numero_referencia', e.target.value)}
-              className={`${inputClass} font-mono`} placeholder="Ej: NEQ-20251120-033" />
+              className={`${inputClass} `} placeholder="Ej: NEQ-20251120-033" />
           </div>
 
           <div>

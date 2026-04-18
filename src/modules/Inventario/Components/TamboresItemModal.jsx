@@ -73,7 +73,7 @@ const TamborCard = ({ tambor, highlight }) => {
             <span className={`w-1 h-1 rounded-full ${e.dot}`} />
             {e.label}
           </span>
-          <span className="text-[10px] text-zinc-400 font-mono shrink-0">
+          <span className="text-[10px] text-zinc-400  shrink-0">
             {tambor.cantidad_actual}/{tambor.cantidad_inicial}
           </span>
         </div>
@@ -138,7 +138,7 @@ const TamboresItemModal = ({ item, bodegaId, onClose }) => {
               Inventario de tambores
             </p>
             <p className="text-sm font-bold text-zinc-900 leading-tight truncate">{item?.nombre}</p>
-            <p className="text-[10px] font-mono text-zinc-400 mt-0.5">{item?.codigo}</p>
+            <p className="text-[10px]  text-zinc-400 mt-0.5">{item?.codigo}</p>
           </div>
           <button
             onClick={onClose}

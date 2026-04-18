@@ -26,7 +26,7 @@ const Section = ({ title, icon: Icon, children }) => (
 const InfoRow = ({ label, value, mono }) => (
   <div className="flex items-center justify-between py-1">
     <span className="text-xs text-gray-500">{label}</span>
-    <span className={`text-xs font-medium text-gray-800 ${mono ? 'font-mono tabular-nums' : ''}`}>
+    <span className={`text-xs font-medium text-gray-800 ${mono ? ' tabular-nums' : ''}`}>
       {value ?? '—'}
     </span>
   </div>
@@ -36,7 +36,7 @@ const InfoRow = ({ label, value, mono }) => (
 const FacturaRow = ({ factura }) => (
   <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 space-y-2">
     <div className="flex items-center justify-between">
-      <span className="font-mono text-xs font-semibold text-gray-900 bg-gray-200 px-2 py-0.5 rounded">
+      <span className=" text-xs font-semibold text-gray-900 bg-gray-200 px-2 py-0.5 rounded">
         {factura.numero}
       </span>
       <StatusBadge estado={factura.estado} />
@@ -102,13 +102,13 @@ const EstadoCuentaDrawer = ({ clienteId, clienteNombre, isOpen, onClose }) => {
           <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 grid grid-cols-3 gap-4">
             <div>
               <p className="text-xs text-gray-500">Total deuda</p>
-              <p className="text-lg font-bold text-red-600 font-mono tabular-nums">
+              <p className="text-lg font-bold text-red-600  tabular-nums">
                 {fmt(estadoCuenta.total_deuda)}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-500">Total pagado</p>
-              <p className="text-lg font-bold text-emerald-700 font-mono tabular-nums">
+              <p className="text-lg font-bold text-emerald-700  tabular-nums">
                 {fmt(estadoCuenta.total_pagado)}
               </p>
             </div>

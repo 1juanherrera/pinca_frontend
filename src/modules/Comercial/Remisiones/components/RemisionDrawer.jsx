@@ -161,11 +161,11 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
                     {items.map((item, idx) => (
                       <tr key={idx} className="hover:bg-gray-50">
                         <td className="px-3 py-2 text-gray-700 font-medium">{item.descripcion ?? `Ítem ${idx + 1}`}</td>
-                        <td className="px-3 py-2 text-right text-gray-600 font-mono tabular-nums">{Number(item.cantidad).toFixed(2)}</td>
-                        <td className="px-3 py-2 text-right text-gray-500 font-mono tabular-nums">
+                        <td className="px-3 py-2 text-right text-gray-600  tabular-nums">{Number(item.cantidad).toFixed(2)}</td>
+                        <td className="px-3 py-2 text-right text-gray-500  tabular-nums">
                           {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(item.precio_unit ?? 0)}
                         </td>
-                        <td className="px-3 py-2 text-right text-gray-800 font-semibold font-mono tabular-nums">
+                        <td className="px-3 py-2 text-right text-gray-800 font-semibold  tabular-nums">
                           {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(item.subtotal ?? 0)}
                         </td>
                       </tr>
@@ -175,7 +175,7 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
                   <tfoot>
                     <tr className="bg-zinc-950">
                       <td colSpan={3} className="px-3 py-2 text-xs font-bold text-white text-right">Total</td>
-                      <td className="px-3 py-2 text-right text-xs font-bold text-white font-mono tabular-nums">
+                      <td className="px-3 py-2 text-right text-xs font-bold text-white  tabular-nums">
                         {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(
                           items.reduce((s, i) => s + (Number(i.subtotal) || 0), 0)
                         )}

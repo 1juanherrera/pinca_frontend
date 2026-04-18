@@ -101,7 +101,7 @@ export const ProduccionTable = ({
               >
                 {/* # Orden */}
                 <td className="px-4 py-3">
-                  <span className="font-mono text-xs font-bold text-zinc-400">
+                  <span className=" text-xs font-bold text-zinc-400">
                     #{String(row.id_preparaciones).padStart(4, '0')}
                   </span>
                 </td>
@@ -110,7 +110,7 @@ export const ProduccionTable = ({
                 <td className="px-4 py-3">
                   <div>
                     <p className="font-semibold text-zinc-800 text-xs leading-none">{row.item_nombre}</p>
-                    <p className="text-[10px] text-zinc-400 mt-0.5 font-mono">{row.item_codigo}</p>
+                    <p className="text-[10px] text-zinc-400 mt-0.5 ">{row.item_codigo}</p>
                   </div>
                 </td>
 

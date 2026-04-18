@@ -10,7 +10,7 @@ const columns = [
     key:   'id_preparaciones',
     label: 'Orden',
     render: (v) => (
-      <span className="font-mono text-xs font-bold text-zinc-400">PRE-{String(v).padStart(3, '0')}</span>
+      <span className=" text-xs font-bold text-zinc-400">PRE-{String(v).padStart(3, '0')}</span>
     ),
   },
   {
@@ -44,7 +44,7 @@ const columns = [
     label: 'Costo MP',
     align: 'right',
     render: (v) => (
-      <span className="text-xs font-mono tabular-nums text-zinc-700">{fmt(v)}</span>
+      <span className="text-xs  tabular-nums text-zinc-700">{fmt(v)}</span>
     ),
   },
   {
@@ -52,7 +52,7 @@ const columns = [
     label: 'Indirectos',
     align: 'right',
     render: (v) => (
-      <span className={`text-xs font-mono tabular-nums ${Number(v) > 0 ? 'text-violet-600' : 'text-zinc-300'}`}>
+      <span className={`text-xs  tabular-nums ${Number(v) > 0 ? 'text-violet-600' : 'text-zinc-300'}`}>
         {Number(v) > 0 ? fmt(v) : '—'}
       </span>
     ),
@@ -62,7 +62,7 @@ const columns = [
     label: 'Total',
     align: 'right',
     render: (v) => (
-      <span className="text-xs font-mono tabular-nums font-bold text-zinc-900">{fmt(v)}</span>
+      <span className="text-xs  tabular-nums font-bold text-zinc-900">{fmt(v)}</span>
     ),
   },
 ];
@@ -90,15 +90,15 @@ const CostosProdTable = ({ ordenes, isLoading, onRowClick }) => {
           <div className="flex items-center gap-8">
             <div className="text-right">
               <p className="text-zinc-400 font-normal text-[10px]">Costo MP</p>
-              <p className="font-mono tabular-nums">{fmt(totalMP)}</p>
+              <p className=" tabular-nums">{fmt(totalMP)}</p>
             </div>
             <div className="text-right">
               <p className="text-zinc-400 font-normal text-[10px]">Indirectos</p>
-              <p className="font-mono tabular-nums text-violet-300">{fmt(totalIndirectos)}</p>
+              <p className=" tabular-nums text-violet-300">{fmt(totalIndirectos)}</p>
             </div>
             <div className="text-right">
               <p className="text-zinc-400 font-normal text-[10px]">Total Producción</p>
-              <p className="font-mono tabular-nums text-base">{fmt(totalGeneral)}</p>
+              <p className=" tabular-nums text-base">{fmt(totalGeneral)}</p>
             </div>
           </div>
         </div>

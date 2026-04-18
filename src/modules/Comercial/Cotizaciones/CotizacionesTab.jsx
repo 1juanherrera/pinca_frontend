@@ -63,7 +63,7 @@ const columns = useMemo(() => [
       key:       'numero',
       label:     'Código',
       render: (v) => (
-        <span className="font-mono text-xs font-bold text-zinc-400 whitespace-nowrap">
+        <span className=" text-xs font-bold text-zinc-400 whitespace-nowrap">
           {v}
         </span>
       ),

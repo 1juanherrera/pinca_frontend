@@ -80,7 +80,7 @@ const ItemSearch = ({ items, onSelect, onClose }) => {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-zinc-800 truncate">{item.nombre}</p>
-                <p className="text-[10px] font-mono text-zinc-500 mt-0.5">{item.codigo}</p>
+                <p className="text-[10px]  text-zinc-500 mt-0.5">{item.codigo}</p>
               </div>
               <ChevronDown size={12} className="text-zinc-400 -rotate-90 shrink-0" />
             </button>
@@ -126,7 +126,7 @@ const FilaProducto = ({ p, factor, totalLista, onUpdate, onDelete, onSearchClick
           {hasCatalog ? (
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-semibold text-zinc-800 truncate max-w-45">{p.nombre}</span>
-              <span className="text-[10px] font-mono text-zinc-500">{p.codigo}</span>
+              <span className="text-[10px]  text-zinc-500">{p.codigo}</span>
             </div>
           ) : (
             <input
@@ -153,7 +153,7 @@ const FilaProducto = ({ p, factor, totalLista, onUpdate, onDelete, onSearchClick
           value={p.cantidad}
           onChange={e => onUpdate({ cantidad: e.target.value })}
           placeholder="0"
-          className="text-xs font-mono text-right text-zinc-800 bg-transparent border border-transparent hover:border-zinc-200 focus:border-zinc-400 rounded-lg px-2 py-1.5 outline-none transition-all w-24 placeholder:text-zinc-400"
+          className="text-xs  text-right text-zinc-800 bg-transparent border border-transparent hover:border-zinc-200 focus:border-zinc-400 rounded-lg px-2 py-1.5 outline-none transition-all w-24 placeholder:text-zinc-400"
         />
       </td>
 
@@ -179,7 +179,7 @@ const FilaProducto = ({ p, factor, totalLista, onUpdate, onDelete, onSearchClick
               if (num > 0) onUpdate({ valor: num.toLocaleString("es-CO") });
             }}
             placeholder="0"
-            className="text-xs font-mono text-right text-zinc-800 bg-transparent border border-transparent hover:border-zinc-200 focus:border-zinc-400 rounded-lg px-2 py-1.5 outline-none transition-all w-32 placeholder:text-zinc-400"
+            className="text-xs  text-right text-zinc-800 bg-transparent border border-transparent hover:border-zinc-200 focus:border-zinc-400 rounded-lg px-2 py-1.5 outline-none transition-all w-32 placeholder:text-zinc-400"
           />
         </div>
       </td>
@@ -187,7 +187,7 @@ const FilaProducto = ({ p, factor, totalLista, onUpdate, onDelete, onSearchClick
       {/* Costo asignado */}
       <td className="px-3 py-2 text-right">
         {factor > 0 && valor > 0 ? (
-          <span className="text-xs font-semibold font-mono text-zinc-800">{fmtCOP(asignado)}</span>
+          <span className="text-xs font-semibold  text-zinc-800">{fmtCOP(asignado)}</span>
         ) : (
           <span className="text-xs text-zinc-200">—</span>
         )}
@@ -197,7 +197,7 @@ const FilaProducto = ({ p, factor, totalLista, onUpdate, onDelete, onSearchClick
       <td className="px-3 py-2 text-right">
         {factor > 0 && valor > 0 && cantidad > 0 ? (
           <div>
-            <span className="text-xs font-semibold font-mono text-emerald-600">{fmtCOP(unitario)}</span>
+            <span className="text-xs font-semibold  text-emerald-600">{fmtCOP(unitario)}</span>
             <span className="text-[10px] text-zinc-500 ml-0.5">/{p.unidad || "u"}</span>
           </div>
         ) : (
@@ -209,7 +209,7 @@ const FilaProducto = ({ p, factor, totalLista, onUpdate, onDelete, onSearchClick
       <td className="px-3 py-2" style={{ width: 90 }}>
         {totalLista > 0 && valor > 0 ? (
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-mono text-zinc-500 text-right">{pct.toFixed(1)}%</span>
+            <span className="text-[10px]  text-zinc-500 text-right">{pct.toFixed(1)}%</span>
             <div className="h-1 bg-zinc-100 rounded-full overflow-hidden">
               <div className="h-full bg-blue-400 rounded-full transition-all duration-300" style={{ width: `${barW}%` }} />
             </div>
@@ -313,7 +313,7 @@ const ProrrateoWrapper = () => {
               <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-[10px] font-black text-white">{s.n}</div>
               <div>
                 <p className="text-xs font-semibold text-white">{s.t}</p>
-                <p className="text-[11px] text-zinc-500 mt-0.5 font-mono">{s.d}</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5 ">{s.d}</p>
               </div>
             </div>
           ))}
@@ -328,7 +328,7 @@ const ProrrateoWrapper = () => {
         </div>
         <div className="p-5 flex flex-col gap-4">
           <div className="flex items-center border-2 border-zinc-200 focus-within:border-zinc-900 rounded-xl overflow-hidden transition-all max-w-xs">
-            <span className="px-3 py-3 text-xs font-mono text-zinc-500 bg-zinc-50 border-r border-zinc-200 whitespace-nowrap">$ COP</span>
+            <span className="px-3 py-3 text-xs  text-zinc-500 bg-zinc-50 border-r border-zinc-200 whitespace-nowrap">$ COP</span>
             <input
               type="text"
               value={precioLote}
@@ -338,19 +338,19 @@ const ProrrateoWrapper = () => {
                 if (n > 0) setPrecioLote(n.toLocaleString("es-CO"));
               }}
               placeholder="30.000.000"
-              className="flex-1 px-3 py-3 text-sm font-mono font-semibold text-zinc-900 outline-none bg-white placeholder:text-zinc-300"
+              className="flex-1 px-3 py-3 text-sm  font-semibold text-zinc-900 outline-none bg-white placeholder:text-zinc-300"
             />
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-zinc-50 border border-zinc-100 rounded-xl px-4 py-3">
               <p className="text-[9px] font-semibold text-zinc-500 uppercase tracking-widest mb-1.5">Valor Lista Total</p>
-              <p className="text-base font-black text-zinc-900 font-mono">{fmtCOP(totalLista)}</p>
+              <p className="text-base font-black text-zinc-900 ">{fmtCOP(totalLista)}</p>
               <p className="text-[10px] text-zinc-500 mt-0.5">Suma precios originales</p>
             </div>
             <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">
               <p className="text-[9px] font-semibold text-emerald-500 uppercase tracking-widest mb-1.5">Factor de Ajuste</p>
-              <p className="text-base font-black text-emerald-700 font-mono">{factor.toFixed(4)}</p>
+              <p className="text-base font-black text-emerald-700 ">{factor.toFixed(4)}</p>
               <div className="mt-1.5">
                 <div className="h-1 bg-emerald-100 rounded-full overflow-hidden">
                   <div className="h-full bg-emerald-400 rounded-full transition-all duration-500" style={{ width: `${Math.min(factor * 100, 100)}%` }} />
@@ -360,7 +360,7 @@ const ProrrateoWrapper = () => {
             </div>
             <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
               <p className="text-[9px] font-semibold text-amber-500 uppercase tracking-widest mb-1.5">Descuento Global</p>
-              <p className="text-base font-black text-amber-700 font-mono">{descuento.toFixed(2)}%</p>
+              <p className="text-base font-black text-amber-700 ">{descuento.toFixed(2)}%</p>
               <p className="text-[10px] text-amber-500 mt-0.5">Ahorro: {fmtCOP(ahorro > 0 ? ahorro : 0)}</p>
             </div>
           </div>
@@ -423,8 +423,8 @@ const ProrrateoWrapper = () => {
               <tfoot>
                 <tr className="bg-zinc-950">
                   <td colSpan={4} className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-500">Total</td>
-                  <td className="px-3 py-3 text-right text-sm font-black font-mono text-white">{fmtCOP(totalLista)}</td>
-                  <td className="px-3 py-3 text-right text-sm font-black font-mono text-emerald-400">{fmtCOP(precioNum)}</td>
+                  <td className="px-3 py-3 text-right text-sm font-black  text-white">{fmtCOP(totalLista)}</td>
+                  <td className="px-3 py-3 text-right text-sm font-black  text-emerald-400">{fmtCOP(precioNum)}</td>
                   <td colSpan={3} />
                 </tr>
               </tfoot>

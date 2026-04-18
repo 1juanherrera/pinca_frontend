@@ -132,7 +132,7 @@ const DataTable = () => {
                       className="hover:bg-zinc-100 transition-colors"
                     >
                       <td className="px-3 py-1 text-center text-xs font-medium text-zinc-500">{getId(item)}</td>
-                      <td className="px-3 py-1"><span className="text-xs font-mono text-zinc-500 font-bold">{getCodigo(item)}</span></td>
+                      <td className="px-3 py-1"><span className="text-xs  text-zinc-500 font-bold">{getCodigo(item)}</span></td>
                       <td className="px-3 py-1 font-semibold uppercase text-zinc-900 text-xs">{getNombre(item)}</td>
                       <td className="px-3 py-1 text-center">
                         {editingCantidad === item.id_inventario ? (

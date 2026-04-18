@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Factory, ShoppingCart, Wrench, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import HeaderSection from '../../shared/HeaderSection';
+import { Button } from '../../shared/Button';
 
 import { useCostosProduccion }  from './api/useCostosProduccion';
 import { useCostosCompras }     from './api/useCostosCompras';
@@ -88,22 +90,27 @@ const CostosPage = () => {
   };
 
   return (
-    <div className="space-y-4 p-1">
+    <div className="flex flex-col w-full gap-4">
 
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold text-zinc-900">Costos</h1>
-          <p className="text-xs text-zinc-400">Panel de análisis de costos operativos</p>
-        </div>
-        <button
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+        <HeaderSection
+          title="Costos"
+          subtitle="Finanzas"
+          description="Panel de análisis de costos operativos"
+          icon={Factory}
+          breadcrumbs={[
+            { label: 'Finanzas' },
+            { label: 'Costos', path: '/costos' },
+          ]}
+        />
+        <Button
+          variant="black"
           onClick={handleExport}
           disabled={isLoading}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-zinc-900 text-white rounded-xl hover:bg-zinc-700 transition-colors disabled:opacity-50 active:scale-95"
+          icon={Download}
         >
-          <Download className="w-3.5 h-3.5" />
           Exportar Excel
-        </button>
+        </Button>
       </div>
 
       {/* ── Filtros ─────────────────────────────────────────────────────────── */}
@@ -133,7 +140,7 @@ const CostosPage = () => {
       />
 
       {/* ── Tabs ────────────────────────────────────────────────────────────── */}
-      <div className="bg-white border border-zinc-200/70 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-zinc-100 rounded-2xl shadow-sm overflow-hidden">
         <div className="flex items-center gap-1 px-4 pt-3 border-b border-zinc-100">
           {TABS.map(({ id, label, icon: Icon }) => (
             <button

@@ -74,7 +74,7 @@ const PagosPage = () => {
       key: 'numero_referencia',
       label: 'Referencia',
       render: (v) => (
-        <span className="font-mono text-xs font-bold text-zinc-400 whitespace-nowrap">
+        <span className=" text-xs font-bold text-zinc-400 whitespace-nowrap">
           {v}
         </span>
       ),
@@ -145,7 +145,7 @@ const PagosPage = () => {
   return (
     <div className="flex flex-col w-full gap-4">
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection
           title="Pagos de Clientes"
           subtitle="Facturación"

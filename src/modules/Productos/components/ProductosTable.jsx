@@ -106,7 +106,7 @@ const ProductosTable = ({
                     <td className="px-3 py-2">
                       <p className="font-medium text-zinc-900 leading-snug">{item.nombre}</p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="font-mono text-[11px] bg-zinc-100 px-1.5 py-px rounded text-zinc-500">
+                        <span className=" text-[11px] bg-zinc-100 px-1.5 py-px rounded text-zinc-500">
                           {item.codigo}
                         </span>
                         {item.unidad && (
@@ -154,18 +154,18 @@ const ProductosTable = ({
                       <span className="text-zinc-600 tabular-nums">{item.num_bodegas ?? 0}</span>
                     </td>
 
-                    <td className="px-3 py-2 text-right font-mono text-zinc-600 tabular-nums">
+                    <td className="px-3 py-2 text-right  text-zinc-600 tabular-nums">
                       {item.costo_unitario ? fmt(item.costo_unitario) : '—'}
                     </td>
 
-                    <td className="px-3 py-2 text-right font-mono font-semibold text-zinc-900 tabular-nums">
+                    <td className="px-3 py-2 text-right  font-semibold text-zinc-900 tabular-nums">
                       {item.valor_total ? fmt(item.valor_total) : '—'}
                     </td>
 
                     <td className="px-3 py-2 text-right">
                       {item.precio_manual_activo && item.precio_venta_manual ? (
                         <div className="flex flex-col items-end gap-0.5">
-                          <span className="font-mono font-semibold text-emerald-700 tabular-nums">
+                          <span className=" font-semibold text-emerald-700 tabular-nums">
                             {fmt(item.precio_venta_manual)}
                           </span>
                           <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-px rounded-full">
@@ -204,10 +204,10 @@ const ProductosTable = ({
                                         {bodega.cantidad}{item.unidad ? ` ${item.unidad}` : ''}
                                       </span>
                                     </td>
-                                    <td className="py-1.5 text-right tabular-nums font-mono text-zinc-600">
+                                    <td className="py-1.5 text-right tabular-nums  text-zinc-600">
                                       {bodega.costo_unitario > 0 ? fmt(bodega.costo_unitario) : '—'}
                                     </td>
-                                    <td className="py-1.5 text-right tabular-nums font-mono font-semibold text-zinc-800">
+                                    <td className="py-1.5 text-right tabular-nums  font-semibold text-zinc-800">
                                       {bodega.costo_unitario > 0 && bodega.cantidad > 0
                                         ? fmt(bodega.cantidad * bodega.costo_unitario)
                                         : '—'}

@@ -197,7 +197,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                       >
                         <div>
                           <p className="text-xs font-semibold text-zinc-800">{mp.nombre}</p>
-                          <p className="text-[10px] text-zinc-400 font-mono">{mp.codigo}</p>
+                          <p className="text-[10px] text-zinc-400 ">{mp.codigo}</p>
                         </div>
                         <PlusCircle size={14} className="text-zinc-400 shrink-0" />
                       </button>

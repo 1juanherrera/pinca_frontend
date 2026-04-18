@@ -32,7 +32,13 @@ export const useProveedores = () => {
   // ── UPDATE proveedor ──────────────────────────────────────────────────
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => apiClient.put(`/proveedores/${id}`, data),
-    onSuccess: () => {
+    onSuccess: (_response, { id, data }) => {
+      queryClient.setQueryData(proveedorKeys.lists(), (old) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((p) =>
+          p.id_proveedor === id ? { ...p, ...data } : p
+        );
+      });
       queryClient.invalidateQueries({ queryKey: proveedorKeys.lists() });
       toast.success('Proveedor actualizado correctamente');
     },

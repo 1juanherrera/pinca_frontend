@@ -40,7 +40,7 @@ const PagoRow = ({ pago }) => {
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <span className="text-[11px] text-gray-400">{pago.fecha_pago}</span>
           {pago.numero_referencia && (
-            <span className="text-[11px] text-gray-400 font-mono">· {pago.numero_referencia}</span>
+            <span className="text-[11px] text-gray-400 ">· {pago.numero_referencia}</span>
           )}
           <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ${
             isAbono ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'
@@ -87,7 +87,7 @@ const HistorialPagos = ({ clienteId, clienteNombre, isOpen, onClose }) => {
           <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-500">Total recaudado</p>
-              <p className="text-xl font-bold text-gray-900 font-mono tabular-nums">{fmt(totalPagado)}</p>
+              <p className="text-xl font-bold text-gray-900  tabular-nums">{fmt(totalPagado)}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-gray-500">Transacciones</p>

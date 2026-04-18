@@ -57,7 +57,7 @@ const RemisionesTab = () => {
       key:   'numero',
       label: 'Número',
       render: (v) => (
-        <span className="font-mono text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
+        <span className=" text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
       ),
     },
     {
@@ -94,7 +94,7 @@ const RemisionesTab = () => {
       label: 'Factura',
       align: 'center',
       render: (v) => v
-        ? <span className="font-mono text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
+        ? <span className=" text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
         : <span className="text-zinc-400 text-xs">—</span>,
     },
     {

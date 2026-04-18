@@ -39,7 +39,7 @@ export const useGananciasVentas = ({ desde, hasta } = {}) => {
         facturasData.map(async (factura) => {
           try {
             // Obtener items de la factura para calcular costos
-            const itemsFactura = await apiClient.get(`/facturas/${factura.id_facturas}/items`);
+            const itemsFactura = await apiClient.get(`/facturas/${factura.id_facturas}/detalle`);
             const items = itemsFactura?.data || itemsFactura || [];
             
             let costoTotal = 0;

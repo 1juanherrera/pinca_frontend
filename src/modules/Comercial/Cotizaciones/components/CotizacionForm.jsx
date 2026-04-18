@@ -338,7 +338,7 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Descuento ($)</label>
                 <input type="number" value={form.descuento} min="0" onChange={(e) => setField('descuento', e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right font-mono focus:outline-none focus:ring-2 focus:ring-gray-900" />
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right  focus:outline-none focus:ring-2 focus:ring-gray-900" />
               </div>
 
               {/* IVA toggle */}
@@ -359,16 +359,16 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                     <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
                       <input type="number" value={ivaPct} min="0" max="100"
                         onChange={(e) => setIvaPct(Number(e.target.value))}
-                        className="w-14 text-sm px-2 py-1 text-right font-mono focus:outline-none" />
+                        className="w-14 text-sm px-2 py-1 text-right  focus:outline-none" />
                       <span className="px-2 text-xs text-gray-500 bg-gray-50 border-l border-gray-200 py-1">%</span>
                     </div>
-                    <span className="text-xs text-blue-600 font-semibold font-mono ml-auto">{fmtCOP(impuestos)}</span>
+                    <span className="text-xs text-blue-600 font-semibold  ml-auto">{fmtCOP(impuestos)}</span>
                   </div>
                 ) : (
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">Impuestos manuales ($)</label>
                     <input type="number" value={form.impuestos} min="0" onChange={(e) => setField('impuestos', e.target.value)}
-                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right font-mono focus:outline-none focus:ring-2 focus:ring-gray-900" />
+                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right  focus:outline-none focus:ring-2 focus:ring-gray-900" />
                   </div>
                 )}
               </div>
@@ -377,7 +377,7 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Retención ($)</label>
                 <input type="number" value={form.retencion} min="0" onChange={(e) => setField('retencion', e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right font-mono focus:outline-none focus:ring-2 focus:ring-gray-900" />
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right  focus:outline-none focus:ring-2 focus:ring-gray-900" />
               </div>
             </fieldset>
 
@@ -391,12 +391,12 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
               ].map(([label, val, cls]) => (
                 <div key={label} className="flex justify-between text-gray-500">
                   <span>{label}</span>
-                  <span className={`font-mono ${cls}`}>{val}</span>
+                  <span className={` ${cls}`}>{val}</span>
                 </div>
               ))}
               <div className="border-t border-gray-300 pt-1.5 flex justify-between font-bold text-gray-900">
                 <span>Total</span>
-                <span className="font-mono">{fmtCOP(total)}</span>
+                <span className="">{fmtCOP(total)}</span>
               </div>
             </div>
           </div>
@@ -463,7 +463,7 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                     >
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-gray-800 truncate">{inv.nombre}</p>
-                        <p className="text-[10px] text-gray-400 font-mono">{inv.codigo}</p>
+                        <p className="text-[10px] text-gray-400 ">{inv.codigo}</p>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-xs font-bold text-gray-700">{fmtCOP(precio)}</p>
@@ -539,7 +539,7 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                             value={item.cantidad}
                             min="1"
                             onChange={(e) => setItemField(idx, 'cantidad', e.target.value)}
-                            className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right font-mono focus:outline-none focus:ring-1 focus:ring-gray-900"
+                            className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right  focus:outline-none focus:ring-1 focus:ring-gray-900"
                           />
                         </td>
                         <td className="px-2 py-2">
@@ -548,7 +548,7 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                             value={item.precio_unit}
                             min="0"
                             onChange={(e) => setItemField(idx, 'precio_unit', e.target.value)}
-                            className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right font-mono focus:outline-none focus:ring-1 focus:ring-gray-900"
+                            className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right  focus:outline-none focus:ring-1 focus:ring-gray-900"
                           />
                         </td>
                         <td className="px-2 py-2">
@@ -558,10 +558,10 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                             min="0"
                             max="100"
                             onChange={(e) => setItemField(idx, 'descuento_pct', e.target.value)}
-                            className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right font-mono focus:outline-none focus:ring-1 focus:ring-gray-900"
+                            className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right  focus:outline-none focus:ring-1 focus:ring-gray-900"
                           />
                         </td>
-                        <td className="px-3 py-2 text-right font-mono font-semibold text-gray-700 whitespace-nowrap">
+                        <td className="px-3 py-2 text-right  font-semibold text-gray-700 whitespace-nowrap">
                           {fmtCOP(item.subtotal)}
                         </td>
                         <td className="px-2 py-2 text-center">
@@ -575,7 +575,7 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                   <tfoot>
                     <tr className="bg-zinc-950">
                       <td colSpan={4} className="px-3 py-2.5 text-xs font-bold text-white text-right">Total</td>
-                      <td className="px-3 py-2.5 text-right text-sm font-bold text-white font-mono whitespace-nowrap">{fmtCOP(total)}</td>
+                      <td className="px-3 py-2.5 text-right text-sm font-bold text-white  whitespace-nowrap">{fmtCOP(total)}</td>
                       <td />
                     </tr>
                   </tfoot>

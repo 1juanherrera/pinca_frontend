@@ -139,7 +139,7 @@ const VincularModal = ({ item, onClose }) => {
                   >
                     <div>
                       <p className="text-xs font-semibold text-zinc-800">{ig.nombre}</p>
-                      <p className="text-[10px] text-zinc-400 font-mono">{ig.codigo}</p>
+                      <p className="text-[10px] text-zinc-400 ">{ig.codigo}</p>
                     </div>
                     {selectedItem?.id_item_general === ig.id_item_general && (
                       <Check size={14} className="text-emerald-600 shrink-0" />

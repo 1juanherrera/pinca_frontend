@@ -120,7 +120,7 @@ export const FormulacionesTable = ({
                                     <div className="text-xs font-semibold text-gray-900 uppercase tracking-tight">
                                         {formulacion.materia_prima_nombre || 'Sin nombre'}
                                     </div>
-                                    <div className="text-xs text-blue-600 font-mono font-medium">
+                                    <div className="text-xs text-blue-600  font-medium">
                                         {formulacion.materia_prima_codigo || 'Sin código'}
                                     </div>
                                     </div>

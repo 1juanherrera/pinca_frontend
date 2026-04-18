@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
+import { Layers } from 'lucide-react';
 import MateriasRimasTable from './components/MateriasRimasTable';
 import MateriasRimasFilters from './components/MateriasRimasFilters';
 import MateriasRimasStats from './components/MateriasRimasStats';
 import { useMateriasRimas } from './api/useMateriasRimas';
 import { useBoundStore } from '../../store/useBoundStore';
+import HeaderSection from '../../shared/HeaderSection';
 import { fmt } from '../../utils/formatters';
 import logo from '../../assets/pincaicono.png';
 
@@ -234,7 +236,21 @@ const MateriasPrimasPage = () => {
   const stats = data?.stats || {};
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col w-full gap-4">
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+        <HeaderSection
+          title="Materias Primas"
+          subtitle="Inventario"
+          description="Inventario consolidado de materias primas por bodega"
+          icon={Layers}
+          breadcrumbs={[
+            { label: 'Inventario' },
+            { label: 'Materias Primas', path: '/materias-primas' },
+          ]}
+        />
+      </div>
+
       <MateriasRimasStats
         stats={stats}
         onExportExcel={exportToExcel}
@@ -248,7 +264,7 @@ const MateriasPrimasPage = () => {
         onSearch={handleSearch}
       />
 
-      <div className="bg-white rounded-lg border border-zinc-200 overflow-hidden">
+      <div className="bg-white border border-zinc-100 rounded-2xl shadow-sm overflow-hidden">
         <MateriasRimasTable
           materiasRimas={materiasRimas}
           isLoading={isLoading}

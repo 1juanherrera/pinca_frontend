@@ -30,15 +30,13 @@ const ClientesPage = () => {
           ]}
         />
 
-          <div className='flex gap-2'>
-            <Button
-                variant="black"
-                onClick={() => openDrawer('CLIENTE_FORM')}
-                icon={Plus}
-            >
-            Agregar Cliente
-            </Button>
-          </div>
+        <Button
+          variant="black"
+          onClick={() => openDrawer('CLIENTE_FORM')}
+          icon={Plus}
+        >
+          Agregar Cliente
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -51,17 +49,11 @@ const ClientesPage = () => {
             <ClienteCard
               key={cliente.id_clientes}
               cliente={cliente}
-              // Cuando tengas estos datos del backend, pásalos aquí:
-              // totalPedidos={cliente.total_pedidos}
-              // totalCompras={cliente.total_compras_formatted}
-              // ultimaCompra={cliente.ultima_compra_relativa}
               onEdit={() => openDrawer('CLIENTE_FORM', cliente)}
               onDelete={() => openConfirm({
-                title: 'Eliminar Cliente',
-                message: `¿Estás seguro de que deseas eliminar a "${cliente.nombre_empresa || cliente.nombre_encargado}"?`,
-                onConfirm: async () => {
-                  await removeAsync(cliente.id_clientes);
-                },
+                title:     'Eliminar Cliente',
+                message:   `¿Eliminar a "${cliente.nombre_empresa || cliente.nombre_encargado}"?`,
+                onConfirm: async () => await removeAsync(cliente.id_clientes),
               })}
             />
           ))
