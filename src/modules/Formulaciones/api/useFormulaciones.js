@@ -48,6 +48,17 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null) => {
     onError: (err) => toast.error(err?.response?.data?.message || 'Error al crear la formulación'),
   });
 
+  // ✅ QUICK CREATE ITEM (producto o materia prima desde el modal)
+  const createItemMutation = useMutation({
+    mutationFn: (data) => apiClient.post('/item_general', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: itemKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: itemKeys.materiasPrimas() });
+      toast.success('Ítem creado correctamente');
+    },
+    onError: (err) => toast.error(err?.response?.data?.message || 'Error al crear el ítem'),
+  });
+
   // ✅ UPDATE
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => apiClient.put(`/formulaciones/${id}`, data),
@@ -60,16 +71,32 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null) => {
     onError: (err) => toast.error(err?.response?.data?.message || 'Error al actualizar la formulación'),
   });
 
-  // ✅ Materias primas (tipo = 1)
+  // ✅ Materias primas (tipo = 1) — usado por otras partes del sistema
   const queryMateriasPrimas = useQuery({
     queryKey: itemKeys.materiasPrimas(),
     queryFn:  () => apiClient.get('/items'),
+  });
+
+  // ✅ Materias disponibles: item_general tipo=1 + item_proveedor no vinculados
+  const queryMateriasDisponibles = useQuery({
+    queryKey: [...itemKeys.all, 'materias-disponibles'],
+    queryFn:  () => apiClient.get('/items/materias_disponibles'),
   });
 
   // ✅ Productos (tipo = 0)
   const queryProductos = useQuery({
     queryKey: itemKeys.lists(),
     queryFn:  () => apiClient.get('/item_general'),
+  });
+
+  // ✅ Vincular item_proveedor → item_general (auto-crea si es necesario)
+  const vincularMutation = useMutation({
+    mutationFn: ({ id, data }) => apiClient.patch(`/item_proveedores/${id}/vincular`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: itemKeys.materiasPrimas() });
+      queryClient.invalidateQueries({ queryKey: [...itemKeys.all, 'materias-disponibles'] });
+    },
+    onError: (err) => toast.error(err?.response?.data?.message || 'Error al registrar la materia prima'),
   });
 
   return {
@@ -85,12 +112,21 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null) => {
     isLoadingProductos:      queryProductos.isLoading,
     materiasPrimas:          (queryMateriasPrimas.data ?? []).filter(m => String(m.tipo) === '1'),
     isLoadingMateriasPrimas: queryMateriasPrimas.isLoading,
+    materiasDisponibles:     queryMateriasDisponibles.data ?? [],
 
     // States existentes
     isLoading:       queryList.isLoading,
     isCalculating:   queryCostos.isLoading,
     isRecalculating: queryRecalcular.isFetching,
     error:           queryList.error || queryCostos.error || queryRecalcular.error,
+
+    // ✅ Quick item creation
+    createItemAsync:  createItemMutation.mutateAsync,
+    isCreatingItem:   createItemMutation.isPending,
+
+    // ✅ Vincular item_proveedor → item_general
+    vincularItemProveedorAsync: vincularMutation.mutateAsync,
+    isVinculando:               vincularMutation.isPending,
 
     // ✅ Mutations
     createFormulacionAsync: createMutation.mutateAsync,

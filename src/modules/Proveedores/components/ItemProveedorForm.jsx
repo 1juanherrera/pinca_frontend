@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Save } from 'lucide-react';
+import { Save, Percent } from 'lucide-react';
 import Drawer from '../../../shared/Drawer';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { FormSelect } from '../../../shared/Form/FormSelect';
@@ -9,21 +9,21 @@ import { useBoundStore } from '../../../store/useBoundStore';
 import { useProveedores } from '../api/useProveedores';
 
 const TIPO_OPTIONS = [
-  { value: 'Materia Prima',  label: 'Materia Prima'  },
-  { value: 'Insumo',         label: 'Insumo'         },
-  { value: 'Empaque',        label: 'Empaque'        },
-  { value: 'Producto',       label: 'Producto'       },
-  { value: 'Servicio',       label: 'Servicio'       },
+  { value: 'Materia Prima', label: 'Materia Prima' },
+  { value: 'Insumo',        label: 'Insumo'        },
+  { value: 'Empaque',       label: 'Empaque'       },
+  { value: 'Producto',      label: 'Producto'      },
+  { value: 'Servicio',      label: 'Servicio'      },
 ];
 
 const EMPAQUE_OPTIONS = [
-  { value: 'Unidad',   label: 'Unidad'   },
-  { value: 'Caja',     label: 'Caja'     },
-  { value: 'Bulto',    label: 'Bulto'    },
-  { value: 'Caneca',   label: 'Caneca'   },
-  { value: 'Galon',    label: 'Galón'    },
-  { value: 'Litro',    label: 'Litro'    },
-  { value: 'Kilo',     label: 'Kilo'     },
+  { value: 'Unidad', label: 'Unidad' },
+  { value: 'Caja',   label: 'Caja'   },
+  { value: 'Bulto',  label: 'Bulto'  },
+  { value: 'Caneca', label: 'Caneca' },
+  { value: 'Galon',  label: 'Galón'  },
+  { value: 'Litro',  label: 'Litro'  },
+  { value: 'Kilo',   label: 'Kilo'   },
 ];
 
 const DISPONIBLE_OPTIONS = [
@@ -38,30 +38,63 @@ const ItemProveedorForm = () => {
 
   const isDrawerOpen = activeDrawer === 'ITEM_PROVEEDOR_FORM';
 
-  const { register, handleSubmit, reset, control, formState: { errors } } = useForm();
+  const [aplicarIva,    setAplicarIva]    = useState(true);
+  const [porcentajeIva, setPorcentajeIva] = useState(19);
+
+  const { register, handleSubmit, reset, control, watch, setValue, formState: { errors } } = useForm();
   const { proveedores, createItem, updateItem, isCreatingItem, isUpdatingItem } = useProveedores();
   const isSaving = isCreatingItem || isUpdatingItem;
+
+  const precioUnitario = watch('precio_unitario') ?? 0;
 
   const proveedorOptions = proveedores.map((p) => ({
     value: String(p.id_proveedor),
     label: p.nombre_empresa || p.nombre_encargado,
   }));
 
+  // Al abrir el drawer, detectar si el item editado tenía IVA calculado
   useEffect(() => {
-    if (isDrawerOpen) {
-      reset({
-        nombre:          payload?.nombre          ?? '',
-        codigo:          payload?.codigo          ?? '',
-        tipo:            payload?.tipo            ?? '',
-        unidad_empaque:  payload?.unidad_empaque  ?? '',
-        precio_unitario: payload?.precio_unitario ?? 0,
-        precio_con_iva:  payload?.precio_con_iva  ?? 0,
-        disponible:      payload?.disponible != null ? String(payload.disponible) : '1',
-        descripcion:     payload?.descripcion     ?? '',
-        proveedor_id:    payload?.proveedor_id    != null ? String(payload.proveedor_id) : '',
-      });
+    if (!isDrawerOpen) return;
+
+    const precioUnit = payload?.precio_unitario ?? 0;
+    const precioIva  = payload?.precio_con_iva  ?? 0;
+
+    let ivaAct = true;
+    let ivaPct = 19;
+
+    if (payload && precioUnit > 0 && precioIva > precioUnit) {
+      const pctDetectado = Math.round((precioIva / precioUnit - 1) * 100);
+      ivaAct = true;
+      ivaPct = pctDetectado > 0 ? pctDetectado : 19;
+    } else if (payload) {
+      // Editando item sin IVA detectado → modo manual
+      ivaAct = false;
+      ivaPct = 19;
     }
+
+    setAplicarIva(ivaAct);
+    setPorcentajeIva(ivaPct);
+
+    reset({
+      nombre:          payload?.nombre          ?? '',
+      codigo:          payload?.codigo          ?? '',
+      tipo:            payload?.tipo            ?? '',
+      unidad_empaque:  payload?.unidad_empaque  ?? '',
+      precio_unitario: precioUnit,
+      precio_con_iva:  precioIva,
+      disponible:      payload?.disponible != null ? String(payload.disponible) : '1',
+      descripcion:     payload?.descripcion     ?? '',
+      proveedor_id:    payload?.proveedor_id    != null ? String(payload.proveedor_id) : '',
+    });
   }, [isDrawerOpen, payload, reset]);
+
+  // Auto-calcular precio_con_iva cuando cambia el precio unitario o el % IVA
+  useEffect(() => {
+    if (!aplicarIva) return;
+    const base = Number(precioUnitario) || 0;
+    const conIva = Math.round(base * (1 + porcentajeIva / 100));
+    setValue('precio_con_iva', conIva);
+  }, [aplicarIva, precioUnitario, porcentajeIva, setValue]);
 
   const onSubmit = (data) => {
     const body = {
@@ -73,16 +106,21 @@ const ItemProveedorForm = () => {
     };
 
     if (payload) {
-      updateItem(
-        { id: payload.id_item_proveedor, data: body },
-        { onSuccess: handleClose }
-      );
+      updateItem({ id: payload.id_item_proveedor, data: body }, { onSuccess: handleClose });
     } else {
       createItem(body, { onSuccess: handleClose });
     }
   };
 
-  const handleClose = () => { reset(); closeDrawer(); };
+  const handleClose = () => {
+    reset();
+    setAplicarIva(true);
+    setPorcentajeIva(19);
+    closeDrawer();
+  };
+
+  // Valor calculado para mostrar en el preview de IVA
+  const ivaCalculado = Math.round((Number(precioUnitario) || 0) * (porcentajeIva / 100));
 
   return (
     <Drawer
@@ -152,7 +190,7 @@ const ItemProveedorForm = () => {
 
         <div className="grid grid-cols-2 gap-4">
           <FormInput
-            label="Código"
+            label="REF / Código"
             placeholder="Ej. PBT-01"
             error={errors.codigo?.message}
             registration={register('codigo')}
@@ -205,7 +243,8 @@ const ItemProveedorForm = () => {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        {/* ── Precios ───────────────────────────────────────────────────── */}
+        <div className="space-y-3">
           <Controller
             name="precio_unitario"
             control={control}
@@ -220,16 +259,81 @@ const ItemProveedorForm = () => {
             )}
           />
 
+          {/* Control de IVA */}
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 space-y-3">
+            <div className="flex items-center justify-between">
+              {/* Toggle aplicar IVA */}
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <button
+                  type="button"
+                  onClick={() => setAplicarIva(v => !v)}
+                  className={`relative w-9 h-5 rounded-full transition-colors duration-200 focus:outline-none ${
+                    aplicarIva ? 'bg-zinc-900' : 'bg-zinc-300'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${
+                      aplicarIva ? 'translate-x-4' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+                <span className="text-sm font-semibold text-zinc-700">Aplicar IVA</span>
+              </label>
+
+              {/* Input % IVA — siempre visible para cambio rápido */}
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={porcentajeIva}
+                  onChange={e => setPorcentajeIva(Number(e.target.value) || 0)}
+                  disabled={!aplicarIva}
+                  className="w-16 px-2 py-1 text-sm font-bold border border-zinc-200 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-zinc-900 bg-white disabled:opacity-40 disabled:cursor-not-allowed tabular-nums"
+                />
+                <Percent size={14} className={`transition-opacity ${aplicarIva ? 'text-zinc-500' : 'text-zinc-300'}`} />
+              </div>
+            </div>
+
+            {/* Preview del cálculo */}
+            {aplicarIva && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-400">
+                  IVA ({porcentajeIva}%) sobre{' '}
+                  <span className="font-semibold text-zinc-600">
+                    $ {Number(precioUnitario || 0).toLocaleString('es-CO')}
+                  </span>
+                </span>
+                <span className="font-bold text-zinc-700">
+                  + $ {ivaCalculado.toLocaleString('es-CO')}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Precio con IVA */}
           <Controller
             name="precio_con_iva"
             control={control}
             render={({ field }) => (
-              <InputMoneda
-                label="Precio con IVA"
-                value={field.value}
-                onChange={field.onChange}
-                error={errors.precio_con_iva?.message}
-              />
+              <div className="relative">
+                <InputMoneda
+                  label="Precio con IVA"
+                  value={field.value}
+                  onChange={(v) => {
+                    // Si el usuario edita manualmente, desactiva el auto-cálculo
+                    if (aplicarIva) setAplicarIva(false);
+                    field.onChange(v);
+                  }}
+                  error={errors.precio_con_iva?.message}
+                />
+                {aplicarIva && (
+                  <span className="absolute right-3 top-1 text-[10px] font-bold text-emerald-600 uppercase tracking-wide">
+                    Auto
+                  </span>
+                )}
+              </div>
             )}
           />
         </div>

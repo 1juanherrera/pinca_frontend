@@ -50,7 +50,7 @@ const CatalogoTab = () => {
       label: 'Producto',
       render: (v, row) => (
         <div>
-          <p className="font-semibold text-zinc-800 text-xs leading-none truncate">{v}</p>
+          <p className="font-semibold uppercase text-zinc-800 text-xs leading-none truncate">{v}</p>
           <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{row.nombre_empresa}</p>
         </div>
       ),
@@ -60,7 +60,7 @@ const CatalogoTab = () => {
       label:     'Tipo',
       className: 'w-32',
       render: (v) => (
-        <span className="text-xs text-zinc-500 whitespace-nowrap">{v ?? '—'}</span>
+        <span className="text-xs uppercase text-zinc-500 whitespace-nowrap">{v ?? '—'}</span>
       ),
     },
     {
