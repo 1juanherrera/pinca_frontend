@@ -1,20 +1,30 @@
 import { X } from 'lucide-react';
 
-const Drawer = ({ 
-  isOpen, 
-  onClose, 
-  title, 
-  description, 
-  children, 
-  footer
+const SIZE_CLASSES = {
+  md:  'max-w-md',
+  lg:  'max-w-lg',
+  xl:  'max-w-xl',
+  '2xl': 'max-w-2xl',
+};
+
+const Drawer = ({
+  isOpen,
+  onClose,
+  title,
+  description,
+  children,
+  footer,
+  size = 'md',
 }) => {
   if (!isOpen) return null;
+
+  const sizeClass = SIZE_CLASSES[size] ?? 'max-w-md';
 
   return (
     <>
       <div className="fixed inset-0 z-40 bg-zinc-950/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
-      <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl border-l border-zinc-200/80 flex flex-col transform transition-transform duration-300 ease-in-out translate-x-0">
+      <div className={`fixed inset-y-0 right-0 z-50 w-full ${sizeClass} bg-white shadow-2xl border-l border-zinc-200/80 flex flex-col transform transition-transform duration-300 ease-in-out translate-x-0`}>
         
         {/* HEADER GENÉRICO */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200/80 bg-zinc-50/50">

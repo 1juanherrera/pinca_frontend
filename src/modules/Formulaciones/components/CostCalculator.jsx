@@ -45,12 +45,10 @@ export const CostCalculator = ({
   });
 
   const hayStockOk    = faltantes.length === 0 && formulacionesBase.length > 0;
-  const puedePreparar = tieneRecalculo && hayStockOk;
+  const puedePreparar = tieneRecalculo;
 
   const razonBloqueo = !tieneRecalculo
     ? 'Recalcula el volumen antes de preparar.'
-    : !hayStockOk
-    ? `Stock insuficiente en ${faltantes.length} materia${faltantes.length !== 1 ? 's' : ''} prima.`
     : null;
 
   // 1. Estado de espera

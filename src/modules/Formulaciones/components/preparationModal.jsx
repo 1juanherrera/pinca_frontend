@@ -9,6 +9,8 @@ import { useBoundStore } from '../../../store/useBoundStore';
 import { formatCOP, parseCOP } from '../utils/handlers';
 import { Button } from '../../../shared/Button';
 import { usePreparaciones } from '../api/usePreparaciones';
+import DisponibilidadModal from '../../Produccion/components/DisponibilidadModal';
+import { useCrearRequisiciones } from '../../Produccion/api/useRequisiciones';
 
 // ─── Config visual ────────────────────────────────────────────────────────────
 const UNIT_CONFIG = {
@@ -323,37 +325,51 @@ const IndirectCostSelector = ({ selected, onChange }) => {
 
 // ─── Sub-formulario: preparación única (sin residuo) ─────────────────────────
 const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onSuccess }) => {
-  const [observaciones,  setObservaciones]  = useState('');
-  const [fechaInicio,    setFechaInicio]    = useState('');
-  const [fechaFin,       setFechaFin]       = useState('');
-  const [error,          setError]          = useState(null);
-  const [selectedCostos, setSelectedCostos] = useState([]);
+  const [observaciones,       setObservaciones]       = useState('');
+  const [fechaInicio,         setFechaInicio]         = useState('');
+  const [fechaFin,            setFechaFin]            = useState('');
+  const [error,               setError]               = useState(null);
+  const [selectedCostos,      setSelectedCostos]      = useState([]);
+  const [showDisponibilidad,  setShowDisponibilidad]  = useState(false);
+
   const { createAsync, isCreating } = usePreparaciones(null, item?.id);
+  const crearRequisiciones = useCrearRequisiciones();
 
   const escala   = parseFloat(unidad.escala);
   const cfg      = UNIT_CONFIG[unidad.nombre] ?? { icon: Package, color: 'text-zinc-600', bg: 'bg-zinc-100', border: 'border-zinc-200' };
   const cantidad = calcularCantidad(volumen, escala);
 
-  const handleSubmit = async () => {
+  const buildPayload = () => ({
+    item_general_id: item?.id,
+    unidad_id:       unidad.id_unidad,
+    cantidad:        volumen,
+    fecha_inicio:    fechaInicio || null,
+    fecha_fin:       fechaFin    || null,
+    observaciones:   observaciones.trim() || null,
+    detalle: formulaciones.map(mp => ({
+      item_general_id: mp.item_general_id,
+      cantidad: parseFloat(mp.cantidad_recalculada ?? mp.cantidad ?? 0),
+    })),
+    costos_indirectos: selectedCostos.map(c => ({
+      nombre:         c.nombre,
+      categoria:      c.categoria,
+      valor_aplicado: c.valor_aplicado,
+    })),
+  });
+
+  const handleSubmit = async ({ requisicionItems } = {}) => {
+    setShowDisponibilidad(false);
     setError(null);
     try {
-      const data = await createAsync({
-        item_general_id: item?.id,
-        unidad_id:       unidad.id_unidad,
-        cantidad:        volumen,
-        fecha_inicio:    fechaInicio || null,
-        fecha_fin:       fechaFin    || null,
-        observaciones:   observaciones.trim() || null,
-        detalle: formulaciones.map(mp => ({
-          item_general_id: mp.item_general_id,
-          cantidad: parseFloat(mp.cantidad_recalculada ?? mp.cantidad ?? 0),
-        })),
-        costos_indirectos: selectedCostos.map(c => ({
-          nombre:         c.nombre,
-          categoria:      c.categoria,
-          valor_aplicado: c.valor_aplicado,
-        })),
-      });
+      const data = await createAsync(buildPayload());
+
+      if (requisicionItems?.length > 0) {
+        const items = requisicionItems.map((r) => ({
+          ...r, preparacion_id: data.id_preparaciones,
+        }));
+        await crearRequisiciones.mutateAsync(items);
+      }
+
       onSuccess([data]);
     } catch (err) {
       setError(err?.message ?? 'Error al crear la preparación');
@@ -396,17 +412,29 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
         </div>
         <div className="px-5 py-4 border-t border-zinc-100 bg-zinc-50 shrink-0">
           <button
-            onClick={handleSubmit}
-            disabled={isCreating || cantidad <= 0}
+            onClick={() => setShowDisponibilidad(true)}
+            disabled={isCreating || crearRequisiciones.isPending || cantidad <= 0}
             className="flex items-center justify-center gap-2 w-full bg-zinc-950 hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl py-3 text-xs font-bold tracking-wide transition-all active:scale-[0.98]"
           >
-            {isCreating
+            {(isCreating || crearRequisiciones.isPending)
               ? <><Loader2 size={13} className="animate-spin" /> Guardando…</>
               : <><ClipboardList size={13} /> Confirmar · {formatCantidad(cantidad)} {unidad.nombre}</>}
           </button>
         </div>
       </div>
+
       <MateriasPanel formulaciones={formulaciones} volumen={volumen} titulo={`Para ${volumen} gal`} />
+
+      {showDisponibilidad && (
+        <DisponibilidadModal
+          itemGeneralId={item?.id}
+          cantidad={volumen}
+          unidadId={unidad.id_unidad}
+          preparacionId={null}
+          onConfirmar={handleSubmit}
+          onClose={() => setShowDisponibilidad(false)}
+        />
+      )}
     </div>
   );
 };
@@ -417,16 +445,18 @@ const CombinacionForm = ({
   unidadPrincipal, unidades, item, volumen, formulaciones = [],
   combinacionSugerida, onBack, onSuccess,
 }) => {
-  const [observaciones,  setObservaciones]  = useState('');
-  const [fechaInicio,    setFechaInicio]    = useState('');
-  const [fechaFin,       setFechaFin]       = useState('');
-  const [error,          setError]          = useState(null);
-  const [creando,        setCreando]        = useState(false);
-  const [modoSegunda,    setModoSegunda]    = useState('sugerida'); // 'sugerida' | 'manual'
-  const [segundaUnidad,  setSegundaUnidad]  = useState(null);
-  const [selectedCostos, setSelectedCostos] = useState([]);
+  const [observaciones,      setObservaciones]      = useState('');
+  const [fechaInicio,        setFechaInicio]        = useState('');
+  const [fechaFin,           setFechaFin]           = useState('');
+  const [error,              setError]              = useState(null);
+  const [creando,            setCreando]            = useState(false);
+  const [modoSegunda,        setModoSegunda]        = useState('sugerida');
+  const [segundaUnidad,      setSegundaUnidad]      = useState(null);
+  const [selectedCostos,     setSelectedCostos]     = useState([]);
+  const [showDisponibilidad, setShowDisponibilidad] = useState(false);
 
-  const { createAsync } = usePreparaciones(null, item?.id);
+  const { createAsync }    = usePreparaciones(null, item?.id);
+  const crearRequisiciones = useCrearRequisiciones();
 
   const escalaPrincipal  = parseFloat(unidadPrincipal.escala);
   const envasesPrincipales = Math.floor(round5(volumen / escalaPrincipal));
@@ -460,8 +490,9 @@ const CombinacionForm = ({
     : 0;
   const volumenSinCubrir = round5(volumen - volumenCubierto);
 
-  const handleConfirmar = async () => {
+  const handleConfirmar = async ({ requisicionItems } = {}) => {
     if (!ordenesActivas) return;
+    setShowDisponibilidad(false);
     setError(null);
     setCreando(true);
     const creadas = [];
@@ -477,7 +508,6 @@ const CombinacionForm = ({
           fecha_fin:       fechaFin    || null,
           observaciones:   observaciones.trim() || null,
           detalle,
-          // Solo la primera orden lleva los costos indirectos (evitar duplicación)
           costos_indirectos: idx === 0 ? selectedCostos.map(c => ({
             costos_indirectos_id: c.costos_indirectos_id,
             valor_aplicado:       c.valor_aplicado,
@@ -485,6 +515,15 @@ const CombinacionForm = ({
         });
         creadas.push(data);
       }
+
+      // Requisiciones vinculadas a la primera preparación creada
+      if (requisicionItems?.length > 0 && creadas[0]) {
+        const items = requisicionItems.map((r) => ({
+          ...r, preparacion_id: creadas[0].id_preparaciones,
+        }));
+        await crearRequisiciones.mutateAsync(items);
+      }
+
       onSuccess(creadas);
     } catch (err) {
       setError(err?.message ?? 'Error al crear las preparaciones');
@@ -626,16 +665,27 @@ const CombinacionForm = ({
 
         <div className="px-5 py-4 border-t border-zinc-100 bg-zinc-50 shrink-0">
           <button
-            onClick={handleConfirmar}
-            disabled={creando || !ordenesActivas || (modoSegunda === 'manual' && !segundaUnidad)}
+            onClick={() => setShowDisponibilidad(true)}
+            disabled={creando || crearRequisiciones.isPending || !ordenesActivas || (modoSegunda === 'manual' && !segundaUnidad)}
             className="flex items-center justify-center gap-2 w-full bg-zinc-950 hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl py-3 text-xs font-bold tracking-wide transition-all active:scale-[0.98]"
           >
-            {creando
+            {(creando || crearRequisiciones.isPending)
               ? <><Loader2 size={13} className="animate-spin" /> Creando órdenes…</>
               : <><ClipboardList size={13} /> Crear {ordenesActivas?.length ?? 2} preparaciones</>}
           </button>
         </div>
       </div>
+
+      {showDisponibilidad && (
+        <DisponibilidadModal
+          itemGeneralId={item?.id}
+          cantidad={volumen}
+          unidadId={unidadPrincipal.id_unidad}
+          preparacionId={null}
+          onConfirmar={handleConfirmar}
+          onClose={() => setShowDisponibilidad(false)}
+        />
+      )}
 
       {/* Panel derecho: resumen visual de las 2 órdenes ────────── */}
       <div className="flex-1 flex flex-col overflow-hidden">
