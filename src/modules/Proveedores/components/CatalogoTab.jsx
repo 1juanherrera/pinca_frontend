@@ -64,8 +64,8 @@ const CatalogoTab = () => {
       ),
     },
     {
-      key:       'unidad_empaque',
-      label:     'Empaque',
+      key:       'unidad_compra_nombre',
+      label:     'Unidad',
       align:     'center',
       render: (v) => (
         <span className="text-xs text-zinc-500 whitespace-nowrap">{v ?? '—'}</span>

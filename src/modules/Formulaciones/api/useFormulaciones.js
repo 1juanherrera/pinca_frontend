@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { formulacionKeys } from './FormulacionKeys';
 import { itemKeys } from '../../Inventario/api/itemKeys';
 
-export const useFormulaciones = (id = null, volumen = null, itemId = null) => {
+export const useFormulaciones = (id = null, volumen = null, itemId = null, proveedorId = null) => {
   const queryClient = useQueryClient();
 
   // 1. Obtener todas las formulaciones
@@ -27,6 +27,22 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null) => {
     queryFn:  () => apiClient.get(`/formulaciones/recalcular_costos/${id}/${volumen}`),
     enabled:  !!id && !!volumen,
     placeholderData: (previousData) => previousData,
+  });
+
+  // Proveedores disponibles para la formulación del producto seleccionado
+  const queryProveedores = useQuery({
+    queryKey: formulacionKeys.proveedores(id),
+    queryFn:  () => apiClient.get(`/formulaciones/${id}/proveedores`),
+    enabled:  !!id,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Costos recalculados por proveedor
+  const queryCostosProveedor = useQuery({
+    queryKey: formulacionKeys.costsByProveedor(id, proveedorId),
+    queryFn:  () => apiClient.get(`/formulaciones/costos/${id}/proveedor/${proveedorId}`),
+    enabled:  !!id && !!proveedorId,
+    staleTime: 1000 * 60 * 5,
   });
 
   // ✅ 4. Formulación de un item específico (para el modal)
@@ -104,6 +120,12 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null) => {
     formulaciones:      queryList.data ?? [],
     costosBase:         queryCostos.data ?? null,
     costosRecalculados: queryRecalcular.data ?? null,
+
+    // Proveedores y costos por proveedor
+    proveedoresFormulacion:    queryProveedores.data ?? [],
+    isLoadingProveedores:      queryProveedores.isLoading,
+    costosProveedor:           queryCostosProveedor.data ?? null,
+    isLoadingCostosProveedor:  queryCostosProveedor.isFetching,
 
     // ✅ Data nueva
     formulacion:             queryByItem.data?.data ?? null,

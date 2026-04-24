@@ -5,4 +5,6 @@ export const formulacionKeys = {
   costs:      (id) => [...formulacionKeys.all, 'costos', id],
   recalculate:(id, volumen) => [...formulacionKeys.all, 'recalculate', id, volumen],
   byItem:     (itemId) => [...formulacionKeys.all, 'item', itemId?.toString()],
+  proveedores:(itemId) => [...formulacionKeys.all, 'proveedores', itemId],
+  costsByProveedor: (id, proveedorId) => [...formulacionKeys.all, 'costos-proveedor', id, proveedorId],
 };

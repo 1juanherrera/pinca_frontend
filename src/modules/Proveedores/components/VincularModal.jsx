@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link2, Plus, X, ArrowRight, Info, AlertCircle } from 'lucide-react';
 import { useProveedores } from '../api/useProveedores';
 import { useUnidades } from '../../../api/useUnidades';
@@ -31,6 +31,11 @@ const VincularModal = ({ item, onClose }) => {
 
   const unidadSeleccionada = unidades.find(u => String(u.id_unidad) === String(unidadCompraId));
   const esKilo = unidadSeleccionada?.nombre === KILO_NOMBRE;
+
+  useEffect(() => {
+    if (!unidadSeleccionada) return;
+    setFactorConversion(Number(unidadSeleccionada.escala) || 1);
+  }, [unidadCompraId]);
 
   const esValido = modo === 'existente'
     ? !!selectedItem
@@ -196,7 +201,7 @@ const VincularModal = ({ item, onClose }) => {
               {unidadSeleccionada && !esKilo && (
                 <div className="flex items-center gap-1.5 text-[10px] text-amber-600">
                   <AlertCircle size={11} />
-                  1 {unidadSeleccionada.nombre} = {factorConversion} KG en inventario
+                  1 {unidadSeleccionada.nombre} = {factorConversion} {item.unidad_almacenaje_nombre ?? 'unidades base'} en inventario
                 </div>
               )}
               {esKilo && (

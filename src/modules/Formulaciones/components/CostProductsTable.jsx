@@ -1,21 +1,23 @@
-import { 
-  Calculator, 
-  FlaskConical, 
-  Briefcase, 
-  Box, 
-  Tag, 
-  Droplets, 
-  DollarSign, 
-  Pencil
+import {
+  Calculator,
+  FlaskConical,
+  Briefcase,
+  Box,
+  Tag,
+  Droplets,
+  DollarSign,
+  Pencil,
+  Truck
 } from 'lucide-react';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { ButtonSquare } from '../../../shared/Button';
 
-export const CostProductsTable = ({ 
-    selectedProductData, 
-    productDetail = null, 
-    compact = false, 
-    recalculatedData 
+export const CostProductsTable = ({
+    selectedProductData,
+    productDetail = null,
+    compact = false,
+    recalculatedData,
+    costosProveedor = null,
 }) => {
 
     const openDrawer = useBoundStore(state => state.openDrawer);
@@ -61,6 +63,11 @@ export const CostProductsTable = ({
                                     Calculado
                                 </span>
                             )}
+                            {costosProveedor && (
+                                <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-sm ml-1 flex items-center gap-1">
+                                    <Truck size={10} /> {costosProveedor.proveedor?.nombre_empresa}
+                                </span>
+                            )}
                         </h3>
                         <p className="text-emerald-50 text-xs opacity-90">
                             {productDetail?.item?.nombre || selectedProductData.nombre}
@@ -100,6 +107,13 @@ export const CostProductsTable = ({
                                     <DollarSign size={10} /> Valor Recalculado
                                 </div>
                             </th>
+                            {costosProveedor && (
+                                <th className="px-3 py-2 text-center text-[10px] font-semibold text-amber-600 uppercase tracking-wider">
+                                    <div className="flex items-center justify-center gap-1">
+                                        <Truck size={10} /> Proveedor
+                                    </div>
+                                </th>
+                            )}
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
@@ -130,6 +144,13 @@ export const CostProductsTable = ({
                                                     $ {value || '-'}
                                                 </div>
                                             </td>
+                                            {costosProveedor && (
+                                                <td className="px-3 py-2 whitespace-nowrap text-center">
+                                                    <div className="text-xs font-bold text-amber-600">
+                                                        $ {costosProveedor.costos_proveedor?.[key] || value || '-'}
+                                                    </div>
+                                                </td>
+                                            )}
                                         </tr>
                                     );
                                 })
@@ -159,6 +180,13 @@ export const CostProductsTable = ({
                                     $ {recalculatedData?.recalculados?.total || '-'}
                                 </div>
                             </td>
+                            {costosProveedor && (
+                                <td className="px-3 py-3 whitespace-nowrap text-center">
+                                    <div className="text-lg font-bold text-amber-700 tracking-tighter">
+                                        $ {costosProveedor.costos_proveedor?.total || '-'}
+                                    </div>
+                                </td>
+                            )}
                         </tr>
                         <tr className="bg-zinc-700 font-semibold text-white">
                             <td className="px-3 py-3 whitespace-nowrap">
@@ -179,9 +207,14 @@ export const CostProductsTable = ({
                                     $ {productDetail?.costos?.precio_venta || '-'}
                                 </div>
                             </td>
-                            <td className="text-lg font-bold tracking-tighter text-center" >
-                                $ {recalculatedData?.recalculados?.precio_venta || '-'}                                     
+                            <td className="text-lg font-bold tracking-tighter text-center">
+                                $ {recalculatedData?.recalculados?.precio_venta || '-'}
                             </td>
+                            {costosProveedor && (
+                                <td className="text-lg font-bold tracking-tighter text-center text-amber-400">
+                                    $ {costosProveedor.costos_proveedor?.precio_venta || '-'}
+                                </td>
+                            )}
                         </tr>
                     </tfoot>
                 </table>

@@ -1,11 +1,11 @@
-import { FlaskConical, Beaker, Scale, DollarSign } from 'lucide-react';
+import { FlaskConical, Beaker, Scale, DollarSign, Truck } from 'lucide-react';
 
 export const FormulacionesTable = ({
     selectedProductData,
     compact = false,
     productDetail = null,
     recalculatedData,
-    // loadingDetail = false,
+    costosProveedor = null,
 }) => {
     // 1. Estado de "No Seleccionado" (Estilo Original)
     if (!selectedProductData) {
@@ -26,21 +26,31 @@ export const FormulacionesTable = ({
     }
 
     const dataToShow = recalculatedData || productDetail;
+    const proveedorMap = {};
+    if (costosProveedor?.formulaciones) {
+        costosProveedor.formulaciones.forEach((f) => {
+            proveedorMap[f.item_general_id] = f;
+        });
+    }
 
     return (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            {/* Header con Degradado Azul Original */}
+            {/* Header */}
             <div className="bg-zinc-700 text-white px-4 py-3">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className={`${compact ? 'text-base' : 'text-lg'} font-semibold flex items-center gap-2`}>
-                            {/* Icono Lucide FlaskConical reemplaza a FaFlask */}
                             <FlaskConical size={compact ? 16 : 20} />
                             Formulaciones
-                            
+
                             {recalculatedData && (
                                 <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-sm ml-2">
                                     Calculado
+                                </span>
+                            )}
+                            {costosProveedor && (
+                                <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-sm ml-1 flex items-center gap-1">
+                                    <Truck size={10} /> {costosProveedor.proveedor?.nombre_empresa}
                                 </span>
                             )}
                         </h3>
@@ -179,23 +189,65 @@ export const FormulacionesTable = ({
                                 }
                                 </td>
 
-                                {/* 💲 COSTO UNITARIO */}
+                                {/* COSTO UNITARIO */}
                                 <td className="px-3 py-2 whitespace-nowrap text-center">
-                                <div className="text-sm font-bold text-emerald-600">
-                                    {formulacion.materia_prima_costo_unitario ?? 0}
-                                </div>
+                                {(() => {
+                                    const prov = proveedorMap[formulacion.item_general_id];
+                                    if (prov) {
+                                        return (
+                                            <div>
+                                                <div className={`text-sm font-bold ${prov.usa_precio_proveedor ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                                    $ {prov.costo_unitario_efectivo}
+                                                </div>
+                                                {prov.usa_precio_proveedor && (
+                                                    <div className="text-[10px] text-gray-400 font-normal italic tracking-tighter flex items-center justify-center gap-0.5">
+                                                        <Truck size={8} /> Prov.
+                                                        <span className="ml-1 line-through">$ {prov.costo_unitario_estandar}</span>
+                                                    </div>
+                                                )}
+                                                {!prov.usa_precio_proveedor && (
+                                                    <div className="text-[10px] text-gray-400 font-normal italic">Estándar</div>
+                                                )}
+                                            </div>
+                                        );
+                                    }
+                                    return (
+                                        <div className="text-sm font-bold text-emerald-600">
+                                            {formulacion.materia_prima_costo_unitario ?? 0}
+                                        </div>
+                                    );
+                                })()}
                                 </td>
 
-                                {/* 💰 COSTO TOTAL */}
+                                {/* COSTO TOTAL */}
                                 <td className="px-3 py-2 whitespace-nowrap text-center">
-                                <div className="text-sm font-bold text-emerald-600">
-                                    {recalculatedData == null ? formulacion.costo_total_materia : formulacion.costo_total_materia_recalculado ?? 0}
-                                    {recalculatedData && (
-                                        <div className="text-[10px] text-gray-500 font-normal italic tracking-tighter">
-                                            Base: {formulacion.costo_total_materia ?? 0}
+                                {(() => {
+                                    const prov = proveedorMap[formulacion.item_general_id];
+                                    if (prov) {
+                                        return (
+                                            <div>
+                                                <div className={`text-sm font-bold ${prov.usa_precio_proveedor ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                                    $ {prov.costo_total_proveedor}
+                                                </div>
+                                                {prov.usa_precio_proveedor && (
+                                                    <div className="text-[10px] text-gray-400 font-normal italic tracking-tighter">
+                                                        <span className="line-through">$ {prov.costo_total_estandar}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    }
+                                    return (
+                                        <div className="text-sm font-bold text-emerald-600">
+                                            {recalculatedData == null ? formulacion.costo_total_materia : formulacion.costo_total_materia_recalculado ?? 0}
+                                            {recalculatedData && (
+                                                <div className="text-[10px] text-gray-500 font-normal italic tracking-tighter">
+                                                    Base: {formulacion.costo_total_materia ?? 0}
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
+                                    );
+                                })()}
                                 </td>
                             </tr>
                             ))
@@ -211,7 +263,7 @@ export const FormulacionesTable = ({
                 </table>
             </div>
 
-            {/* Footer con Borde Gris y Fondo Claro Original */}
+            {/* Footer */}
             <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
                 <div className="flex justify-end items-center">
                     <div className="flex gap-6">
@@ -227,6 +279,16 @@ export const FormulacionesTable = ({
                                 $ {!recalculatedData ? productDetail?.costos?.total_costo_materia_prima : recalculatedData?.recalculados?.total_costo_materia_prima}
                             </span>
                         </div>
+                        {costosProveedor && (
+                            <div className="text-sm border-l border-gray-200 pl-6">
+                                <span className="text-amber-600 font-medium flex items-center gap-1 inline-flex">
+                                    <Truck size={12} /> Proveedor:
+                                </span>{' '}
+                                <span className="font-bold text-amber-700">
+                                    $ {costosProveedor.costos_proveedor?.total_costo_materia_prima}
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

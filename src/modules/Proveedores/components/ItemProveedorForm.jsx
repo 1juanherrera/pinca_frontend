@@ -21,16 +21,6 @@ const TIPO_CONFIG = {
 };
 
 
-const EMPAQUE_OPTIONS = [
-  { value: 'Unidad', label: 'Unidad' },
-  { value: 'Caja',   label: 'Caja'   },
-  { value: 'Bulto',  label: 'Bulto'  },
-  { value: 'Caneca', label: 'Caneca' },
-  { value: 'Galon',  label: 'Galón'  },
-  { value: 'Litro',  label: 'Litro'  },
-  { value: 'Kilo',   label: 'Kilo'   },
-];
-
 const DISPONIBLE_OPTIONS = [
   { value: '1', label: 'Disponible'    },
   { value: '2', label: 'No disponible' },
@@ -43,8 +33,6 @@ const TIPO_OPTIONS = [
   { value: 'Producto',      label: 'Producto'      },
   { value: 'Servicio',      label: 'Servicio'      },
 ];
-
-const KILO_NOMBRE = 'KILO';
 
 // ── Componente de autocomplete para el nombre ───────────────────────────────
 const NombreAutocomplete = ({ value, onChange, onSelectItem, error, catalogoExistente = [] }) => {
@@ -230,12 +218,11 @@ const ItemProveedorForm = () => {
 
   const isDrawerOpen = activeDrawer === 'ITEM_PROVEEDOR_FORM';
 
-  const [aplicarIva,       setAplicarIva]       = useState(true);
-  const [porcentajeIva,    setPorcentajeIva]    = useState(19);
-  const [itemGeneral,      setItemGeneral]      = useState(null);
-  const [unidadCompraId,   setUnidadCompraId]   = useState('');
-  const [factorConversion, setFactorConversion] = useState(1);
-  const [nombreLocal,      setNombreLocal]      = useState('');
+  const [aplicarIva,     setAplicarIva]     = useState(true);
+  const [porcentajeIva,  setPorcentajeIva]  = useState(19);
+  const [itemGeneral,    setItemGeneral]    = useState(null);
+  const [unidadCompraId, setUnidadCompraId] = useState('');
+  const [nombreLocal,    setNombreLocal]    = useState('');
 
   const { register, handleSubmit, reset, control, watch, setValue, formState: { errors } } = useForm();
   const { proveedores, catalogo, createItem, updateItem, isCreatingItem, isUpdatingItem } = useProveedores();
@@ -264,9 +251,6 @@ const ItemProveedorForm = () => {
     value: String(u.id_unidad),
     label: u.nombre,
   }));
-
-  const unidadSeleccionada = unidades.find(u => String(u.id_unidad) === String(unidadCompraId));
-  const esKilo = unidadSeleccionada?.nombre === KILO_NOMBRE;
 
   useEffect(() => {
     if (!isDrawerOpen) return;
@@ -297,13 +281,11 @@ const ItemProveedorForm = () => {
     }
 
     setUnidadCompraId(payload?.unidad_compra_id ? String(payload.unidad_compra_id) : '');
-    setFactorConversion(payload?.factor_conversion ?? 1);
 
     reset({
       nombre:          payload?.nombre          ?? '',
       codigo:          payload?.codigo          ?? '',
       tipo:            payload?.tipo            ?? '',
-      unidad_empaque:  payload?.unidad_empaque  ?? '',
       precio_unitario: precioUnit,
       precio_con_iva:  precioIva,
       disponible:      payload?.disponible != null ? String(payload.disponible) : '1',
@@ -317,10 +299,6 @@ const ItemProveedorForm = () => {
     const base = Number(precioUnitario) || 0;
     setValue('precio_con_iva', Math.round(base * (1 + porcentajeIva / 100)));
   }, [aplicarIva, precioUnitario, porcentajeIva, setValue]);
-
-  useEffect(() => {
-    if (esKilo) setFactorConversion(1);
-  }, [esKilo]);
 
   // Cuando se selecciona del autocomplete de nombre:
   // - Si viene de item_general (internos): setea el green card directamente
@@ -340,7 +318,6 @@ const ItemProveedorForm = () => {
       precio_con_iva:    Number(data.precio_con_iva),
       item_general_id:   itemGeneral?.id_item_general ?? null,
       unidad_compra_id:  unidadCompraId ? parseInt(unidadCompraId, 10) : null,
-      factor_conversion: Number(factorConversion) || 1,
     };
 
     if (payload) {
@@ -358,7 +335,6 @@ const ItemProveedorForm = () => {
     setItemGeneral(null);
     setNombreLocal('');
     setUnidadCompraId('');
-    setFactorConversion(1);
     closeDrawer();
   };
 
@@ -463,19 +439,12 @@ const ItemProveedorForm = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Controller
-            name="unidad_empaque"
-            control={control}
-            render={({ field }) => (
-              <FormSelect
-                label="Unidad de empaque"
-                options={EMPAQUE_OPTIONS}
-                value={field.value}
-                onChange={field.onChange}
-                placeholder="Empaque..."
-                error={errors.unidad_empaque?.message}
-              />
-            )}
+          <FormSelect
+            label="Unidad de compra"
+            options={unidadOptions}
+            value={unidadCompraId}
+            onChange={setUnidadCompraId}
+            placeholder="Selecciona unidad..."
           />
           <Controller
             name="disponible"
@@ -508,38 +477,6 @@ const ItemProveedorForm = () => {
             </p>
           )}
         </div>
-
-        {/* ── Unidad de compra + factor ── */}
-        {itemGeneral && (
-          <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 space-y-3">
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Unidad de compra al proveedor</p>
-            <div className="grid grid-cols-2 gap-3">
-              <FormSelect
-                label="El proveedor vende en"
-                options={unidadOptions}
-                value={unidadCompraId}
-                onChange={setUnidadCompraId}
-                placeholder="Selecciona unidad..."
-              />
-              <div>
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Factor → KG</label>
-                <input
-                  type="number" min="0.000001" step="0.001"
-                  value={factorConversion}
-                  onChange={e => setFactorConversion(e.target.value)}
-                  disabled={esKilo}
-                  className="w-full px-3 py-2 text-sm font-mono border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 bg-white disabled:opacity-40 disabled:cursor-not-allowed"
-                />
-              </div>
-            </div>
-            {unidadSeleccionada && !esKilo && (
-              <p className="text-[10px] text-amber-600">1 {unidadSeleccionada.nombre} = {factorConversion} KG en inventario</p>
-            )}
-            {esKilo && (
-              <p className="text-[10px] text-emerald-600">Unidad base — sin conversión necesaria.</p>
-            )}
-          </div>
-        )}
 
         {/* ── Precios ── */}
         <div className="space-y-3">
