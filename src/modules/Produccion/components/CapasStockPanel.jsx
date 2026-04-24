@@ -2,7 +2,9 @@ import { useState, useMemo, useEffect } from 'react';
 import {
   Layers, ChevronDown, ChevronUp, Building2, Calendar,
   Package, AlertTriangle, ToggleLeft, ToggleRight, Loader2,
+  ShoppingCart, User,
 } from 'lucide-react';
+import { Link } from 'react-router';
 import { useCapasStock, useBodegasConCapas } from '../api/useCapasStock';
 
 const fmtNum = (v) =>
@@ -63,7 +65,6 @@ const CapaRow = ({ capa, modo, cantidadAsignada, onCantidadChange, disabled }) =
         </div>
       </div>
 
-      {/* Barra de consumo de la capa */}
       <div className="mt-2 flex items-center gap-2">
         <div className="flex-1 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
           <div className="h-full bg-zinc-300 rounded-full" style={{ width: `${pctUsado}%` }} />
@@ -71,7 +72,6 @@ const CapaRow = ({ capa, modo, cantidadAsignada, onCantidadChange, disabled }) =
         <span className="text-[9px] text-zinc-400 w-8 text-right shrink-0">{Math.round(100 - pctUsado)}%</span>
       </div>
 
-      {/* Input de cantidad (solo en modo manual) */}
       {modo === 'MANUAL' && (
         <div className="mt-2 flex items-center gap-2">
           <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest shrink-0">Consumir:</label>
@@ -95,7 +95,6 @@ const CapaRow = ({ capa, modo, cantidadAsignada, onCantidadChange, disabled }) =
         </div>
       )}
 
-      {/* Badge de bodega */}
       <div className="mt-1.5 flex items-center gap-1.5">
         <span className="inline-flex items-center gap-0.5 text-[9px] font-medium text-zinc-400 bg-zinc-50 px-1.5 py-0.5 rounded">
           <Package size={8} /> {capa.bodega_nombre}
@@ -120,6 +119,11 @@ const CapasStockPanel = ({
   seleccionActual = {},
   bodegaSeleccionada = null,
   onBodegaChange,
+  // Props para filtro por proveedor y reporte de costos
+  proveedorId = null,
+  onProveedorChange,
+  onDeficitChange,
+  onCostoChange,
 }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -128,24 +132,68 @@ const CapasStockPanel = ({
 
   const modo = modoExterno || 'FIFO';
 
-  // FIFO: pre-asignar automáticamente
+  // Proveedores únicos con métricas de frescura derivadas de sus capas
+  const proveedoresDisponibles = useMemo(() => {
+    const map = new Map();
+    capas.forEach(c => {
+      if (!c.proveedor_id) return;
+      const qty  = Number(c.cantidad_disponible || 0);
+      const cost = Number(c.costo_unitario || 0);
+      if (!map.has(c.proveedor_id)) {
+        map.set(c.proveedor_id, {
+          id:          c.proveedor_id,
+          nombre:      c.proveedor_nombre || `Proveedor #${c.proveedor_id}`,
+          ultima_fecha: c.fecha_ingreso,
+          stock:        qty,
+          costo_acum:   qty * cost,
+        });
+      } else {
+        const p = map.get(c.proveedor_id);
+        if (c.fecha_ingreso > p.ultima_fecha) p.ultima_fecha = c.fecha_ingreso;
+        p.stock      += qty;
+        p.costo_acum += qty * cost;
+      }
+    });
+    return Array.from(map.values()).map(p => ({
+      ...p,
+      costo_prom: p.stock > 0 ? p.costo_acum / p.stock : 0,
+    }));
+  }, [capas]);
+
+  // Stock total para el proveedor seleccionado
+  const stockProveedor = useMemo(() => {
+    if (!proveedorId) return stockTotal;
+    return capas
+      .filter(c => String(c.proveedor_id) === String(proveedorId))
+      .reduce((s, c) => s + Number(c.cantidad_disponible || 0), 0);
+  }, [capas, proveedorId, stockTotal]);
+
+  // FIFO: pre-asignar automáticamente (respetando filtro de proveedor)
   const fifoAsignacion = useMemo(() => {
     if (modo !== 'FIFO' || !capas.length) return {};
+    const capasToUse = proveedorId
+      ? capas.filter(c => String(c.proveedor_id) === String(proveedorId))
+      : capas;
     const asignacion = {};
     let pendiente = cantidadNecesaria;
-    for (const c of capas) {
+    for (const c of capasToUse) {
       if (pendiente <= 0) break;
       const consumir = Math.min(c.cantidad_disponible, pendiente);
       asignacion[c.id_capa] = consumir;
       pendiente -= consumir;
     }
     return asignacion;
-  }, [modo, capas, cantidadNecesaria]);
+  }, [modo, capas, cantidadNecesaria, proveedorId]);
 
   const asignacionActiva = modo === 'FIFO' ? fifoAsignacion : seleccionActual;
-
   const totalAsignado = Object.values(asignacionActiva).reduce((s, v) => s + v, 0);
-  const deficit = Math.max(cantidadNecesaria - totalAsignado, 0);
+
+  // Déficit considerando filtro de proveedor
+  const deficitEfectivo = proveedorId
+    ? Math.max(cantidadNecesaria - stockProveedor, 0)
+    : Math.max(cantidadNecesaria - totalAsignado, 0);
+
+  const sinStock = stockTotal === 0;
 
   const costoPonderadoSeleccion = useMemo(() => {
     if (!capas.length || totalAsignado <= 0) return 0;
@@ -157,7 +205,7 @@ const CapasStockPanel = ({
     return costoTotal / totalAsignado;
   }, [capas, asignacionActiva, totalAsignado]);
 
-  // Notificar al padre cuando cambia la asignación FIFO
+  // Notificar al padre sobre FIFO cuando cambia la asignación
   useEffect(() => {
     if (modo === 'FIFO' && onSeleccionChange) {
       const capasArr = Object.entries(fifoAsignacion).map(([capaId, cantidad]) => ({
@@ -167,6 +215,22 @@ const CapasStockPanel = ({
       onSeleccionChange(itemGeneralId, capasArr, 'FIFO');
     }
   }, [fifoAsignacion, modo]);
+
+  // Notificar al padre sobre déficit con proveedor seleccionado
+  useEffect(() => {
+    if (onDeficitChange) {
+      const hayDeficit = proveedorId ? deficitEfectivo > 0.001 : false;
+      onDeficitChange(itemGeneralId, hayDeficit);
+    }
+  }, [deficitEfectivo, proveedorId, itemGeneralId]);
+
+  // Propagar costo real vs teórico al padre para el reporte de variación
+  useEffect(() => {
+    if (!onCostoChange) return;
+    const costoReal    = costoPonderadoSeleccion > 0 ? costoPonderadoSeleccion : costoPromedio;
+    const costoTeorico = costoPromedio;
+    onCostoChange(itemGeneralId, { real: costoReal, teorico: costoTeorico });
+  }, [costoPonderadoSeleccion, costoPromedio, itemGeneralId]);
 
   const handleCantidadChange = (capaId, cantidad) => {
     if (!onSeleccionChange) return;
@@ -183,25 +247,38 @@ const CapasStockPanel = ({
     onSeleccionChange(itemGeneralId, capasArr, 'MANUAL');
   };
 
-  const stockSuficiente = stockTotal >= cantidadNecesaria;
+  const stockSuficiente = proveedorId
+    ? stockProveedor >= cantidadNecesaria
+    : stockTotal >= cantidadNecesaria;
+
+  const headerBg = deficitEfectivo > 0.001 && proveedorId
+    ? 'bg-red-50 hover:bg-red-100/70'
+    : deficitEfectivo > 0.001
+      ? 'bg-amber-50 hover:bg-amber-100/70'
+      : 'bg-zinc-50 hover:bg-zinc-100';
 
   return (
-    <div className="rounded-xl border border-zinc-200 overflow-hidden">
+    <div className={`rounded-xl border overflow-hidden ${
+      deficitEfectivo > 0.001 && proveedorId ? 'border-red-300' : 'border-zinc-200'
+    }`}>
       {/* Header colapsable */}
       <button
         type="button"
         onClick={() => setExpanded(v => !v)}
-        className={`w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors ${
-          deficit > 0 ? 'bg-amber-50 hover:bg-amber-100/70' : 'bg-zinc-50 hover:bg-zinc-100'
-        }`}
+        className={`w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors ${headerBg}`}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <Layers size={13} className={deficit > 0 ? 'text-amber-500' : 'text-zinc-500'} />
+          <Layers size={13} className={deficitEfectivo > 0.001 ? (proveedorId ? 'text-red-500' : 'text-amber-500') : 'text-zinc-500'} />
           <div className="min-w-0">
             <p className="text-xs font-semibold text-zinc-800 truncate">{nombre}</p>
             <p className="text-[10px] text-zinc-400">
               Necesario: <span className="font-bold text-zinc-600">{fmtNum(cantidadNecesaria)} kg</span>
-              {' · '}Stock: <span className={`font-bold ${stockSuficiente ? 'text-emerald-600' : 'text-red-600'}`}>{fmtNum(stockTotal)} kg</span>
+              {' · '}Stock: <span className={`font-bold ${stockSuficiente ? 'text-emerald-600' : 'text-red-600'}`}>
+                {fmtNum(proveedorId ? stockProveedor : stockTotal)} kg
+              </span>
+              {proveedorId && (
+                <span className="text-zinc-400"> (proveedor)</span>
+              )}
               {capas.length > 0 && <> · <span className="font-bold text-zinc-500">{capas.length} capa{capas.length !== 1 ? 's' : ''}</span></>}
             </p>
           </div>
@@ -213,10 +290,22 @@ const CapasStockPanel = ({
               {fmtCOP(costoPonderadoSeleccion)}/kg
             </span>
           )}
-          {deficit > 0 && (
-            <span className="text-[10px] font-bold text-red-700 bg-red-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
-              <AlertTriangle size={9} /> -{fmtNum(deficit)} kg
+          {deficitEfectivo > 0.001 && (
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
+              proveedorId ? 'text-red-700 bg-red-50' : 'text-amber-700 bg-amber-50'
+            }`}>
+              <AlertTriangle size={9} /> -{fmtNum(deficitEfectivo)} kg
             </span>
+          )}
+          {sinStock && !proveedorId && (
+            <Link
+              to={`/compras?item_id=${itemGeneralId}`}
+              onClick={e => e.stopPropagation()}
+              className="flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg hover:bg-amber-100 transition-colors"
+              title="Ir a Compras para generar una OC"
+            >
+              <ShoppingCart size={9} /> Generar OC
+            </Link>
           )}
           {expanded ? <ChevronUp size={14} className="text-zinc-400" /> : <ChevronDown size={14} className="text-zinc-400" />}
         </div>
@@ -231,13 +320,62 @@ const CapasStockPanel = ({
             </div>
           ) : (
             <>
-              {/* Selector de bodega + modo */}
-              <div className="flex items-center gap-2">
-                {/* Selector de bodega */}
+              {/* Controles: proveedor + bodega + modo */}
+              <div className="flex flex-wrap items-center gap-2">
+
+                {/* Filtro de proveedor con indicador de frescura */}
+                {proveedoresDisponibles.length > 0 && onProveedorChange && (
+                  <div className="flex flex-col gap-1 flex-1 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <User size={10} className="text-zinc-400 shrink-0" />
+                      <select
+                        value={proveedorId ?? ''}
+                        onChange={e => onProveedorChange(itemGeneralId, e.target.value ? parseInt(e.target.value) : null)}
+                        className={`text-[10px] border rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900 w-full ${
+                          proveedorId ? 'border-blue-300 text-blue-700 bg-blue-50' : 'border-zinc-200'
+                        }`}
+                      >
+                        <option value="">Todos los proveedores (FIFO global)</option>
+                        {proveedoresDisponibles.map(p => (
+                          <option key={p.id} value={p.id}>
+                            {p.nombre} · {fmtNum(p.stock)} kg · {fmtCOP(p.costo_prom)}/kg · recibido {fmtFecha(p.ultima_fecha)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {/* Info de frescura del proveedor seleccionado */}
+                    {proveedorId && (() => {
+                      const pInfo = proveedoresDisponibles.find(p => String(p.id) === String(proveedorId));
+                      if (!pInfo) return null;
+                      const diasDesde = pInfo.ultima_fecha
+                        ? Math.round((Date.now() - new Date(pInfo.ultima_fecha).getTime()) / 86400000)
+                        : null;
+                      return (
+                        <div className="flex items-center gap-2 text-[9px] text-zinc-500 bg-blue-50 border border-blue-100 rounded-lg px-2 py-1">
+                          <Calendar size={8} className="text-blue-400 shrink-0" />
+                          <span>Última recepción: <strong className="text-blue-700">{fmtFecha(pInfo.ultima_fecha)}</strong></span>
+                          {diasDesde !== null && (
+                            <span className={`ml-auto font-semibold px-1.5 py-0.5 rounded ${
+                              diasDesde <= 30 ? 'text-emerald-700 bg-emerald-50' :
+                              diasDesde <= 90 ? 'text-amber-700 bg-amber-50' :
+                              'text-red-700 bg-red-50'
+                            }`}>
+                              {diasDesde}d
+                            </span>
+                          )}
+                          <span>·</span>
+                          <span>Costo prom: <strong className="text-zinc-700">{fmtCOP(pInfo.costo_prom)}/kg</strong></span>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {/* Filtro de bodega */}
                 {bodegas.length > 1 && onBodegaChange && (
                   <select
                     value={bodegaSeleccionada ?? ''}
-                    onChange={(e) => onBodegaChange(itemGeneralId, e.target.value ? parseInt(e.target.value) : null)}
+                    onChange={e => onBodegaChange(itemGeneralId, e.target.value ? parseInt(e.target.value) : null)}
                     className="text-[10px] border border-zinc-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900"
                   >
                     <option value="">Todas las bodegas</option>
@@ -264,6 +402,25 @@ const CapasStockPanel = ({
                 </button>
               </div>
 
+              {/* Alerta de déficit con proveedor */}
+              {deficitEfectivo > 0.001 && proveedorId && (
+                <div className="flex items-center justify-between gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle size={12} className="text-red-500 shrink-0" />
+                    <p className="text-[10px] text-red-700 font-medium">
+                      Stock insuficiente con este proveedor: faltan {fmtNum(deficitEfectivo)} kg
+                    </p>
+                  </div>
+                  <Link
+                    to={`/compras?item_id=${itemGeneralId}&proveedor_id=${proveedorId}`}
+                    className="shrink-0 flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg hover:bg-amber-100 transition-colors"
+                    title="Ir a Compras para generar una OC a este proveedor"
+                  >
+                    <ShoppingCart size={9} /> Generar OC
+                  </Link>
+                </div>
+              )}
+
               {/* Lista de capas */}
               {capas.length === 0 ? (
                 <div className="flex flex-col items-center py-6 gap-1 text-zinc-300">
@@ -272,16 +429,25 @@ const CapasStockPanel = ({
                 </div>
               ) : (
                 <div className="space-y-1.5">
-                  {capas.map((c) => (
-                    <CapaRow
-                      key={c.id_capa}
-                      capa={c}
-                      modo={modo}
-                      cantidadAsignada={asignacionActiva[c.id_capa] || 0}
-                      onCantidadChange={handleCantidadChange}
-                      disabled={modo === 'FIFO'}
-                    />
-                  ))}
+                  {capas
+                    .filter(c => !proveedorId || String(c.proveedor_id) === String(proveedorId))
+                    .map(c => (
+                      <CapaRow
+                        key={c.id_capa}
+                        capa={c}
+                        modo={modo}
+                        cantidadAsignada={asignacionActiva[c.id_capa] || 0}
+                        onCantidadChange={handleCantidadChange}
+                        disabled={modo === 'FIFO'}
+                      />
+                    ))
+                  }
+                  {/* Si hay proveedor filtrado, mostrar capas de otros proveedores en gris */}
+                  {proveedorId && capas.filter(c => String(c.proveedor_id) !== String(proveedorId)).length > 0 && (
+                    <p className="text-[9px] text-zinc-400 text-center pt-1">
+                      {capas.filter(c => String(c.proveedor_id) !== String(proveedorId)).length} capa(s) de otros proveedores ocultas
+                    </p>
+                  )}
                 </div>
               )}
 

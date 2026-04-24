@@ -1,52 +1,266 @@
-import { useEffect, useState } from 'react';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
-import { FlaskConical, X, PlusCircle, Trash2, Search, PackagePlus, Truck } from 'lucide-react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form';
+import {
+  FlaskConical, X, PlusCircle, Trash2, Search, PackagePlus, Truck,
+  AlertTriangle, ShoppingCart, Package, TrendingUp, CheckCircle2,
+  Layers, DollarSign,
+} from 'lucide-react';
+import { Link } from 'react-router';
 import { useFormulaciones } from '../api/useFormulaciones';
+import { useCapasStock } from '../../Produccion/api/useCapasStock';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { Button } from '../../../shared/Button';
 import toast from 'react-hot-toast';
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const fmtCOP = (v) =>
+  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(v) || 0);
+const fmtKg = (v, dec = 2) =>
+  Number.isFinite(Number(v)) ? Number(v).toFixed(dec) : '—';
+
 const EMPTY_PRODUCTO = { nombre: '', codigo: '' };
 const EMPTY_MP       = { nombre: '', codigo: '', costo_unitario: '' };
 
-const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+// ─── Card de un ingrediente ───────────────────────────────────────────────────
+const IngredientCard = ({
+  field, index, quantity, modoGlobal,
+  proveedorId, onProveedorChange, onCostoChange, onRemove,
+  register, errors, tabBase,
+}) => {
+  const { capas, stockTotal, costoPromedio, isLoading } = useCapasStock(field.materia_prima_id);
 
+  // Proveedores únicos con stock y costo promedio ponderado
+  const proveedoresDisponibles = useMemo(() => {
+    const map = new Map();
+    capas.forEach(c => {
+      if (!c.proveedor_id) return;
+      const qty  = Number(c.cantidad_disponible || 0);
+      const cost = Number(c.costo_unitario || 0);
+      if (!map.has(c.proveedor_id)) {
+        map.set(c.proveedor_id, { id: c.proveedor_id, nombre: c.proveedor_nombre || `Prov #${c.proveedor_id}`, stock: qty, costAcum: qty * cost });
+      } else {
+        const p = map.get(c.proveedor_id);
+        p.stock    += qty;
+        p.costAcum += qty * cost;
+      }
+    });
+    return Array.from(map.values()).map(p => ({
+      ...p, costoProm: p.stock > 0 ? p.costAcum / p.stock : 0,
+    }));
+  }, [capas]);
+
+  const provActual = modoGlobal === 'MANUAL' && proveedorId
+    ? proveedoresDisponibles.find(p => String(p.id) === String(proveedorId))
+    : null;
+
+  const stockEfectivo = provActual ? provActual.stock    : stockTotal;
+  const costoEfectivo = provActual
+    ? provActual.costoProm
+    : costoPromedio > 0 ? costoPromedio : Number(field.costo_unitario || 0);
+
+  const cantidadNecesaria = parseFloat(quantity) || 0;
+  const hasDeficit  = cantidadNecesaria > 0 && stockEfectivo < cantidadNecesaria && !isLoading;
+  const pctStock    = cantidadNecesaria > 0 && stockEfectivo > 0
+    ? Math.min((stockEfectivo / cantidadNecesaria) * 100, 100) : 0;
+  const subtotal = cantidadNecesaria * costoEfectivo;
+
+  // Notificar al padre cuando cambian los datos de costo/stock/déficit
+  useEffect(() => {
+    onCostoChange(field.id, { costoUnitario: costoEfectivo, stockDisponible: stockEfectivo, hasDeficit });
+  }, [costoEfectivo, stockEfectivo, hasDeficit, field.id, onCostoChange]);
+
+  const stockBarColor = isLoading ? 'bg-zinc-200 animate-pulse'
+    : hasDeficit        ? 'bg-red-400'
+    : stockEfectivo > 0 ? 'bg-emerald-400'
+    : 'bg-zinc-300';
+
+  const stockTextColor = hasDeficit ? 'text-red-600'
+    : stockEfectivo > 0 ? 'text-emerald-700'
+    : 'text-zinc-400';
+
+  const subtotalColor = !subtotal ? 'text-zinc-300'
+    : hasDeficit ? 'text-red-600'
+    : 'text-zinc-800';
+
+  return (
+    <div className={`rounded-2xl border overflow-hidden animate-in slide-in-from-left-4 duration-200 transition-colors ${
+      hasDeficit ? 'border-red-200' : 'border-zinc-100'
+    }`}>
+      {/* Cabecera */}
+      <div className={`flex items-center gap-2 px-3 py-2.5 ${hasDeficit ? 'bg-red-50' : 'bg-zinc-50'}`}>
+        <span className="w-5 h-5 flex items-center justify-center rounded bg-zinc-200 text-[9px] font-black text-zinc-500 shrink-0">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-bold text-zinc-800 truncate leading-none">{field.nombre}</p>
+          {field.fuente === 'proveedor' && field.proveedor_nombre && (
+            <span className="flex items-center gap-0.5 mt-0.5">
+              <Truck size={8} className="text-amber-500" />
+              <span className="text-[9px] text-amber-600">{field.proveedor_nombre}</span>
+            </span>
+          )}
+        </div>
+
+        {/* Selector de proveedor (Modo Manual) */}
+        {modoGlobal === 'MANUAL' && !isLoading && proveedoresDisponibles.length > 0 && (
+          <select
+            value={proveedorId ?? ''}
+            onChange={e => onProveedorChange(field.id, e.target.value ? parseInt(e.target.value) : null)}
+            tabIndex={tabBase + 1}
+            className="text-[10px] border border-zinc-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900 max-w-[150px] shrink-0"
+          >
+            <option value="">— Todo stock —</option>
+            {proveedoresDisponibles.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.nombre} ({fmtKg(p.stock, 1)} kg)
+              </option>
+            ))}
+          </select>
+        )}
+        {modoGlobal === 'MANUAL' && isLoading && (
+          <div className="h-6 w-28 bg-zinc-200 animate-pulse rounded-lg shrink-0" />
+        )}
+
+        <button
+          type="button"
+          onClick={() => onRemove(index)}
+          tabIndex={-1}
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-zinc-300 hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
+        >
+          <Trash2 size={13} />
+        </button>
+      </div>
+
+      {/* Cuerpo: 3 celdas */}
+      <div className="grid grid-cols-3 divide-x divide-zinc-100 bg-white">
+        {/* Cantidad */}
+        <div className="px-3 py-2.5 flex flex-col gap-1">
+          <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Cantidad (kg)</label>
+          <input
+            type="number"
+            step="0.001"
+            min="0"
+            tabIndex={tabBase}
+            {...register(`materias_primas.${index}.cantidad`, {
+              required: true, valueAsNumber: true, min: 0.001,
+            })}
+            placeholder="0.000"
+            className={`w-full text-sm font-bold text-center rounded-lg px-2 py-1.5 border focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums transition-colors ${
+              errors?.materias_primas?.[index]?.cantidad
+                ? 'border-red-300 bg-red-50 text-red-700'
+                : 'border-zinc-200 text-zinc-800'
+            }`}
+          />
+          {errors?.materias_primas?.[index]?.cantidad && (
+            <p className="text-[9px] text-red-500 flex items-center gap-0.5">
+              <AlertTriangle size={8} /> Requerido
+            </p>
+          )}
+        </div>
+
+        {/* Stock */}
+        <div className="px-3 py-2.5 flex flex-col gap-1.5 justify-center">
+          <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Disponibilidad</label>
+          {isLoading ? (
+            <div className="space-y-1.5">
+              <div className="h-1.5 bg-zinc-200 rounded-full animate-pulse" />
+              <div className="h-3 bg-zinc-200 rounded w-3/4 animate-pulse" />
+            </div>
+          ) : (
+            <>
+              <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${stockBarColor}`}
+                  style={{ width: `${pctStock}%` }}
+                />
+              </div>
+              <div className={`flex items-center justify-between text-[9px] font-medium ${stockTextColor}`}>
+                <span className="tabular-nums">{fmtKg(stockEfectivo, 1)} / {fmtKg(cantidadNecesaria, 1)} kg</span>
+                {hasDeficit
+                  ? <span className="flex items-center gap-0.5"><AlertTriangle size={8} /> Déficit</span>
+                  : stockEfectivo > 0
+                    ? <span className="flex items-center gap-0.5"><CheckCircle2 size={8} /> OK</span>
+                    : <span className="text-zinc-400">Sin stock</span>
+                }
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Costo / Subtotal */}
+        <div className="px-3 py-2.5 flex flex-col gap-0.5 justify-center">
+          <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Costo</label>
+          {isLoading ? (
+            <div className="space-y-1.5">
+              <div className="h-3 bg-zinc-200 rounded w-3/4 animate-pulse" />
+              <div className="h-4 bg-zinc-200 rounded animate-pulse" />
+            </div>
+          ) : (
+            <>
+              <p className="text-[10px] text-zinc-500 tabular-nums">
+                {costoEfectivo > 0 ? `${fmtCOP(costoEfectivo)}/kg` : '—'}
+              </p>
+              <p className={`text-sm font-black tabular-nums transition-colors duration-300 ${subtotalColor}`}>
+                {subtotal > 0 ? fmtCOP(subtotal) : '—'}
+              </p>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Alerta inline de déficit */}
+      {hasDeficit && (
+        <div className="flex items-center justify-between gap-2 px-3 py-2 bg-red-50 border-t border-red-100">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <AlertTriangle size={10} className="text-red-500 shrink-0" />
+            <p className="text-[10px] text-red-700 font-medium truncate">
+              Faltan {fmtKg(cantidadNecesaria - stockEfectivo, 1)} kg
+              {provActual ? ` con ${provActual.nombre}` : ' en stock total'}
+            </p>
+          </div>
+          <Link
+            to={`/compras?item_id=${field.materia_prima_id}${proveedorId ? `&proveedor_id=${proveedorId}` : ''}`}
+            className="shrink-0 flex items-center gap-1 text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg hover:bg-amber-100 transition-colors"
+          >
+            <ShoppingCart size={8} /> Generar OC
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Modal principal ──────────────────────────────────────────────────────────
+const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
+  const [searchTerm,        setSearchTerm]        = useState('');
   const [showNuevoProducto, setShowNuevoProducto] = useState(false);
   const [nuevoProductoData, setNuevoProductoData] = useState(EMPTY_PRODUCTO);
-
-  const [showNuevaMp, setShowNuevaMp] = useState(false);
-  const [nuevaMpData, setNuevaMpData]   = useState(EMPTY_MP);
+  const [showNuevaMp,       setShowNuevaMp]       = useState(false);
+  const [nuevaMpData,       setNuevaMpData]       = useState(EMPTY_MP);
+  const [modoGlobal,        setModoGlobal]        = useState('FIFO');
+  const [proveedores,       setProveedores]       = useState({});
+  const [costosData,        setCostosData]        = useState({});
 
   const {
-    formulacion,
-    productos,
-    materiasPrimas,
-    materiasDisponibles,
-    createFormulacionAsync,
-    updateFormulacionAsync,
-    createItemAsync,
-    isCreatingItem,
-    vincularItemProveedorAsync,
-    isVinculando,
-    isSaving,
+    formulacion, productos, materiasDisponibles,
+    createFormulacionAsync, updateFormulacionAsync,
+    createItemAsync, isCreatingItem,
+    vincularItemProveedorAsync, isVinculando, isSaving,
   } = useFormulaciones(itemId);
 
   const { register, control, handleSubmit, reset, setValue, formState: { errors } } = useForm({
     defaultValues: {
       item_general_id: itemId ? String(itemId) : '',
-      nombre:          '',
-      descripcion:     '',
-      materias_primas: [],
-    }
+      nombre: '', descripcion: '', materias_primas: [],
+    },
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: 'materias_primas' });
+  const watchedMPs = useWatch({ control, name: 'materias_primas' });
 
   useEffect(() => {
     if (!isOpen) return;
-
     if (formulacion && itemId) {
       reset({
         item_general_id: String(formulacion.item.id),
@@ -61,13 +275,10 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
         })),
       });
     } else {
-      reset({
-        item_general_id: itemId ? String(itemId) : '',
-        nombre:          '',
-        descripcion:     '',
-        materias_primas: [],
-      });
+      reset({ item_general_id: itemId ? String(itemId) : '', nombre: '', descripcion: '', materias_primas: [] });
     }
+    setCostosData({});
+    setProveedores({});
   }, [isOpen, formulacion, itemId, reset]);
 
   const mpFiltradas = materiasDisponibles.filter(mp => {
@@ -76,61 +287,31 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
     return mp.nombre?.toLowerCase().includes(q) || mp.codigo?.toLowerCase().includes(q);
   });
 
-  // Agrega una materia prima al formulario.
-  // Si viene de proveedor sin item_general_id, auto-vincula primero para crear el item_general.
-  const agregarMateriaPrima = async (mp) => {
-    // Verificar duplicado por item_general_id o por id_item_proveedor
+  const agregarMateriaPrima = useCallback(async (mp) => {
     const yaExiste = fields.find(f =>
       (mp.item_general_id && String(f.materia_prima_id) === String(mp.item_general_id)) ||
       (mp.id_item_proveedor && String(f.id_item_proveedor) === String(mp.id_item_proveedor))
     );
-    if (yaExiste) {
-      toast.error('Esta materia prima ya está agregada');
-      return;
-    }
+    if (yaExiste) { toast.error('Esta materia prima ya está agregada'); return; }
 
     if (mp.fuente === 'proveedor' && !mp.item_general_id) {
-      // Auto-crear item_general vinculado al item_proveedor
       try {
         const res = await vincularItemProveedorAsync({
-          id:   mp.id_item_proveedor,
+          id: mp.id_item_proveedor,
           data: { crear: true, nombre: mp.nombre, codigo: mp.codigo, tipo: 1 },
         });
-        append({
-          materia_prima_id: String(res.item_general_id),
-          id_item_proveedor: String(mp.id_item_proveedor),
-          nombre:           mp.nombre,
-          cantidad:         0,
-          costo_unitario:   mp.costo_unitario,
-          fuente:           'proveedor',
-          proveedor_nombre: mp.proveedor_nombre,
-        });
-      } catch (_) { /* manejado por el hook */ }
+        append({ materia_prima_id: String(res.item_general_id), id_item_proveedor: String(mp.id_item_proveedor), nombre: mp.nombre, cantidad: 0, costo_unitario: mp.costo_unitario, fuente: 'proveedor', proveedor_nombre: mp.proveedor_nombre });
+      } catch (_) {}
     } else {
-      append({
-        materia_prima_id: String(mp.item_general_id),
-        nombre:           mp.nombre,
-        cantidad:         0,
-        costo_unitario:   mp.costo_unitario,
-        fuente:           mp.fuente ?? 'inventario',
-        proveedor_nombre: mp.proveedor_nombre ?? null,
-      });
+      append({ materia_prima_id: String(mp.item_general_id), nombre: mp.nombre, cantidad: 0, costo_unitario: mp.costo_unitario, fuente: mp.fuente ?? 'inventario', proveedor_nombre: mp.proveedor_nombre ?? null });
     }
-
     setSearchTerm('');
-  };
+  }, [fields, vincularItemProveedorAsync, append]);
 
   const handleCrearProducto = async () => {
-    if (!nuevoProductoData.nombre.trim()) {
-      toast.error('El nombre es obligatorio');
-      return;
-    }
+    if (!nuevoProductoData.nombre.trim()) { toast.error('El nombre es obligatorio'); return; }
     try {
-      const res = await createItemAsync({
-        nombre: nuevoProductoData.nombre.trim().toUpperCase(),
-        codigo: nuevoProductoData.codigo.trim() || undefined,
-        tipo:   'PRODUCTO',
-      });
+      const res = await createItemAsync({ nombre: nuevoProductoData.nombre.trim().toUpperCase(), codigo: nuevoProductoData.codigo.trim() || undefined, tipo: 'PRODUCTO' });
       setValue('item_general_id', String(res.id));
       setNuevoProductoData(EMPTY_PRODUCTO);
       setShowNuevoProducto(false);
@@ -138,37 +319,56 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
   };
 
   const handleCrearMateriaPrima = async () => {
-    if (!nuevaMpData.nombre.trim()) {
-      toast.error('El nombre es obligatorio');
-      return;
-    }
+    if (!nuevaMpData.nombre.trim()) { toast.error('El nombre es obligatorio'); return; }
     try {
-      const res = await createItemAsync({
-        nombre:         nuevaMpData.nombre.trim().toUpperCase(),
-        codigo:         nuevaMpData.codigo.trim() || undefined,
-        costo_unitario: parseFloat(nuevaMpData.costo_unitario) || 0,
-        tipo:           'MATERIA PRIMA',
-      });
-      append({
-        materia_prima_id: String(res.id),
-        nombre:           nuevaMpData.nombre.trim().toUpperCase(),
-        cantidad:         0,
-        costo_unitario:   parseFloat(nuevaMpData.costo_unitario) || 0,
-        fuente:           'inventario',
-        proveedor_nombre: null,
-      });
+      const res = await createItemAsync({ nombre: nuevaMpData.nombre.trim().toUpperCase(), codigo: nuevaMpData.codigo.trim() || undefined, costo_unitario: parseFloat(nuevaMpData.costo_unitario) || 0, tipo: 'MATERIA PRIMA' });
+      append({ materia_prima_id: String(res.id), nombre: nuevaMpData.nombre.trim().toUpperCase(), cantidad: 0, costo_unitario: parseFloat(nuevaMpData.costo_unitario) || 0, fuente: 'inventario', proveedor_nombre: null });
       setNuevaMpData(EMPTY_MP);
       setShowNuevaMp(false);
       setSearchTerm('');
     } catch (_) {}
   };
 
+  const handleProveedorChange = useCallback((fieldId, proveedorId) => {
+    setProveedores(prev => ({ ...prev, [fieldId]: proveedorId }));
+  }, []);
+
+  const handleCostoChange = useCallback((fieldId, data) => {
+    setCostosData(prev => ({ ...prev, [fieldId]: data }));
+  }, []);
+
+  const handleRemove = useCallback((index) => {
+    const fieldId = fields[index]?.id;
+    remove(index);
+    if (fieldId) {
+      setProveedores(prev => { const n = { ...prev }; delete n[fieldId]; return n; });
+      setCostosData(prev => { const n = { ...prev }; delete n[fieldId]; return n; });
+    }
+  }, [fields, remove]);
+
+  // Totales reactivos derivados de quantities observadas + costosData del panel de capas
+  const totales = useMemo(() => {
+    let pesoTotal = 0, costoTotal = 0;
+    (watchedMPs || []).forEach((mp, i) => {
+      const fieldId    = fields[i]?.id;
+      const cantidad   = parseFloat(mp?.cantidad) || 0;
+      const costoUnit  = fieldId && costosData[fieldId]?.costoUnitario != null
+        ? costosData[fieldId].costoUnitario
+        : parseFloat(mp?.costo_unitario) || 0;
+      pesoTotal  += cantidad;
+      costoTotal += cantidad * costoUnit;
+    });
+    return { pesoTotal, costoTotal, costoPorKg: pesoTotal > 0 ? costoTotal / pesoTotal : 0 };
+  }, [watchedMPs, costosData, fields]);
+
+  const deficitItems = Object.values(costosData).filter(d => d?.hasDeficit);
+  const hasAnyDeficit = deficitItems.length > 0;
+
   const onSubmit = async (data) => {
     if (data.materias_primas.length === 0) {
       toast.error('Agrega al menos una materia prima');
       return;
     }
-
     const payload = {
       item_general_id: Number(data.item_general_id),
       nombre:          data.nombre || 'PREPARACION',
@@ -179,7 +379,6 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
         porcentaje:       0,
       })),
     };
-
     try {
       if (formulacion?.formulacion_id) {
         await updateFormulacionAsync({ id: formulacion.formulacion_id, data: payload });
@@ -187,64 +386,86 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
         await createFormulacionAsync(payload);
       }
       handleClose();
-    } catch (error) {
-      console.error('Error guardando formulación:', error);
-    }
+    } catch (_) {}
   };
 
   const handleClose = () => {
     reset();
-    setSearchTerm('');
-    setShowNuevoProducto(false);
-    setShowNuevaMp(false);
-    setNuevoProductoData(EMPTY_PRODUCTO);
-    setNuevaMpData(EMPTY_MP);
+    setSearchTerm(''); setShowNuevoProducto(false); setShowNuevaMp(false);
+    setNuevoProductoData(EMPTY_PRODUCTO); setNuevaMpData(EMPTY_MP);
+    setModoGlobal('FIFO'); setProveedores({}); setCostosData({});
     onClose();
   };
 
   if (!isOpen) return null;
 
-  const isActioning = isCreatingItem || isVinculando;
-
+  const isActioning    = isCreatingItem || isVinculando;
   const opcionesProductos = [
     { value: '', label: 'Seleccione un producto...' },
-    ...productos.map(p => ({ value: String(p.id_item_general), label: `${p.nombre} (${p.codigo})` }))
+    ...productos.map(p => ({ value: String(p.id_item_general), label: `${p.nombre} (${p.codigo})` })),
   ];
-
-  // Costo a mostrar en la fila de la tabla
-  const getCostoFila = (field) => {
-    const mp = materiasPrimas.find(m => String(m.id_item_general) === String(field.materia_prima_id));
-    return Number(mp?.costo_unitario ?? field.costo_unitario ?? 0);
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/50 backdrop-blur-sm">
-      <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]">
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-100">
+        {/* ─── HEADER ───────────────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-zinc-900 text-white rounded-xl">
-              <FlaskConical size={20} />
+            <div className="w-9 h-9 bg-zinc-900 text-white rounded-xl flex items-center justify-center shrink-0">
+              <FlaskConical size={18} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-zinc-900 tracking-tight">
+              <h2 className="text-base font-bold text-zinc-900 tracking-tight leading-none">
                 {formulacion ? 'Editar Formulación' : 'Nueva Formulación'}
               </h2>
-              <p className="text-xs font-medium text-zinc-500">Receta técnica de materias primas</p>
+              <p className="text-[10px] text-zinc-400 mt-0.5">Dashboard de Composición y Costeo</p>
             </div>
           </div>
-          <button onClick={handleClose} className="p-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-full transition-colors">
-            <X size={24} />
-          </button>
+
+          <div className="flex items-center gap-3">
+            {/* Toggle FIFO / Manual */}
+            <div className="flex items-center gap-1 p-1 bg-zinc-100 rounded-xl border border-zinc-200">
+              <button
+                type="button"
+                onClick={() => setModoGlobal('FIFO')}
+                className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all ${
+                  modoGlobal === 'FIFO'
+                    ? 'bg-white text-zinc-900 shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-600'
+                }`}
+              >
+                <Layers size={10} /> FIFO Auto
+              </button>
+              <button
+                type="button"
+                onClick={() => setModoGlobal('MANUAL')}
+                className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all ${
+                  modoGlobal === 'MANUAL'
+                    ? 'bg-white text-zinc-900 shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-600'
+                }`}
+              >
+                <TrendingUp size={10} /> Manual
+              </button>
+            </div>
+            <button
+              onClick={handleClose}
+              className="p-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-full transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
-          <div className="overflow-y-auto flex-1 p-6 space-y-6">
 
-            {/* Selector de producto */}
+          {/* ─── BODY ─────────────────────────────────────────────────────── */}
+          <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
+
+            {/* Sección 1: Identidad */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Controller
                   name="item_general_id"
                   control={control}
@@ -259,94 +480,73 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                     />
                   )}
                 />
-
                 {!showNuevoProducto ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowNuevoProducto(true)}
-                    className="flex items-center gap-1 text-[11px] font-semibold text-zinc-400 hover:text-zinc-700 transition-colors"
-                  >
-                    <PlusCircle size={11} /> Crear nuevo producto
+                  <button type="button" onClick={() => setShowNuevoProducto(true)}
+                    className="flex items-center gap-1 text-[10px] font-semibold text-zinc-400 hover:text-zinc-700 transition-colors">
+                    <PlusCircle size={10} /> Crear nuevo producto
                   </button>
                 ) : (
                   <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-2 animate-in slide-in-from-top-2 duration-150">
                     <div className="flex items-center gap-2">
-                      <PackagePlus size={13} className="text-zinc-500" />
+                      <PackagePlus size={12} className="text-zinc-500" />
                       <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Nuevo producto</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="text"
-                        value={nuevoProductoData.nombre}
+                      <input type="text" value={nuevoProductoData.nombre}
                         onChange={e => setNuevoProductoData(p => ({ ...p, nombre: e.target.value }))}
                         placeholder="Nombre *"
-                        className="px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 bg-white placeholder:text-zinc-300"
-                      />
-                      <input
-                        type="text"
-                        value={nuevoProductoData.codigo}
+                        className="px-3 py-1.5 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 bg-white placeholder:text-zinc-300" />
+                      <input type="text" value={nuevoProductoData.codigo}
                         onChange={e => setNuevoProductoData(p => ({ ...p, codigo: e.target.value }))}
                         placeholder="Código (opcional)"
-                        className="px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 bg-white placeholder:text-zinc-300"
-                      />
+                        className="px-3 py-1.5 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 bg-white placeholder:text-zinc-300" />
                     </div>
                     <div className="flex justify-end gap-2">
-                      <button
-                        type="button"
+                      <button type="button"
                         onClick={() => { setShowNuevoProducto(false); setNuevoProductoData(EMPTY_PRODUCTO); }}
-                        className="px-3 py-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-700 transition-colors"
-                      >
+                        className="px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 transition-colors">
                         Cancelar
                       </button>
-                      <button
-                        type="button"
-                        onClick={handleCrearProducto}
+                      <button type="button" onClick={handleCrearProducto}
                         disabled={isActioning || !nuevoProductoData.nombre.trim()}
-                        className="px-3 py-1.5 text-xs font-semibold bg-zinc-900 text-white rounded-lg hover:bg-zinc-700 disabled:opacity-40 transition-colors"
-                      >
+                        className="px-3 py-1.5 text-xs font-semibold bg-zinc-900 text-white rounded-lg hover:bg-zinc-700 disabled:opacity-40 transition-colors">
                         {isActioning ? 'Creando...' : '+ Crear'}
                       </button>
                     </div>
                   </div>
                 )}
               </div>
-
               <FormInput
                 label="Nombre de la formulación"
-                placeholder="PREPARACION ESMALTE BLANCO"
+                placeholder="PREPARACIÓN ESMALTE BLANCO"
                 registration={register('nombre')}
               />
             </div>
 
-            {/* Buscador de materias primas */}
-            <div className="space-y-3">
+            {/* Sección 2: Buscador */}
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                  Materias Primas {fields.length > 0 && `(${fields.length})`}
+                  Ingredientes {fields.length > 0 && <span className="text-zinc-600">({fields.length})</span>}
                 </label>
                 {!showNuevaMp && (
-                  <button
-                    type="button"
-                    onClick={() => setShowNuevaMp(true)}
-                    className="flex items-center gap-1 text-[11px] font-semibold text-zinc-400 hover:text-zinc-700 transition-colors"
-                  >
-                    <PlusCircle size={11} /> Nueva materia prima
+                  <button type="button" onClick={() => setShowNuevaMp(true)}
+                    className="flex items-center gap-1 text-[10px] font-semibold text-zinc-400 hover:text-zinc-700 transition-colors">
+                    <PlusCircle size={10} /> Nueva materia prima
                   </button>
                 )}
               </div>
 
-              {/* Search */}
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
                 <input
                   type="text"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   placeholder="Buscar en inventario y catálogo de proveedores..."
                   className="w-full pl-9 pr-3 py-2.5 text-sm border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 transition placeholder:text-zinc-300"
                 />
 
-                {/* Dropdown con resultados de ambas fuentes */}
                 {searchTerm && mpFiltradas.length > 0 && (
                   <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-white border border-zinc-100 rounded-xl shadow-xl overflow-hidden max-h-56 overflow-y-auto">
                     {mpFiltradas.map((mp, i) => {
@@ -363,33 +563,22 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                             <div className="flex items-center gap-2">
                               <p className="text-xs font-semibold text-zinc-800 truncate">{mp.nombre}</p>
                               {esProveedor && (
-                                <span className="shrink-0 flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 border border-amber-200 text-amber-700 rounded text-[9px] font-bold uppercase tracking-wide">
+                                <span className="shrink-0 flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 border border-amber-200 text-amber-700 rounded text-[9px] font-bold uppercase">
                                   <Truck size={8} /> Proveedor
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <p className="text-[10px] text-zinc-400">{mp.codigo}</p>
-                              {esProveedor && mp.proveedor_nombre && (
-                                <p className="text-[10px] text-amber-600 font-medium">{mp.proveedor_nombre}</p>
-                              )}
-                              {esProveedor && (
-                                <span className="text-[9px] text-zinc-400 italic">Sin compra previa · se registrará al agregar</span>
-                              )}
-                            </div>
+                            {esProveedor && mp.proveedor_nombre && (
+                              <p className="text-[10px] text-amber-600 font-medium mt-0.5">{mp.proveedor_nombre}</p>
+                            )}
                           </div>
-                          <PlusCircle size={14} className="text-zinc-400 shrink-0 ml-2" />
+                          <PlusCircle size={13} className="text-zinc-400 shrink-0 ml-2" />
                         </button>
                       );
                     })}
-                    {/* Opción crear nueva al fondo */}
                     <button
                       type="button"
-                      onClick={() => {
-                        setNuevaMpData(d => ({ ...d, nombre: searchTerm }));
-                        setShowNuevaMp(true);
-                        setSearchTerm('');
-                      }}
+                      onClick={() => { setNuevaMpData(d => ({ ...d, nombre: searchTerm })); setShowNuevaMp(true); setSearchTerm(''); }}
                       className="w-full flex items-center gap-2 px-4 py-2.5 border-t border-zinc-100 hover:bg-zinc-50 transition-colors text-left"
                     >
                       <PlusCircle size={13} className="text-zinc-400 shrink-0" />
@@ -398,169 +587,146 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                   </div>
                 )}
 
-                {/* Dropdown sin resultados */}
                 {searchTerm && mpFiltradas.length === 0 && (
                   <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-white border border-zinc-100 rounded-xl shadow-xl p-3 space-y-2">
                     <p className="text-xs text-zinc-400">No se encontraron resultados</p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setNuevaMpData(d => ({ ...d, nombre: searchTerm }));
-                        setShowNuevaMp(true);
-                        setSearchTerm('');
-                      }}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-zinc-700 hover:text-zinc-900 transition-colors"
-                    >
+                    <button type="button"
+                      onClick={() => { setNuevaMpData(d => ({ ...d, nombre: searchTerm })); setShowNuevaMp(true); setSearchTerm(''); }}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-zinc-700 hover:text-zinc-900 transition-colors">
                       <PlusCircle size={13} /> Crear "{searchTerm}" como materia prima
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* Mini-form nueva materia prima */}
               {showNuevaMp && (
                 <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-2 animate-in slide-in-from-top-2 duration-150">
                   <div className="flex items-center gap-2">
-                    <PackagePlus size={13} className="text-zinc-500" />
+                    <PackagePlus size={12} className="text-zinc-500" />
                     <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Nueva materia prima</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      value={nuevaMpData.nombre}
+                    <input type="text" value={nuevaMpData.nombre}
                       onChange={e => setNuevaMpData(p => ({ ...p, nombre: e.target.value }))}
                       placeholder="Nombre *"
-                      className="px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 bg-white placeholder:text-zinc-300"
-                    />
-                    <input
-                      type="text"
-                      value={nuevaMpData.codigo}
+                      className="px-3 py-1.5 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 bg-white placeholder:text-zinc-300" />
+                    <input type="text" value={nuevaMpData.codigo}
                       onChange={e => setNuevaMpData(p => ({ ...p, codigo: e.target.value }))}
                       placeholder="Código (opcional)"
-                      className="px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 bg-white placeholder:text-zinc-300"
-                    />
+                      className="px-3 py-1.5 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 bg-white placeholder:text-zinc-300" />
                   </div>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={nuevaMpData.costo_unitario}
+                  <input type="number" step="0.01" min="0" value={nuevaMpData.costo_unitario}
                     onChange={e => setNuevaMpData(p => ({ ...p, costo_unitario: e.target.value }))}
                     placeholder="Costo unitario (opcional)"
-                    className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 bg-white placeholder:text-zinc-300"
-                  />
+                    className="w-full px-3 py-1.5 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 bg-white placeholder:text-zinc-300" />
                   <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
+                    <button type="button"
                       onClick={() => { setShowNuevaMp(false); setNuevaMpData(EMPTY_MP); }}
-                      className="px-3 py-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-700 transition-colors"
-                    >
+                      className="px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 transition-colors">
                       Cancelar
                     </button>
-                    <button
-                      type="button"
-                      onClick={handleCrearMateriaPrima}
+                    <button type="button" onClick={handleCrearMateriaPrima}
                       disabled={isActioning || !nuevaMpData.nombre.trim()}
-                      className="px-3 py-1.5 text-xs font-semibold bg-zinc-900 text-white rounded-lg hover:bg-zinc-700 disabled:opacity-40 transition-colors"
-                    >
+                      className="px-3 py-1.5 text-xs font-semibold bg-zinc-900 text-white rounded-lg hover:bg-zinc-700 disabled:opacity-40 transition-colors">
                       {isActioning ? 'Creando...' : '+ Crear y agregar'}
                     </button>
                   </div>
                 </div>
               )}
-
-              {/* Lista de materias primas agregadas */}
-              {fields.length === 0 ? (
-                <div className="py-10 text-center border-2 border-dashed border-zinc-200 rounded-2xl">
-                  <FlaskConical size={32} className="mx-auto text-zinc-300 mb-2" />
-                  <p className="text-sm font-medium text-zinc-400">Busca y agrega materias primas</p>
-                  <p className="text-xs text-zinc-300 mt-1">Incluye materias de tu inventario y de tus proveedores</p>
-                </div>
-              ) : (
-                <div className="border border-zinc-100 rounded-2xl overflow-hidden">
-                  <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-zinc-50 border-b border-zinc-100">
-                    <span className="col-span-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Materia Prima</span>
-                    <span className="col-span-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-center">Cantidad</span>
-                    <span className="col-span-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-right">Costo Unit.</span>
-                    <span className="col-span-1"></span>
-                  </div>
-
-                  <div className="divide-y divide-zinc-50">
-                    {fields.map((field, index) => (
-                      <div key={field.id} className="grid grid-cols-12 gap-2 px-4 py-3 items-center animate-in slide-in-from-left-4">
-                        <div className="col-span-5 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <p className="text-xs font-semibold text-zinc-800 truncate">{field.nombre}</p>
-                            {field.fuente === 'proveedor' && (
-                              <span className="shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 border border-amber-200 text-amber-700 rounded text-[8px] font-bold uppercase">
-                                <Truck size={7} /> Prov.
-                              </span>
-                            )}
-                          </div>
-                          {field.fuente === 'proveedor' && field.proveedor_nombre && (
-                            <p className="text-[10px] text-amber-600 mt-0.5">{field.proveedor_nombre}</p>
-                          )}
-                        </div>
-
-                        <div className="col-span-3">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            {...register(`materias_primas.${index}.cantidad`, {
-                              required: true,
-                              valueAsNumber: true,
-                              min: 0.01,
-                            })}
-                            className="w-full px-2 py-1.5 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 text-center tabular-nums"
-                            placeholder="0.00"
-                          />
-                        </div>
-
-                        <div className="col-span-3 flex items-center justify-end">
-                          <span className="text-xs tabular-nums text-zinc-700 font-medium">
-                            $ {getCostoFila(field).toLocaleString('es-CO')}
-                          </span>
-                        </div>
-
-                        <div className="col-span-1 flex justify-center">
-                          <button
-                            type="button"
-                            onClick={() => remove(index)}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg text-zinc-300 hover:bg-red-50 hover:text-red-500 transition-all"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="px-4 py-3 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                      Total ingredientes
-                    </span>
-                    <span className="text-sm font-bold text-zinc-800 tabular-nums">
-                      {fields.length} materia{fields.length !== 1 ? 's' : ''} prima{fields.length !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
+
+            {/* Sección 3: Cards de ingredientes */}
+            {fields.length === 0 ? (
+              <div className="py-14 text-center border-2 border-dashed border-zinc-200 rounded-2xl">
+                <FlaskConical size={28} className="mx-auto text-zinc-300 mb-2" />
+                <p className="text-sm font-medium text-zinc-400">Busca y agrega materias primas</p>
+                <p className="text-xs text-zinc-300 mt-1">
+                  Incluye materiales de tu inventario o catálogo de proveedores
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {fields.map((field, index) => (
+                  <IngredientCard
+                    key={field.id}
+                    field={field}
+                    index={index}
+                    quantity={watchedMPs?.[index]?.cantidad}
+                    modoGlobal={modoGlobal}
+                    proveedorId={proveedores[field.id] ?? null}
+                    onProveedorChange={handleProveedorChange}
+                    onCostoChange={handleCostoChange}
+                    onRemove={handleRemove}
+                    register={register}
+                    errors={errors}
+                    tabBase={10 + index * 2}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-end gap-3 px-6 py-5 bg-zinc-50 border-t border-zinc-200">
-            <Button variant="white" onClick={handleClose} disabled={isSaving} type="button">
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSaving} icon={isSaving ? undefined : FlaskConical}>
-              {isSaving ? (
-                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Guardando...</>
-              ) : (
-                formulacion ? 'Actualizar Formulación' : 'Crear Formulación'
-              )}
-            </Button>
+          {/* ─── STICKY FOOTER ────────────────────────────────────────────── */}
+          <div className="shrink-0 border-t border-zinc-100 bg-white">
+            {fields.length > 0 && (
+              <div className="grid grid-cols-3 divide-x divide-zinc-100 border-b border-zinc-100">
+                <div className="px-5 py-3">
+                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1 mb-1">
+                    <Package size={8} /> Peso Total
+                  </p>
+                  <p className="text-xl font-black text-zinc-900 tabular-nums leading-none transition-all duration-300">
+                    {fmtKg(totales.pesoTotal)}
+                    <span className="text-xs font-normal text-zinc-400 ml-1">kg</span>
+                  </p>
+                </div>
+                <div className="px-5 py-3">
+                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1 mb-1">
+                    <DollarSign size={8} /> Costo Total MP
+                  </p>
+                  <p className={`text-xl font-black tabular-nums leading-none transition-colors duration-300 ${
+                    hasAnyDeficit ? 'text-red-700' : 'text-zinc-900'
+                  }`}>
+                    {fmtCOP(totales.costoTotal)}
+                  </p>
+                </div>
+                <div className="px-5 py-3">
+                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1 mb-1">
+                    <TrendingUp size={8} /> Costo Prom/kg
+                  </p>
+                  <p className="text-xl font-black text-zinc-900 tabular-nums leading-none transition-all duration-300">
+                    {totales.pesoTotal > 0 ? fmtCOP(totales.costoPorKg) : '—'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-4 px-6 py-4">
+              <div className="text-[10px] min-w-0">
+                {hasAnyDeficit ? (
+                  <span className="flex items-center gap-1.5 text-red-600 font-medium">
+                    <AlertTriangle size={11} className="shrink-0" />
+                    {deficitItems.length} ingrediente{deficitItems.length !== 1 ? 's' : ''} con déficit · revisa antes de producir
+                  </span>
+                ) : (
+                  <span className="text-zinc-400">
+                    {modoGlobal === 'MANUAL'
+                      ? 'Modo Manual — simula costos por proveedor sin comprometerlos'
+                      : 'Modo FIFO — al producir se usarán las capas más antiguas automáticamente'}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <Button variant="white" onClick={handleClose} disabled={isSaving} type="button">
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isSaving} icon={isSaving ? undefined : FlaskConical}>
+                  {isSaving
+                    ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block mr-1.5" />Guardando...</>
+                    : formulacion ? 'Actualizar Formulación' : 'Crear Formulación'
+                  }
+                </Button>
+              </div>
+            </div>
           </div>
         </form>
       </div>

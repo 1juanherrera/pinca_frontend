@@ -333,8 +333,12 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
   const [selectedCostos,      setSelectedCostos]      = useState([]);
   const [showDisponibilidad,  setShowDisponibilidad]  = useState(false);
   const [showCapas,           setShowCapas]            = useState(false);
-  // Estado de selección de capas por ingrediente: { itemId: { modo, capas: [{capa_id, cantidad}], bodega_id } }
+  // Estado de selección de capas por ingrediente: { itemId: { modo, capas, bodega_id, proveedor_id } }
   const [capasConfig,         setCapasConfig]          = useState({});
+  // Déficit por ingrediente cuando se selecciona proveedor con stock insuficiente
+  const [deficits,            setDeficits]             = useState({});
+  // Costo real vs teórico por ingrediente { itemId: { real, teorico } }
+  const [costosData,          setCostosData]           = useState({});
 
   const { createAsync, isCreating } = usePreparaciones(null, item?.id);
   const crearRequisiciones = useCrearRequisiciones();
@@ -357,6 +361,25 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
     }));
   };
 
+  const handleProveedorChange = (itemId, proveedorId) => {
+    setCapasConfig(prev => {
+      const current = prev[itemId] || {};
+      return {
+        ...prev,
+        [itemId]: {
+          ...current,
+          proveedor_id: proveedorId,
+          // Reiniciar selección manual si el proveedor cambia
+          ...(current.modo === 'MANUAL' ? { capas: [], seleccionManual: {} } : {}),
+        },
+      };
+    });
+  };
+
+  const handleDeficitChange = (itemId, hasDeficit) => {
+    setDeficits(prev => ({ ...prev, [itemId]: hasDeficit }));
+  };
+
   const handleSeleccionChange = (itemId, capasArr, modo) => {
     setCapasConfig(prev => {
       const seleccionManual = {};
@@ -367,6 +390,29 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
       };
     });
   };
+
+  const hasAnyDeficit = Object.values(deficits).some(Boolean);
+
+  const handleCostoChange = (itemId, data) => {
+    setCostosData(prev => ({ ...prev, [itemId]: data }));
+  };
+
+  // Comparación Costo Real (selección) vs Costo Teórico (promedio inventario)
+  const varCostos = useMemo(() => {
+    let realTotal = 0, teoricoTotal = 0, filas = 0;
+    formulaciones.forEach(mp => {
+      const itemId   = mp.item_general_id;
+      const cantidad = parseFloat(mp.cantidad_recalculada ?? mp.cantidad ?? 0);
+      if (!costosData[itemId] || cantidad <= 0) return;
+      realTotal    += cantidad * costosData[itemId].real;
+      teoricoTotal += cantidad * costosData[itemId].teorico;
+      filas++;
+    });
+    if (filas === 0 || teoricoTotal === 0) return null;
+    const variacion = realTotal - teoricoTotal;
+    const pct       = (variacion / teoricoTotal) * 100;
+    return { realTotal, teoricoTotal, variacion, pct };
+  }, [formulaciones, costosData]);
 
   const buildPayload = () => ({
     item_general_id: item?.id,
@@ -382,10 +428,13 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
         item_general_id: itemId,
         cantidad: parseFloat(mp.cantidad_recalculada ?? mp.cantidad ?? 0),
       };
-      if (config?.capas?.length > 0) {
-        base.modo_consumo = config.modo || 'FIFO';
-        base.capas        = config.capas;
-        if (config.bodega_id) base.bodega_id = config.bodega_id;
+      if (config) {
+        if (config.capas?.length > 0) {
+          base.modo_consumo = config.modo || 'FIFO';
+          base.capas        = config.capas;
+          if (config.bodega_id)    base.bodega_id    = config.bodega_id;
+        }
+        if (config.proveedor_id) base.proveedor_id = config.proveedor_id;
       }
       return base;
     }),
@@ -474,12 +523,55 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
                       seleccionActual={config.seleccionManual || {}}
                       bodegaSeleccionada={config.bodega_id || null}
                       onBodegaChange={handleBodegaChange}
+                      proveedorId={config.proveedor_id || null}
+                      onProveedorChange={handleProveedorChange}
+                      onDeficitChange={handleDeficitChange}
+                      onCostoChange={handleCostoChange}
                     />
                   );
                 })}
               </div>
             )}
           </div>
+
+          {/* Reporte de variación de costo real vs teórico */}
+          {varCostos && (
+            <div className={`rounded-xl border px-3 py-2.5 ${
+              varCostos.variacion > 100
+                ? 'bg-red-50 border-red-200'
+                : varCostos.variacion < -100
+                  ? 'bg-emerald-50 border-emerald-200'
+                  : 'bg-zinc-50 border-zinc-200'
+            }`}>
+              <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-1">
+                <TrendingUp size={9} /> Variación de Costo MP
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <p className="text-[8px] text-zinc-400 uppercase tracking-wider">Teórico (prom.)</p>
+                  <p className="text-xs font-bold text-zinc-600 tabular-nums">
+                    {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(varCostos.teoricoTotal)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[8px] text-zinc-400 uppercase tracking-wider">Real (selección)</p>
+                  <p className={`text-xs font-bold tabular-nums ${
+                    varCostos.variacion > 100 ? 'text-red-700' : varCostos.variacion < -100 ? 'text-emerald-700' : 'text-zinc-700'
+                  }`}>
+                    {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(varCostos.realTotal)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[8px] text-zinc-400 uppercase tracking-wider">Δ%</p>
+                  <p className={`text-xs font-black tabular-nums ${
+                    varCostos.variacion > 100 ? 'text-red-700' : varCostos.variacion < -100 ? 'text-emerald-700' : 'text-zinc-600'
+                  }`}>
+                    {varCostos.pct > 0 ? '+' : ''}{varCostos.pct.toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <MetaForm
             fechaInicio={fechaInicio} setFechaInicio={setFechaInicio}
@@ -490,9 +582,14 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
           <IndirectCostSelector selected={selectedCostos} onChange={setSelectedCostos} />
         </div>
         <div className="px-5 py-4 border-t border-zinc-100 bg-zinc-50 shrink-0">
+          {hasAnyDeficit && (
+            <p className="text-[10px] text-red-600 font-medium text-center mb-2 flex items-center justify-center gap-1">
+              <AlertCircle size={11} /> Stock insuficiente en proveedor seleccionado
+            </p>
+          )}
           <button
             onClick={() => setShowDisponibilidad(true)}
-            disabled={isCreating || crearRequisiciones.isPending || cantidad <= 0}
+            disabled={isCreating || crearRequisiciones.isPending || cantidad <= 0 || hasAnyDeficit}
             className="flex items-center justify-center gap-2 w-full bg-zinc-950 hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl py-3 text-xs font-bold tracking-wide transition-all active:scale-[0.98]"
           >
             {(isCreating || crearRequisiciones.isPending)
