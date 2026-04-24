@@ -1,5 +1,6 @@
 import { Truck, X, ChevronDown, TrendingDown, TrendingUp, Minus, Loader2 } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 export const ProveedorCostSelect = ({
   proveedores = [],
@@ -11,15 +12,38 @@ export const ProveedorCostSelect = ({
   disabled = false,
 }) => {
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+  const btnRef = useRef(null);
+  const dropRef = useRef(null);
+
+  const updateCoords = useCallback(() => {
+    if (!btnRef.current) return;
+    const r = btnRef.current.getBoundingClientRect();
+    setCoords({ top: r.bottom + 4, left: r.left, width: r.width });
+  }, []);
 
   useEffect(() => {
+    if (!open) return;
+    updateCoords();
+    const onScroll = () => updateCoords();
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [open, updateCoords]);
+
+  useEffect(() => {
+    if (!open) return;
     const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      if (btnRef.current?.contains(e.target)) return;
+      if (dropRef.current?.contains(e.target)) return;
+      setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  }, [open]);
 
   const selected = proveedores.find(
     (p) => String(p.id_proveedor) === String(selectedProveedorId)
@@ -29,9 +53,9 @@ export const ProveedorCostSelect = ({
   const sinProveedores = !proveedores.length && !isLoading;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-zinc-200/60" ref={ref}>
+    <div className="bg-white rounded-xl border border-zinc-200/60">
       {/* Header */}
-      <div className="bg-amber-600 text-white px-4 py-2.5">
+      <div className="bg-amber-600 text-white px-4 py-2.5 rounded-t-xl">
         <h3 className="text-sm font-semibold flex items-center gap-2">
           <Truck size={16} />
           Simular por Proveedor
@@ -53,9 +77,10 @@ export const ProveedorCostSelect = ({
         {/* Selector */}
         <div className="relative">
           <button
+            ref={btnRef}
             type="button"
             disabled={disabled || isLoading}
-            onClick={() => setOpen(!open)}
+            onClick={() => setOpen((v) => !v)}
             className="w-full flex items-center justify-between px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-colors disabled:opacity-50"
           >
             <span className={selected ? 'text-gray-900 font-medium' : 'text-gray-400'}>
@@ -68,9 +93,13 @@ export const ProveedorCostSelect = ({
             <ChevronDown size={16} className={`text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
           </button>
 
-          {/* Dropdown */}
-          {open && (
-            <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-52 overflow-y-auto">
+          {/* Dropdown via portal */}
+          {open && createPortal(
+            <div
+              ref={dropRef}
+              className="fixed z-[9999] bg-white border border-gray-200 rounded-lg shadow-xl max-h-52 overflow-y-auto"
+              style={{ top: coords.top, left: coords.left, width: coords.width }}
+            >
               {proveedores.map((p) => (
                 <button
                   key={p.id_proveedor}
@@ -97,7 +126,8 @@ export const ProveedorCostSelect = ({
                   </span>
                 </button>
               ))}
-            </div>
+            </div>,
+            document.body
           )}
         </div>
 

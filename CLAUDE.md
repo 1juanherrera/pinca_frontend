@@ -70,10 +70,12 @@ All authenticated routes are wrapped in `<Layout>` (sidebar + topbar + `<Outlet>
 - `apiClient.js` — Axios instance. Reads `VITE_API_BASE_URL`. Auto-injects `Authorization: Bearer <token>` from `localStorage.token`. Handles 401 by redirecting to `/login`. Shows error toasts via `react-hot-toast`. **Important**: the response interceptor already extracts `response.data`, so hooks receive the payload directly — never do `res.data.data`.
 - `apiRoutes.js` — Centralized URL constants for all backend endpoints.
 
-**Current `apiRoutes.js` additions (2026-04-21):**
+**Current `apiRoutes.js` key entries:**
 - `UNIDADES: '/unidades'`
 - `ITEMS.BUSCAR: (q, tipos) => '/item_general/buscar?q=...' + (tipos?.length ? '&tipos=...' : '')`
-- `REQUISICIONES` and `PREPARACIONES` objects added
+- `REQUISICIONES` and `PREPARACIONES` objects
+- `CAPAS` object: `POR_ITEM(itemId)`, `BODEGAS`, `POR_PREPARACION(prepId)` — cost layer endpoints
+- `FORMULACIONES_OPCIONES_INGREDIENTES: (itemId) => '/formulaciones/{id}/opciones-ingredientes'` — per-ingredient supplier options
 
 Data fetching uses **React Query** (stale: 5 min, gcTime: 30 min, retry: 1, no refetch on focus). Mutations invalidate related query keys on success and show success/error toasts.
 
@@ -179,10 +181,62 @@ TailwindCSS 4 utility-first. Custom color tokens like `surface-base`, `surface-m
 - `item_proveedor.unidad_compra_id` = unit the supplier sells in (e.g., BULTO, CANECA)
 - `item_proveedor.factor_conversion` = multiplier purchase→base (e.g., 1 BULTO = 25 KG → factor=25)
 - **Rule**: all inventory quantities stored in base unit (KILO). Conversion at OC receipt time.
-- **Costing strategy**: Promedio Ponderado Móvil (moving weighted average) — pending implementation. Formula: `nuevo_costo = (qty_actual × costo_actual + qty_nueva × precio_compra) / (qty_actual + qty_nueva)`. Currently using manual standard cost in `costos_item.costo_unitario`.
+- **Costing strategy**: Promedio Ponderado Móvil (moving weighted average) — implemented via backend `InventarioCapasModel::recalcularPromedioPonderado()` on OC receipt.
+
+## Key Recent Changes (2026-04-24) — Cost Layers & Per-ingredient Provider Selection
+
+### Produccion Module — New files
+
+- `src/modules/Produccion/api/useCapasStock.js` — React Query hooks for cost layers:
+  - `useCapasStock(itemGeneralId, bodegaId)` — fetches active layers for an item (staleTime 30s)
+  - `useBodegasConCapas()` — fetches bodegas with active layers (staleTime 60s)
+  - Exports `capasKeys` for cache invalidation
+
+- `src/modules/Produccion/components/CapasStockPanel.jsx` — Collapsible panel per ingredient showing all cost layers:
+  - Displays: provider name, lot, entry date, days in stock, available qty, cost/kg, bodega
+  - Toggle between FIFO automatic and Manual selection modes
+  - Bodega dropdown filter
+  - Manual mode: quantity input per layer with max validation
+  - FIFO mode: auto-assigns from oldest layers
+  - Shows deficit warning when stock < needed
+  - Calculates weighted cost of selection in real-time
+  - Props: `itemGeneralId`, `nombre`, `cantidadNecesaria`, `modo`, `onModoChange`, `onSeleccionChange`, `seleccionActual`, `bodegaSeleccionada`, `onBodegaChange`
+
+### Formulaciones Module — Modified files
+
+- `src/modules/Formulaciones/components/ProveedorCostSelect.jsx` — Fixed dropdown using `createPortal` to render at document.body level. Dropdown was previously clipped by parent's `overflow-hidden`.
+
+- `src/modules/Formulaciones/components/FormulacionesTable.jsx` — Added per-ingredient provider selection:
+  - New `IngredienteProveedorSelect` sub-component: inline portal-based dropdown per ingredient row showing linked suppliers with `precio_por_kg`
+  - When a supplier is selected, the row's cost columns dynamically recalculate using that supplier's price
+  - Rows with overridden costs are highlighted in amber
+  - Footer shows "Selección" total when any ingredient has a custom supplier
+  - New props: `opcionesIngredientes`, `seleccionPorIngrediente`, `onSeleccionIngrediente`
+
+- `src/modules/Formulaciones/components/preparationModal.jsx` — Integrated `CapasStockPanel` into the preparation confirmation flow:
+  - `capasConfig` state manages per-ingredient layer selection: `{ [itemId]: { modo, capas, seleccionManual, bodega_id } }`
+  - "Fuentes de Suministro" collapsible section with `CapasStockPanel` per ingredient
+  - `buildPayload` includes `modo_consumo`, `capas`, and `bodega_id` per ingredient in detalle
+
+- `src/modules/Formulaciones/FormulacionesPage.jsx` — Added `seleccionPorIngrediente` state and passes `opcionesIngredientes` + handlers to `FormulacionesTable`
+
+- `src/modules/Formulaciones/api/useFormulaciones.js` — Added `queryOpcionesIngredientes` query for per-ingredient supplier options. Returns `opcionesIngredientes` and `isLoadingOpcionesIngredientes`.
+
+- `src/modules/Formulaciones/api/FormulacionKeys.js` — Added `opcionesIngredientes(itemId)` query key
+
+- `src/api/apiRoutes.js` — Added `CAPAS` object and `FORMULACIONES_OPCIONES_INGREDIENTES` route
+
+### Portal Dropdown Pattern
+
+When dropdowns inside tables or `overflow-hidden` containers get clipped, use `createPortal(dropdown, document.body)` with:
+1. `useRef` on the trigger button to get `getBoundingClientRect()`
+2. `fixed` positioning + `z-[9999]` on the portal element
+3. Scroll/resize listeners to reposition
+4. Outside-click handler checking both trigger and dropdown refs
+
+Used in: `ProveedorCostSelect`, `IngredienteProveedorSelect` (inside `FormulacionesTable`)
 
 ## Pending / Next Steps
 
-- **Promedio Ponderado en recepción de OC**: needs `ALTER TABLE inventario ADD COLUMN costo_promedio DECIMAL(15,4) DEFAULT 0`; update `OrdenesCompraController::recibirLinea` to recalculate weighted average.
 - **Requisiciones management page**: frontend page in Compras module to list, approve, and convert requisitions to OC.
 - **"Sin vincular" badge**: visual indicator on item_proveedor table rows with no `item_general_id`.

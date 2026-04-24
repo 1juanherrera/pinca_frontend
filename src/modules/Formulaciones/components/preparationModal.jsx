@@ -11,6 +11,7 @@ import { Button } from '../../../shared/Button';
 import { usePreparaciones } from '../api/usePreparaciones';
 import DisponibilidadModal from '../../Produccion/components/DisponibilidadModal';
 import { useCrearRequisiciones } from '../../Produccion/api/useRequisiciones';
+import CapasStockPanel from '../../Produccion/components/CapasStockPanel';
 
 // ─── Config visual ────────────────────────────────────────────────────────────
 const UNIT_CONFIG = {
@@ -331,6 +332,9 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
   const [error,               setError]               = useState(null);
   const [selectedCostos,      setSelectedCostos]      = useState([]);
   const [showDisponibilidad,  setShowDisponibilidad]  = useState(false);
+  const [showCapas,           setShowCapas]            = useState(false);
+  // Estado de selección de capas por ingrediente: { itemId: { modo, capas: [{capa_id, cantidad}], bodega_id } }
+  const [capasConfig,         setCapasConfig]          = useState({});
 
   const { createAsync, isCreating } = usePreparaciones(null, item?.id);
   const crearRequisiciones = useCrearRequisiciones();
@@ -339,6 +343,31 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
   const cfg      = UNIT_CONFIG[unidad.nombre] ?? { icon: Package, color: 'text-zinc-600', bg: 'bg-zinc-100', border: 'border-zinc-200' };
   const cantidad = calcularCantidad(volumen, escala);
 
+  const handleModoChange = (itemId, modo) => {
+    setCapasConfig(prev => ({
+      ...prev,
+      [itemId]: { ...prev[itemId], modo, capas: [], seleccionManual: {} },
+    }));
+  };
+
+  const handleBodegaChange = (itemId, bodegaId) => {
+    setCapasConfig(prev => ({
+      ...prev,
+      [itemId]: { ...prev[itemId], bodega_id: bodegaId },
+    }));
+  };
+
+  const handleSeleccionChange = (itemId, capasArr, modo) => {
+    setCapasConfig(prev => {
+      const seleccionManual = {};
+      capasArr.forEach(c => { seleccionManual[c.capa_id] = c.cantidad; });
+      return {
+        ...prev,
+        [itemId]: { ...prev[itemId], modo, capas: capasArr, seleccionManual },
+      };
+    });
+  };
+
   const buildPayload = () => ({
     item_general_id: item?.id,
     unidad_id:       unidad.id_unidad,
@@ -346,10 +375,20 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
     fecha_inicio:    fechaInicio || null,
     fecha_fin:       fechaFin    || null,
     observaciones:   observaciones.trim() || null,
-    detalle: formulaciones.map(mp => ({
-      item_general_id: mp.item_general_id,
-      cantidad: parseFloat(mp.cantidad_recalculada ?? mp.cantidad ?? 0),
-    })),
+    detalle: formulaciones.map(mp => {
+      const itemId = mp.item_general_id;
+      const config = capasConfig[itemId];
+      const base = {
+        item_general_id: itemId,
+        cantidad: parseFloat(mp.cantidad_recalculada ?? mp.cantidad ?? 0),
+      };
+      if (config?.capas?.length > 0) {
+        base.modo_consumo = config.modo || 'FIFO';
+        base.capas        = config.capas;
+        if (config.bodega_id) base.bodega_id = config.bodega_id;
+      }
+      return base;
+    }),
     costos_indirectos: selectedCostos.map(c => ({
       nombre:         c.nombre,
       categoria:      c.categoria,
@@ -402,6 +441,46 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
               <p className="text-[9px] text-zinc-400 mt-0.5">{unidad.nombre}</p>
             </div>
           </div>
+
+          {/* Selector de fuentes de suministro */}
+          <div className="flex flex-col gap-1.5">
+            <button
+              type="button"
+              onClick={() => setShowCapas(v => !v)}
+              className="flex items-center justify-between w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-600 hover:border-zinc-400 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Layers size={12} className="text-blue-500" />
+                <span>Fuentes de Suministro</span>
+              </div>
+              {showCapas ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+            </button>
+
+            {showCapas && (
+              <div className="flex flex-col gap-2 mt-1">
+                {formulaciones.map((mp) => {
+                  const itemId = mp.item_general_id;
+                  const cantidadReal = parseFloat(mp.cantidad_recalculada ?? mp.cantidad ?? 0);
+                  const config = capasConfig[itemId] || {};
+                  return (
+                    <CapasStockPanel
+                      key={itemId}
+                      itemGeneralId={itemId}
+                      nombre={mp.materia_prima_nombre ?? mp.nombre ?? '—'}
+                      cantidadNecesaria={cantidadReal}
+                      modo={config.modo}
+                      onModoChange={handleModoChange}
+                      onSeleccionChange={handleSeleccionChange}
+                      seleccionActual={config.seleccionManual || {}}
+                      bodegaSeleccionada={config.bodega_id || null}
+                      onBodegaChange={handleBodegaChange}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <MetaForm
             fechaInicio={fechaInicio} setFechaInicio={setFechaInicio}
             fechaFin={fechaFin}       setFechaFin={setFechaFin}

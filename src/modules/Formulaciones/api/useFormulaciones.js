@@ -45,6 +45,14 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
     staleTime: 1000 * 60 * 5,
   });
 
+  // Opciones de proveedor por ingrediente
+  const queryOpcionesIngredientes = useQuery({
+    queryKey: formulacionKeys.opcionesIngredientes(id),
+    queryFn:  () => apiClient.get(`/formulaciones/${id}/opciones-ingredientes`),
+    enabled:  !!id,
+    staleTime: 1000 * 60 * 5,
+  });
+
   // ✅ 4. Formulación de un item específico (para el modal)
   const queryByItem = useQuery({
     queryKey: formulacionKeys.byItem(itemId),
@@ -126,6 +134,10 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
     isLoadingProveedores:      queryProveedores.isLoading,
     costosProveedor:           queryCostosProveedor.data ?? null,
     isLoadingCostosProveedor:  queryCostosProveedor.isFetching,
+
+    // Opciones de proveedor por ingrediente
+    opcionesIngredientes:         queryOpcionesIngredientes.data ?? null,
+    isLoadingOpcionesIngredientes: queryOpcionesIngredientes.isLoading,
 
     // ✅ Data nueva
     formulacion:             queryByItem.data?.data ?? null,

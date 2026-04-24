@@ -21,6 +21,8 @@ const FormulacionesPage = () => {
   const [modalFormulacion, setModalFormulacion]  = useState(false);
   const [selectedProveedorId, setSelectedProveedorId] = useState(null);
 
+  const [seleccionPorIngrediente, setSeleccionPorIngrediente] = useState({});
+
   const {
     formulaciones,
     isLoading,
@@ -31,6 +33,7 @@ const FormulacionesPage = () => {
     isLoadingProveedores,
     costosProveedor,
     isLoadingCostosProveedor,
+    opcionesIngredientes,
   } = useFormulaciones(selectedId, nuevoVolumen, null, selectedProveedorId);
 
   const selectedProductData = formulaciones.find(
@@ -76,12 +79,14 @@ const FormulacionesPage = () => {
           setSelectedId(id);
           setNuevoVolumen("");
           setSelectedProveedorId(null);
+          setSeleccionPorIngrediente({});
         }}
         loading={isLoading}
         onClearSelection={() => {
           setSelectedId("");
           setNuevoVolumen("");
           setSelectedProveedorId(null);
+          setSeleccionPorIngrediente({});
         }}
       />
 
@@ -120,6 +125,9 @@ const FormulacionesPage = () => {
             productDetail={costosBase}
             recalculatedData={costosRecalculados}
             costosProveedor={costosProveedor}
+            opcionesIngredientes={opcionesIngredientes}
+            seleccionPorIngrediente={seleccionPorIngrediente}
+            onSeleccionIngrediente={setSeleccionPorIngrediente}
           />
           <CostProductsTable
             selectedProductData={selectedProductData}

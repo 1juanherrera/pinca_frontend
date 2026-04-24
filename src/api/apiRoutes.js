@@ -48,7 +48,13 @@ export const API_ROUTES = {
     CONSUMIR: (id) => `/tambores/${id}/consumir`,
   },
   UNIDADES: '/unidades',
+  CAPAS: {
+    POR_ITEM:       (itemId) => `/inventario/${itemId}/capas`,
+    BODEGAS:        '/inventario/capas/bodegas',
+    POR_PREPARACION:(prepId) => `/inventario/capas/preparacion/${prepId}`,
+  },
   FORMULACIONES: '/formulaciones',
+  FORMULACIONES_OPCIONES_INGREDIENTES: (itemId) => `/formulaciones/${itemId}/opciones-ingredientes`,
   PROVEEDORES: '/proveedores',
   CLIENTES: '/clientes',
   PREPARACIONES: {
