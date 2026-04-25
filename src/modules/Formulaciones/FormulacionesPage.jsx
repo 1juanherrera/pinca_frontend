@@ -5,7 +5,6 @@ import { CostCalculator } from "./components/CostCalculator";
 import { FormulacionesTable } from "./components/FormulacionesTable";
 import { ProductSpecificationsTable } from "./components/ProductSpecificationsTable";
 import { CostProductsTable } from "./components/CostProductsTable";
-import { ProveedorCostSelect } from "./components/ProveedorCostSelect";
 import { useFormulaciones } from "./api/useFormulaciones";
 import FormCostProducts from "./components/FormCostProducts ";
 import { PreparationModal } from "./components/preparationModal";
@@ -102,17 +101,6 @@ const FormulacionesPage = () => {
             isRecalculating={isRecalculating}
             handleRecalcular={() => {}}
           />
-          {selectedId && (
-            <ProveedorCostSelect
-              proveedores={proveedoresFormulacion}
-              selectedProveedorId={selectedProveedorId}
-              onSelect={setSelectedProveedorId}
-              isLoading={isLoadingProveedores}
-              isLoadingCostos={isLoadingCostosProveedor}
-              costosProveedor={costosProveedor}
-              disabled={!selectedId}
-            />
-          )}
           <ProductSpecificationsTable
             selectedProductData={selectedProductData}
             productDetail={costosBase}

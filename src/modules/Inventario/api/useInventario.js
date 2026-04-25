@@ -21,20 +21,6 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
     enabled: !!id_bodega,
   });
 
-  // ── POST: Crear item en bodega ───────────────────────────────────────────
-  const createItemMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/bodegas/item', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: inventarioKeys.byBodega(id_bodega, page, perPage, search, tipo),
-      });
-      toast.success('Item creado correctamente');
-    },
-    onError: (error) => {
-      toast.error(error?.response?.data?.message || 'Error al crear el item');
-    },
-  });
-
   const traspasoMutation = useMutation({
     mutationFn: (data) => apiClient.post('/inventario/traspaso', data),
     onSuccess: () => {
@@ -61,33 +47,6 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
     },
   });
 
-  // ── PATCH: solo cantidad ────────────────────────────────────────────────
-  const patchCantidadMutation = useMutation({
-    mutationFn: ({ inventarioId, cantidad }) =>
-      apiClient.patch(`/inventario/${inventarioId}/cantidad`, { cantidad }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: inventarioKeys.all });
-      toast.success('Cantidad actualizada');
-    },
-    onError: (err) => {
-      toast.error(err?.response?.data?.message || 'Error al actualizar la cantidad');
-    },
-  });
-
-  // Count de pendientes (cantidad IS NULL) en la bodega actual — query separado
-  const pendientesQuery = useQuery({
-    queryKey: [...inventarioKeys.byBodega(id_bodega, 1, 999, '', 'pendientes'), 'count'],
-    queryFn: async () => {
-      const res = await apiClient.get(
-        `/bodegas/inventario/${id_bodega}?page=1&perPage=999&search=&tipo=pendientes`
-      );
-      const data = res?.data !== undefined ? res.data : res;
-      return data?.inventario?.length ?? 0;
-    },
-    enabled: !!id_bodega,
-    staleTime: 30 * 1000,
-  });
-
   return {
     // ── Data ──
     items:          queryInventory.data || { inventario: [], pagination: {} },
@@ -99,19 +58,8 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
     removeFromBodegaAsync: removeFromBodegaMutation.mutateAsync,
     isRemoving:            removeFromBodegaMutation.isPending,
 
-    // ── Mutations ──
-    createItem:      createItemMutation.mutate,
-    createItemAsync: createItemMutation.mutateAsync,
-    isCreatingItem:  createItemMutation.isPending,
-
     traspasoAsync:  traspasoMutation.mutateAsync,
     isTrashing:     traspasoMutation.isPending,
-
-    patchCantidad:      patchCantidadMutation.mutate,
-    patchCantidadAsync: patchCantidadMutation.mutateAsync,
-    isPatchingCantidad: patchCantidadMutation.isPending,
-
-    pendientesCount: pendientesQuery.data ?? 0,
 
     // ── Utils ──
     refresh: () => queryClient.invalidateQueries({

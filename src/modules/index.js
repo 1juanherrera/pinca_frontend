@@ -61,7 +61,6 @@ export * from './Inventario/services/pagination';
 export * from './Inventario/utils/handlers';
 export * from './Inventario/Components/DataTable';
 export * from './Inventario/Components/ExcelModal';
-export * from './Inventario/Components/ItemForm';
 export * from './Inventario/Components/NavTabs';
 export * from './Inventario/Components/TraspasoModal';
 export * from './Proveedores/api/useComparador';

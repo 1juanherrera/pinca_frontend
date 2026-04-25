@@ -42,7 +42,7 @@ const Sidebar = () => {
         {/* Área del Logo */}
         <div className={`flex items-center mb-5 overflow-hidden ${!isHovered ? 'justify-center' : 'gap-3 px-2'}`}>
           <div className="flex items-center justify-center w-10 h-10 rounded-lg overflow-hidden shrink-0">
-            <img src="" alt="Logo Pinca" className="w-full h-full object-contain" />
+            <img src={logoPinca} alt="Logo Pinca" className="w-full h-full object-contain" />
           </div>
           {/* Usamos opacidad y delay para que el texto no aparezca de golpe */}
           <span className={`text-white font-semibold text-lg tracking-wide whitespace-nowrap transition-opacity duration-300 ${isHovered ? 'opacity-100 delay-100' : 'opacity-0 hidden'}`}>

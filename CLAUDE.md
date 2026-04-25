@@ -41,13 +41,12 @@ ModuleName/
 | Module | Route | Description |
 |---|---|---|
 | `sedes` | `/` | Sede (location) selection landing page |
-| `Inventario` | `/inventario/bodega/:id_bodega` | Stock per warehouse |
+| `Catalogo` | `/catalogo` | **Maestro de ítems**: unified catalog (replaces MateriasPrimas + Productos) |
+| `Inventario` | `/inventario/bodega/:id_bodega` | Stock visualization per warehouse (read-only, no item creation) |
 | `Bodegas` | `/instalaciones/bodegas/:id` | Warehouse management |
 | `Formulaciones` | `/formulaciones` | Paint formulations (recipes) |
 | `Produccion` | `/produccion` | Production orders |
 | `Clientes` | `/clientes` | Client management |
-| `MateriasPrimas` | `/materias-primas` | Raw materials catalog |
-| `Productos` | `/productos` | Finished products catalog |
 | `Costos` | — | Item cost tracking |
 | `CostosIndirectos` | — | Indirect costs |
 | `Pagos` | `/pagos` | Client payment registration |
@@ -235,6 +234,56 @@ When dropdowns inside tables or `overflow-hidden` containers get clipped, use `c
 4. Outside-click handler checking both trigger and dropdown refs
 
 Used in: `ProveedorCostSelect`, `IngredienteProveedorSelect` (inside `FormulacionesTable`)
+
+## Key Recent Changes (2026-04-24) — Catálogo Module
+
+### New Module: `src/modules/Catalogo/`
+
+Replaces `Productos` and `MateriasPrimas` modules. Single source of truth for item creation and management.
+
+**Structure:**
+```
+Catalogo/
+├── CatalogoPage.jsx              # Main page with table + create button
+├── api/
+│   ├── catalogoKeys.js           # Query key factory
+│   └── useCatalogo.js            # React Query hooks (list, detail, proveedores, CRUD mutations)
+└── components/
+    ├── CatalogoTable.jsx         # Table with type-filter tabs (Todos/Productos/MP/Insumos) + search + pagination
+    ├── ItemDetailModal.jsx       # Detail modal with 2 tabs + stock badge
+    ├── InfoTab.jsx               # Tab 1: basic data + technical specs
+    ├── SuministroTab.jsx         # Tab 2: linked proveedores table + stock per bodega
+    └── CatalogoForm.jsx          # Create/edit form (item attributes only, no inventory)
+```
+
+**API Routes (in `apiRoutes.js`):**
+```js
+CATALOGO: {
+  LIST:        '/catalogo',
+  DETAIL:      (id) => `/catalogo/${id}`,
+  PROVEEDORES: (id) => `/catalogo/${id}/proveedores`,
+}
+```
+
+**Key design decisions:**
+- Item creation from Catálogo does NOT create inventory entries — stock enters only via OC receipt
+- `InventarioPage` renamed to "Existencias y Lotes", removed "Agregar Item" button and `ItemFormModal`
+- `CatalogoTable` filters by `tipo` using tab buttons (server returns all types, filtering is client-side)
+- `ItemDetailModal` fetches full detail via `GET /api/catalogo/{id}` which includes proveedores array and stock_por_bodega
+
+### Removed Modules
+- `MateriasPrimas/` — replaced by Catálogo with tipo=1 filter
+- `Productos/` — replaced by Catálogo with tipo=0 filter
+- Routes `/materias-primas` and `/productos` removed from App.jsx
+
+### Modified: `InventarioPage.jsx`
+- Title changed: "Gestión de Inventario" → "Existencias y Lotes"
+- Removed: `ItemFormModal` component, "Agregar Item" button, `FlaskConical` "Agregar Formulación" button
+- Kept: Refresh, Filters, Export, Import Excel, Conteo Rápido
+
+### Modified: `sidebarMenu.js`
+- Added: `{ link: 'catalogo', label: 'Catálogo', icon: BookOpen }` at position 2 (after Panel Principal)
+- Removed: Productos and MateriasPrimas were not in sidebar (they were accessed via other routes)
 
 ## Pending / Next Steps
 

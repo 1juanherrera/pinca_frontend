@@ -1,21 +1,16 @@
 import {
-  Edit,
   Trash2,
   ArrowRightLeft,
   ChevronLeft,
   ChevronRight,
-  FlaskConical,
   Info,
-  Pencil,
-  Check,
-  X as XIcon,
 } from 'lucide-react';
 import TamboresItemModal from './TamboresItemModal';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { NavTabs } from './NavTabs';
 import { handleType } from '../utils/handlers';
 import { formatoPesoColombiano } from '../../../utils/formatters';
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { SkeletonRow } from '../../../shared/Skeletons';
 import { useInventario } from '../api/useInventario';
 import ConfirmModal from '../../../shared/ConfirmModal';
@@ -32,16 +27,12 @@ const DataTable = () => {
   const [tipoFilter,  setTipoFilter]  = useState('');
   const [itemTraspaso,  setItemTraspaso]  = useState(null);
   const [itemDetalle,   setItemDetalle]   = useState(null);
-  const [editingCantidad, setEditingCantidad] = useState(null); // id_inventario en edición
-  const [editVal,         setEditVal]         = useState('');
-  const editInputRef = useRef(null);
 
-  const id_bodega   = useBoundStore(state => state.activeBodegaId); // ← lista global de bodegas
+  const id_bodega   = useBoundStore(state => state.activeBodegaId);
   const openConfirm = useBoundStore(state => state.openConfirm);
-  const openDrawer  = useBoundStore(state => state.openDrawer);
 
   const { isLoadingItems, items, isFetching, traspasoAsync, isTrashing,
-          removeFromBodegaAsync, patchCantidadAsync, pendientesCount } = useInventario(
+          removeFromBodegaAsync } = useInventario(
     id_bodega,
     currentPage,
     perPage,
@@ -49,8 +40,6 @@ const DataTable = () => {
     tipoFilter
   );
   const { bodegas } = useBodegas();
-
-  const handleEdit = (item) => openDrawer('ITEM_FORM', item);
 
   const inventario = items?.inventario || [];
   const pagination = items?.pagination || { totalPages: 1, totalItems: 0 };
@@ -61,12 +50,11 @@ const DataTable = () => {
   const getPrecio      = (item) => item?.precio_venta    || '0';
   const getCostoUnit   = (item) => item?.costo_unitario  ?? '0';
 
-  // Convierte cantidad (en unidades de venta) a unidades de almacenaje
   const getStockAlmacenaje = (item) => {
     const ev = parseFloat(item.escala_venta)      || null;
     const ea = parseFloat(item.escala_almacenaje) || null;
     if (!ea || !ev || !item.unidad_almacenaje) return null;
-    const factor = ea / ev;                // cuántas u. venta caben en 1 u. almacenaje
+    const factor = ea / ev;
     const qty    = parseFloat(item.cantidad) || 0;
     const total  = qty / factor;
     return { total, nombre: item.unidad_almacenaje };
@@ -74,21 +62,6 @@ const DataTable = () => {
 
   const handleSearchChange = (value) => { setSearchTerm(value); setCurrentPage(1); };
   const handleTipoChange   = (value) => { setTipoFilter(value); setCurrentPage(1); };
-
-  const startEditCantidad = (item) => {
-    setEditingCantidad(item.id_inventario);
-    setEditVal(item.cantidad ?? '');
-    setTimeout(() => editInputRef.current?.select(), 30);
-  };
-
-  const cancelEdit = () => { setEditingCantidad(null); setEditVal(''); };
-
-  const confirmEdit = async (item) => {
-    const val = parseFloat(editVal);
-    if (isNaN(val) || val < 0) { cancelEdit(); return; }
-    await patchCantidadAsync({ inventarioId: item.id_inventario, cantidad: val });
-    cancelEdit();
-  };
 
   return (
     <>
@@ -99,7 +72,6 @@ const DataTable = () => {
         setTipoFilter={handleTipoChange}
         Page={setCurrentPage}
         isFetching={isFetching}
-        pendientesCount={pendientesCount}
       />
       <div className="flex flex-col gap-3 w-full">
         <div className="bg-white border border-zinc-200/80 rounded-xl shadow-sm w-full overflow-hidden">
@@ -135,50 +107,19 @@ const DataTable = () => {
                       <td className="px-3 py-1"><span className="text-xs  text-zinc-500 font-bold">{getCodigo(item)}</span></td>
                       <td className="px-3 py-1 font-semibold uppercase text-zinc-900 text-xs">{getNombre(item)}</td>
                       <td className="px-3 py-1 text-center">
-                        {editingCantidad === item.id_inventario ? (
-                          <div className="flex items-center justify-center gap-1">
-                            <input
-                              ref={editInputRef}
-                              type="number" min="0" step="1"
-                              value={editVal}
-                              onChange={e => setEditVal(e.target.value)}
-                              onKeyDown={e => { if (e.key === 'Enter') confirmEdit(item); if (e.key === 'Escape') cancelEdit(); }}
-                              className="w-16 text-center text-xs font-bold border border-amber-400 rounded-lg px-1 py-1 focus:outline-none focus:ring-1 focus:ring-amber-400 bg-white"
-                            />
-                            <button onClick={() => confirmEdit(item)} className="w-5 h-5 flex items-center justify-center rounded text-emerald-600 hover:bg-emerald-50 transition-all">
-                              <Check size={11} />
-                            </button>
-                            <button onClick={cancelEdit} className="w-5 h-5 flex items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 transition-all">
-                              <XIcon size={11} />
-                            </button>
-                          </div>
-                        ) : item.cantidad === null || item.cantidad === undefined ? (
-                          <button
-                            onClick={() => startEditCantidad(item)}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-dashed border-amber-300 bg-amber-50 text-amber-600 text-[10px] font-semibold hover:bg-amber-100 transition-all group"
-                          >
-                            <Pencil size={9} className="group-hover:scale-110 transition-transform" />
-                            Pendiente
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => startEditCantidad(item)}
-                            className="text-xs font-bold text-zinc-700 hover:text-amber-600 transition-colors group"
-                          >
-                            {item.cantidad}
-                          </button>
-                        )}
+                        <span className="text-xs font-bold text-zinc-700">
+                          {item.cantidad ?? '—'}
+                        </span>
                       </td>
 
                       <td className="px-3 py-1 text-center">
                         {(() => {
                           const s = getStockAlmacenaje(item);
                           if (!s) return <span className="text-zinc-300 text-xs">—</span>;
-                          const enteros  = Math.floor(s.total);
                           return (
                             <div className="flex flex-col items-center gap-0.5">
                               <span className="text-xs font-bold text-amber-700 tabular-nums">
-                                {s.total % 1 === 0 ? enteros : s.total.toFixed(1)}
+                                {s.total % 1 === 0 ? Math.floor(s.total) : s.total.toFixed(1)}
                               </span>
                               <span className="text-[9px] font-semibold text-amber-500 uppercase tracking-wider">
                                 {s.nombre}
@@ -211,13 +152,6 @@ const DataTable = () => {
 
                       <td className="px-3 py-1">
                         <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => handleEdit(item)}
-                            title="Editar"
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95"
-                          >
-                            <Edit size={12} />
-                          </button>
                           <button
                             onClick={() => openConfirm({
                               title:   'Eliminar Item',
@@ -255,7 +189,7 @@ const DataTable = () => {
                     <td colSpan="10" className="px-3 py-16 text-center">
                       <div className="flex flex-col items-center justify-center text-zinc-500 h-40">
                         <span className="text-sm font-medium">No hay items para mostrar en este inventario.</span>
-                        <span className="text-xs text-zinc-400 mt-1">Intenta ajustando tu búsqueda o agrega un nuevo item.</span>
+                        <span className="text-xs text-zinc-400 mt-1">El stock se crea automáticamente al recibir órdenes de compra o cerrar órdenes de producción.</span>
                       </div>
                     </td>
                   </tr>
@@ -354,7 +288,6 @@ const DataTable = () => {
         />
       )}
 
-      {/* TraspasoModal — se monta solo cuando hay un item seleccionado */}
       {itemTraspaso && (
         <TraspasoModal
           item={itemTraspaso}

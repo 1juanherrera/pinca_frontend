@@ -47,6 +47,11 @@ export const API_ROUTES = {
     DISPONIBLES: '/tambores/disponibles',
     CONSUMIR: (id) => `/tambores/${id}/consumir`,
   },
+  CATALOGO: {
+    LIST:        '/catalogo',
+    DETAIL:      (id) => `/catalogo/${id}`,
+    PROVEEDORES: (id) => `/catalogo/${id}/proveedores`,
+  },
   UNIDADES: '/unidades',
   CAPAS: {
     POR_ITEM:       (itemId) => `/inventario/${itemId}/capas`,

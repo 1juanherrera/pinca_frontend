@@ -16,8 +16,7 @@ import CarteraPage from "./modules/Cartera/CarteraPage";
 import { Login } from "./modules/Login/Login";
 import MovimientosPage from "./modules/Movimientos/MovimientosPage";
 import RentabilidadPage from "./modules/Rentabilidad/RentabilidadPage";
-import MateriasPrimasPage from "./modules/MateriasPrimas/MateriasPrimasPage";
-import ProductosPage from "./modules/Productos/ProductosPage";
+import CatalogoPage from "./modules/Catalogo/CatalogoPage";
 import TamboresPage from "./modules/Tambores/TamboresPage";
 
 const App = () => {
@@ -33,8 +32,7 @@ const App = () => {
           <Route path="/produccion" element={<ProduccionPage />} />
           <Route path="/clientes" element={<ClientePage />} />
           <Route path="/prorrateo" element={<Prorrateo />} />
-          <Route path="/materias-primas" element={<MateriasPrimasPage />} />
-          <Route path="/productos" element={<ProductosPage />} />
+          <Route path="/catalogo" element={<CatalogoPage />} />
 
           {/* Nuevas Rutas */}
           <Route path="/pagos" element={<PagosPage />} />
