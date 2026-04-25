@@ -29,6 +29,7 @@ const ERPTable = ({
   sortBy,
   sortDir,
   onSort,
+  rowClassName,
 }) => {
   // Empty state
   if (!isLoading && data.length === 0) {
@@ -93,7 +94,7 @@ const ERPTable = ({
                 <tr
                   key={row.id ?? idx}
                   onClick={() => onRowClick?.(row)}
-                  className={`transition-colors hover:bg-zinc-100 ${onRowClick ? 'cursor-pointer group' : ''}`}
+                  className={`transition-colors hover:bg-zinc-50 ${onRowClick ? 'cursor-pointer' : ''} ${rowClassName?.(row) ?? ''}`}
                 >
                   {columns.map((col) => {
                     const alignClass =

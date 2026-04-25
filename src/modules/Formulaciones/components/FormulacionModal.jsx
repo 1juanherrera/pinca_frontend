@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form';
 import {
   FlaskConical, X, PlusCircle, Trash2, Search, PackagePlus, Truck,
@@ -10,6 +10,7 @@ import { useFormulaciones } from '../api/useFormulaciones';
 import { useCapasStock } from '../../Produccion/api/useCapasStock';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import { FormInput } from '../../../shared/Form/FormInput';
+import { FormTextarea } from '../../../shared/Form/FormTexarea';
 import { Button } from '../../../shared/Button';
 import toast from 'react-hot-toast';
 
@@ -26,9 +27,10 @@ const EMPTY_MP       = { nombre: '', codigo: '', costo_unitario: '' };
 const IngredientCard = ({
   field, index, quantity, modoGlobal,
   proveedorId, onProveedorChange, onCostoChange, onRemove,
-  register, errors, tabBase,
+  register, setValue, errors, tabBase,
 }) => {
   const { capas, stockTotal, costoPromedio, isLoading } = useCapasStock(field.materia_prima_id);
+  const [unidad, setUnidad] = useState('kg');
 
   // Proveedores únicos con stock y costo promedio ponderado
   const proveedoresDisponibles = useMemo(() => {
@@ -136,22 +138,52 @@ const IngredientCard = ({
       <div className="grid grid-cols-3 divide-x divide-zinc-100 bg-white">
         {/* Cantidad */}
         <div className="px-3 py-2.5 flex flex-col gap-1">
-          <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Cantidad (kg)</label>
+          <div className="flex items-center justify-between mb-0.5">
+            <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Cantidad</label>
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setUnidad(u => u === 'kg' ? 'g' : 'kg')}
+              title={unidad === 'kg' ? 'Cambiar a gramos' : 'Cambiar a kilogramos'}
+              className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-zinc-100 text-zinc-500 hover:bg-zinc-900 hover:text-white transition-colors"
+            >
+              {unidad}
+            </button>
+          </div>
+          {/* Campo RHF siempre montado (oculto en modo gramos) */}
           <input
             type="number"
             step="0.001"
             min="0"
-            tabIndex={tabBase}
+            tabIndex={unidad === 'kg' ? tabBase : -1}
             {...register(`materias_primas.${index}.cantidad`, {
               required: true, valueAsNumber: true, min: 0.001,
             })}
             placeholder="0.000"
             className={`w-full text-sm font-bold text-center rounded-lg px-2 py-1.5 border focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums transition-colors ${
-              errors?.materias_primas?.[index]?.cantidad
+              unidad === 'g' ? 'hidden' : ''
+            } ${errors?.materias_primas?.[index]?.cantidad
                 ? 'border-red-300 bg-red-50 text-red-700'
                 : 'border-zinc-200 text-zinc-800'
             }`}
           />
+          {/* Input proxy en gramos: solo visible en modo 'g' */}
+          {unidad === 'g' && (
+            <input
+              type="number"
+              step="1"
+              min="0"
+              tabIndex={tabBase}
+              value={parseFloat(quantity) > 0 ? Math.round(parseFloat(quantity) * 1000) : ''}
+              onChange={(e) => setValue(`materias_primas.${index}.cantidad`, (parseFloat(e.target.value) || 0) / 1000)}
+              placeholder="0 g"
+              className={`w-full text-sm font-bold text-center rounded-lg px-2 py-1.5 border focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums transition-colors ${
+                errors?.materias_primas?.[index]?.cantidad
+                  ? 'border-red-300 bg-red-50 text-red-700'
+                  : 'border-zinc-200 text-zinc-800'
+              }`}
+            />
+          )}
           {errors?.materias_primas?.[index]?.cantidad && (
             <p className="text-[9px] text-red-500 flex items-center gap-0.5">
               <AlertTriangle size={8} /> Requerido
@@ -242,12 +274,15 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
   const [proveedores,       setProveedores]       = useState({});
   const [costosData,        setCostosData]        = useState({});
 
+  const searchInputRef  = useRef(null);
+  const saveAndContinue = useRef(false);
+
   const {
-    formulacion, productos, materiasDisponibles,
+    formulacion, isLoadingFormulacion, productos, materiasDisponibles,
     createFormulacionAsync, updateFormulacionAsync,
     createItemAsync, isCreatingItem,
     vincularItemProveedorAsync, isVinculando, isSaving,
-  } = useFormulaciones(itemId);
+  } = useFormulaciones(null, null, itemId);
 
   const { register, control, handleSubmit, reset, setValue, formState: { errors } } = useForm({
     defaultValues: {
@@ -264,8 +299,8 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
     if (formulacion && itemId) {
       reset({
         item_general_id: String(formulacion.item.id),
-        nombre:          formulacion.item.nombre ?? '',
-        descripcion:     '',
+        nombre:          formulacion.nombre ?? formulacion.item.nombre ?? '',
+        descripcion:     formulacion.descripcion ?? '',
         materias_primas: (formulacion.materias_primas ?? []).map(mp => ({
           materia_prima_id: String(mp.materia_prima_id),
           nombre:           mp.nombre,
@@ -306,6 +341,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
       append({ materia_prima_id: String(mp.item_general_id), nombre: mp.nombre, cantidad: 0, costo_unitario: mp.costo_unitario, fuente: mp.fuente ?? 'inventario', proveedor_nombre: mp.proveedor_nombre ?? null });
     }
     setSearchTerm('');
+    setTimeout(() => searchInputRef.current?.focus(), 50);
   }, [fields, vincularItemProveedorAsync, append]);
 
   const handleCrearProducto = async () => {
@@ -385,7 +421,15 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
       } else {
         await createFormulacionAsync(payload);
       }
-      handleClose();
+      if (saveAndContinue.current) {
+        saveAndContinue.current = false;
+        reset({ item_general_id: '', nombre: '', descripcion: '', materias_primas: [] });
+        setCostosData({});
+        setProveedores({});
+        setTimeout(() => searchInputRef.current?.focus(), 100);
+      } else {
+        handleClose();
+      }
     } catch (_) {}
   };
 
@@ -463,6 +507,57 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
           {/* ─── BODY ─────────────────────────────────────────────────────── */}
           <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
 
+            {/* Skeleton de carga en modo edición */}
+            {itemId && isLoadingFormulacion && (
+              <div className="space-y-5 animate-pulse">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="h-3 w-20 bg-zinc-200 rounded" />
+                    <div className="h-9 bg-zinc-100 rounded-xl" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-3 w-32 bg-zinc-200 rounded" />
+                    <div className="h-9 bg-zinc-100 rounded-xl" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 w-40 bg-zinc-200 rounded" />
+                  <div className="h-20 bg-zinc-100 rounded-xl" />
+                </div>
+                <div className="h-3 w-28 bg-zinc-200 rounded" />
+                <div className="h-10 bg-zinc-100 rounded-xl" />
+                <div className="space-y-2.5">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="rounded-2xl border border-zinc-100 overflow-hidden">
+                      <div className="h-10 bg-zinc-50 px-3 flex items-center gap-2">
+                        <div className="h-5 w-5 bg-zinc-200 rounded" />
+                        <div className="h-3 bg-zinc-200 rounded w-40" />
+                      </div>
+                      <div className="grid grid-cols-3 divide-x divide-zinc-100">
+                        <div className="px-3 py-3 space-y-2">
+                          <div className="h-2.5 bg-zinc-100 rounded w-12" />
+                          <div className="h-7 bg-zinc-100 rounded-lg" />
+                        </div>
+                        <div className="px-3 py-3 space-y-2">
+                          <div className="h-2.5 bg-zinc-100 rounded w-16" />
+                          <div className="h-1.5 bg-zinc-100 rounded-full" />
+                          <div className="h-2.5 bg-zinc-100 rounded w-24" />
+                        </div>
+                        <div className="px-3 py-3 space-y-2">
+                          <div className="h-2.5 bg-zinc-100 rounded w-10" />
+                          <div className="h-3 bg-zinc-100 rounded w-20" />
+                          <div className="h-5 bg-zinc-100 rounded w-24" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Contenido real — oculto mientras carga en modo edición */}
+            {!(itemId && isLoadingFormulacion) && <>
+
             {/* Sección 1: Identidad */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -523,6 +618,13 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
               />
             </div>
 
+            <FormTextarea
+              label="Instrucciones de proceso (opcional)"
+              placeholder="Ej: Dispersar pigmentos a alta velocidad 30 min. Añadir resinas lentamente. Verificar viscosidad..."
+              rows={3}
+              registration={register('descripcion')}
+            />
+
             {/* Sección 2: Buscador */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -540,9 +642,18 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
                 <input
+                  ref={searchInputRef}
                   type="text"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && mpFiltradas.length > 0) {
+                      e.preventDefault();
+                      agregarMateriaPrima(mpFiltradas[0]);
+                    } else if (e.key === 'Escape') {
+                      setSearchTerm('');
+                    }
+                  }}
                   placeholder="Buscar en inventario y catálogo de proveedores..."
                   className="w-full pl-9 pr-3 py-2.5 text-sm border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 transition placeholder:text-zinc-300"
                 />
@@ -658,12 +769,15 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                     onCostoChange={handleCostoChange}
                     onRemove={handleRemove}
                     register={register}
+                    setValue={setValue}
                     errors={errors}
                     tabBase={10 + index * 2}
                   />
                 ))}
               </div>
             )}
+
+            </> }
           </div>
 
           {/* ─── STICKY FOOTER ────────────────────────────────────────────── */}
@@ -719,10 +833,25 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                 <Button variant="white" onClick={handleClose} disabled={isSaving} type="button">
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={isSaving} icon={isSaving ? undefined : FlaskConical}>
+                {!formulacion && (
+                  <Button
+                    type="button"
+                    variant="white"
+                    disabled={isSaving}
+                    onClick={() => { saveAndContinue.current = true; handleSubmit(onSubmit)(); }}
+                  >
+                    {isSaving && saveAndContinue.current
+                      ? <><span className="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin inline-block mr-1.5" />Guardando...</>
+                      : 'Guardar y continuar →'
+                    }
+                  </Button>
+                )}
+                <Button type="submit" disabled={isSaving || (itemId && isLoadingFormulacion)} icon={(isSaving || (itemId && isLoadingFormulacion)) ? undefined : FlaskConical}>
                   {isSaving
                     ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block mr-1.5" />Guardando...</>
-                    : formulacion ? 'Actualizar Formulación' : 'Crear Formulación'
+                    : (itemId && isLoadingFormulacion)
+                      ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block mr-1.5" />Cargando...</>
+                      : formulacion ? 'Actualizar Formulación' : 'Crear Formulación'
                   }
                 </Button>
               </div>

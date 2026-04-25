@@ -18,6 +18,7 @@ const FormulacionesPage = () => {
   const [selectedId,       setSelectedId]       = useState("");
   const [nuevoVolumen,     setNuevoVolumen]      = useState("");
   const [modalFormulacion, setModalFormulacion]  = useState(false);
+  const [editItemId,       setEditItemId]        = useState(null);
   const [selectedProveedorId, setSelectedProveedorId] = useState(null);
 
   const [seleccionPorIngrediente, setSeleccionPorIngrediente] = useState({});
@@ -25,6 +26,7 @@ const FormulacionesPage = () => {
   const {
     formulaciones,
     isLoading,
+    isCalculating,
     costosBase,
     costosRecalculados,
     isRecalculating,
@@ -68,6 +70,7 @@ const FormulacionesPage = () => {
         formulaciones={formulaciones}
         productDetail={costosBase}
         recalculatedData={costosRecalculados}
+        isLoading={isLoading}
       />
 
       {/* Buscador Maestro */}
@@ -104,6 +107,7 @@ const FormulacionesPage = () => {
           <ProductSpecificationsTable
             selectedProductData={selectedProductData}
             productDetail={costosBase}
+            isLoading={isCalculating}
           />
         </div>
 
@@ -116,12 +120,15 @@ const FormulacionesPage = () => {
             opcionesIngredientes={opcionesIngredientes}
             seleccionPorIngrediente={seleccionPorIngrediente}
             onSeleccionIngrediente={setSeleccionPorIngrediente}
+            onEdit={(itemId) => { setEditItemId(itemId); setModalFormulacion(true); }}
+            isLoading={isCalculating}
           />
           <CostProductsTable
             selectedProductData={selectedProductData}
             productDetail={costosBase}
             recalculatedData={costosRecalculados}
             costosProveedor={costosProveedor}
+            isLoading={isCalculating}
           />
         </div>
       </div>
@@ -131,7 +138,8 @@ const FormulacionesPage = () => {
 
       <FormulacionModal
         isOpen={modalFormulacion}
-        onClose={() => setModalFormulacion(false)}
+        onClose={() => { setModalFormulacion(false); setEditItemId(null); }}
+        itemId={editItemId}
       />
 
     </div>
