@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { FlaskConical, Beaker, Scale, DollarSign, Truck, ChevronDown, X } from 'lucide-react';
+import { FlaskConical, Beaker, Scale, DollarSign, Truck, ChevronDown, X, Pencil } from 'lucide-react';
 
 const fmtCOP = (v) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(v) || 0);
@@ -125,6 +125,8 @@ export const FormulacionesTable = ({
     opcionesIngredientes = null,
     seleccionPorIngrediente = {},
     onSeleccionIngrediente,
+    onEdit,
+    isLoading = false,
 }) => {
     if (!selectedProductData) {
         return (
@@ -231,13 +233,25 @@ export const FormulacionesTable = ({
                             {productDetail?.item?.nombre} - {productDetail?.item?.codigo}
                         </p>
                     </div>
-                    <div className="text-right">
-                        <div className="text-xs text-white overflow-hidden truncate w-40">
-                            vol: {recalculatedData ? recalculatedData?.item?.volumen_nuevo : productDetail?.item?.volumen_base || 0}
+                    <div className="flex items-center gap-3">
+                        <div className="text-right">
+                            <div className="text-xs text-white overflow-hidden truncate w-40">
+                                vol: {recalculatedData ? recalculatedData?.item?.volumen_nuevo : productDetail?.item?.volumen_base || 0}
+                            </div>
+                            <div className="text-xs text-white">
+                                {productDetail?.formulaciones?.length || 0} componentes
+                            </div>
                         </div>
-                        <div className="text-xs text-white">
-                            {productDetail?.formulaciones?.length || 0} componentes
-                        </div>
+                        {onEdit && (
+                            <button
+                                type="button"
+                                onClick={() => onEdit(selectedProductData.id_item_general)}
+                                title="Editar formulación"
+                                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/25 text-white transition-colors"
+                            >
+                                <Pencil size={14} />
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -280,8 +294,26 @@ export const FormulacionesTable = ({
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                    {
-                        dataToShow?.formulaciones && Array.isArray(dataToShow.formulaciones) && dataToShow.formulaciones.length > 0 ? (
+                    {isLoading ? (
+                        [...Array(5)].map((_, i) => (
+                            <tr key={i} className="animate-pulse">
+                                <td className="px-3 py-3"><div className="h-3 w-4 bg-zinc-200 rounded mx-auto" /></td>
+                                <td className="px-3 py-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-7 w-7 rounded-full bg-zinc-200 shrink-0" />
+                                        <div className="space-y-1.5 flex-1">
+                                            <div className="h-3 bg-zinc-200 rounded w-3/4" />
+                                            <div className="h-2.5 bg-zinc-100 rounded w-1/3" />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-3 py-3"><div className="h-3 bg-zinc-200 rounded w-12 mx-auto" /></td>
+                                <td className="px-3 py-3"><div className="h-3 bg-zinc-200 rounded w-12 mx-auto" /></td>
+                                <td className="px-3 py-3"><div className="h-3 bg-zinc-200 rounded w-16 mx-auto" /></td>
+                                <td className="px-3 py-3"><div className="h-3 bg-zinc-200 rounded w-16 mx-auto" /></td>
+                            </tr>
+                        ))
+                    ) : dataToShow?.formulaciones && Array.isArray(dataToShow.formulaciones) && dataToShow.formulaciones.length > 0 ? (
                             dataToShow.formulaciones.map((formulacion, index) => {
                             const costoOverride = getCostoOverride(formulacion);
                             const mpId = formulacion.item_general_id;
@@ -456,17 +488,23 @@ export const FormulacionesTable = ({
             <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
                 <div className="flex justify-end items-center">
                     <div className="flex gap-6 flex-wrap">
-                        <div className="text-sm">
+                        <div className="text-sm flex items-center gap-1.5">
                             <span className="text-gray-600 font-medium">Total Cantidad: </span>
-                            <span className={`font-bold ${recalculatedData ? 'text-green-600' : 'text-blue-600'}`}>
-                                {!recalculatedData ? productDetail?.costos?.total_cantidad_materia_prima : recalculatedData?.recalculados?.total_cantidad_materia_prima}
-                            </span>
+                            {isLoading
+                                ? <div className="h-3 w-10 bg-zinc-200 rounded animate-pulse inline-block" />
+                                : <span className={`font-bold ${recalculatedData ? 'text-green-600' : 'text-blue-600'}`}>
+                                    {!recalculatedData ? productDetail?.costos?.total_cantidad_materia_prima : recalculatedData?.recalculados?.total_cantidad_materia_prima}
+                                  </span>
+                            }
                         </div>
-                        <div className="text-sm border-l border-gray-200 pl-6">
+                        <div className="text-sm border-l border-gray-200 pl-6 flex items-center gap-1.5">
                             <span className="text-gray-600 font-medium">Total Costo MP: </span>
-                            <span className={`font-bold ${recalculatedData ? 'text-green-600' : 'text-emerald-600'}`}>
-                                $ {!recalculatedData ? productDetail?.costos?.total_costo_materia_prima : recalculatedData?.recalculados?.total_costo_materia_prima}
-                            </span>
+                            {isLoading
+                                ? <div className="h-3 w-20 bg-zinc-200 rounded animate-pulse inline-block" />
+                                : <span className={`font-bold ${recalculatedData ? 'text-green-600' : 'text-emerald-600'}`}>
+                                    $ {!recalculatedData ? productDetail?.costos?.total_costo_materia_prima : recalculatedData?.recalculados?.total_costo_materia_prima}
+                                  </span>
+                            }
                         </div>
                         {hasAnyOverride && totalCostoOverride && (
                             <div className="text-sm border-l border-gray-200 pl-6">

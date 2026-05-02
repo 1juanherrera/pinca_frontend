@@ -1,6 +1,6 @@
 import { statsData, themeClasses } from '../utils/KpiCardList';
 
-const KpiCard = ({ formulaciones = [], productDetail = null, recalculatedData = null }) => {
+const KpiCard = ({ formulaciones = [], productDetail = null, recalculatedData = null, isLoading = false }) => {
 
     const getDynamicValue = (label) => {
         switch (label.toLowerCase()) {
@@ -41,9 +41,11 @@ const KpiCard = ({ formulaciones = [], productDetail = null, recalculatedData = 
                                 <p className="text-xs font-medium text-gray-600">
                                     {item.label}
                                 </p>
-                                <p className={`text-lg font-bold ${theme.value}`}>
-                                    {value}
-                                </p>
+                                {isLoading ? (
+                                    <div className="h-6 w-16 bg-zinc-200 rounded animate-pulse mt-1" />
+                                ) : (
+                                    <p className={`text-lg font-bold ${theme.value}`}>{value}</p>
+                                )}
                             </div>
                             
                             {/* Tu contenedor de ícono circular original */}

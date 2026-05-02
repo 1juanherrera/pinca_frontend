@@ -5,10 +5,11 @@ import {
   Eraser, Package, Search as SearchIcon 
 } from 'lucide-react';
 
-export const ProductSelect = ({ 
-  formulaciones = [], 
-  selectedProduct, 
-  onProductSelect, 
+export const ProductSelect = ({
+  formulaciones = [],
+  selectedProduct,
+  onProductSelect,
+  loading = false,
   onClearSelection
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -170,12 +171,16 @@ export const ProductSelect = ({
                   {String(selectedProduct) === String(f.id_item_general) && <Check size={14} />}
                 </button>
               ))
+            ) : loading ? (
+              <div className="px-4 py-6 text-center">
+                <div className="flex items-center justify-center flex-col gap-2">
+                  <Loader2 className="animate-spin text-blue-500" size={22} />
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase">Cargando productos...</span>
+                </div>
+              </div>
             ) : (
               <div className="px-4 py-6 text-center text-zinc-400 text-[10px] font-bold uppercase">
-                <div className="flex items-center justify-center flex-col gap-2">
-                  <Loader2 className="animate-spin text-blue-700" size={25} />
-                  <span className="text-[10px] text-zinc-400">Cargando productos...</span>
-                </div>
+                Sin resultados
               </div>
             )}
           </div>

@@ -18,6 +18,7 @@ export const CostProductsTable = ({
     compact = false,
     recalculatedData,
     costosProveedor = null,
+    isLoading = false,
 }) => {
 
     const openDrawer = useBoundStore(state => state.openDrawer);
@@ -117,43 +118,57 @@ export const CostProductsTable = ({
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
-                        {productDetail?.costos &&
-                            Object.entries(productDetail.costos)
-                                .filter(([key]) => COST_DEFINITIONS[key])
-                                .map(([key, value]) => {
-                                    const { label, icon } = COST_DEFINITIONS[key];
-                                    return (
-                                        <tr key={key} className="hover:bg-emerald-50/30 transition-colors">
-                                            <td className="px-3 py-2 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div className="shrink-0 mr-3 p-1 bg-zinc-50 rounded border border-zinc-100">
-                                                        {icon}
-                                                    </div>
-                                                    <div className="text-xs font-semibold text-zinc-700 uppercase tracking-tighter">
-                                                        {label}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="whitespace-nowrap text-center">
-                                                <div className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-gray-400">
-                                                    $ {value || '-'}
-                                                </div>
-                                            </td>
-                                            <td className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-gray-400">
-                                                <div className={`text-xs font-bold ${value ? 'text-emerald-600' : 'text-gray-400'}`}>
-                                                    $ {value || '-'}
-                                                </div>
-                                            </td>
-                                            {costosProveedor && (
-                                                <td className="px-3 py-2 whitespace-nowrap text-center">
-                                                    <div className="text-xs font-bold text-amber-600">
-                                                        $ {costosProveedor.costos_proveedor?.[key] || value || '-'}
+                        {isLoading
+                            ? [...Array(5)].map((_, i) => (
+                                <tr key={i} className="animate-pulse">
+                                    <td className="px-3 py-2.5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-6 w-6 bg-zinc-200 rounded shrink-0" />
+                                            <div className="h-3 bg-zinc-200 rounded w-20" />
+                                        </div>
+                                    </td>
+                                    <td className="px-3 py-2.5 text-center"><div className="h-3 bg-zinc-200 rounded w-16 mx-auto" /></td>
+                                    <td className="px-3 py-2.5 text-center"><div className="h-3 bg-zinc-200 rounded w-16 mx-auto" /></td>
+                                    {costosProveedor && <td className="px-3 py-2.5 text-center"><div className="h-3 bg-zinc-200 rounded w-16 mx-auto" /></td>}
+                                </tr>
+                            ))
+                            : productDetail?.costos &&
+                                Object.entries(productDetail.costos)
+                                    .filter(([key]) => COST_DEFINITIONS[key])
+                                    .map(([key, value]) => {
+                                        const { label, icon } = COST_DEFINITIONS[key];
+                                        return (
+                                            <tr key={key} className="hover:bg-emerald-50/30 transition-colors">
+                                                <td className="px-3 py-2 whitespace-nowrap">
+                                                    <div className="flex items-center">
+                                                        <div className="shrink-0 mr-3 p-1 bg-zinc-50 rounded border border-zinc-100">
+                                                            {icon}
+                                                        </div>
+                                                        <div className="text-xs font-semibold text-zinc-700 uppercase tracking-tighter">
+                                                            {label}
+                                                        </div>
                                                     </div>
                                                 </td>
-                                            )}
-                                        </tr>
-                                    );
-                                })
+                                                <td className="whitespace-nowrap text-center">
+                                                    <div className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-gray-400">
+                                                        $ {value || '-'}
+                                                    </div>
+                                                </td>
+                                                <td className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-gray-400">
+                                                    <div className={`text-xs font-bold ${value ? 'text-emerald-600' : 'text-gray-400'}`}>
+                                                        $ {value || '-'}
+                                                    </div>
+                                                </td>
+                                                {costosProveedor && (
+                                                    <td className="px-3 py-2 whitespace-nowrap text-center">
+                                                        <div className="text-xs font-bold text-amber-600">
+                                                            $ {costosProveedor.costos_proveedor?.[key] || value || '-'}
+                                                        </div>
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        );
+                                    })
                         }
                     </tbody>
 
@@ -171,14 +186,16 @@ export const CostProductsTable = ({
                                 </div>
                             </td>
                             <td className="px-3 py-3 whitespace-nowrap text-center">
-                                <div className="text-xs font-semibold text-zinc-400">
-                                    $ {productDetail?.costos?.total || 0}
-                                </div>
+                                {isLoading
+                                    ? <div className="h-3 w-16 bg-zinc-200 rounded animate-pulse mx-auto" />
+                                    : <div className="text-xs font-semibold text-zinc-400">$ {productDetail?.costos?.total || 0}</div>
+                                }
                             </td>
                             <td className="px-3 py-3 whitespace-nowrap text-center">
-                                <div className="text-lg font-bold text-emerald-700 tracking-tighter">
-                                    $ {recalculatedData?.recalculados?.total || '-'}
-                                </div>
+                                {isLoading
+                                    ? <div className="h-4 w-20 bg-zinc-200 rounded animate-pulse mx-auto" />
+                                    : <div className="text-lg font-bold text-emerald-700 tracking-tighter">$ {recalculatedData?.recalculados?.total || '-'}</div>
+                                }
                             </td>
                             {costosProveedor && (
                                 <td className="px-3 py-3 whitespace-nowrap text-center">

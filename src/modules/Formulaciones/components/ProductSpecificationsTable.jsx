@@ -10,9 +10,10 @@ import {
   Activity
 } from 'lucide-react';
 
-export const ProductSpecificationsTable = ({ 
-    selectedProductData, 
-    productDetail 
+export const ProductSpecificationsTable = ({
+    selectedProductData,
+    productDetail,
+    isLoading = false,
 }) => {
 
     // 1. Estado de espera (Estilo Original)
@@ -132,31 +133,45 @@ export const ProductSpecificationsTable = ({
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-zinc-50">
-                        {Object.entries(productDetail?.item || {})
-                            .filter(([key]) => PARAMETER_DEFINITIONS[key]) 
-                            .map(([key, value]) => {
-                                const { label, icon } = PARAMETER_DEFINITIONS[key];
-                                return (
-                                    <tr key={key} className="hover:bg-teal-50/30 transition-colors">
-                                        <td className="px-3 py-2.5 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="shrink-0 mr-3 p-1 bg-zinc-50 rounded border border-zinc-100">
-                                                    {icon}
+                        {isLoading
+                            ? [...Array(6)].map((_, i) => (
+                                <tr key={i} className="animate-pulse">
+                                    <td className="px-3 py-2.5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-6 w-6 bg-zinc-200 rounded shrink-0" />
+                                            <div className="h-3 bg-zinc-200 rounded w-24" />
+                                        </div>
+                                    </td>
+                                    <td className="px-3 py-2.5 text-center">
+                                        <div className="h-3 bg-zinc-200 rounded w-12 mx-auto" />
+                                    </td>
+                                </tr>
+                            ))
+                            : Object.entries(productDetail?.item || {})
+                                .filter(([key]) => PARAMETER_DEFINITIONS[key])
+                                .map(([key, value]) => {
+                                    const { label, icon } = PARAMETER_DEFINITIONS[key];
+                                    return (
+                                        <tr key={key} className="hover:bg-teal-50/30 transition-colors">
+                                            <td className="px-3 py-2.5 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className="shrink-0 mr-3 p-1 bg-zinc-50 rounded border border-zinc-100">
+                                                        {icon}
+                                                    </div>
+                                                    <div className="text-xs font-semibold text-zinc-700 uppercase tracking-tighter">
+                                                        {label}
+                                                    </div>
                                                 </div>
-                                                <div className="text-xs font-semibold text-zinc-700 uppercase tracking-tighter">
-                                                    {label}
+                                            </td>
+                                            <td className="px-3 py-2.5 whitespace-nowrap text-center">
+                                                <div className="text-xs font-bold text-zinc-900">
+                                                    {formatValue(key, value)}
                                                 </div>
-                                            </div>
-                                        </td>
-
-                                        <td className="px-3 py-2.5 whitespace-nowrap text-center">
-                                            <div className="text-xs font-bold text-zinc-900">
-                                                {formatValue(key, value)}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                        }
                     </tbody>
                 </table>
             </div>

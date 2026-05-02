@@ -89,8 +89,8 @@ export const useInstalaciones = (id = null) => {
 
   return {
     // Listados y Datos
-    instalaciones: queryinstalaciones.data ?? [],
-    isLoadingInstalaciones: queryinstalaciones.isLoading,
+    instalaciones: Array.isArray(queryinstalaciones.data) ? queryinstalaciones.data : [],
+    isLoadingInstalaciones: queryinstalaciones.isPending,
     instalacionDetalle: queryInfo.data ?? null,
     isLoadingInfo: queryInfo.isLoading,
 
@@ -106,6 +106,7 @@ export const useInstalaciones = (id = null) => {
     isDeleting: deleteMutation.isPending,
 
     // Utilidades
+    refresh: () => queryClient.invalidateQueries({ queryKey: instalacionesKeys.lists() }),
     refreshItems: () => queryClient.invalidateQueries({ queryKey: instalacionesKeys.lists() }),
   };
 };
