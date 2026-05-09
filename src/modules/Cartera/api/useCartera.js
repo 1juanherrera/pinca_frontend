@@ -79,13 +79,10 @@ export const usePagos = () => {
 
   const registrarMutation = useMutation({
     mutationFn: (payload) => {
-      console.log('Enviando datos de pago:', payload); // Debug
       return apiClient.post(API_ROUTES.PAGOS.CREATE, payload);
     },
 
     onSuccess: (response, variables) => {
-      console.log('Respuesta exitosa:', response); // Debug
-      
       // Asegurar que la respuesta tenga el formato correcto
       const nuevoPago = response?.data || response || { 
         ...variables, 
@@ -127,10 +124,7 @@ export const usePagos = () => {
     },
 
     onError: (err) => {
-      console.error('Error en registrar pago:', err); // Debug
-      console.error('Respuesta del servidor:', err.response?.data); // Debug
-      
-      const errorMessage = err?.response?.data?.message || 
+      const errorMessage = err?.response?.data?.message ||
                           err?.message || 
                           'Error al registrar el pago';
       toast.error(errorMessage);

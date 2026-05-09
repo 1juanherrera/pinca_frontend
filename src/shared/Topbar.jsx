@@ -40,26 +40,6 @@ const Topbar = () => {
       {/* Acciones del Usuario (Estilo Minimalista) */}
       <div className="flex items-center gap-2 sm:gap-4">
 
-        <NavLink
-          to="/materias-primas"
-          title="Materias Primas"
-          className={({ isActive }) =>
-            `p-2 rounded-full transition-colors ${isActive ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'}`
-          }
-        >
-          <Package size={18} />
-        </NavLink>
-
-        <NavLink
-          to="/productos"
-          title="Productos"
-          className={({ isActive }) =>
-            `p-2 rounded-full transition-colors ${isActive ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'}`
-          }
-        >
-          <Boxes size={18} />
-        </NavLink>
-
         <button
           className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
         >

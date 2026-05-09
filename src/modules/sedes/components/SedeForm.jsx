@@ -61,7 +61,6 @@ const SedeForm = () => {
         { id: payload.id_instalaciones, data }, 
         {
           onSuccess: () => {
-            console.log("Sede actualizada con éxito");
             handleClose();
           },
           onError: (error) => {
@@ -74,7 +73,6 @@ const SedeForm = () => {
         data, 
         {
           onSuccess: () => {
-            console.log("Sede creada con éxito");
             handleClose();
           },
           onError: (error) => {

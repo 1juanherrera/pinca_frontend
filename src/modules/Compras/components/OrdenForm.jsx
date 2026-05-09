@@ -210,7 +210,7 @@ const OrdenForm = () => {
         {/* Fechas */}
         <div className="grid grid-cols-2 gap-4">
           <FormInput
-            label="Fecha *"
+            label="Fecha"
             type="date"
             required
             error={errors.fecha?.message}

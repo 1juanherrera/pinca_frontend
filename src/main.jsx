@@ -1,9 +1,10 @@
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'; // 1. Importa las DevTools
-import { Toaster } from 'react-hot-toast'; // 2. Agregamos el contenedor de notificaciones
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Toaster } from 'react-hot-toast';
 import './index.css';
 import App from './App.jsx';
+import ErrorBoundary from './shared/ErrorBoundary.jsx';
 
 // 3. Configuramos comportamientos globales
 const queryClient = new QueryClient({
@@ -19,8 +20,7 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')).render(
   <QueryClientProvider client={queryClient}>
-    {/* 4. Toaster para que funcionen los toast.error() del apiClient */}
-    <Toaster 
+    <Toaster
       position="bottom-right"
       toastOptions={{
         duration: 4000,
@@ -39,9 +39,10 @@ createRoot(document.getElementById('root')).render(
       }}
     />
     
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
 
-    {/* 5. Panel de control del caché (solo visible en desarrollo) */}
-    <ReactQueryDevtools initialIsOpen={false} />
+    {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
   </QueryClientProvider>
 )

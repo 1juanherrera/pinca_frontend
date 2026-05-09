@@ -289,3 +289,180 @@ CATALOGO: {
 
 - **Requisiciones management page**: frontend page in Compras module to list, approve, and convert requisitions to OC.
 - **"Sin vincular" badge**: visual indicator on item_proveedor table rows with no `item_general_id`.
+
+---
+
+## PRODUCCIÓN — Auditoría de Gaps (2026-05-09)
+
+> Resultado de auditoría pre-producción completa del frontend. Resolver los CRÍTICOS antes de cualquier despliegue.
+
+### 🔴 CRÍTICOS — Bloquean producción
+
+#### 1. Login Page no funcional
+- **Archivo**: `src/modules/Login/Login.jsx`
+- **Problema**: El componente es puramente presentacional. Los inputs no tienen `value`/`onChange`, el botón de submit es `type="button"` sin `onClick`, no hay integración con la API ni redirección tras login exitoso. **El usuario no puede autenticarse.**
+- **Fix**:
+  1. Agregar estado con `useState` para `username` y `password`
+  2. Llamar a `POST /api/login` via `apiClient`
+  3. Guardar el token en `localStorage` y en el store de Zustand (`authSlice`)
+  4. Redirigir a `/` con `useNavigate()` tras login exitoso
+  5. Mostrar error toast si falla
+
+#### 2. `<Layout>` no protege rutas autenticadas
+- **Archivo**: `src/Layout.jsx`
+- **Problema**: El componente que envuelve todas las rutas autenticadas NO verifica si hay token válido. Cualquier persona puede acceder a `/catalogo`, `/compras`, `/produccion`, etc. directamente por URL sin estar autenticada.
+- **Fix**: En `Layout.jsx`, agregar guard al montar:
+  ```jsx
+  const token = useBoundStore(s => s.token);
+  if (!token) return <Navigate to="/login" replace />;
+  ```
+
+#### 3. Sin ruta 404
+- **Archivo**: `src/App.jsx`
+- **Problema**: No existe `<Route path="*" />`. Las URLs inválidas muestran pantalla en blanco.
+- **Fix**: Crear `src/shared/NotFound.jsx` y agregar al final de las rutas:
+  ```jsx
+  <Route path="*" element={<NotFound />} />
+  ```
+
+#### 4. React Query DevTools cargando en producción
+- **Archivo**: `src/main.jsx`
+- **Problema**: `<ReactQueryDevtools />` se carga incondicionalmente, exponiendo el cache de queries y estructura de datos en el navegador del usuario.
+- **Fix**:
+  ```jsx
+  {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+  ```
+
+---
+
+### 🟠 ALTOS — Resolver antes de abrir a usuarios reales
+
+#### 5. 31 `console.log()` activos en código de producción
+- **Archivos con más instancias**:
+  - `src/modules/Cartera/components/ModalRegistrarPago.jsx` — 6 console.log (líneas 90, 98, 102, 117, 121, 124)
+  - `src/modules/Cartera/api/useCartera.js` — 4 console.log + 2 console.error
+  - `src/modules/Inventario/Components/TraspasoModal.jsx` — `console.log('payload traspaso:', payload)` con comentario `← agrega esto`
+- **Impacto**: Expone estado interno, respuestas de API y lógica de negocio en el navegador. Degradación de rendimiento.
+- **Fix**: Buscar globalmente con `grep -r "console\." src/` y eliminar todos. Solo conservar `console.error()` en bloques `catch` para errores inesperados.
+
+#### 6. Sin Error Boundary
+- **Problema**: Si cualquier componente lanza una excepción no capturada, la app completa muestra pantalla en blanco sin mensaje amigable ni posibilidad de recuperación.
+- **Fix**: Crear `src/shared/ErrorBoundary.jsx` (componente de clase) y envolver `<App />` en `main.jsx`.
+
+#### 7. Vite no configurado para producción
+- **Archivo**: `vite.config.js`
+- **Problema**: Config mínima sin optimizaciones de build.
+- **Fix recomendado**:
+  ```js
+  build: {
+    sourcemap: false,
+    minify: 'terser',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router'],
+          'vendor-ui': ['lucide-react', 'recharts'],
+        }
+      }
+    }
+  }
+  ```
+
+#### 8. `VITE_API_BASE_URL` apunta a localhost
+- **Archivo**: `.env`
+- **Problema**: `VITE_API_BASE_URL=http://localhost:8080/api` — en producción debe apuntar al servidor real.
+- **Fix**: Crear `.env.production` con la URL del servidor de producción. Nunca commitear `.env.production`.
+
+#### 9. Sin `.env.example`
+- **Problema**: Un desarrollador nuevo no sabe qué variables de entorno se necesitan.
+- **Fix**: Crear `.env.example`:
+  ```
+  VITE_API_BASE_URL=http://localhost:8080/api
+  ```
+
+#### 10. Título de pestaña vacío
+- **Archivo**: `index.html` línea 7
+- **Problema**: `<title></title>` — el navegador muestra pestaña sin nombre.
+- **Fix**: `<title>PINCA — Gestión Industrial</title>`
+
+---
+
+### 🟡 MEDIOS — Mejoras importantes post-MVP
+
+#### 11. Módulos `MateriasPrimas/` y `Productos/` no eliminados (código muerto)
+- **Problema**: CLAUDE.md dice que fueron eliminados pero los directorios y archivos siguen existiendo. Aumentan el bundle size y generan confusión.
+- **Fix**: Eliminar `src/modules/MateriasPrimas/` y `src/modules/Productos/` completamente.
+
+#### 12. Módulos `Costos` y `CostosIndirectos` implementados pero sin ruta
+- **Archivos**: `src/modules/Costos/CostosPage.jsx` (196 líneas), `src/modules/CostosIndirectos/`
+- **Problema**: Páginas completas marcadas como `—` en la tabla de módulos. No están accesibles para el usuario.
+- **Decisión pendiente**: O agregar ruta + enlace en `sidebarMenu.js`, o documentar explícitamente que están deshabilitadas y por qué.
+
+#### 13. Sin manejo de sesión expirada (token refresh)
+- **Archivo**: `src/api/apiClient.js`
+- **Problema**: Cuando el token de 8 horas expira, la app redirige a `/login` abruptamente perdiendo el trabajo no guardado. No hay refresh token ni renovación silenciosa.
+- **Fix de mínimo**: Mostrar modal de "Tu sesión expiró, inicia sesión nuevamente" en lugar de redirigir sin aviso. Fix completo requiere implementar refresh token en backend.
+
+#### 14. Typo en nombre de archivo del módulo Prorrateo
+- **Archivo**: `src/App.jsx` línea 9
+- **Problema**: `import Prorrateo from "./modules/Prorrateo/Prorreateo"` — el archivo se llama `Prorreateo.jsx` (con 'e' extra).
+- **Fix**: Renombrar archivo a `Prorrateo.jsx` y actualizar el import.
+
+#### 15. Sin indicación visual de modo read-only en Inventario
+- **Problema**: El módulo "Existencias y Lotes" es read-only pero el usuario no lo sabe. Puede generar confusión esperando poder agregar items.
+- **Fix**: Agregar banner o badge informativo: "Este módulo es solo lectura. El stock ingresa vía Órdenes de Compra."
+
+---
+
+### 🔵 BAJOS — Deuda técnica
+
+- **Sin tests**: No existe configuración de Vitest ni testing-library. Sin tests, los cambios en componentes críticos (Produccion, Formulaciones, Cartera) son riesgosos.
+- **Axios desactualizado**: v1.13.5 — verificar si hay actualizaciones de seguridad pendientes con `npm audit`.
+- **Sin documentación de componentes**: Los shared components clave (`CapasStockPanel`, `ItemGeneralSearch`, `ErpTable`) no tienen JSDoc en sus props.
+- **Queries sin error handling granular**: Muchos `useQuery` hooks no diferencian entre error de red, 404 y 500. El usuario ve el mismo mensaje genérico para todos.
+
+---
+
+### Checklist Pre-Deploy
+
+```
+□ Login page funcional (form → API → token → redirect)
+□ Layout protege rutas (redirige a /login sin token)
+□ Ruta 404 creada y registrada
+□ ReactQueryDevtools solo en DEV
+□ Todos los console.log() eliminados
+□ Error Boundary configurado en main.jsx
+□ Vite build configurado para producción (minify, chunks)
+□ .env.production con URL real del backend
+□ Título de pestaña configurado en index.html
+□ npm audit sin vulnerabilidades críticas
+□ Build de producción ejecutado y testeado: npm run build && npm run preview
+```
+
+---
+
+### Estado por módulo (2026-05-09)
+
+| Módulo | Ruta | Estado UI | Notas |
+|--------|------|-----------|-------|
+| Login | `/login` | ❌ No funcional | Requiere implementación completa |
+| sedes | `/` | ✅ | — |
+| Catalogo | `/catalogo` | ✅ | — |
+| Inventario | `/inventario/...` | ✅ | Read-only, falta indicador visual |
+| Bodegas | `/instalaciones/bodegas/:id` | ✅ | — |
+| Formulaciones | `/formulaciones` | ✅ | — |
+| Produccion | `/produccion` | ✅ | — |
+| Clientes | `/clientes` | ✅ | — |
+| Comercial | `/comercial` | ✅ | — |
+| Compras | `/compras` | ✅ | Falta página Requisiciones |
+| Proveedores | `/proveedores` | ✅ | Falta badge "Sin vincular" |
+| Cartera | `/cartera` | ✅ | Tiene console.logs — limpiar |
+| Pagos | `/pagos` | ✅ | — |
+| Movimientos | `/movimientos` | ✅ | — |
+| Rentabilidad | `/rentabilidad` | ✅ | — |
+| Tambores | `/tambores` | ✅ | — |
+| Prorrateo | `/prorrateo` | ✅ | Typo en nombre de archivo |
+| Costos | — | ⚠️ Sin ruta | Página implementada, sin acceso |
+| CostosIndirectos | — | ⚠️ Sin ruta | Página implementada, sin acceso |
+| MateriasPrimas | — | 🗑️ Eliminar | Reemplazado por Catálogo |
+| Productos | — | 🗑️ Eliminar | Reemplazado por Catálogo |

@@ -57,7 +57,6 @@ const BodegaForm = () => {
         { id: payload.id_bodegas, data }, 
         {
           onSuccess: () => {
-            console.log("Bodega actualizada con éxito");
             handleClose();
           },
           onError: (error) => {

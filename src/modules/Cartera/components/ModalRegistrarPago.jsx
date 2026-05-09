@@ -87,20 +87,15 @@ const RegistrarPagoContent = ({ factura, onClose }) => {
   };
 
   const handleSubmit = async () => {
-    console.log('Iniciando registro de pago...'); // Debug
-    
     const { valid, errors: errs } = validarPago({
       ...form,
       facturas_id:     factura.id_facturas,
       saldo_pendiente: saldo,
     });
-    
-    console.log('Resultado validación:', { valid, errors: errs }); // Debug
-    
-    if (!valid) { 
-      setErrors(errs); 
-      console.log('Errores de validación:', errs); // Debug
-      return; 
+
+    if (!valid) {
+      setErrors(errs);
+      return;
     }
 
     const payload = {
@@ -114,11 +109,8 @@ const RegistrarPagoContent = ({ factura, onClose }) => {
       fecha_pago:        form.fecha_pago,
     };
 
-    console.log('Payload enviado:', payload); // Debug
-
     try {
       await registrarPagoAsync(payload);
-      console.log('Pago registrado exitosamente'); // Debug
       onClose();
     } catch (error) {
       console.error('Error al registrar pago:', error); // Debug

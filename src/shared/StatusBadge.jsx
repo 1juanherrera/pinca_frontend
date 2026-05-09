@@ -40,9 +40,9 @@ const StatusBadge = ({ estado, size = 'md' }) => {
     : 'text-[10px] px-2 py-1.5';
 
   return (
-    <span className={`inline-flex items-center uppercase gap-1.5 rounded font-semibold ${s.bg} ${s.text} ${sizeClasses}`}>
+    <span className={`inline-flex items-center justify-center uppercase gap-1.5 rounded font-semibold w-28 ${s.bg} ${s.text} ${sizeClasses}`}>
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.dot}`} />
-      {estado}
+      <span className="truncate">{estado}</span>
     </span>
   );
 };

@@ -10,11 +10,13 @@ import {
   ArrowDownUp,
   TrendingUp,
   BookOpen,
+  Boxes,
 } from 'lucide-react';
 
 export const sidebarMenu = [
   { link: '', label: 'Panel Principal', icon: LayoutDashboard },
   { link: 'catalogo', label: 'Catálogo', icon: BookOpen },
+  { link: 'inventario-global', label: 'Inventario', icon: Boxes },
   { link: 'formulaciones', label: 'Formulaciones', icon: FlaskConical },
   { link: 'produccion', label: 'Producción', icon: Factory },
   { link: 'rentabilidad', label: 'Rentabilidad', icon: TrendingUp },

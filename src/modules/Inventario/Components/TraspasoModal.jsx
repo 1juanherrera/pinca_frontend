@@ -28,7 +28,6 @@ export const TraspasoModal = ({ item, bodegas, onClose, onConfirm, isSubmitting,
         cantidad:          parseFloat(cantidad),
         observacion,
     };
-    console.log('payload traspaso:', payload);   // ← agrega esto
     onConfirm(payload);
     };
 

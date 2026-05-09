@@ -1,18 +1,25 @@
 import { useEffect, useState } from 'react';
-import { 
+import {
   LogOut,
   Settings
 } from 'lucide-react';
 import logoPinca from '../assets/pincaicono.png';
-import { NavLink, useLocation } from 'react-router';
+import { NavLink, useLocation, useNavigate } from 'react-router';
 import { useBoundStore } from '../store/useBoundStore';
 import { sidebarMenu } from '../config/sidebarMenu';
 
 const Sidebar = () => {
   const [isHovered, setIsHovered] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const setActiveTitle = useBoundStore((state) => state.setActiveTitle);
+  const logout = useBoundStore((state) => state.logout);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
   const activeTitle = useBoundStore((state) => state.activeTitle);
 
   useEffect(() => {
@@ -99,10 +106,10 @@ const Sidebar = () => {
             </span>
           </NavLink>
           
-          <NavLink 
+          <button
             title={!isHovered ? "Cerrar Sesión" : ""}
-            to="/logout"
-            className={`w-full flex items-center rounded-md text-content-muted hover:bg-semantic-danger/10 hover:text-semantic-danger transition-colors group ${
+            onClick={handleLogout}
+            className={`w-full flex items-center rounded-md text-content-muted hover:bg-semantic-danger/10 hover:text-semantic-danger transition-colors group cursor-pointer ${
               !isHovered ? 'justify-center p-2' : 'gap-3 px-3 py-2 text-sm font-medium'
             }`}
           >
@@ -110,7 +117,7 @@ const Sidebar = () => {
             <span className={`whitespace-nowrap transition-opacity duration-300 ${isHovered ? 'opacity-100 delay-100' : 'opacity-0 hidden'}`}>
               Cerrar Sesión
             </span>
-          </NavLink>
+          </button>
         </div>
       </aside>
     </div>

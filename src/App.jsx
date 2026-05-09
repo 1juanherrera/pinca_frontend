@@ -6,7 +6,7 @@ import FormulacionesPage from "./modules/Formulaciones/FormulacionesPage";
 import SedePage from "./modules/sedes/sedePage";
 import BodegaPage from "./modules/Bodegas/BodegaPage";
 import ProduccionPage from "./modules/Produccion/ProduccionPage";
-import Prorrateo from "./modules/Prorrateo/Prorreateo";
+import Prorrateo from "./modules/Prorrateo/Prorrateo";
 import ClientePage from "./modules/Clientes/ClientePage";
 import PagosPage from "./modules/Pagos/PagosPage";
 import ComercialPage from "./modules/Comercial/ComercialPage";
@@ -18,10 +18,14 @@ import MovimientosPage from "./modules/Movimientos/MovimientosPage";
 import RentabilidadPage from "./modules/Rentabilidad/RentabilidadPage";
 import CatalogoPage from "./modules/Catalogo/CatalogoPage";
 import TamboresPage from "./modules/Tambores/TamboresPage";
+import NotFound from "./shared/NotFound";
+import PageTitle from "./shared/PageTitle";
+import InventarioGlobalPage from "./modules/InventarioGlobal/InventarioGlobalPage";
 
 const App = () => {
   return (
     <BrowserRouter>
+      <PageTitle />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route element={<Layout />}>
@@ -43,7 +47,9 @@ const App = () => {
           <Route path="/movimientos" element={<MovimientosPage />} />
           <Route path="/rentabilidad" element={<RentabilidadPage />} />
           <Route path="/tambores" element={<TamboresPage />} />
+          <Route path="/inventario-global" element={<InventarioGlobalPage />} />
         </Route>
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   )
