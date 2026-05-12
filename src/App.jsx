@@ -21,6 +21,7 @@ import TamboresPage from "./modules/Tambores/TamboresPage";
 import NotFound from "./shared/NotFound";
 import PageTitle from "./shared/PageTitle";
 import InventarioGlobalPage from "./modules/InventarioGlobal/InventarioGlobalPage";
+import RolesPage from "./modules/Roles/RolesPage";
 
 const App = () => {
   return (
@@ -48,6 +49,7 @@ const App = () => {
           <Route path="/rentabilidad" element={<RentabilidadPage />} />
           <Route path="/tambores" element={<TamboresPage />} />
           <Route path="/inventario-global" element={<InventarioGlobalPage />} />
+          <Route path="/roles" element={<RolesPage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

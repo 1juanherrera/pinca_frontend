@@ -1,7 +1,13 @@
 export const API_ROUTES = {
   AUTH: {
-    LOGIN: '/login',
-    REGISTER: '/crear',
+    LOGIN:             '/login',
+    REGISTER:          '/crear',
+    CAMBIAR_PASSWORD:  '/usuarios/mi-password',
+    MI_ACTIVIDAD:      '/usuarios/mi-actividad',
+  },
+  EMPRESA: {
+    GET:    '/empresa',
+    UPDATE: '/empresa',
   },
   INSTALACIONES: {
     LIST: '/instalaciones',
@@ -70,6 +76,13 @@ export const API_ROUTES = {
     DETAIL:                 (id) => `/preparaciones/${id}`,
     VERIFICAR_DISPONIBILIDAD: (itemId, cantidad, unidadId) =>
       `/preparaciones/verificar-disponibilidad?item_general_id=${itemId}&cantidad=${cantidad}&unidad_id=${unidadId}`,
+  },
+  ROLES: {
+    PERMISOS:          '/roles/permisos',
+    PERMISOS_ROL:      (rol) => `/roles/permisos/${rol}`,
+    UPDATE_PERMISOS:   (rol) => `/roles/${rol}/permisos`,
+    USUARIOS:          '/roles/usuarios',
+    CAMBIAR_ROL:       (id)  => `/roles/usuarios/${id}/rol`,
   },
   REQUISICIONES: {
     LIST:           '/requisiciones',

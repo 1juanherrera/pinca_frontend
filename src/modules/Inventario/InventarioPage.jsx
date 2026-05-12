@@ -6,6 +6,7 @@ import {
   Download,
   Store,
   FileCog,
+  Info,
 } from 'lucide-react';
 import { ButtonSquare } from "../../shared/Button";
 import { useParams } from "react-router";
@@ -48,6 +49,11 @@ const InventarioPage = () => {
           <ButtonSquare icon={Download} sizeIcon={18} title="Exportar datos" variant="white" />
           <ButtonSquare icon={FileCog} sizeIcon={18} title="Importar Excel" variant="emerald" onClick={() => openModal('EXPORT_EXCEL')} />
         </div>
+      </div>
+
+      <div className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+        <Info size={16} className="mt-0.5 shrink-0" />
+        <span>Este módulo es de solo lectura. El stock ingresa al sistema exclusivamente a través de la recepción de Órdenes de Compra.</span>
       </div>
 
       <DataTable />

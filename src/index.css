@@ -103,3 +103,13 @@ button {
   animation-name: slide-in-from-left-4;
   animation-duration: var(--tw-duration, 150ms);
 }
+
+/* Vista compacta — activa con .pinca-compact en <html> */
+.pinca-compact td,
+.pinca-compact th {
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+  font-size: 0.75rem !important;
+}
+.pinca-compact .card-padding { padding: 0.75rem !important; }
+.pinca-compact .row-gap      { gap: 0.5rem !important; }

@@ -1,6 +1,6 @@
 export const createAuthSlice = (set) => ({
-    token: localStorage.getItem('token') || null,
-    user: JSON.parse(localStorage.getItem('pinca-user') || 'null'),
+    token:   localStorage.getItem('token') || null,
+    user:    JSON.parse(localStorage.getItem('pinca-user') || 'null'),
 
     setAuth: (token, user) => {
         localStorage.setItem('token', token);

@@ -14,7 +14,14 @@ const Sidebar = () => {
   const navigate = useNavigate();
 
   const setActiveTitle = useBoundStore((state) => state.setActiveTitle);
-  const logout = useBoundStore((state) => state.logout);
+  const logout  = useBoundStore((state) => state.logout);
+  const user    = useBoundStore((state) => state.user);
+
+  const modulos = user?.modulos ?? [];
+
+  const menuVisible = sidebarMenu.filter(item =>
+    modulos.includes(item.moduloKey)
+  );
 
   const handleLogout = () => {
     logout();
@@ -25,7 +32,7 @@ const Sidebar = () => {
   useEffect(() => {
     const currentPath = location.pathname.split('/')[1] || '';
     const currentItem = sidebarMenu.find(item => item.link === currentPath);
-    
+
     if (currentItem && activeTitle !== currentItem.label) {
       setActiveTitle(currentItem.label);
     }
@@ -34,15 +41,15 @@ const Sidebar = () => {
   return (
     // CONTENEDOR FANTASMA: Reserva el espacio de los 20px (w-20) para que el layout no salte
     <div className="relative shrink-0 w-20 h-screen z-50">
-      
+
       {/* SIDEBAR REAL: Este es el que crece por encima del contenido */}
-      <aside 
+      <aside
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={`absolute top-0 z-50 left-0 flex flex-col h-screen py-4 bg-surface-sidebar border-r border-surface-sidebar-hover font-sans transition-all duration-300 ease-in-out ${
-          isHovered 
-            ? 'w-64' // Expandido con sombra flotante
-            : 'w-20 px-3' // Colapsado
+          isHovered
+            ? 'w-64'
+            : 'w-20 px-3'
         }`}
       >
 
@@ -51,7 +58,6 @@ const Sidebar = () => {
           <div className="flex items-center justify-center w-10 h-10 rounded-lg overflow-hidden shrink-0">
             <img src={logoPinca} alt="Logo Pinca" className="w-full h-full object-contain" />
           </div>
-          {/* Usamos opacidad y delay para que el texto no aparezca de golpe */}
           <span className={`text-white font-semibold text-lg tracking-wide whitespace-nowrap transition-opacity duration-300 ${isHovered ? 'opacity-100 delay-100' : 'opacity-0 hidden'}`}>
             Gestor Pinca
           </span>
@@ -59,7 +65,7 @@ const Sidebar = () => {
 
         {/* Navegación */}
         <nav className="flex-1 space-y-1 overflow-y-auto p-1 overflow-x-hidden no-scrollbar">
-          {sidebarMenu.map((item) => {
+          {menuVisible.map((item) => {
             const Icon = item.icon;
             const isActive = activeTitle === item.label;
 
@@ -68,20 +74,19 @@ const Sidebar = () => {
                 key={item.link}
                 to={`/${item.link}`}
                 onClick={() => setActiveTitle(item.label)}
-                title={!isHovered ? item.label : ""} 
+                title={!isHovered ? item.label : ""}
                 className={`w-full flex items-center rounded-md transition-colors duration-200 group ${
                   !isHovered ? 'justify-center p-2' : 'gap-3 px-3 py-2 text-sm font-medium'
                 } ${isActive
                   ? 'bg-brand-subtle text-white'
                   : 'text-content-muted hover:bg-surface-sidebar-hover hover:text-white'
                 }`}
-
               >
-                <Icon 
-                  size={18} 
+                <Icon
+                  size={18}
                   className={`shrink-0 transition-colors duration-200 ${
                     isActive ? 'text-brand-primary' : 'text-content-muted group-hover:text-white'
-                  }`} 
+                  }`}
                 />
                 <span className={`whitespace-nowrap transition-opacity duration-300 ${isHovered ? 'opacity-100 delay-100' : 'opacity-0 hidden'}`}>
                   {item.label}
@@ -105,7 +110,7 @@ const Sidebar = () => {
               Configuración
             </span>
           </NavLink>
-          
+
           <button
             title={!isHovered ? "Cerrar Sesión" : ""}
             onClick={handleLogout}
