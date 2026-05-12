@@ -1,36 +1,29 @@
+import cn from '../../utils/cn';
+
 export const GridInput = ({ label, id, placeholder, registration, error }) => (
-  <div className={`
-    relative flex flex-col h-full bg-white transition-all duration-200
-    border-r border-b border-zinc-200
-    hover:bg-zinc-50/80
-    focus-within:bg-white focus-within:ring-1 focus-within:ring-inset focus-within:ring-zinc-400 focus-within:z-10
-    ${error ? 'bg-red-50/50' : ''}
-  `}>
-    {/* Label: Estilo Industrial */}
-    <label 
-      htmlFor={id} 
-      className="pt-3 px-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest cursor-pointer select-none"
+  <div className={cn(
+    'relative flex flex-col h-full bg-surface-base transition-colors',
+    'border-r border-b border-border-subtle',
+    'hover:bg-surface-muted/70',
+    'focus-within:bg-surface-base focus-within:ring-1 focus-within:ring-inset focus-within:ring-border-focus/40 focus-within:z-10',
+    error && 'bg-semantic-danger-subtle/40',
+  )}>
+    <label
+      htmlFor={id}
+      className="pt-2.5 px-3 text-[10px] font-semibold text-content-tertiary uppercase tracking-wider cursor-pointer select-none"
     >
       {label}
     </label>
 
-    {/* Input: Invisible y directo */}
     <input
       id={id}
       placeholder={placeholder}
       {...registration}
-      className="
-        w-full pb-3 pt-0.5 px-4 
-        bg-transparent
-        text-sm font-semibold text-zinc-900 
-        placeholder:text-zinc-300 placeholder:font-normal
-        border-none focus:ring-0 outline-none
-      "
+      className="w-full pb-2.5 pt-0.5 px-3 bg-transparent text-sm font-medium text-content-primary placeholder:text-content-muted placeholder:font-normal border-none focus:ring-0 outline-none"
     />
 
-    {/* Indicador de Error Sutil */}
     {error && (
-      <div className="absolute bottom-1 right-2 w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+      <div className="absolute bottom-1 right-2 w-1.5 h-1.5 rounded-full bg-semantic-danger animate-pulse" />
     )}
   </div>
 );

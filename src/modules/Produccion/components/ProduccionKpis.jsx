@@ -1,23 +1,23 @@
 import { Factory, Clock, PlayCircle, CheckCircle2, TrendingUp } from 'lucide-react';
 
 const THEME = {
-  zinc:    { iconBg: 'bg-zinc-100',   iconText: 'text-zinc-600',    value: 'text-zinc-700'    },
-  amber:   { iconBg: 'bg-amber-100',  iconText: 'text-amber-600',   value: 'text-amber-600'   },
-  blue:    { iconBg: 'bg-blue-100',   iconText: 'text-blue-600',    value: 'text-blue-600'    },
-  emerald: { iconBg: 'bg-emerald-100',iconText: 'text-emerald-600', value: 'text-emerald-600' },
-  red:     { iconBg: 'bg-red-100',    iconText: 'text-red-500',     value: 'text-red-500'     },
+  zinc:    { iconBg: 'bg-surface-muted',   iconText: 'text-content-secondary',    value: 'text-content-secondary'    },
+  amber:   { iconBg: 'bg-semantic-warning-subtle',  iconText: 'text-semantic-warning-fg',   value: 'text-semantic-warning-fg'   },
+  blue:    { iconBg: 'bg-semantic-info-subtle',   iconText: 'text-semantic-info-fg',    value: 'text-semantic-info-fg'    },
+  emerald: { iconBg: 'bg-semantic-success-subtle',iconText: 'text-semantic-success-fg', value: 'text-semantic-success-fg' },
+  red:     { iconBg: 'bg-semantic-danger-subtle',    iconText: 'text-semantic-danger',     value: 'text-semantic-danger'     },
 };
 
 const KPICard = ({ icon: Icon, label, value, sub, theme = 'zinc' }) => {
   const t = THEME[theme] ?? THEME.zinc;
 
   return (
-    <div className="bg-white rounded-lg border border-zinc-200/60 shadow-sm px-3 py-2 transition-all hover:shadow-md group">
+    <div className="bg-white rounded-lg border border-border-base/60 shadow-sm px-3 py-2 transition-all hover:shadow-md group">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium text-zinc-500">{label}</p>
+          <p className="text-xs font-medium text-content-tertiary">{label}</p>
           <p className={`text-lg font-bold ${t.value}`}>{value}</p>
-          {sub && <p className="text-[10px] text-zinc-400 font-medium">{sub}</p>}
+          {sub && <p className="text-[10px] text-content-muted font-medium">{sub}</p>}
         </div>
         <div className={`h-10 w-10 ${t.iconBg} rounded-full flex items-center justify-center transition-transform group-hover:scale-110 shrink-0`}>
           <Icon className={`h-5 w-5 ${t.iconText}`} />

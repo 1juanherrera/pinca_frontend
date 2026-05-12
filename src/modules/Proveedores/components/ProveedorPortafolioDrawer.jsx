@@ -8,8 +8,8 @@ import { useProveedores } from '../api/useProveedores';
 import VincularModal from './VincularModal';
 
 const PALETTES = [
-  'bg-blue-600', 'bg-violet-600', 'bg-teal-600',
-  'bg-amber-500', 'bg-rose-600', 'bg-emerald-600',
+  'bg-semantic-info', 'bg-brand-primary-active', 'bg-semantic-info',
+  'bg-semantic-warning', 'bg-semantic-danger', 'bg-semantic-success',
 ];
 
 const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
@@ -41,20 +41,20 @@ const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
         footer={
           <button
             onClick={() => openDrawer('ITEM_PROVEEDOR_FORM', { proveedor_id: proveedor.id_proveedor })}
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold bg-content-primary text-white rounded-xl hover:bg-content-secondary transition-all"
           >
             <Plus size={14} /> Agregar Producto
           </button>
         }
       >
         {/* ── Info del proveedor ── */}
-        <div className="flex items-center gap-4 mb-5 p-4 bg-zinc-50/60 rounded-xl border border-zinc-100/60">
+        <div className="flex items-center gap-4 mb-5 p-4 bg-surface-subtle/60 rounded-xl border border-border-subtle/60">
           <div className={`w-10 h-10 rounded-xl ${palette} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
             {initials}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-zinc-900">{displayName}</p>
-            <p className="text-xs text-zinc-400 truncate">
+            <p className="text-sm font-bold text-content-primary">{displayName}</p>
+            <p className="text-xs text-content-muted truncate">
               {[proveedor.numero_documento, proveedor.telefono, proveedor.email].filter(Boolean).join(' · ') || 'Sin datos de contacto'}
             </p>
           </div>
@@ -62,21 +62,21 @@ const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
 
         {/* ── Tabla de productos ── */}
         {isLoadingCatalogo ? (
-          <div className="overflow-hidden rounded-xl border border-zinc-200/60">
+          <div className="overflow-hidden rounded-xl border border-border-base/60">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-zinc-50 border-b border-zinc-100">
+                <tr className="bg-surface-subtle border-b border-border-subtle">
                   {['Producto', 'Und.', 'Factor', 'Precio', '$/Kg', 'Vínculo', ''].map((h, i) => (
-                    <th key={i} className="text-left px-3 py-2.5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{h}</th>
+                    <th key={i} className="text-left px-3 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <tr key={i} className="border-b border-zinc-100/40">
+                  <tr key={i} className="border-b border-border-subtle/40">
                     {Array.from({ length: 7 }).map((_, j) => (
                       <td key={j} className="px-3 py-2.5">
-                        <div className="h-4 bg-zinc-100 rounded animate-pulse" style={{ width: `${50 + ((i + j) * 13) % 45}%`, animationDelay: `${i * 80 + j * 30}ms` }} />
+                        <div className="h-4 bg-surface-muted rounded animate-pulse" style={{ width: `${50 + ((i + j) * 13) % 45}%`, animationDelay: `${i * 80 + j * 30}ms` }} />
                       </td>
                     ))}
                   </tr>
@@ -86,25 +86,25 @@ const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
           </div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-14 gap-3 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-zinc-50 flex items-center justify-center border border-zinc-100">
-              <Package size={20} className="text-zinc-300" />
+            <div className="w-12 h-12 rounded-2xl bg-surface-subtle flex items-center justify-center border border-border-subtle">
+              <Package size={20} className="text-content-muted" />
             </div>
-            <p className="text-sm font-bold text-zinc-600">Sin productos</p>
-            <p className="text-xs text-zinc-400 max-w-xs">
+            <p className="text-sm font-bold text-content-secondary">Sin productos</p>
+            <p className="text-xs text-content-muted max-w-xs">
               Este proveedor aún no tiene productos registrados. Usa el botón inferior para agregar uno.
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-zinc-200/60">
+          <div className="overflow-x-auto rounded-xl border border-border-base/60">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-zinc-50 border-b border-zinc-100">
-                  <th className="text-left px-3 py-2.5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Producto</th>
-                  <th className="text-center px-3 py-2.5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Und. Compra</th>
-                  <th className="text-center px-3 py-2.5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Factor</th>
-                  <th className="text-right px-3 py-2.5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Precio Unit.</th>
-                  <th className="text-right px-3 py-2.5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Costo/Kg</th>
-                  <th className="text-center px-3 py-2.5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Vínculo</th>
+                <tr className="bg-surface-subtle border-b border-border-subtle">
+                  <th className="text-left px-3 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">Producto</th>
+                  <th className="text-center px-3 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">Und. Compra</th>
+                  <th className="text-center px-3 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">Factor</th>
+                  <th className="text-right px-3 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">Precio Unit.</th>
+                  <th className="text-right px-3 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">Costo/Kg</th>
+                  <th className="text-center px-3 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">Vínculo</th>
                   <th className="w-24 px-3 py-2.5" />
                 </tr>
               </thead>
@@ -114,18 +114,18 @@ const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
                   const costoKg = parseFloat(item.precio_unitario) / factor;
 
                   return (
-                    <tr key={item.id_item_proveedor} className="border-b border-zinc-50 hover:bg-zinc-50/60 transition-colors duration-150">
+                    <tr key={item.id_item_proveedor} className="border-b border-border-subtle hover:bg-surface-subtle/60 transition-colors duration-150">
                       <td className="px-3 py-2.5">
-                        <p className="text-xs font-semibold text-zinc-800 leading-none truncate max-w-48">{item.nombre}</p>
+                        <p className="text-xs font-semibold text-content-primary leading-none truncate max-w-48">{item.nombre}</p>
                         {item.codigo && (
-                          <p className="text-[10px] text-zinc-400 mt-0.5 font-mono">{item.codigo}</p>
+                          <p className="text-[10px] text-content-muted mt-0.5 font-mono">{item.codigo}</p>
                         )}
                       </td>
-                      <td className="px-3 py-2.5 text-center text-xs text-zinc-500">
+                      <td className="px-3 py-2.5 text-center text-xs text-content-tertiary">
                         {item.unidad_compra_nombre || '—'}
                       </td>
                       <td className="px-3 py-2.5 text-center">
-                        <span className="text-xs font-mono font-semibold text-zinc-600">
+                        <span className="text-xs font-mono font-semibold text-content-secondary">
                           {factor !== 1 ? factor : '—'}
                         </span>
                       </td>
@@ -133,16 +133,16 @@ const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
                         <AmountDisplay value={item.precio_unitario} />
                       </td>
                       <td className="px-3 py-2.5 text-right">
-                        <span className="text-xs font-bold text-zinc-700 tabular-nums">{fmt(costoKg)}</span>
+                        <span className="text-xs font-bold text-content-secondary tabular-nums">{fmt(costoKg)}</span>
                       </td>
                       <td className="px-3 py-2.5 text-center">
                         {item.item_general_nombre ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-semibold">
+                          <span className="inline-flex items-center gap-1 text-[10px] text-semantic-success-fg font-medium">
                             <Link size={10} />
                             <span className="truncate max-w-20">{item.item_general_nombre}</span>
                           </span>
                         ) : (
-                          <span className="text-[10px] text-zinc-400 italic">Sin vincular</span>
+                          <span className="text-[10px] text-content-muted italic">Sin vincular</span>
                         )}
                       </td>
                       <td className="px-3 py-2.5">
@@ -151,8 +151,8 @@ const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
                             onClick={() => setItemVincular(item)}
                             className={`w-6 h-6 flex items-center justify-center rounded-md border transition-all ${
                               item.item_general_nombre
-                                ? 'border-emerald-200 text-emerald-500 hover:bg-emerald-600 hover:text-white hover:border-emerald-600'
-                                : 'border-zinc-200 text-zinc-400 hover:bg-zinc-900 hover:text-white hover:border-zinc-900'
+                                ? 'border-semantic-success/20 text-semantic-success hover:bg-semantic-success hover:text-white hover:border-semantic-success'
+                                : 'border-border-base text-content-muted hover:bg-content-primary hover:text-white hover:border-content-primary'
                             }`}
                             title={item.item_general_nombre ? 'Editar vínculo' : 'Vincular a catálogo'}
                           >
@@ -160,7 +160,7 @@ const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
                           </button>
                           <button
                             onClick={() => openDrawer('ITEM_PROVEEDOR_FORM', item)}
-                            className="w-6 h-6 flex items-center justify-center rounded-md border border-zinc-200/60 text-zinc-400 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all duration-150"
+                            className="w-6 h-6 flex items-center justify-center rounded-md border border-border-base/60 text-content-muted hover:bg-content-primary hover:text-white hover:border-content-primary transition-all duration-150"
                             title="Editar producto"
                           >
                             <Pencil size={10} />
@@ -171,7 +171,7 @@ const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
                               message: `¿Eliminar "${item.nombre}" del portafolio?`,
                               onConfirm: async () => await removeItemAsync(item.id_item_proveedor),
                             })}
-                            className="w-6 h-6 flex items-center justify-center rounded-md border border-zinc-200/60 text-zinc-400 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-150"
+                            className="w-6 h-6 flex items-center justify-center rounded-md border border-border-base/60 text-content-muted hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-all duration-150"
                             title="Eliminar"
                           >
                             <Trash2 size={10} />
@@ -185,16 +185,16 @@ const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
             </table>
 
             {/* ── Resumen pie de tabla ── */}
-            <div className="flex items-center justify-between px-3 py-2.5 bg-zinc-50/50 border-t border-zinc-100">
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+            <div className="flex items-center justify-between px-3 py-2.5 bg-surface-subtle/50 border-t border-border-subtle">
+              <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">
                 {items.length} producto{items.length !== 1 ? 's' : ''}
               </span>
               <div className="flex items-center gap-3">
-                <span className="text-[10px] text-zinc-400">
-                  Vinculados: <strong className="text-emerald-600">{items.filter(i => i.item_general_id).length}</strong>
+                <span className="text-[10px] text-content-muted">
+                  Vinculados: <strong className="text-semantic-success-fg">{items.filter(i => i.item_general_id).length}</strong>
                 </span>
-                <span className="text-[10px] text-zinc-400">
-                  Pendientes: <strong className="text-amber-600">{items.filter(i => !i.item_general_id).length}</strong>
+                <span className="text-[10px] text-content-muted">
+                  Pendientes: <strong className="text-semantic-warning-fg">{items.filter(i => !i.item_general_id).length}</strong>
                 </span>
               </div>
             </div>

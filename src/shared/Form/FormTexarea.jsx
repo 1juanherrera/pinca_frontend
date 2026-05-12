@@ -1,4 +1,10 @@
 import { AlertCircle } from 'lucide-react';
+import cn from '../../utils/cn';
+import {
+  INPUT_BASE, INPUT_ERROR,
+  LABEL_BASE, LABEL_REQUIRED_MARK,
+  FIELD_ERROR, FIELD_WRAPPER,
+} from './styles';
 
 export const FormTextarea = ({
   label,
@@ -6,52 +12,41 @@ export const FormTextarea = ({
   error,
   required,
   registration,
-  rows = 4, // Por defecto le damos 4 líneas de altura
-  className = "",
-  ...props // Permite pasar otras props nativas de textarea (maxLength, readOnly, etc.)
+  rows = 4,
+  className = '',
+  ...props
 }) => {
   return (
-    <div className={`flex flex-col gap-1.5 w-full ${className}`}>
-      {/* Etiqueta (Label) */}
+    <div className={cn(FIELD_WRAPPER, 'w-full', className)}>
       {label && (
-        <label className="text-sm font-semibold text-zinc-700 flex justify-between">
-          <span>
-            {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
-          </span>
+        <label className={LABEL_BASE}>
+          {label}{required && <span className={LABEL_REQUIRED_MARK}>*</span>}
         </label>
       )}
 
-      {/* Contenedor Relativo para el Icono de Error */}
       <div className="relative">
         <textarea
           placeholder={placeholder}
           rows={rows}
-          // Las clases coinciden exactamente con tu FormInput
-          className={`w-full px-4 py-3 text-sm text-zinc-900 bg-zinc-50 border rounded-xl transition-all outline-none resize-y min-h-20
-            ${error
-              ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-              : 'border-zinc-200/80 hover:border-zinc-300 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/10'
-            }
-            ${error ? 'pr-10' : ''}
-          `}
-          {...registration} // Conexión directa con RHF
+          className={cn(
+            INPUT_BASE,
+            'resize-y min-h-20 leading-relaxed',
+            error && INPUT_ERROR,
+            error && 'pr-9',
+          )}
+          {...registration}
           {...props}
         />
 
-        {/* Icono de Error (igual que en FormInput) */}
         {error && (
-          <div className="absolute top-3 right-3 pointer-events-none text-red-500">
-            <AlertCircle size={18} />
+          <div className="absolute top-2 right-2 pointer-events-none text-semantic-danger">
+            <AlertCircle size={14} />
           </div>
         )}
       </div>
 
-      {/* Mensaje de Error */}
       {error && (
-        <span className="text-xs font-medium text-red-500 animate-in fade-in slide-in-from-top-1">
-          {error}
-        </span>
+        <span className={FIELD_ERROR}>{error}</span>
       )}
     </div>
   );

@@ -10,7 +10,7 @@ const columns = [
     key:   'id_preparaciones',
     label: 'Orden',
     render: (v) => (
-      <span className=" text-xs font-bold text-zinc-400">PRE-{String(v).padStart(3, '0')}</span>
+      <span className=" text-xs font-bold text-content-muted">PRE-{String(v).padStart(3, '0')}</span>
     ),
   },
   {
@@ -18,8 +18,8 @@ const columns = [
     label: 'Producto',
     render: (v, row) => (
       <div>
-        <p className="text-xs font-semibold text-zinc-800 truncate uppercase">{v}</p>
-        <p className="text-[10px] text-zinc-400">{row.item_codigo} · {row.cantidad} {row.unidad}</p>
+        <p className="text-xs font-semibold text-content-primary truncate uppercase">{v}</p>
+        <p className="text-[10px] text-content-muted">{row.item_codigo} · {row.cantidad} {row.unidad}</p>
       </div>
     ),
   },
@@ -28,7 +28,7 @@ const columns = [
     label: 'Fecha',
     align: 'center',
     render: (v) => (
-      <span className="text-xs text-zinc-500 tabular-nums">
+      <span className="text-xs text-content-tertiary tabular-nums">
         {v ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
       </span>
     ),
@@ -44,7 +44,7 @@ const columns = [
     label: 'Costo MP',
     align: 'right',
     render: (v) => (
-      <span className="text-xs  tabular-nums text-zinc-700">{fmt(v)}</span>
+      <span className="text-xs  tabular-nums text-content-secondary">{fmt(v)}</span>
     ),
   },
   {
@@ -52,7 +52,7 @@ const columns = [
     label: 'Indirectos',
     align: 'right',
     render: (v) => (
-      <span className={`text-xs  tabular-nums ${Number(v) > 0 ? 'text-violet-600' : 'text-zinc-300'}`}>
+      <span className={`text-xs  tabular-nums ${Number(v) > 0 ? 'text-brand-primary-active' : 'text-content-muted'}`}>
         {Number(v) > 0 ? fmt(v) : '—'}
       </span>
     ),
@@ -62,7 +62,7 @@ const columns = [
     label: 'Total',
     align: 'right',
     render: (v) => (
-      <span className="text-xs  tabular-nums font-bold text-zinc-900">{fmt(v)}</span>
+      <span className="text-xs  tabular-nums font-bold text-content-primary">{fmt(v)}</span>
     ),
   },
 ];
@@ -85,19 +85,19 @@ const RentabilidadProdTable = ({ ordenes, isLoading, onRowClick }) => {
 
       {/* Fila de totales */}
       {!isLoading && ordenes.length > 0 && (
-        <div className="bg-zinc-900 text-white rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
-          <span className="text-zinc-300">{ordenes.length} orden(es)</span>
+        <div className="bg-content-primary text-white rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
+          <span className="text-content-muted">{ordenes.length} orden(es)</span>
           <div className="flex items-center gap-8">
             <div className="text-right">
-              <p className="text-zinc-400 font-normal text-[10px]">Costo MP</p>
+              <p className="text-content-muted font-normal text-[10px]">Costo MP</p>
               <p className=" tabular-nums">{fmt(totalMP)}</p>
             </div>
             <div className="text-right">
-              <p className="text-zinc-400 font-normal text-[10px]">Indirectos</p>
-              <p className=" tabular-nums text-violet-300">{fmt(totalIndirectos)}</p>
+              <p className="text-content-muted font-normal text-[10px]">Indirectos</p>
+              <p className=" tabular-nums text-brand-primary/70">{fmt(totalIndirectos)}</p>
             </div>
             <div className="text-right">
-              <p className="text-zinc-400 font-normal text-[10px]">Total Producción</p>
+              <p className="text-content-muted font-normal text-[10px]">Total Producción</p>
               <p className=" tabular-nums text-base">{fmt(totalGeneral)}</p>
             </div>
           </div>

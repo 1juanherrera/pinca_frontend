@@ -1,25 +1,5 @@
-/**
- * SearchFilterBar – rediseñado con el layout de ProduccionFilters
- *
- * Props:
- *   search:        string
- *   onSearch:      fn(string)
- *   placeholder?:  string
- *
- *   // Fila 1 – selects adicionales (fechas, producto, etc.)
- *   filters?:      [{ key, label, options: [{value, label}] }]
- *   values?:       { [key]: string }
- *   onChange?:     fn(key, value)
- *
- *   // Fila 2 – tabs de estado (pills)
- *   // Si no se pasan statusOptions, la segunda fila no se renderiza
- *   statusKey?:       string               – key del campo de estado en `values`  (default: 'estado')
- *   statusOptions?:   [{ value, label, dot? }]
- *                     dot: clase Tailwind para el color del punto (default: 'bg-zinc-400')
- *   allLabel?:        string               – etiqueta del pill "todos" (default: 'Todos')
- */
-
 import { Search, SlidersHorizontal, X } from 'lucide-react';
+import cn from '../utils/cn';
 
 const SearchFilterBar = ({
   search = '',
@@ -45,41 +25,38 @@ const SearchFilterBar = ({
   };
 
   return (
-    <div className="flex flex-col gap-3">
-
-      {/* ── Fila 1: búsqueda + selects + limpiar ── */}
+    <div className="flex flex-col gap-2.5">
       <div className="flex flex-wrap items-center gap-2">
-
-        {/* Búsqueda */}
+        {/* Search pill */}
         <div className="relative flex-1 min-w-48">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+          <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-content-muted" />
           <input
             type="text"
             value={search}
             onChange={(e) => onSearch?.(e.target.value)}
             placeholder={placeholder}
-            className="w-full pl-9 pr-8 py-2 text-sm border border-zinc-200 rounded-lg bg-zinc-50
-              focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 focus:bg-white transition
-              placeholder:text-zinc-300 text-zinc-700"
+            className={cn(
+              'h-9 w-full pl-9 pr-8 text-sm bg-surface-base rounded-pill shadow-card border border-transparent',
+              'text-content-primary placeholder:text-content-muted',
+              'focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 transition-all',
+            )}
           />
           {search && (
             <button
               onClick={() => onSearch?.('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-primary transition-colors"
             >
-              <X size={13} />
+              <X size={12} />
             </button>
           )}
         </div>
 
-        {/* Selects adicionales */}
         {filters.map((f) => (
           <select
             key={f.key}
             value={values[f.key] ?? ''}
             onChange={(e) => onChange?.(f.key, e.target.value)}
-            className="px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-zinc-50 text-zinc-700
-              focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 transition"
+            className="h-9 text-sm border-0 rounded-pill bg-surface-base shadow-card text-content-primary px-4 pr-8 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all"
           >
             <option value="">{f.label}</option>
             {f.options.map((o) => (
@@ -88,50 +65,47 @@ const SearchFilterBar = ({
           </select>
         ))}
 
-        {/* Limpiar */}
         {hasAnyActive && (
           <button
             onClick={clearAll}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-500
-              border border-red-100 bg-red-50 rounded-lg hover:bg-red-100 transition"
+            className="inline-flex items-center gap-1.5 h-9 px-3.5 text-xs font-medium text-semantic-danger-fg bg-semantic-danger-subtle/60 rounded-pill hover:bg-semantic-danger-subtle transition-colors"
           >
-            <X size={12} /> Limpiar filtros
+            <X size={12} /> Limpiar
           </button>
         )}
       </div>
 
-      {/* ── Fila 2: tabs de estado (solo si se pasan statusOptions) ── */}
       {statusOptions.length > 0 && (
         <div className="flex items-center gap-1.5 flex-wrap">
-          <SlidersHorizontal size={12} className="text-zinc-400 mr-1" />
+          <SlidersHorizontal size={12} className="text-content-muted mr-1" />
 
-          {/* Pill "Todos" */}
           <button
             onClick={() => onChange?.(statusKey, '')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
-              ${currentStatus === ''
-                ? 'bg-zinc-950 text-white shadow-sm'
-                : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
-              }`}
+            className={cn(
+              'inline-flex items-center gap-1.5 h-7 px-3 rounded-pill text-xs font-semibold transition-colors',
+              currentStatus === ''
+                ? 'bg-content-primary text-content-inverse'
+                : 'bg-surface-base text-content-secondary shadow-card hover:bg-surface-muted',
+            )}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+            <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
             {allLabel}
           </button>
 
-          {/* Pills por estado */}
           {statusOptions.map((opt) => {
             const active = currentStatus === opt.value;
             return (
               <button
                 key={opt.value}
                 onClick={() => onChange?.(statusKey, active ? '' : opt.value)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
-                  ${active
-                    ? 'bg-zinc-950 text-white shadow-sm'
-                    : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
-                  }`}
+                className={cn(
+                  'inline-flex items-center gap-1.5 h-7 px-3 rounded-pill text-xs font-semibold transition-colors',
+                  active
+                    ? 'bg-content-primary text-content-inverse'
+                    : 'bg-surface-base text-content-secondary shadow-card hover:bg-surface-muted',
+                )}
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${opt.dot ?? 'bg-zinc-400'}`} />
+                <span className={cn('w-1.5 h-1.5 rounded-full', opt.dot ?? 'bg-content-muted')} />
                 {opt.label}
               </button>
             );

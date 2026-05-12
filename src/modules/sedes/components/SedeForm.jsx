@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Save } from 'lucide-react';
-import Drawer from '../../../shared/Drawer'; 
+import { Save, MapPin } from 'lucide-react';
+import Drawer from '../../../shared/Drawer';
+import { Button } from '../../../shared/Button';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { FormTextarea } from '../../../shared/Form/FormTexarea';
@@ -93,33 +94,21 @@ const SedeForm = () => {
     <Drawer
       isOpen={isDrawerOpen}
       onClose={handleClose}
-      title={payload ? "Editar Sede" : "Nueva Sede"}
-      description={payload ? "Modifica los detalles de esta sede." : "Registra una nueva sede."}
+      icon={MapPin}
+      title={payload ? 'Editar sede' : 'Nueva sede'}
+      description={payload ? 'Modifica los detalles de esta sede.' : 'Registra una nueva sede.'}
       footer={
         <>
-          <button 
-            onClick={handleClose} 
-            type="button" 
-            className="px-5 py-2.5 text-sm font-semibold text-zinc-600 bg-white border border-zinc-200/80 rounded-xl hover:bg-zinc-50 transition-all"
-          >
+          <Button variant="secondary" onClick={handleClose} disabled={isSaving}>
             Cancelar
-          </button>
-          
-          <button 
-            type="submit" 
-            form="sede-form"
-            disabled={isSaving}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 disabled:opacity-70 transition-all shadow-md shadow-emerald-600/20"
+          </Button>
+          <Button
+            type="submit" form="sede-form"
+            variant="primary" icon={Save}
+            loading={isSaving}
           >
-            {isSaving ? (
-              <span className="flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  {payload ? 'Actualizando' : 'Guardando'}
-              </span>
-            ) : (
-              <><Save size={18} /> {payload ? 'Actualizar' : 'Guardar'}</>
-            )}
-          </button>
+            {payload ? 'Actualizar' : 'Guardar'}
+          </Button>
         </>
       }
     >

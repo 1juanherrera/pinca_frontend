@@ -14,10 +14,10 @@ import { API_ROUTES } from '../../../api/apiRoutes';
 
 // ── Colores por tipo ────────────────────────────────────────────────────────
 const TIPO_CONFIG = {
-  '0': { label: 'Producto',      bg: 'bg-violet-100', text: 'text-violet-700' },
-  '1': { label: 'Materia Prima', bg: 'bg-emerald-100', text: 'text-emerald-700' },
-  '2': { label: 'Insumo',        bg: 'bg-blue-100',    text: 'text-blue-700'   },
-  '3': { label: 'Otro',          bg: 'bg-zinc-100',    text: 'text-zinc-500'   },
+  '0': { label: 'Producto',      bg: 'bg-brand-subtle', text: 'text-brand-primary-active' },
+  '1': { label: 'Materia Prima', bg: 'bg-semantic-success-subtle', text: 'text-semantic-success-fg' },
+  '2': { label: 'Insumo',        bg: 'bg-semantic-info-subtle',    text: 'text-semantic-info-fg'   },
+  '3': { label: 'Otro',          bg: 'bg-surface-muted',    text: 'text-content-tertiary'   },
 };
 
 
@@ -111,8 +111,8 @@ const NombreAutocomplete = ({ value, onChange, onSelectItem, error, catalogoExis
 
   return (
     <div ref={containerRef} className="relative">
-      <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">
-        Nombre del producto <span className="text-red-400">*</span>
+      <label className="block text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1.5">
+        Nombre del producto <span className="text-semantic-danger">*</span>
       </label>
       <div className="relative">
         <input
@@ -121,26 +121,26 @@ const NombreAutocomplete = ({ value, onChange, onSelectItem, error, catalogoExis
           onChange={handleChange}
           onFocus={() => hay && setAbierto(true)}
           placeholder="Ej. Thinner Acrílico"
-          className={`w-full px-3 pr-8 py-2 uppercase text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 transition placeholder:text-zinc-300 ${
-            error ? 'border-red-300' : 'border-zinc-200'
+          className={`w-full px-3 pr-8 py-2 uppercase text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition placeholder:text-content-muted ${
+            error ? 'border-semantic-danger/30' : 'border-border-base'
           }`}
         />
         {cargando
-          ? <Loader2 size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 animate-spin" />
-          : value && <Search size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-300 pointer-events-none" />
+          ? <Loader2 size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-content-muted animate-spin" />
+          : value && <Search size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-content-muted pointer-events-none" />
         }
       </div>
-      {error && <p className="text-[10px] text-red-500 mt-1">{error}</p>}
+      {error && <p className="text-[10px] text-semantic-danger mt-1">{error}</p>}
 
       {abierto && hay && (
-        <div className="absolute z-20 w-full mt-1 bg-white border border-zinc-200 rounded-xl shadow-xl overflow-hidden">
+        <div className="absolute z-20 w-full mt-1 bg-white border border-border-base rounded-xl shadow-xl overflow-hidden">
           <div className="max-h-64 overflow-y-auto">
 
             {/* Sección 1: ítem_general (vinculables al inventario) */}
             {internos.length > 0 && (
               <>
-                <div className="px-3 pt-2 pb-1 bg-zinc-50 border-b border-zinc-100">
-                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">En inventario interno</p>
+                <div className="px-3 pt-2 pb-1 bg-surface-subtle border-b border-border-subtle">
+                  <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest">En inventario interno</p>
                 </div>
                 {internos.map((item) => {
                   const cfg = tc(item.tipo);
@@ -149,14 +149,14 @@ const NombreAutocomplete = ({ value, onChange, onSelectItem, error, catalogoExis
                       key={item.id_item_general}
                       type="button"
                       onMouseDown={(e) => { e.preventDefault(); handleSelectInterno(item); }}
-                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 transition-colors text-left"
+                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-surface-subtle transition-colors text-left"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-zinc-800 uppercase truncate">{item.nombre}</p>
-                        <p className="text-[10px] text-zinc-400 font-mono">
+                        <p className="text-xs font-semibold text-content-primary uppercase truncate">{item.nombre}</p>
+                        <p className="text-[10px] text-content-muted font-mono">
                           {item.codigo}
                           {parseFloat(item.costo_unitario) > 0 && (
-                            <span className="ml-2 text-zinc-500">
+                            <span className="ml-2 text-content-tertiary">
                               ${Number(item.costo_unitario).toLocaleString('es-CO')} / kg
                             </span>
                           )}
@@ -174,27 +174,27 @@ const NombreAutocomplete = ({ value, onChange, onSelectItem, error, catalogoExis
             {/* Sección 2: item_proveedor sin item_general_id */}
             {sinInventario.length > 0 && (
               <>
-                <div className="px-3 pt-2 pb-1 bg-orange-50 border-b border-orange-100">
-                  <p className="text-[9px] font-bold text-orange-400 uppercase tracking-widest">Registrado por proveedor — sin inventario</p>
+                <div className="px-3 pt-2 pb-1 bg-semantic-warning-subtle border-b border-semantic-warning/15">
+                  <p className="text-[9px] font-bold text-semantic-warning/80 uppercase tracking-widest">Registrado por proveedor — sin inventario</p>
                 </div>
                 {sinInventario.map((item) => (
                   <button
                     key={item.id_item_proveedor}
                     type="button"
                     onMouseDown={(e) => { e.preventDefault(); handleSelectSinInventario(item); }}
-                    className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-orange-50 transition-colors text-left"
+                    className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-semantic-warning-subtle transition-colors text-left"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-zinc-800 uppercase truncate">{item.nombre}</p>
-                      <p className="text-[10px] text-zinc-500 truncate">
+                      <p className="text-xs font-semibold text-content-primary uppercase truncate">{item.nombre}</p>
+                      <p className="text-[10px] text-content-tertiary truncate">
                         {item.nombre_empresa ?? item.nombre_encargado ?? '—'}
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-0.5 ml-2 shrink-0">
-                      <span className="text-[9px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-md">
+                      <span className="text-[9px] font-bold text-semantic-warning-fg bg-semantic-warning-subtle px-1.5 py-0.5 rounded-md">
                         Sin inventario
                       </span>
-                      <span className="text-[10px] font-mono text-zinc-500">
+                      <span className="text-[10px] font-mono text-content-tertiary">
                         ${Number(item.precio_unitario ?? 0).toLocaleString('es-CO')}
                       </span>
                     </div>
@@ -354,11 +354,11 @@ const ItemProveedorForm = () => {
       footer={
         <>
           <button onClick={handleClose} type="button"
-            className="px-5 py-2.5 text-sm font-semibold text-zinc-600 bg-white border border-zinc-200/80 rounded-xl hover:bg-zinc-50 transition-all">
+            className="px-5 py-2.5 text-sm font-semibold text-content-secondary bg-white border border-border-base/80 rounded-xl hover:bg-surface-subtle transition-all">
             Cancelar
           </button>
           <button type="submit" form="item-proveedor-form" disabled={isSaving}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 disabled:opacity-70 transition-all shadow-md shadow-emerald-600/20">
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-semantic-success rounded-xl hover:bg-semantic-success disabled:opacity-70 transition-all shadow-md shadow-sm">
             {isSaving ? (
               <span className="flex items-center gap-2">
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -401,11 +401,11 @@ const ItemProveedorForm = () => {
           />
           {/* Alerta de duplicado */}
           {duplicado && (
-            <div className="mt-2 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-              <AlertTriangle size={13} className="text-amber-500 mt-0.5 shrink-0" />
+            <div className="mt-2 flex items-start gap-2 bg-semantic-warning-subtle border border-semantic-warning/20 rounded-xl px-3 py-2">
+              <AlertTriangle size={13} className="text-semantic-warning mt-0.5 shrink-0" />
               <div>
-                <p className="text-[11px] font-bold text-amber-700 uppercase">Ya existe con este proveedor</p>
-                <p className="text-[10px] text-amber-600 uppercase">
+                <p className="text-[11px] font-bold text-semantic-warning-fg uppercase">Ya existe con este proveedor</p>
+                <p className="text-[10px] text-semantic-warning-fg uppercase">
                   "{duplicado.nombre}" — ${Number(duplicado.precio_unitario).toLocaleString('es-CO')}
                 </p>
               </div>
@@ -462,7 +462,7 @@ const ItemProveedorForm = () => {
         </div>
 
         {/* ── Vínculo con ítem general ── */}
-        <div className="border-t border-zinc-100 pt-4">
+        <div className="border-t border-border-subtle pt-4">
           <ItemGeneralSearch
             value={itemGeneral}
             onChange={setItemGeneral}
@@ -471,8 +471,8 @@ const ItemProveedorForm = () => {
           />
           {/* Cuando viene de "sin inventario": el backend creará el ítem al guardar */}
           {itemGeneral?._pendiente && (
-            <p className="mt-1.5 text-[10px] text-zinc-400 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
+            <p className="mt-1.5 text-[10px] text-content-muted flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-semantic-warning inline-block" />
               Se creará automáticamente en el catálogo interno al guardar
             </p>
           )}
@@ -494,17 +494,17 @@ const ItemProveedorForm = () => {
             )}
           />
 
-          <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 space-y-3">
+          <div className="rounded-xl border border-border-base bg-surface-subtle px-4 py-3 space-y-3">
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2.5 cursor-pointer select-none">
                 <button
                   type="button"
                   onClick={() => setAplicarIva(v => !v)}
-                  className={`relative w-9 h-5 rounded-full transition-colors duration-200 focus:outline-none ${aplicarIva ? 'bg-zinc-900' : 'bg-zinc-300'}`}
+                  className={`relative w-9 h-5 rounded-full transition-colors duration-200 focus:outline-none ${aplicarIva ? 'bg-content-primary' : 'bg-surface-strong'}`}
                 >
                   <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${aplicarIva ? 'translate-x-4' : 'translate-x-0'}`} />
                 </button>
-                <span className="text-sm font-semibold text-zinc-700">Aplicar IVA</span>
+                <span className="text-sm font-semibold text-content-secondary">Aplicar IVA</span>
               </label>
               <div className="flex items-center gap-1.5">
                 <input
@@ -512,17 +512,17 @@ const ItemProveedorForm = () => {
                   value={porcentajeIva}
                   onChange={e => setPorcentajeIva(Number(e.target.value) || 0)}
                   disabled={!aplicarIva}
-                  className="w-16 px-2 py-1 text-sm font-bold border border-zinc-200 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-zinc-900 bg-white disabled:opacity-40 disabled:cursor-not-allowed tabular-nums"
+                  className="w-16 px-2 py-1 text-sm font-bold border border-border-base rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-brand-primary/30 bg-white disabled:opacity-40 disabled:cursor-not-allowed tabular-nums"
                 />
-                <Percent size={14} className={`transition-opacity ${aplicarIva ? 'text-zinc-500' : 'text-zinc-300'}`} />
+                <Percent size={14} className={`transition-opacity ${aplicarIva ? 'text-content-tertiary' : 'text-content-muted'}`} />
               </div>
             </div>
             {aplicarIva && (
               <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-400">
-                  IVA ({porcentajeIva}%) sobre <span className="font-semibold text-zinc-600">$ {Number(precioUnitario || 0).toLocaleString('es-CO')}</span>
+                <span className="text-content-muted">
+                  IVA ({porcentajeIva}%) sobre <span className="font-semibold text-content-secondary">$ {Number(precioUnitario || 0).toLocaleString('es-CO')}</span>
                 </span>
-                <span className="font-bold text-zinc-700">+ $ {ivaCalculado.toLocaleString('es-CO')}</span>
+                <span className="font-bold text-content-secondary">+ $ {ivaCalculado.toLocaleString('es-CO')}</span>
               </div>
             )}
           </div>
@@ -539,7 +539,7 @@ const ItemProveedorForm = () => {
                   error={errors.precio_con_iva?.message}
                 />
                 {aplicarIva && (
-                  <span className="absolute right-3 top-1 text-[10px] font-bold text-emerald-600 uppercase tracking-wide">Auto</span>
+                  <span className="absolute right-3 top-1 text-[10px] font-bold text-semantic-success-fg uppercase tracking-wide">Auto</span>
                 )}
               </div>
             )}

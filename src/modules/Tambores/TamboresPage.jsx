@@ -8,11 +8,12 @@ import { Button, ButtonSquare } from '../../shared/Button';
 import ERPTable from '../../shared/ErpTable';
 import HeaderSection from '../../shared/HeaderSection';
 import SearchFilterBar from '../../shared/SearchFilterBar';
+import StatusBadge from '../../shared/StatusBadge';
 
 export const ESTADO_TAMBOR = {
-  0: { label: 'Cerrado',  bg: 'bg-zinc-100',    text: 'text-zinc-600',    dot: 'bg-zinc-400'    },
-  1: { label: 'Abierto',  bg: 'bg-blue-100',    text: 'text-blue-700',    dot: 'bg-blue-500'    },
-  2: { label: 'Vacío',    bg: 'bg-zinc-200',    text: 'text-zinc-400',    dot: 'bg-zinc-300'    },
+  0: { label: 'Cerrado', tone: 'neutral' },
+  1: { label: 'Abierto', tone: 'info'    },
+  2: { label: 'Vacío',   tone: 'neutral' },
 };
 
 const ESTADO_OPTS = [
@@ -56,12 +57,7 @@ const TamboresPage = () => {
       label: 'Estado',
       render: (value) => {
         const e = ESTADO_TAMBOR[value] ?? ESTADO_TAMBOR[0];
-        return (
-          <span className={`inline-flex items-center gap-1.5 rounded px-2 py-1 text-[10px] font-semibold uppercase ${e.bg} ${e.text}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${e.dot}`} />
-            {e.label}
-          </span>
-        );
+        return <StatusBadge tone={e.tone} label={e.label} size="sm" />;
       },
     },
     { key: 'fecha_ingreso', label: 'Fecha Ingreso' },
@@ -95,7 +91,7 @@ const TamboresPage = () => {
         </div>
       </div>
 
-      <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm">
+      <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
         <SearchFilterBar
           search={filters.search}
           onSearch={(v) => setFilters(f => ({ ...f, search: v }))}

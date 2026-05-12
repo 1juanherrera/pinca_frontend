@@ -35,14 +35,14 @@ const CustomTooltip = ({ active, payload, label }) => {
   const utilidad = (ventas?.value ?? 0) - totalCostos;
   
   return (
-    <div className="bg-white border border-zinc-200 rounded-xl shadow-lg p-3 text-xs min-w-[200px]">
-      <p className="font-semibold text-zinc-700 mb-2">{label}</p>
+    <div className="bg-white border border-border-base rounded-xl shadow-lg p-3 text-xs min-w-[200px]">
+      <p className="font-semibold text-content-secondary mb-2">{label}</p>
       
       {/* Ventas */}
       {ventas && (
         <div className="flex justify-between gap-6 py-0.5">
           <span style={{ color: ventas.color }} className="font-medium">{ventas.name}</span>
-          <span className=" tabular-nums text-zinc-700">{fmt(ventas.value)}</span>
+          <span className=" tabular-nums text-content-secondary">{fmt(ventas.value)}</span>
         </div>
       )}
       
@@ -50,25 +50,25 @@ const CustomTooltip = ({ active, payload, label }) => {
       {costos.map((p) => (
         <div key={p.name} className="flex justify-between gap-6 py-0.5">
           <span style={{ color: p.color }} className="font-medium">{p.name}</span>
-          <span className=" tabular-nums text-zinc-700">{fmt(p.value)}</span>
+          <span className=" tabular-nums text-content-secondary">{fmt(p.value)}</span>
         </div>
       ))}
       
-      <div className="border-t border-zinc-100 mt-2 pt-2">
+      <div className="border-t border-border-subtle mt-2 pt-2">
         <div className="flex justify-between">
-          <span className="font-semibold text-zinc-600">Total Costos</span>
-          <span className=" tabular-nums font-bold text-red-600">{fmt(totalCostos)}</span>
+          <span className="font-semibold text-content-secondary">Total Costos</span>
+          <span className=" tabular-nums font-bold text-semantic-danger-fg">{fmt(totalCostos)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="font-semibold text-zinc-600">Utilidad Bruta</span>
-          <span className={` tabular-nums font-bold ${utilidad >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <span className="font-semibold text-content-secondary">Utilidad Bruta</span>
+          <span className={` tabular-nums font-bold ${utilidad >= 0 ? 'text-semantic-success-fg' : 'text-semantic-danger-fg'}`}>
             {fmt(utilidad)}
           </span>
         </div>
         {margen && (
           <div className="flex justify-between">
-            <span className="font-semibold text-zinc-600">Margen</span>
-            <span className={` tabular-nums font-bold ${margen.value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <span className="font-semibold text-content-secondary">Margen</span>
+            <span className={` tabular-nums font-bold ${margen.value >= 0 ? 'text-semantic-success-fg' : 'text-semantic-danger-fg'}`}>
               {margen.value.toFixed(1)}%
             </span>
           </div>
@@ -121,7 +121,7 @@ const RentabilidadChart = ({ ordenesProd, ordenesCompras, ventasData, desde, has
 
   if (!chartData.length) {
     return (
-      <div className="bg-white border border-zinc-200/70 rounded-xl p-6 text-center text-zinc-400 text-sm h-64 flex items-center justify-center">
+      <div className="bg-white border border-border-base/70 rounded-xl p-6 text-center text-content-muted text-sm h-64 flex items-center justify-center">
         Sin datos para el gráfico en el período seleccionado.
       </div>
     );
@@ -136,8 +136,8 @@ const RentabilidadChart = ({ ordenesProd, ordenesCompras, ventasData, desde, has
   const percentFormatter = (v) => `${v.toFixed(1)}%`;
 
   return (
-    <div className="bg-white border border-zinc-200/70 rounded-xl p-4">
-      <p className="text-xs font-semibold text-zinc-500 mb-4">Costos vs Ventas y Rentabilidad por mes (COP)</p>
+    <div className="bg-white border border-border-base/70 rounded-xl p-4">
+      <p className="text-xs font-semibold text-content-tertiary mb-4">Costos vs Ventas y Rentabilidad por mes (COP)</p>
       <ResponsiveContainer width="100%" height={320}>
         <ComposedChart data={chartData} margin={{ top: 4, right: 40, left: 0, bottom: 0 }} barSize={18}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />

@@ -26,27 +26,27 @@ const TIPOS = ['llamada', 'email', 'visita', 'whatsapp'];
 const GestionRow = ({ gestion, onEliminar }) => {
   const Icon = ICONO_TIPO[gestion.tipo] ?? Phone;
   return (
-    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
-      <div className="shrink-0 w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center shadow-sm">
-        <Icon className="w-4 h-4 text-gray-500" />
+    <div className="flex items-start gap-3 p-3 bg-surface-subtle rounded-lg border border-border-subtle">
+      <div className="shrink-0 w-8 h-8 rounded-lg bg-white border border-border-base flex items-center justify-center shadow-sm">
+        <Icon className="w-4 h-4 text-content-tertiary" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-semibold text-gray-800 capitalize">{gestion.tipo}</span>
-          <span className="text-[11px] text-gray-400">{gestion.creado_en?.split(' ')[0]}</span>
+          <span className="text-xs font-semibold text-content-primary capitalize">{gestion.tipo}</span>
+          <span className="text-[11px] text-content-muted">{gestion.creado_en?.split(' ')[0]}</span>
         </div>
         {gestion.resultado && (
-          <p className="text-[11px] text-gray-600 mt-0.5 leading-relaxed">{gestion.resultado}</p>
+          <p className="text-[11px] text-content-secondary mt-0.5 leading-relaxed">{gestion.resultado}</p>
         )}
         {gestion.proxima_gestion && (
-          <p className="text-[11px] text-blue-600 mt-1 font-medium">
+          <p className="text-[11px] text-semantic-info-fg mt-1 font-medium">
             Próximo seguimiento: {gestion.proxima_gestion}
           </p>
         )}
       </div>
       <button
         onClick={() => onEliminar(gestion.id_gestion)}
-        className="shrink-0 p-1 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+        className="shrink-0 p-1 rounded text-content-muted hover:text-semantic-danger hover:bg-semantic-danger-subtle transition-colors"
       >
         <Trash2 className="w-3.5 h-3.5" />
       </button>
@@ -77,8 +77,8 @@ const NuevaGestionForm = ({ facturaId, clienteId, onCreado }) => {
   };
 
   return (
-    <div className="space-y-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-      <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Nueva gestión</p>
+    <div className="space-y-3 p-4 bg-semantic-info-subtle border border-semantic-info/15 rounded-xl">
+      <p className="text-xs font-semibold text-semantic-info-fg uppercase tracking-wide">Nueva gestión</p>
 
       {/* Tipo */}
       <div className="grid grid-cols-2 gap-2">
@@ -91,8 +91,8 @@ const NuevaGestionForm = ({ facturaId, clienteId, onCreado }) => {
               onClick={() => set('tipo', t)}
               className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border-2 transition-all capitalize
                 ${form.tipo === t
-                  ? 'border-gray-900 bg-gray-900 text-white'
-                  : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400'
+                  ? 'border-content-primary bg-content-primary text-content-inverse'
+                  : 'border-border-base bg-white text-content-secondary hover:border-border-strong'
                 }`}
             >
               <Icon className="w-3.5 h-3.5" /> {t}
@@ -103,24 +103,24 @@ const NuevaGestionForm = ({ facturaId, clienteId, onCreado }) => {
 
       {/* Resultado */}
       <div>
-        <label className="block text-xs text-gray-500 mb-1">Resultado / Nota</label>
+        <label className="block text-xs text-content-tertiary mb-1">Resultado / Nota</label>
         <textarea
           rows={2}
           value={form.resultado}
           onChange={(e) => set('resultado', e.target.value)}
           placeholder="¿Qué pasó en esta gestión?"
-          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+          className="w-full text-sm border border-border-base rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-border-focus/15 resize-none"
         />
       </div>
 
       {/* Próxima gestión */}
       <div>
-        <label className="block text-xs text-gray-500 mb-1">Próximo seguimiento</label>
+        <label className="block text-xs text-content-tertiary mb-1">Próximo seguimiento</label>
         <input
           type="date"
           value={form.proxima_gestion}
           onChange={(e) => set('proxima_gestion', e.target.value)}
-          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
+          className="w-full text-sm border border-border-base rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-border-focus/15"
         />
       </div>
 
@@ -154,10 +154,10 @@ const GestionesCobroDrawer = ({ facturaId, clienteId, numeroFactura, isOpen, onC
       width="md"
     >
       {/* Botón agregar */}
-      <div className="px-5 py-3 border-b border-gray-100">
+      <div className="px-5 py-3 border-b border-border-subtle">
         <button
           onClick={() => setMostrarForm((v) => !v)}
-          className="flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+          className="flex items-center gap-2 text-xs font-semibold text-semantic-info-fg hover:text-semantic-info transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           {mostrarForm ? 'Cancelar' : 'Nueva gestión'}
@@ -179,14 +179,14 @@ const GestionesCobroDrawer = ({ facturaId, clienteId, numeroFactura, isOpen, onC
       <div className="px-5 py-4 flex flex-col gap-2">
         {isLoadingGestiones ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse" />
+            <div key={i} className="h-20 bg-surface-muted rounded-lg animate-pulse" />
           ))
         ) : gestiones.length > 0 ? (
           gestiones.map((g) => (
             <GestionRow key={g.id_gestion} gestion={g} onEliminar={handleEliminar} />
           ))
         ) : (
-          <div className="flex flex-col items-center gap-2 py-10 text-gray-400">
+          <div className="flex flex-col items-center gap-2 py-10 text-content-muted">
             <Phone className="w-8 h-8 opacity-30" />
             <p className="text-xs font-medium text-center">Sin gestiones registradas</p>
           </div>

@@ -15,11 +15,11 @@ import { useCotizaciones }  from './api/useCotizaciones';
 import useTableSort         from '../../../hooks/useTableSorts';
 
 const STATUS_OPTIONS = [
-  { value: 'Borrador',  label: 'Borrador',  dot: 'bg-zinc-400'    },
-  { value: 'Enviada',   label: 'Enviada',   dot: 'bg-blue-500'    },
-  { value: 'Aprobada',  label: 'Aprobada',  dot: 'bg-emerald-500' },
-  { value: 'Rechazada', label: 'Rechazada', dot: 'bg-red-400'     },
-  { value: 'Expirada',  label: 'Expirada',  dot: 'bg-amber-400'   },
+  { value: 'Borrador',  label: 'Borrador',  dot: 'bg-content-muted'    },
+  { value: 'Enviada',   label: 'Enviada',   dot: 'bg-semantic-info'    },
+  { value: 'Aprobada',  label: 'Aprobada',  dot: 'bg-semantic-success' },
+  { value: 'Rechazada', label: 'Rechazada', dot: 'bg-semantic-danger/80'     },
+  { value: 'Expirada',  label: 'Expirada',  dot: 'bg-semantic-warning'   },
 ];
 
 const CotizacionesTab = () => {
@@ -63,7 +63,7 @@ const columns = useMemo(() => [
       key:       'numero',
       label:     'Código',
       render: (v) => (
-        <span className=" text-xs font-bold text-zinc-400 whitespace-nowrap">
+        <span className=" text-xs font-bold text-content-muted whitespace-nowrap">
           {v}
         </span>
       ),
@@ -73,8 +73,8 @@ const columns = useMemo(() => [
       label: 'Cliente',
       render: (v, row) => (
         <div>
-          <p className="font-semibold text-zinc-800 text-xs leading-none truncate uppercase">{v}</p>
-          <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{row.nombre_encargado}</p>
+          <p className="font-semibold text-content-primary text-xs leading-none truncate uppercase">{v}</p>
+          <p className="text-[10px] text-content-muted mt-0.5 truncate">{row.nombre_encargado}</p>
         </div>
       ),
     },
@@ -83,7 +83,7 @@ const columns = useMemo(() => [
       label:     'Fecha',
       align:     'center',
       render: (v) => (
-        <span className="text-xs text-zinc-500 tabular-nums whitespace-nowrap">
+        <span className="text-xs text-content-tertiary tabular-nums whitespace-nowrap">
           {v
             ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' })
             : '—'}
@@ -98,7 +98,7 @@ const columns = useMemo(() => [
         const retrasada = v && new Date(v) < new Date();
         return (
           <div className={`inline-flex items-center gap-1.5 text-xs tabular-nums whitespace-nowrap ${
-            retrasada ? 'text-red-500 font-semibold' : 'text-zinc-500'
+            retrasada ? 'text-semantic-danger font-semibold' : 'text-content-tertiary'
           }`}>
             {retrasada && <CircleAlert size={12} />}
             {v ?? '—'}
@@ -129,7 +129,7 @@ const columns = useMemo(() => [
         <div className="flex items-center justify-end gap-1.5">
           <button
             onClick={(e) => { e.stopPropagation(); openDrawer('EXPORT_MODAL_COTIZACIONES', row); }}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
             title="Exportar"
           >
             <Download size={12} />
@@ -145,7 +145,7 @@ const columns = useMemo(() => [
                   onConfirm: async () => convertir(row.id_cotizaciones),
                 });
               }}
-              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95"
+              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
               title="Convertir a factura"
             >
               <ArrowRight size={12} />
@@ -154,7 +154,7 @@ const columns = useMemo(() => [
 
           <button
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
             title="Ver detalle"
           >
             <Eye size={12} /> Ver
@@ -169,7 +169,7 @@ const columns = useMemo(() => [
                 onConfirm: async () => removeAsync(row.id_cotizaciones),
               });
             }}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-all active:scale-95"
             title="Eliminar"
           >
             <Trash2 size={12} />
@@ -188,7 +188,7 @@ const columns = useMemo(() => [
         <SummaryCard label="Monto Aprobado" value={fmt(metrics.montoAprobado)} icon={CheckCircle2}  color="green" />
       </div>
 
-      <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm">
+      <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
         <SearchFilterBar
           search={search}
           onSearch={setSearch}

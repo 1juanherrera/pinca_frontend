@@ -6,6 +6,7 @@ import {
 import { useBoundStore } from '../../store/useBoundStore';
 import { Button, ButtonSquare } from '../../shared/Button';
 import HeaderSection from '../../shared/HeaderSection';
+import PageTabs from '../../shared/PageTabs';
 import ConfirmModal from '../../shared/ConfirmModal';
 import RemisionesTab from './Remisiones/RemisionesTab';
 import FacturacionTab from './Facturacion/FacturacionTab';
@@ -19,27 +20,9 @@ import { useRemisiones } from './Remisiones/api/useRemisiones';
 import { useCotizaciones } from './Cotizaciones/api/useCotizaciones';
 
 const TABS = [
-  {
-    id:        'cotizaciones',
-    label:     'Cotizaciones',
-    icon:      ClipboardList,
-    drawerKey: 'COTIZACION_FORM',
-    btnLabel:  'Nueva Cotización',
-  },
-  {
-    id:        'remisiones',
-    label:     'Remisiones',
-    icon:      Truck,
-    drawerKey: 'REMISION_FORM',
-    btnLabel:  'Nueva Remisión',
-  },
-  {
-    id:        'facturas',
-    label:     'Facturas',
-    icon:      Receipt,
-    drawerKey: 'FACTURA_FORM',
-    btnLabel:  'Nueva Factura',
-  },
+  { key: 'cotizaciones', label: 'Cotizaciones', icon: ClipboardList, drawerKey: 'COTIZACION_FORM', btnLabel: 'Nueva cotización' },
+  { key: 'remisiones',   label: 'Remisiones',   icon: Truck,         drawerKey: 'REMISION_FORM',   btnLabel: 'Nueva remisión'   },
+  { key: 'facturas',     label: 'Facturas',     icon: Receipt,       drawerKey: 'FACTURA_FORM',    btnLabel: 'Nueva factura'    },
 ];
 
 const ComercialPage = () => {
@@ -52,7 +35,7 @@ const ComercialPage = () => {
 
   const [activeTab, setActiveTab] = useState('cotizaciones');
   const { openDrawer } = useBoundStore();
-  const tab = TABS.find((t) => t.id === activeTab);
+  const tab = TABS.find((t) => t.key === activeTab);
 
   return (
     <div className="flex flex-col w-full gap-4">
@@ -76,37 +59,17 @@ const ComercialPage = () => {
             title="Actualizar datos"
             variant="white"
           />
-          <Button variant="black" icon={Plus} onClick={() => openDrawer(tab.drawerKey)}>
+          <Button variant="primary" icon={Plus} onClick={() => openDrawer(tab.drawerKey)}>
             {tab.btnLabel}
           </Button>
         </div>
       </div>
 
-      {/* ── Fila 2: navegación por tabs ── */}
-      <div className="flex items-center border-b border-zinc-200">
-        {TABS.map((t) => {
-          const Icon   = t.icon;
-          const active = activeTab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 px-4 pb-3 pt-1 text-sm font-semibold border-b-2 transition-all -mb-px whitespace-nowrap ${
-                active
-                  ? 'border-zinc-900 text-zinc-900'
-                  : 'border-transparent text-zinc-400 hover:text-zinc-700 hover:border-zinc-300'
-              }`}
-            >
-              <Icon size={14} />
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+      <PageTabs tabs={TABS} value={activeTab} onChange={setActiveTab} />
 
       {activeTab === 'cotizaciones' && <CotizacionesTab />}
-      {activeTab === 'remisiones'   && <RemisionesTab  />}
-      {activeTab === 'facturas'     && <FacturacionTab  />}
+      {activeTab === 'remisiones'   && <RemisionesTab />}
+      {activeTab === 'facturas'     && <FacturacionTab />}
 
       {/* Drawers globales */}
       <CotizacionForm />

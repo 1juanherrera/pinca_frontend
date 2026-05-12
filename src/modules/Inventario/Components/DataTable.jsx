@@ -8,47 +8,49 @@ import {
 import TamboresItemModal from './TamboresItemModal';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { NavTabs } from './NavTabs';
-import { handleType } from '../utils/handlers';
 import { formatoPesoColombiano } from '../../../utils/formatters';
 import { useState } from 'react';
 import { SkeletonRow } from '../../../shared/Skeletons';
 import { useInventario } from '../api/useInventario';
 import ConfirmModal from '../../../shared/ConfirmModal';
+import StatusBadge from '../../../shared/StatusBadge';
 import { getPaginationRange } from '../services/pagination';
 import { ExcelModal } from './ExcelModal';
 import { TraspasoModal } from './TraspasoModal';
 import { useBodegas } from '../../Bodegas/api/useBodegas';
+import cn from '../../../utils/cn';
+
+const getTipoLabel = (tipo) => {
+  if (String(tipo).includes('MATERIA') || tipo === '1') return 'MATERIA PRIMA';
+  if (String(tipo).includes('INSUMO')  || tipo === '2') return 'INSUMO';
+  return 'PRODUCTO';
+};
 
 const DataTable = () => {
-
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage,     setPerPage]     = useState(10);
   const [searchTerm,  setSearchTerm]  = useState('');
   const [tipoFilter,  setTipoFilter]  = useState('');
-  const [itemTraspaso,  setItemTraspaso]  = useState(null);
-  const [itemDetalle,   setItemDetalle]   = useState(null);
+  const [itemTraspaso, setItemTraspaso] = useState(null);
+  const [itemDetalle,  setItemDetalle]  = useState(null);
 
   const id_bodega   = useBoundStore(state => state.activeBodegaId);
   const openConfirm = useBoundStore(state => state.openConfirm);
 
   const { isLoadingItems, items, isFetching, traspasoAsync, isTrashing,
           removeFromBodegaAsync } = useInventario(
-    id_bodega,
-    currentPage,
-    perPage,
-    searchTerm,
-    tipoFilter
+    id_bodega, currentPage, perPage, searchTerm, tipoFilter,
   );
   const { bodegas } = useBodegas();
 
   const inventario = items?.inventario || [];
   const pagination = items?.pagination || { totalPages: 1, totalItems: 0 };
 
-  const getNombre      = (item) => item.nombre || item.nombre_item_general || '-';
-  const getCodigo      = (item) => item.codigo || item.codigo_item_general || '-';
-  const getId          = (item) => item.id_item_general || item.id || '-';
-  const getPrecio      = (item) => item?.precio_venta    || '0';
-  const getCostoUnit   = (item) => item?.costo_unitario  ?? '0';
+  const getNombre    = (item) => item.nombre || item.nombre_item_general || '-';
+  const getCodigo    = (item) => item.codigo || item.codigo_item_general || '-';
+  const getId        = (item) => item.id_item_general || item.id || '-';
+  const getPrecio    = (item) => item?.precio_venta   || '0';
+  const getCostoUnit = (item) => item?.costo_unitario ?? '0';
 
   const getStockAlmacenaje = (item) => {
     const ev = parseFloat(item.escala_venta)      || null;
@@ -56,8 +58,7 @@ const DataTable = () => {
     if (!ea || !ev || !item.unidad_almacenaje) return null;
     const factor = ea / ev;
     const qty    = parseFloat(item.cantidad) || 0;
-    const total  = qty / factor;
-    return { total, nombre: item.unidad_almacenaje };
+    return { total: qty / factor, nombre: item.unidad_almacenaje };
   };
 
   const handleSearchChange = (value) => { setSearchTerm(value); setCurrentPage(1); };
@@ -74,54 +75,53 @@ const DataTable = () => {
         isFetching={isFetching}
       />
       <div className="flex flex-col gap-3 w-full">
-        <div className="bg-white border border-zinc-200/80 rounded-xl shadow-sm w-full overflow-hidden">
-
+        <div className="bg-surface-base border border-border-base rounded-md shadow-xs w-full overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-zinc-900 text-zinc-100 text-xs font-bold uppercase tracking-widest">
+            <table className="w-full text-left whitespace-nowrap">
+              <thead className="bg-surface-muted border-b border-border-base">
                 <tr>
-                  <th className="w-16 px-3 py-2 text-center">#</th>
-                  <th className="px-3 py-2">CÓDIGO</th>
-                  <th className="px-3 py-2">NOMBRE</th>
-                  <th className="px-3 py-2 text-center">CANTIDAD</th>
-                  <th className="px-3 py-2 text-center">ALMACENAJE</th>
-                  <th className="px-3 py-2 text-center">TIPO</th>
-                  <th className="px-3 py-2 text-center">UNIDAD</th>
-                  <th className="px-3 py-2 text-right">COSTO UNIT.</th>
-                  <th className="px-3 py-2 text-right">PRECIO VENTA</th>
-                  <th className="px-3 py-2 text-center">ACCIONES</th>
+                  {['#','Código','Nombre'].map((h, i) => (
+                    <th key={h} className={cn(
+                      'px-3 py-2 text-[10px] font-semibold text-content-tertiary uppercase tracking-wider',
+                      i === 0 && 'w-16 text-center',
+                    )}>{h}</th>
+                  ))}
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Cantidad</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Almacenaje</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Tipo</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Unidad</th>
+                  <th className="px-3 py-2 text-right  text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Costo unit.</th>
+                  <th className="px-3 py-2 text-right  text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Precio venta</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-border-subtle">
                 {isLoadingItems ? (
-                  Array.from({ length: 10 }).map((_, i) => (
-                    <SkeletonRow key={`skeleton-${i}`} />
-                  ))
+                  Array.from({ length: 10 }).map((_, i) => <SkeletonRow key={`skeleton-${i}`} />)
                 ) : inventario.length > 0 ? (
                   inventario.map((item) => (
-                    <tr
-                      key={item.id_item_general}
-                      className="hover:bg-zinc-100 transition-colors"
-                    >
-                      <td className="px-3 py-1 text-center text-xs font-medium text-zinc-500">{getId(item)}</td>
-                      <td className="px-3 py-1"><span className="text-xs  text-zinc-500 font-bold">{getCodigo(item)}</span></td>
-                      <td className="px-3 py-1 font-semibold uppercase text-zinc-900 text-xs">{getNombre(item)}</td>
-                      <td className="px-3 py-1 text-center">
-                        <span className="text-xs font-bold text-zinc-700">
+                    <tr key={item.id_item_general} className="hover:bg-surface-subtle transition-colors">
+                      <td className="px-3 py-1.5 text-center text-xs font-medium text-content-tertiary tabular-nums">{getId(item)}</td>
+                      <td className="px-3 py-1.5">
+                        <span className="text-xs text-content-tertiary font-mono font-medium">{getCodigo(item)}</span>
+                      </td>
+                      <td className="px-3 py-1.5 font-medium text-content-primary text-xs">{getNombre(item)}</td>
+                      <td className="px-3 py-1.5 text-center">
+                        <span className="text-xs font-semibold text-content-secondary tabular-nums">
                           {item.cantidad ?? '—'}
                         </span>
                       </td>
 
-                      <td className="px-3 py-1 text-center">
+                      <td className="px-3 py-1.5 text-center">
                         {(() => {
                           const s = getStockAlmacenaje(item);
-                          if (!s) return <span className="text-zinc-300 text-xs">—</span>;
+                          if (!s) return <span className="text-content-muted text-xs">—</span>;
                           return (
                             <div className="flex flex-col items-center gap-0.5">
-                              <span className="text-xs font-bold text-amber-700 tabular-nums">
+                              <span className="text-xs font-semibold text-semantic-warning-fg tabular-nums">
                                 {s.total % 1 === 0 ? Math.floor(s.total) : s.total.toFixed(1)}
                               </span>
-                              <span className="text-[9px] font-semibold text-amber-500 uppercase tracking-wider">
+                              <span className="text-[9px] font-semibold text-semantic-warning uppercase tracking-wide">
                                 {s.nombre}
                               </span>
                             </div>
@@ -129,32 +129,34 @@ const DataTable = () => {
                         })()}
                       </td>
 
-                      <td className="px-3 py-1 text-center">
-                        <span className={`inline-flex w-32 justify-center shadow-md items-center px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider border ${handleType(item.tipo)}`}>
-                          {
-                            String(item.tipo).includes('MATERIA') || item.tipo === '1' ? 'MATERIA PRIMA' :
-                            String(item.tipo).includes('INSUMO')  || item.tipo === '2' ? 'INSUMO' : 'PRODUCTO'
-                          }
-                        </span>
+                      <td className="px-3 py-1.5 text-center">
+                        <StatusBadge
+                          estado={getTipoLabel(item.tipo)}
+                          dot={false}
+                          size="sm"
+                          fixedWidth
+                        />
                       </td>
 
-                      <td className="px-3 py-1 text-center">
+                      <td className="px-3 py-1.5 text-center">
                         {item.unidad ? (
-                          <span className="block items-center px-2 py-0.5 rounded-md bg-zinc-100 border border-zinc-200 text-[10px] font-bold text-zinc-600 uppercase tracking-wide">
-                            {item.unidad}
-                          </span>
+                          <StatusBadge tone="neutral" label={item.unidad} dot={false} size="sm" />
                         ) : (
-                          <span className="text-zinc-300 text-xs">—</span>
+                          <span className="text-content-muted text-xs">—</span>
                         )}
                       </td>
-                      <td className="px-3 py-1 text-right font-medium text-xs text-zinc-700">{formatoPesoColombiano(getCostoUnit(item))}</td>
-                      <td className="px-3 py-1 text-right font-medium text-xs text-emerald-600">{formatoPesoColombiano(getPrecio(item))}</td>
+                      <td className="px-3 py-1.5 text-right text-xs text-content-secondary tabular-nums">
+                        {formatoPesoColombiano(getCostoUnit(item))}
+                      </td>
+                      <td className="px-3 py-1.5 text-right text-xs text-semantic-success-fg font-medium tabular-nums">
+                        {formatoPesoColombiano(getPrecio(item))}
+                      </td>
 
-                      <td className="px-3 py-1">
-                        <div className="flex items-center justify-center gap-1.5">
+                      <td className="px-3 py-1.5">
+                        <div className="flex items-center justify-center gap-1">
                           <button
                             onClick={() => openConfirm({
-                              title:   'Eliminar Item',
+                              title:   'Eliminar item',
                               message: `¿Eliminar "${getNombre(item)}" de esta bodega?`,
                               onConfirm: async () => await removeFromBodegaAsync({
                                 itemId:   getId(item),
@@ -162,21 +164,21 @@ const DataTable = () => {
                               }),
                             })}
                             title="Eliminar"
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-colors"
                           >
                             <Trash2 size={12} />
                           </button>
                           <button
-                            onClick={() => setItemTraspaso(item, id_bodega)}
+                            onClick={() => setItemTraspaso(item)}
                             title="Traspasar a otra bodega"
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all active:scale-95"
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-info hover:text-white hover:border-semantic-info transition-colors"
                           >
                             <ArrowRightLeft size={12} />
                           </button>
                           <button
                             onClick={() => setItemDetalle(item)}
                             title="Ver tambores"
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all active:scale-95"
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-warning hover:text-white hover:border-semantic-warning transition-colors"
                           >
                             <Info size={12} />
                           </button>
@@ -187,9 +189,11 @@ const DataTable = () => {
                 ) : (
                   <tr>
                     <td colSpan="10" className="px-3 py-16 text-center">
-                      <div className="flex flex-col items-center justify-center text-zinc-500 h-40">
+                      <div className="flex flex-col items-center justify-center text-content-tertiary h-40">
                         <span className="text-sm font-medium">No hay items para mostrar en este inventario.</span>
-                        <span className="text-xs text-zinc-400 mt-1">El stock se crea automáticamente al recibir órdenes de compra o cerrar órdenes de producción.</span>
+                        <span className="text-xs text-content-muted mt-1">
+                          El stock se crea automáticamente al recibir órdenes de compra o cerrar órdenes de producción.
+                        </span>
                       </div>
                     </td>
                   </tr>
@@ -199,21 +203,22 @@ const DataTable = () => {
           </div>
 
           {/* Paginación */}
-          <div className="px-4 py-3 bg-zinc-50 border-t border-zinc-200 flex items-center justify-between">
+          <div className="px-3 py-2 bg-surface-subtle border-t border-border-base flex items-center justify-between">
             <div className="hidden sm:flex items-center gap-4">
               {isFetching ? (
-                <div className="h-8 w-48 bg-zinc-200 animate-pulse rounded-lg" />
+                <div className="h-7 w-48 bg-surface-muted animate-pulse rounded-md" />
               ) : (
                 <>
-                  <div className="text-xs text-zinc-500 font-medium">
-                    Mostrando <span className="text-zinc-900 font-bold">{inventario.length}</span> de <span className="text-zinc-900 font-bold">{pagination?.totalItems || 0}</span> items
+                  <div className="text-xs text-content-tertiary">
+                    Mostrando <span className="text-content-primary font-semibold tabular-nums">{inventario.length}</span>{' '}
+                    de <span className="text-content-primary font-semibold tabular-nums">{pagination?.totalItems || 0}</span> items
                   </div>
-                  <div className="flex items-center gap-2 border-l border-zinc-200 pl-4">
-                    <span className="text-xs text-zinc-500 font-medium">Filas:</span>
+                  <div className="flex items-center gap-2 border-l border-border-base pl-4">
+                    <span className="text-xs text-content-tertiary">Filas:</span>
                     <select
                       value={perPage}
                       onChange={(e) => { setPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                      className="bg-white border border-zinc-300 text-zinc-900 text-xs font-bold rounded-lg focus:ring-zinc-950 focus:border-zinc-950 block p-1 px-2 outline-none transition-all hover:border-zinc-400"
+                      className="bg-surface-base border border-border-base text-content-primary text-xs font-medium rounded-md focus:ring-2 focus:ring-border-focus/15 focus:border-border-focus block px-2 py-1 outline-none transition-colors"
                     >
                       <option value={10}>10</option>
                       <option value={20}>20</option>
@@ -225,20 +230,20 @@ const DataTable = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1 || isFetching}
-                className="p-2 border border-zinc-300 rounded-lg bg-white hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="p-1.5 border border-border-base rounded-md bg-surface-base hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                <ChevronLeft size={16} />
+                <ChevronLeft size={14} />
               </button>
 
               <div className="flex items-center gap-1">
                 {isFetching ? (
                   <div className="flex gap-1">
                     {[1, 2, 3].map(i => (
-                      <div key={i} className="w-8 h-8 bg-zinc-200 animate-pulse rounded-lg" />
+                      <div key={i} className="w-7 h-7 bg-surface-muted animate-pulse rounded-md" />
                     ))}
                   </div>
                 ) : (
@@ -247,13 +252,14 @@ const DataTable = () => {
                       key={index}
                       onClick={() => typeof page === 'number' && setCurrentPage(page)}
                       disabled={page === '...' || isFetching}
-                      className={`min-w-8 h-8 flex items-center justify-center rounded-lg text-[11px] font-bold transition-all
-                        ${page === currentPage
-                          ? 'bg-zinc-950 text-white shadow-lg shadow-zinc-200'
+                      className={cn(
+                        'min-w-7 h-7 flex items-center justify-center rounded-md text-[11px] font-semibold transition-colors',
+                        page === currentPage
+                          ? 'bg-content-primary text-content-inverse'
                           : page === '...'
-                            ? 'text-zinc-400 cursor-default'
-                            : 'bg-white border border-zinc-300 text-zinc-600 hover:border-zinc-950 hover:text-zinc-950'
-                        }`}
+                            ? 'text-content-muted cursor-default'
+                            : 'bg-surface-base border border-border-base text-content-secondary hover:border-border-strong hover:text-content-primary',
+                      )}
                     >
                       {page}
                     </button>
@@ -264,9 +270,9 @@ const DataTable = () => {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination?.totalPages || 1))}
                 disabled={currentPage >= (pagination?.totalPages || 1) || isFetching}
-                className="p-2 border border-zinc-300 rounded-lg bg-white hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="p-1.5 border border-border-base rounded-md bg-surface-base hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                <ChevronRight size={16} />
+                <ChevronRight size={14} />
               </button>
             </div>
           </div>
@@ -274,11 +280,7 @@ const DataTable = () => {
       </div>
 
       <ConfirmModal />
-      <ExcelModal
-        data={items}
-        tipoFilter={tipoFilter}
-        searchTerm={searchTerm}
-      />
+      <ExcelModal data={items} tipoFilter={tipoFilter} searchTerm={searchTerm} />
 
       {itemDetalle && (
         <TamboresItemModal

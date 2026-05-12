@@ -9,20 +9,20 @@ const CARDS = [
 ];
 
 const THEME = {
-  blue:   { iconBg: 'bg-blue-50',   iconText: 'text-blue-600',   value: 'text-blue-700',   bar: 'bg-blue-500'   },
-  amber:  { iconBg: 'bg-amber-50',  iconText: 'text-amber-600',  value: 'text-amber-700',  bar: 'bg-amber-500'  },
-  violet: { iconBg: 'bg-violet-50', iconText: 'text-violet-600', value: 'text-violet-700', bar: 'bg-violet-500' },
-  zinc:   { iconBg: 'bg-zinc-100',  iconText: 'text-zinc-600',   value: 'text-zinc-800',   bar: 'bg-zinc-700'   },
+  blue:   { iconBg: 'bg-semantic-info-subtle',   iconText: 'text-semantic-info-fg',   value: 'text-semantic-info-fg',   bar: 'bg-semantic-info'   },
+  amber:  { iconBg: 'bg-semantic-warning-subtle',  iconText: 'text-semantic-warning-fg',  value: 'text-semantic-warning-fg',  bar: 'bg-semantic-warning'  },
+  violet: { iconBg: 'bg-brand-subtle', iconText: 'text-brand-primary-active', value: 'text-brand-primary-active', bar: 'bg-brand-primary-active' },
+  zinc:   { iconBg: 'bg-surface-muted',  iconText: 'text-content-secondary',   value: 'text-content-primary',   bar: 'bg-content-secondary'   },
 };
 
 const KpiCard = ({ label, icon: Icon, value, sub, theme }) => {
   const t = THEME[theme];
   return (
-    <div className="bg-white border border-zinc-200/70 rounded-xl shadow-sm px-4 py-3 flex items-center justify-between gap-3 hover:shadow-md transition-shadow">
+    <div className="bg-white border border-border-base/70 rounded-xl shadow-sm px-4 py-3 flex items-center justify-between gap-3 hover:shadow-md transition-shadow">
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-zinc-500 mb-0.5">{label}</p>
+        <p className="text-xs font-medium text-content-tertiary mb-0.5">{label}</p>
         <p className={`text-lg font-bold ${t.value} truncate`}>{value}</p>
-        {sub && <p className="text-[10px] text-zinc-400 mt-0.5">{sub}</p>}
+        {sub && <p className="text-[10px] text-content-muted mt-0.5">{sub}</p>}
       </div>
       <div className={`w-10 h-10 ${t.iconBg} rounded-full flex items-center justify-center shrink-0`}>
         <Icon className={`w-5 h-5 ${t.iconText}`} />
@@ -52,7 +52,7 @@ const CostosKpis = ({ totalProduccion, totalCompras, totalIndirectos, isLoading 
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {CARDS.map((c) => (
-          <div key={c.key} className="bg-white border border-zinc-200/70 rounded-xl h-20 animate-pulse" />
+          <div key={c.key} className="bg-white border border-border-base/70 rounded-xl h-20 animate-pulse" />
         ))}
       </div>
     );

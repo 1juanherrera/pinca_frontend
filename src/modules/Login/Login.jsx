@@ -1,123 +1,119 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
-import PincaLogo from "../../assets/pincaicono.png";
-import PincaLetters from "../../assets/pincaLetters.png";
-import apiClient from "../../api/apiClient";
-import { API_ROUTES } from "../../api/apiRoutes";
-import { useBoundStore } from "../../store/useBoundStore";
+import { useState } from 'react';
+import { useNavigate } from 'react-router';
+import PincaLogo from '../../assets/pincaicono.png';
+import PincaLetters from '../../assets/pincaLetters.png';
+import apiClient from '../../api/apiClient';
+import { API_ROUTES } from '../../api/apiRoutes';
+import { useBoundStore } from '../../store/useBoundStore';
+import { Button } from '../../shared/Button';
+import { FormInput } from '../../shared/Form/FormInput';
 
 export const Login = () => {
   const navigate = useNavigate();
   const setAuth = useBoundStore((s) => s.setAuth);
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) {
-      setError("Por favor ingresa usuario y contraseña.");
+      setError('Por favor ingresa usuario y contraseña.');
       return;
     }
-    setError("");
+    setError('');
     setLoading(true);
     try {
       const res = await apiClient.post(API_ROUTES.AUTH.LOGIN, { username, password });
       if (!res.ok) {
-        setError(res.msg || "Usuario o contraseña incorrectos.");
+        setError(res.msg || 'Usuario o contraseña incorrectos.');
         return;
       }
       setAuth(res.token, res.usuario);
-      navigate("/", { replace: true });
+      navigate('/', { replace: true });
     } catch {
-      setError("Error de conexión. Intenta de nuevo.");
+      setError('Error de conexión. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex">
-
-      <div className="w-1/2 hidden md:flex items-center justify-center flex-col bg-black p-10">
+    <div className="min-h-screen flex bg-surface-subtle">
+      {/* Panel izquierdo — branding */}
+      <div className="w-1/2 hidden md:flex items-center justify-center flex-col bg-surface-sidebar p-10 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, var(--brand-primary) 1px, transparent 0)',
+          backgroundSize: '24px 24px',
+        }} />
         <img
           src={PincaLogo}
-          alt="Pinca Logo"
-          className="w-2/3 max-w-sm drop-shadow-2xl animate-fade-in"
+          alt="Pinca"
+          className="relative w-2/3 max-w-sm drop-shadow-2xl"
         />
-        <h2 className="text-white text-2xl font-bold uppercase">
+        <h2 className="relative text-content-inverse text-xl font-bold uppercase tracking-tight mt-6 text-center">
           Pinturas Industriales del Caribe S.A.S.
         </h2>
+        <p className="relative text-content-muted text-xs mt-2 uppercase tracking-wider">
+          Sistema de gestión integral
+        </p>
       </div>
 
-      <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-100 px-6">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl/30 p-8 space-y-6">
-
+      {/* Panel derecho — login form */}
+      <div className="w-full md:w-1/2 flex items-center justify-center px-6 py-10">
+        <div className="w-full max-w-md bg-surface-base rounded-2xl shadow-xl border border-border-base p-8 space-y-6">
           <img
-            className="w-50 mx-auto animate-fade-in"
+            className="w-48 mx-auto"
             src={PincaLetters}
-            alt="Pinca Letters"
+            alt="Pinca"
           />
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            {/* Usuario */}
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                Usuario
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                disabled={loading}
-                autoComplete="username"
-                className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-lg bg-gray-100
-                           focus:outline-none focus:ring-2 focus:ring-gray-500 focus:bg-white
-                           transition-all text-black disabled:opacity-60"
-              />
-            </div>
+          <div className="text-center">
+            <h1 className="text-lg font-bold text-content-primary">Bienvenido</h1>
+            <p className="text-xs text-content-tertiary mt-1">Inicia sesión para continuar</p>
+          </div>
 
-            {/* Contraseña */}
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                Contraseña
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                autoComplete="current-password"
-                className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-lg bg-gray-100
-                           focus:outline-none focus:ring-2 focus:ring-gray-500 focus:bg-white
-                           transition-all disabled:opacity-60"
-              />
-            </div>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <FormInput
+              label="Usuario"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              disabled={loading}
+              autoComplete="username"
+              placeholder="Tu nombre de usuario"
+            />
 
-            {/* Error */}
+            <FormInput
+              label="Contraseña"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+              autoComplete="current-password"
+              placeholder="••••••••"
+            />
+
             {error && (
-              <p className="text-sm text-red-600 text-center">{error}</p>
+              <div className="bg-semantic-danger-subtle border border-semantic-danger/15 rounded-md px-3 py-2 text-xs text-semantic-danger-fg text-center">
+                {error}
+              </div>
             )}
 
-            {/* Botón */}
-            <button
+            <Button
               type="submit"
-              disabled={loading}
-              className="w-full py-3 text-white font-semibold bg-black rounded-lg
-                         hover:opacity-90 transition-all cursor-pointer shadow-md
-                         hover:shadow-lg active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+              variant="primary"
+              size="lg"
+              loading={loading}
+              className="w-full"
             >
-              {loading ? "Ingresando..." : "Ingresar"}
-            </button>
+              Ingresar
+            </Button>
 
-            {/* Registro */}
-            <p className="text-sm text-center text-gray-600">
-              ¿No tienes una cuenta?
-              <span className="text-black font-medium ml-1">
-                Registrarse
-              </span>
+            <p className="text-xs text-center text-content-tertiary pt-2">
+              ¿Problemas para acceder? Contacta al administrador.
             </p>
           </form>
         </div>

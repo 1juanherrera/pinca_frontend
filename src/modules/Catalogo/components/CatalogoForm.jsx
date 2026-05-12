@@ -62,25 +62,25 @@ const CatalogoForm = ({ item, onSubmit, onClose, isSaving }) => {
   ];
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-zinc-950/50 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-content-primary/50 backdrop-blur-sm" onClick={onClose}>
       <div
         className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-100">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-zinc-900 text-white rounded-xl">
+            <div className="flex items-center justify-center w-10 h-10 bg-content-primary text-white rounded-xl">
               <FileText size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
+              <h2 className="text-lg font-bold text-content-primary tracking-tight">
                 {isEdit ? 'Editar Ítem' : 'Nuevo Ítem en Catálogo'}
               </h2>
-              <p className="text-xs text-zinc-500">Definición técnica del producto</p>
+              <p className="text-xs text-content-tertiary">Definición técnica del producto</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-full transition-colors">
+          <button onClick={onClose} className="p-2 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-full transition-colors">
             <X size={22} />
           </button>
         </div>
@@ -111,7 +111,7 @@ const CatalogoForm = ({ item, onSubmit, onClose, isSaving }) => {
                   </div>
                   <button
                     type="button" onClick={handleGenerateCode} title="Generar código"
-                    className="group mb-px p-2.5 text-zinc-500 bg-zinc-100 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white transition-all active:scale-95"
+                    className="group mb-px p-2.5 text-content-tertiary bg-surface-muted border border-border-base rounded-lg hover:bg-content-primary hover:text-white transition-all active:scale-95"
                   >
                     <Wand2 size={16} className="group-hover:rotate-12 transition-transform" />
                   </button>
@@ -183,8 +183,8 @@ const CatalogoForm = ({ item, onSubmit, onClose, isSaving }) => {
 
             {/* Ficha técnica */}
             <div>
-              <h3 className="text-xs font-bold text-zinc-700 uppercase tracking-widest mb-3">Ficha Técnica</h3>
-              <div className="grid grid-cols-3 gap-0 border-t border-l border-zinc-200 rounded-xl overflow-hidden">
+              <h3 className="text-xs font-bold text-content-secondary uppercase tracking-widest mb-3">Ficha Técnica</h3>
+              <div className="grid grid-cols-3 gap-0 border-t border-l border-border-base rounded-xl overflow-hidden">
                 <GridInput label="Viscosidad"      id="viscosidad"     placeholder="100 - 105 KU" registration={register('viscosidad')} />
                 <GridInput label="Densidad / P.G." id="p_g"            placeholder="1.25 gal/kg"  registration={register('p_g')} />
                 <GridInput label="pH"              id="ph"             placeholder="8.5 - 9.0"    registration={register('ph')} />
@@ -199,7 +199,7 @@ const CatalogoForm = ({ item, onSubmit, onClose, isSaving }) => {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-zinc-50 border-t border-zinc-200">
+          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-surface-subtle border-t border-border-base">
             <Button variant="white" onClick={onClose} disabled={isSaving}>Cancelar</Button>
             <Button type="submit" disabled={isSaving} icon={isSaving ? undefined : FileText}>
               {isSaving ? (

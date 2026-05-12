@@ -61,21 +61,21 @@ export const handleExport = (data, closeModal, ) => {
 const tipos = {
   '0': {
     nombre: 'PRODUCTOS',
-    color: ' bg-blue-100 text-blue-700 border-blue-300'
+    color: 'bg-semantic-info-subtle text-semantic-info-fg border-semantic-info/30',
   },
   '1': {
     nombre: 'MATERIA PRIMA',
-    color: 'bg-purple-100 text-purple-600 border-purple-300'
+    color: 'bg-brand-subtle text-brand-primary-active border-brand-primary/30',
   },
   '2': {
     nombre: 'INSUMOS',
-    color: 'bg-yellow-100 text-yellow-600 border-yellow-300'
-  }
+    color: 'bg-semantic-warning-subtle text-semantic-warning-fg border-semantic-warning/30',
+  },
 };
 
 export const getTipoInfo = (value) => {
   return tipos[value] || {
     nombre: 'TODOS LOS ITEMS',
-    color: 'bg-gray-200 text-gray-700 border-gray-300'
+    color: 'bg-surface-muted text-content-secondary border-border-base',
   };
 };

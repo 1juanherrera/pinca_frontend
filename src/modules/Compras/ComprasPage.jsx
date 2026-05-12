@@ -47,7 +47,7 @@ const ComprasPage = () => {
       </div>
 
       {/* Navegación por tabs */}
-      <div className="flex items-center border-b border-zinc-200">
+      <div className="flex items-center border-b border-border-base">
         {TABS.map((t) => {
           const Icon   = t.icon;
           const active = tab === t.id;
@@ -57,8 +57,8 @@ const ComprasPage = () => {
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 pb-3 pt-1 text-sm font-semibold border-b-2 transition-all -mb-px whitespace-nowrap ${
                 active
-                  ? 'border-zinc-900 text-zinc-900'
-                  : 'border-transparent text-zinc-400 hover:text-zinc-700 hover:border-zinc-300'
+                  ? 'border-content-primary text-content-primary'
+                  : 'border-transparent text-content-muted hover:text-content-secondary hover:border-border-strong'
               }`}
             >
               <Icon size={14} />

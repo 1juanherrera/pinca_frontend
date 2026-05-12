@@ -149,7 +149,7 @@ const OrdenForm = () => {
           <button
             onClick={handleClose}
             type="button"
-            className="px-5 py-2.5 text-sm font-semibold text-zinc-600 bg-white border border-zinc-200/80 rounded-xl hover:bg-zinc-50 transition-all"
+            className="px-5 py-2.5 text-sm font-semibold text-content-secondary bg-white border border-border-base/80 rounded-xl hover:bg-surface-subtle transition-all"
           >
             Cancelar
           </button>
@@ -157,7 +157,7 @@ const OrdenForm = () => {
             type="submit"
             form="orden-compra-form"
             disabled={isSaving || lineas.length === 0}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 disabled:opacity-70 transition-all shadow-md shadow-emerald-600/20"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-semantic-success rounded-xl hover:bg-semantic-success disabled:opacity-70 transition-all shadow-md shadow-sm"
           >
             {isSaving ? (
               <span className="flex items-center gap-2">
@@ -234,14 +234,14 @@ const OrdenForm = () => {
         {/* Líneas */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+            <label className="text-[10px] font-bold text-content-muted uppercase tracking-widest">
               Productos {lineas.length > 0 && `(${lineas.length})`}
             </label>
             {proveedorSeleccionado && (
               <button
                 type="button"
                 onClick={() => setShowSearch((v) => !v)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
               >
                 <Plus size={11} /> Agregar producto
               </button>
@@ -251,29 +251,29 @@ const OrdenForm = () => {
           {/* Buscador de items del proveedor */}
           {showSearch && (
             <div className="relative">
-              <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+              <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
               <input
                 type="text"
                 autoFocus
                 value={searchItem}
                 onChange={(e) => setSearchItem(e.target.value)}
                 placeholder="Buscar producto del proveedor..."
-                className="w-full pl-8 pr-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 transition placeholder:text-zinc-300"
+                className="w-full pl-8 pr-3 py-2 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition placeholder:text-content-muted"
               />
               {itemsFiltrados.length > 0 && (
-                <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-white border border-zinc-100 rounded-lg shadow-xl overflow-hidden max-h-48 overflow-y-auto">
+                <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-white border border-border-subtle rounded-lg shadow-xl overflow-hidden max-h-48 overflow-y-auto">
                   {itemsFiltrados.map((item) => (
                     <button
                       key={item.id_item_proveedor}
                       type="button"
                       onClick={() => agregarLinea(item)}
-                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 transition-colors text-left border-b border-zinc-50 last:border-0"
+                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-surface-subtle transition-colors text-left border-b border-border-subtle last:border-0"
                     >
                       <div>
-                        <p className="text-xs font-semibold text-zinc-800">{item.nombre}</p>
-                        <p className="text-[10px] text-zinc-400 ">{item.codigo} · {fmt(item.precio_unitario)}</p>
+                        <p className="text-xs font-semibold text-content-primary">{item.nombre}</p>
+                        <p className="text-[10px] text-content-muted ">{item.codigo} · {fmt(item.precio_unitario)}</p>
                       </div>
-                      <Plus size={12} className="text-zinc-400 shrink-0" />
+                      <Plus size={12} className="text-content-muted shrink-0" />
                     </button>
                   ))}
                 </div>
@@ -283,21 +283,21 @@ const OrdenForm = () => {
 
           {/* Tabla de líneas */}
           {lineas.length === 0 ? (
-            <div className="border border-dashed border-zinc-200 rounded-lg py-8 text-center">
-              <p className="text-xs text-zinc-400">
+            <div className="border border-dashed border-border-base rounded-lg py-8 text-center">
+              <p className="text-xs text-content-muted">
                 {proveedorSeleccionado
                   ? 'Agrega productos con el botón de arriba'
                   : 'Selecciona un proveedor primero'}
               </p>
             </div>
           ) : (
-            <div className="border border-zinc-100 rounded-lg overflow-hidden">
-              <div className="divide-y divide-zinc-50">
+            <div className="border border-border-subtle rounded-lg overflow-hidden">
+              <div className="divide-y divide-border-subtle">
                 {lineas.map((linea, idx) => (
                   <div key={idx} className="px-3 py-2.5 flex items-center gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-zinc-800 truncate">{linea.item_nombre}</p>
-                      <p className="text-[10px] text-zinc-400 ">{linea.item_codigo}</p>
+                      <p className="text-xs font-semibold text-content-primary truncate">{linea.item_nombre}</p>
+                      <p className="text-[10px] text-content-muted ">{linea.item_codigo}</p>
                     </div>
                     <input
                       type="number"
@@ -305,7 +305,7 @@ const OrdenForm = () => {
                       min="0.01"
                       value={linea.cantidad}
                       onChange={(e) => actualizarLinea(idx, 'cantidad', e.target.value)}
-                      className="w-20 px-2 py-1 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 text-center tabular-nums"
+                      className="w-20 px-2 py-1 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 text-center tabular-nums"
                       placeholder="Cant."
                     />
                     <input
@@ -314,25 +314,25 @@ const OrdenForm = () => {
                       min="0"
                       value={linea.precio_unit}
                       onChange={(e) => actualizarLinea(idx, 'precio_unit', e.target.value)}
-                      className="w-28 px-2 py-1 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 text-right tabular-nums"
+                      className="w-28 px-2 py-1 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 text-right tabular-nums"
                       placeholder="Precio"
                     />
-                    <span className="text-xs font-bold text-zinc-700 tabular-nums w-24 text-right shrink-0">
+                    <span className="text-xs font-bold text-content-secondary tabular-nums w-24 text-right shrink-0">
                       {fmt(Number(linea.cantidad) * Number(linea.precio_unit))}
                     </span>
                     <button
                       type="button"
                       onClick={() => quitarLinea(idx)}
-                      className="shrink-0 w-6 h-6 flex items-center justify-center rounded-md text-zinc-300 hover:bg-red-100 hover:text-red-500 transition-all"
+                      className="shrink-0 w-6 h-6 flex items-center justify-center rounded-md text-content-muted hover:bg-semantic-danger-subtle hover:text-semantic-danger transition-all"
                     >
                       <Trash2 size={12} />
                     </button>
                   </div>
                 ))}
               </div>
-              <div className="px-3 py-2.5 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between">
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Total</span>
-                <span className="text-sm font-bold text-zinc-800 tabular-nums">{fmt(total)}</span>
+              <div className="px-3 py-2.5 bg-surface-subtle border-t border-border-subtle flex items-center justify-between">
+                <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">Total</span>
+                <span className="text-sm font-bold text-content-primary tabular-nums">{fmt(total)}</span>
               </div>
             </div>
           )}

@@ -9,8 +9,8 @@ import useTableSort from '../../../hooks/useTableSorts';
 import VincularModal from './VincularModal';
 
 const STATUS_OPTIONS = [
-  { value: '1', label: 'Disponible',     dot: 'bg-emerald-500' },
-  { value: '2', label: 'No disponible',  dot: 'bg-red-400'     },
+  { value: '1', label: 'Disponible',     dot: 'bg-semantic-success' },
+  { value: '2', label: 'No disponible',  dot: 'bg-semantic-danger/80'     },
 ];
 
 const CatalogoTab = () => {
@@ -42,7 +42,7 @@ const CatalogoTab = () => {
       label:     'Código',
       className: 'w-28',
       render: (v) => (
-        <span className=" text-xs font-bold text-zinc-400 whitespace-nowrap">{v ?? '—'}</span>
+        <span className=" text-xs font-bold text-content-muted whitespace-nowrap">{v ?? '—'}</span>
       ),
     },
     {
@@ -50,8 +50,8 @@ const CatalogoTab = () => {
       label: 'Producto',
       render: (v, row) => (
         <div>
-          <p className="font-semibold uppercase text-zinc-800 text-xs leading-none truncate">{v}</p>
-          <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{row.nombre_empresa}</p>
+          <p className="font-semibold uppercase text-content-primary text-xs leading-none truncate">{v}</p>
+          <p className="text-[10px] text-content-muted mt-0.5 truncate">{row.nombre_empresa}</p>
         </div>
       ),
     },
@@ -60,7 +60,7 @@ const CatalogoTab = () => {
       label:     'Tipo',
       className: 'w-32',
       render: (v) => (
-        <span className="text-xs uppercase text-zinc-500 whitespace-nowrap">{v ?? '—'}</span>
+        <span className="text-xs uppercase text-content-tertiary whitespace-nowrap">{v ?? '—'}</span>
       ),
     },
     {
@@ -68,7 +68,7 @@ const CatalogoTab = () => {
       label:     'Unidad',
       align:     'center',
       render: (v) => (
-        <span className="text-xs text-zinc-500 whitespace-nowrap">{v ?? '—'}</span>
+        <span className="text-xs text-content-tertiary whitespace-nowrap">{v ?? '—'}</span>
       ),
     },
     {
@@ -91,12 +91,12 @@ const CatalogoTab = () => {
       align:     'center',
       className: 'w-40',
       render: (v) => v ? (
-        <div className="inline-flex items-center gap-1.5 text-xs text-emerald-700 font-semibold">
+        <div className="inline-flex items-center gap-1.5 text-xs text-semantic-success-fg font-semibold">
           <Link size={11} className="shrink-0" />
           <span className="truncate max-w-32.5">{v}</span>
         </div>
       ) : (
-        <span className="text-[10px] text-zinc-400 italic">Sin vincular</span>
+        <span className="text-[10px] text-content-muted italic">Sin vincular</span>
       ),
     },
     {
@@ -112,8 +112,8 @@ const CatalogoTab = () => {
             onClick={(e) => { e.stopPropagation(); setItemVincular(row); }}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold border rounded-lg transition-all ${
               row.item_general_nombre
-                ? 'text-emerald-600 border-emerald-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600'
-                : 'text-zinc-500 border-zinc-200 hover:bg-zinc-950 hover:text-white hover:border-zinc-950'
+                ? 'text-semantic-success-fg border-semantic-success/20 hover:bg-semantic-success hover:text-white hover:border-semantic-success'
+                : 'text-content-tertiary border-border-base hover:bg-content-primary hover:text-white hover:border-content-primary'
             }`}
             title={row.item_general_nombre ? 'Editar vínculo' : 'Vincular a ítem'}
           >
@@ -124,7 +124,7 @@ const CatalogoTab = () => {
           {/* Editar item_proveedor */}
           <button
             onClick={(e) => { e.stopPropagation(); openDrawer('ITEM_PROVEEDOR_FORM', row); }}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
             title="Editar producto"
           >
             <Edit size={12} />
@@ -140,7 +140,7 @@ const CatalogoTab = () => {
                 onConfirm: async () => await removeItemAsync(row.id_item_proveedor),
               });
             }}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-all active:scale-95"
             title="Eliminar"
           >
             <Trash2 size={12} />
@@ -152,7 +152,7 @@ const CatalogoTab = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm">
+      <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
         <SearchFilterBar
           search={search}
           onSearch={setSearch}

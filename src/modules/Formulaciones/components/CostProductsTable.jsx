@@ -25,14 +25,14 @@ export const CostProductsTable = ({
 
     if (!selectedProductData) {
         return (
-            <div className="bg-white rounded-lg shadow-sm p-4 text-center border border-zinc-200/60">
-                <div className="text-gray-400 mb-3">
+            <div className="bg-white rounded-lg shadow-sm p-4 text-center border border-border-base/60">
+                <div className="text-content-muted mb-3">
                     <Calculator size={48} className="mx-auto" />
                 </div>
-                <h3 className='text-lg font-medium text-gray-900 mb-2'>
+                <h3 className='text-lg font-medium text-content-primary mb-2'>
                     Desglose de Costos
                 </h3>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-content-tertiary">
                     Selecciona un producto para ver su desglose de costos
                 </p>
             </div>
@@ -40,37 +40,37 @@ export const CostProductsTable = ({
     }
 
     const COST_DEFINITIONS = {
-        costo_mp_galon: { label: 'COSTO MP/GALÓN', icon: <FlaskConical className="text-blue-500" size={14} /> },
-        costo_mg_kg:    { label: 'COSTO MG/KG',    icon: <FlaskConical className="text-blue-500" size={14} /> },
-        costo_mod:      { label: 'COSTO MOD',       icon: <Briefcase className="text-green-500" size={14} /> },
-        envase:         { label: 'ENVASE',          icon: <Box className="text-orange-500" size={14} /> },
-        etiqueta:       { label: 'ETIQUETA',        icon: <Tag className="text-red-500" size={14} /> },
-        bandeja:        { label: 'BANDEJA',         icon: <Tag className="text-purple-500" size={14} /> },
-        plastico:       { label: 'PLÁSTICO',        icon: <Droplets className="text-teal-500" size={14} /> },
+        costo_mp_galon: { label: 'COSTO MP/GALÓN', icon: <FlaskConical className="text-semantic-info" size={14} /> },
+        costo_mg_kg:    { label: 'COSTO MG/KG',    icon: <FlaskConical className="text-semantic-info" size={14} /> },
+        costo_mod:      { label: 'COSTO MOD',       icon: <Briefcase className="text-semantic-success" size={14} /> },
+        envase:         { label: 'ENVASE',          icon: <Box className="text-semantic-warning" size={14} /> },
+        etiqueta:       { label: 'ETIQUETA',        icon: <Tag className="text-semantic-danger" size={14} /> },
+        bandeja:        { label: 'BANDEJA',         icon: <Tag className="text-brand-primary-active" size={14} /> },
+        plastico:       { label: 'PLÁSTICO',        icon: <Droplets className="text-semantic-info" size={14} /> },
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-zinc-200/60">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-border-base/60">
 
             {/* Header */}
-            <div className="bg-zinc-700 text-white px-4 py-3">
+            <div className="bg-content-secondary text-white px-4 py-3">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className={`${compact ? 'text-base' : 'text-lg'} font-semibold flex items-center gap-2 tracking-tight`}>
                             <Calculator size={compact ? 16 : 20} />
                             Desglose de Costos
                             {recalculatedData && (
-                                <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-sm ml-2">
+                                <span className="bg-semantic-success text-white text-xs px-2 py-0.5 rounded-sm ml-2">
                                     Calculado
                                 </span>
                             )}
                             {costosProveedor && (
-                                <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-sm ml-1 flex items-center gap-1">
+                                <span className="bg-semantic-warning text-white text-xs px-2 py-0.5 rounded-sm ml-1 flex items-center gap-1">
                                     <Truck size={10} /> {costosProveedor.proveedor?.nombre_empresa}
                                 </span>
                             )}
                         </h3>
-                        <p className="text-emerald-50 text-xs opacity-90">
+                        <p className="text-semantic-success-subtle text-xs opacity-90">
                             {productDetail?.item?.nombre || selectedProductData.nombre}
                         </p>
                     </div>
@@ -83,7 +83,7 @@ export const CostProductsTable = ({
                                 onClick={() => openDrawer('COSTOS_FORM', productDetail)}
                                 title="Editar costos indirectos"
                                 variant="emerald"
-                                className="flex items-center gap-1.5 px-3 py-2 bg-blue-700 hover:bg-blue-700/25 border border-white/20 hover:border-white/40 rounded-lg text-white text-[12px] font-semibold transition-all active:scale-95"
+                                className="flex items-center gap-1.5 px-3 py-2 bg-semantic-info hover:bg-semantic-info/25 border border-white/20 hover:border-white/40 rounded-lg text-white text-[12px] font-semibold transition-all active:scale-95"
                             >   
                             </ButtonSquare>
                         )}
@@ -93,23 +93,23 @@ export const CostProductsTable = ({
             {/* Tabla — sin columna Acciones */}
             <div className="overflow-x-auto">
                 <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
+                    <thead className="bg-surface-subtle border-b border-border-base">
                         <tr>
-                            <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                            <th className="px-3 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">
                                 Concepto
                             </th>
-                            <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                            <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">
                                 <div className="flex items-center justify-center gap-1">
                                     <DollarSign size={10} /> Original
                                 </div>
                             </th>
-                            <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                            <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">
                                 <div className="flex items-center justify-center gap-1">
                                     <DollarSign size={10} /> Valor Recalculado
                                 </div>
                             </th>
                             {costosProveedor && (
-                                <th className="px-3 py-2 text-center text-[10px] font-semibold text-amber-600 uppercase tracking-wider">
+                                <th className="px-3 py-2 text-center text-[10px] font-semibold text-semantic-warning-fg uppercase tracking-wider">
                                     <div className="flex items-center justify-center gap-1">
                                         <Truck size={10} /> Proveedor
                                     </div>
@@ -117,19 +117,19 @@ export const CostProductsTable = ({
                             )}
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-100">
+                    <tbody className="bg-white divide-y divide-border-subtle">
                         {isLoading
                             ? [...Array(5)].map((_, i) => (
                                 <tr key={i} className="animate-pulse">
                                     <td className="px-3 py-2.5">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-6 w-6 bg-zinc-200 rounded shrink-0" />
-                                            <div className="h-3 bg-zinc-200 rounded w-20" />
+                                            <div className="h-6 w-6 bg-surface-strong rounded shrink-0" />
+                                            <div className="h-3 bg-surface-strong rounded w-20" />
                                         </div>
                                     </td>
-                                    <td className="px-3 py-2.5 text-center"><div className="h-3 bg-zinc-200 rounded w-16 mx-auto" /></td>
-                                    <td className="px-3 py-2.5 text-center"><div className="h-3 bg-zinc-200 rounded w-16 mx-auto" /></td>
-                                    {costosProveedor && <td className="px-3 py-2.5 text-center"><div className="h-3 bg-zinc-200 rounded w-16 mx-auto" /></td>}
+                                    <td className="px-3 py-2.5 text-center"><div className="h-3 bg-surface-strong rounded w-16 mx-auto" /></td>
+                                    <td className="px-3 py-2.5 text-center"><div className="h-3 bg-surface-strong rounded w-16 mx-auto" /></td>
+                                    {costosProveedor && <td className="px-3 py-2.5 text-center"><div className="h-3 bg-surface-strong rounded w-16 mx-auto" /></td>}
                                 </tr>
                             ))
                             : productDetail?.costos &&
@@ -138,30 +138,30 @@ export const CostProductsTable = ({
                                     .map(([key, value]) => {
                                         const { label, icon } = COST_DEFINITIONS[key];
                                         return (
-                                            <tr key={key} className="hover:bg-emerald-50/30 transition-colors">
+                                            <tr key={key} className="hover:bg-semantic-success-subtle/30 transition-colors">
                                                 <td className="px-3 py-2 whitespace-nowrap">
                                                     <div className="flex items-center">
-                                                        <div className="shrink-0 mr-3 p-1 bg-zinc-50 rounded border border-zinc-100">
+                                                        <div className="shrink-0 mr-3 p-1 bg-surface-subtle rounded border border-border-subtle">
                                                             {icon}
                                                         </div>
-                                                        <div className="text-xs font-semibold text-zinc-700 uppercase tracking-tighter">
+                                                        <div className="text-xs font-semibold text-content-secondary uppercase tracking-tighter">
                                                             {label}
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="whitespace-nowrap text-center">
-                                                    <div className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-gray-400">
+                                                    <div className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-content-muted">
                                                         $ {value || '-'}
                                                     </div>
                                                 </td>
-                                                <td className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-gray-400">
-                                                    <div className={`text-xs font-bold ${value ? 'text-emerald-600' : 'text-gray-400'}`}>
+                                                <td className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-content-muted">
+                                                    <div className={`text-xs font-bold ${value ? 'text-semantic-success-fg' : 'text-content-muted'}`}>
                                                         $ {value || '-'}
                                                     </div>
                                                 </td>
                                                 {costosProveedor && (
                                                     <td className="px-3 py-2 whitespace-nowrap text-center">
-                                                        <div className="text-xs font-bold text-amber-600">
+                                                        <div className="text-xs font-bold text-semantic-warning-fg">
                                                             $ {costosProveedor.costos_proveedor?.[key] || value || '-'}
                                                         </div>
                                                     </td>
@@ -178,34 +178,34 @@ export const CostProductsTable = ({
                             <td className="px-3 py-3 whitespace-nowrap">
                                 <div className="flex items-center">
                                     <div className="shrink-0 mr-3">
-                                        <DollarSign className="text-emerald-600" size={16} />
+                                        <DollarSign className="text-semantic-success-fg" size={16} />
                                     </div>
-                                    <div className="text-xs font-bold text-zinc-800 uppercase">
+                                    <div className="text-xs font-bold text-content-primary uppercase">
                                         COSTO TOTAL
                                     </div>
                                 </div>
                             </td>
                             <td className="px-3 py-3 whitespace-nowrap text-center">
                                 {isLoading
-                                    ? <div className="h-3 w-16 bg-zinc-200 rounded animate-pulse mx-auto" />
-                                    : <div className="text-xs font-semibold text-zinc-400">$ {productDetail?.costos?.total || 0}</div>
+                                    ? <div className="h-3 w-16 bg-surface-strong rounded animate-pulse mx-auto" />
+                                    : <div className="text-xs font-semibold text-content-muted">$ {productDetail?.costos?.total || 0}</div>
                                 }
                             </td>
                             <td className="px-3 py-3 whitespace-nowrap text-center">
                                 {isLoading
-                                    ? <div className="h-4 w-20 bg-zinc-200 rounded animate-pulse mx-auto" />
-                                    : <div className="text-lg font-bold text-emerald-700 tracking-tighter">$ {recalculatedData?.recalculados?.total || '-'}</div>
+                                    ? <div className="h-4 w-20 bg-surface-strong rounded animate-pulse mx-auto" />
+                                    : <div className="text-lg font-bold text-semantic-success-fg tracking-tighter">$ {recalculatedData?.recalculados?.total || '-'}</div>
                                 }
                             </td>
                             {costosProveedor && (
                                 <td className="px-3 py-3 whitespace-nowrap text-center">
-                                    <div className="text-lg font-bold text-amber-700 tracking-tighter">
+                                    <div className="text-lg font-bold text-semantic-warning-fg tracking-tighter">
                                         $ {costosProveedor.costos_proveedor?.total || '-'}
                                     </div>
                                 </td>
                             )}
                         </tr>
-                        <tr className="bg-zinc-700 font-semibold text-white">
+                        <tr className="bg-content-secondary font-semibold text-white">
                             <td className="px-3 py-3 whitespace-nowrap">
                                 <div className="flex items-center">
                                     <div className="shrink-0 mr-3">
@@ -213,7 +213,7 @@ export const CostProductsTable = ({
                                     </div>
                                     <div className="text-xs font-bold uppercase">
                                         VENTA SUGERIDA
-                                        <span className="ml-1 bg-white text-zinc-900 px-1.5 py-0.5 rounded text-[9px]">
+                                        <span className="ml-1 bg-white text-content-primary px-1.5 py-0.5 rounded text-[9px]">
                                             {productDetail?.costos?.porcentaje_utilidad ?? 50}%
                                         </span>
                                     </div>
@@ -228,7 +228,7 @@ export const CostProductsTable = ({
                                 $ {recalculatedData?.recalculados?.precio_venta || '-'}
                             </td>
                             {costosProveedor && (
-                                <td className="text-lg font-bold tracking-tighter text-center text-amber-400">
+                                <td className="text-lg font-bold tracking-tighter text-center text-semantic-warning">
                                     $ {costosProveedor.costos_proveedor?.precio_venta || '-'}
                                 </td>
                             )}
@@ -238,7 +238,7 @@ export const CostProductsTable = ({
             </div>
 
             {/* Footer fecha */}
-            <div className="bg-gray-50 px-4 py-2 border-t border-gray-200 flex justify-between items-center text-[9px] font-semibold text-gray-400 uppercase">
+            <div className="bg-surface-subtle px-4 py-2 border-t border-border-base flex justify-between items-center text-[9px] font-semibold text-content-muted uppercase">
                 <div>Pinca S.A.S — División de Costos</div>
                 <div>Calculado: {productDetail?.costos?.fecha_calculo || 'N/A'}</div>
             </div>

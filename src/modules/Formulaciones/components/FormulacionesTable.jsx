@@ -44,7 +44,7 @@ const IngredienteProveedorSelect = ({ opciones, selectedId, onSelect }) => {
 
   if (!opciones.length) {
     return (
-      <span className="text-[9px] text-zinc-400 italic">Sin proveedores</span>
+      <span className="text-[9px] text-content-muted italic">Sin proveedores</span>
     );
   }
 
@@ -56,8 +56,8 @@ const IngredienteProveedorSelect = ({ opciones, selectedId, onSelect }) => {
         onClick={() => setOpen((v) => !v)}
         className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border transition-all max-w-[160px] ${
           selected
-            ? 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
-            : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:bg-zinc-100'
+            ? 'bg-semantic-warning-subtle border-semantic-warning/20 text-semantic-warning-fg hover:bg-semantic-warning-subtle'
+            : 'bg-surface-subtle border-border-base text-content-tertiary hover:bg-surface-muted'
         }`}
       >
         <Truck size={9} className="shrink-0" />
@@ -71,7 +71,7 @@ const IngredienteProveedorSelect = ({ opciones, selectedId, onSelect }) => {
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onSelect(null); }}
-          className="text-zinc-400 hover:text-red-500 transition-colors ml-0.5"
+          className="text-content-muted hover:text-semantic-danger transition-colors ml-0.5"
         >
           <X size={9} />
         </button>
@@ -80,11 +80,11 @@ const IngredienteProveedorSelect = ({ opciones, selectedId, onSelect }) => {
       {open && createPortal(
         <div
           ref={dropRef}
-          className="fixed z-[9999] bg-white border border-zinc-200 rounded-lg shadow-xl overflow-hidden"
+          className="fixed z-[9999] bg-white border border-border-base rounded-lg shadow-xl overflow-hidden"
           style={{ top: coords.top, left: coords.left, width: coords.width }}
         >
-          <div className="px-2 py-1.5 bg-zinc-50 border-b border-zinc-100">
-            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Proveedores vinculados</p>
+          <div className="px-2 py-1.5 bg-surface-subtle border-b border-border-subtle">
+            <p className="text-[9px] font-bold text-content-tertiary uppercase tracking-widest">Proveedores vinculados</p>
           </div>
           <div className="max-h-44 overflow-y-auto">
             {opciones.map((op) => (
@@ -92,18 +92,18 @@ const IngredienteProveedorSelect = ({ opciones, selectedId, onSelect }) => {
                 key={op.id_item_proveedor}
                 type="button"
                 onClick={() => { onSelect(op.id_item_proveedor); setOpen(false); }}
-                className={`w-full text-left px-2.5 py-2 hover:bg-amber-50 transition-colors flex items-center justify-between gap-2 ${
-                  op.id_item_proveedor === selectedId ? 'bg-amber-50' : ''
+                className={`w-full text-left px-2.5 py-2 hover:bg-semantic-warning-subtle transition-colors flex items-center justify-between gap-2 ${
+                  op.id_item_proveedor === selectedId ? 'bg-semantic-warning-subtle' : ''
                 }`}
               >
                 <div className="min-w-0">
-                  <p className="text-[11px] font-semibold text-zinc-800 truncate">{op.nombre_empresa}</p>
-                  <p className="text-[9px] text-zinc-400 truncate">{op.nombre_item}</p>
+                  <p className="text-[11px] font-semibold text-content-primary truncate">{op.nombre_empresa}</p>
+                  <p className="text-[9px] text-content-muted truncate">{op.nombre_item}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-[11px] font-bold text-amber-700">{fmtCOP(op.precio_por_kg)}/kg</p>
+                  <p className="text-[11px] font-bold text-semantic-warning-fg">{fmtCOP(op.precio_por_kg)}/kg</p>
                   {op.unidad_compra && (
-                    <p className="text-[9px] text-zinc-400">{fmtCOP(op.precio_unitario)}/{op.unidad_compra}</p>
+                    <p className="text-[9px] text-content-muted">{fmtCOP(op.precio_unitario)}/{op.unidad_compra}</p>
                   )}
                 </div>
               </button>
@@ -131,13 +131,13 @@ export const FormulacionesTable = ({
     if (!selectedProductData) {
         return (
             <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-                <div className="text-gray-400 mb-3">
+                <div className="text-content-muted mb-3">
                     <FlaskConical size={compact ? 32 : 48} className="mx-auto" />
                 </div>
-                <h3 className={`${compact ? 'text-base' : 'text-lg'} font-medium text-gray-900 mb-2`}>
+                <h3 className={`${compact ? 'text-base' : 'text-lg'} font-medium text-content-primary mb-2`}>
                     Formulaciones
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-content-tertiary">
                     Selecciona un producto para ver sus formulaciones
                 </p>
             </div>
@@ -210,21 +210,21 @@ export const FormulacionesTable = ({
     }, [seleccionPorIngrediente, dataToShow, materiasOpciones, recalculatedData]);
 
     return (
-        <div className="bg-white rounded-lg shadow-sm overflow-visible border border-zinc-200/60">
+        <div className="bg-white rounded-lg shadow-sm overflow-visible border border-border-base/60">
             {/* Header */}
-            <div className="bg-zinc-700 text-white px-4 py-3 rounded-t-lg">
+            <div className="bg-content-secondary text-white px-4 py-3 rounded-t-lg">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className={`${compact ? 'text-base' : 'text-lg'} font-semibold flex items-center gap-2`}>
                             <FlaskConical size={compact ? 16 : 20} />
                             Formulaciones
                             {recalculatedData && (
-                                <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-sm ml-2">
+                                <span className="bg-semantic-success text-white text-xs px-2 py-0.5 rounded-sm ml-2">
                                     Calculado
                                 </span>
                             )}
                             {costosProveedor && (
-                                <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-sm ml-1 flex items-center gap-1">
+                                <span className="bg-semantic-warning text-white text-xs px-2 py-0.5 rounded-sm ml-1 flex items-center gap-1">
                                     <Truck size={10} /> {costosProveedor.proveedor?.nombre_empresa}
                                 </span>
                             )}
@@ -258,59 +258,59 @@ export const FormulacionesTable = ({
 
             {/* Tabla */}
             <div className="overflow-x-auto">
-                <table className="w-full border-collapse divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                <table className="w-full border-collapse divide-y divide-border-base">
+                    <thead className="bg-surface-subtle">
                         <tr>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-2 text-left text-xs font-medium text-content-secondary uppercase tracking-wider">
                                 #
                             </th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-2 text-left text-xs font-medium text-content-secondary uppercase tracking-wider">
                                 Materia Prima
                             </th>
-                            <th className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-2 text-center text-xs font-medium text-content-secondary uppercase tracking-wider">
                                 <div className="flex items-center justify-center gap-1">
-                                    <Scale size={14} className="text-gray-400" />
+                                    <Scale size={14} className="text-content-muted" />
                                     Cantidad
                                 </div>
                             </th>
-                             <th className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                             <th className="px-3 py-2 text-center text-xs font-medium text-content-secondary uppercase tracking-wider">
                                 <div className="flex items-center justify-center gap-1">
-                                    <Scale size={14} className="text-gray-400" />
+                                    <Scale size={14} className="text-content-muted" />
                                     Cantidad Disp.
                                 </div>
                             </th>
-                            <th className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-2 text-center text-xs font-medium text-content-secondary uppercase tracking-wider">
                                 <div className="flex items-center justify-center gap-1">
-                                    <DollarSign size={14} className="text-gray-400" />
+                                    <DollarSign size={14} className="text-content-muted" />
                                     Costo Unit.
                                 </div>
                             </th>
-                            <th className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-2 text-center text-xs font-medium text-content-secondary uppercase tracking-wider">
                                 <div className="flex items-center justify-center gap-1">
-                                    <DollarSign size={14} className="text-gray-400" />
+                                    <DollarSign size={14} className="text-content-muted" />
                                     Costo Total
                                 </div>
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-border-base">
                     {isLoading ? (
                         [...Array(5)].map((_, i) => (
                             <tr key={i} className="animate-pulse">
-                                <td className="px-3 py-3"><div className="h-3 w-4 bg-zinc-200 rounded mx-auto" /></td>
+                                <td className="px-3 py-3"><div className="h-3 w-4 bg-surface-strong rounded mx-auto" /></td>
                                 <td className="px-3 py-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-7 w-7 rounded-full bg-zinc-200 shrink-0" />
+                                        <div className="h-7 w-7 rounded-full bg-surface-strong shrink-0" />
                                         <div className="space-y-1.5 flex-1">
-                                            <div className="h-3 bg-zinc-200 rounded w-3/4" />
-                                            <div className="h-2.5 bg-zinc-100 rounded w-1/3" />
+                                            <div className="h-3 bg-surface-strong rounded w-3/4" />
+                                            <div className="h-2.5 bg-surface-muted rounded w-1/3" />
                                         </div>
                                     </div>
                                 </td>
-                                <td className="px-3 py-3"><div className="h-3 bg-zinc-200 rounded w-12 mx-auto" /></td>
-                                <td className="px-3 py-3"><div className="h-3 bg-zinc-200 rounded w-12 mx-auto" /></td>
-                                <td className="px-3 py-3"><div className="h-3 bg-zinc-200 rounded w-16 mx-auto" /></td>
-                                <td className="px-3 py-3"><div className="h-3 bg-zinc-200 rounded w-16 mx-auto" /></td>
+                                <td className="px-3 py-3"><div className="h-3 bg-surface-strong rounded w-12 mx-auto" /></td>
+                                <td className="px-3 py-3"><div className="h-3 bg-surface-strong rounded w-12 mx-auto" /></td>
+                                <td className="px-3 py-3"><div className="h-3 bg-surface-strong rounded w-16 mx-auto" /></td>
+                                <td className="px-3 py-3"><div className="h-3 bg-surface-strong rounded w-16 mx-auto" /></td>
                             </tr>
                         ))
                     ) : dataToShow?.formulaciones && Array.isArray(dataToShow.formulaciones) && dataToShow.formulaciones.length > 0 ? (
@@ -320,23 +320,23 @@ export const FormulacionesTable = ({
                             const opciones = materiasOpciones[mpId]?.opciones ?? [];
 
                             return (
-                            <tr key={`formulacion-row-${index}`} className={`transition-colors ${costoOverride ? 'bg-amber-50/40 hover:bg-amber-50/70' : 'hover:bg-gray-50'}`}>
-                                <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <tr key={`formulacion-row-${index}`} className={`transition-colors ${costoOverride ? 'bg-semantic-warning-subtle/40 hover:bg-semantic-warning-subtle/70' : 'hover:bg-surface-subtle'}`}>
+                                <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-content-primary">
                                 {index + 1}
                                 </td>
 
                                 {/* MATERIA PRIMA + SELECTOR PROVEEDOR */}
                                 <td className="px-3 py-2">
                                 <div className="flex items-center">
-                                    <div className="shrink-0 h-7 w-7 rounded-full bg-white flex items-center justify-center border border-blue-200 shadow-inner">
-                                    <Beaker className="h-4 w-4 text-blue-600" />
+                                    <div className="shrink-0 h-7 w-7 rounded-full bg-white flex items-center justify-center border border-semantic-info/20 shadow-inner">
+                                    <Beaker className="h-4 w-4 text-semantic-info-fg" />
                                     </div>
                                     <div className="ml-3 min-w-0">
-                                    <div className="text-xs font-semibold text-gray-900 uppercase tracking-tight">
+                                    <div className="text-xs font-semibold text-content-primary uppercase tracking-tight">
                                         {formulacion.materia_prima_nombre || 'Sin nombre'}
                                     </div>
                                     <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                        <span className="text-xs text-blue-600 font-medium">
+                                        <span className="text-xs text-semantic-info-fg font-medium">
                                             {formulacion.materia_prima_codigo || 'Sin código'}
                                         </span>
                                         {opciones.length > 0 && onSeleccionIngrediente && (
@@ -353,10 +353,10 @@ export const FormulacionesTable = ({
 
                                 {/* CANTIDAD */}
                                 <td className="px-3 py-2 whitespace-nowrap text-center">
-                                <div className={`text-sm font-bold ${recalculatedData ? 'text-green-600' : 'text-blue-600'}`}>
+                                <div className={`text-sm font-bold ${recalculatedData ? 'text-semantic-success-fg' : 'text-semantic-info-fg'}`}>
                                     {recalculatedData == null ? formulacion.cantidad : formulacion.cantidad_recalculada ?? 0}
                                     {recalculatedData && (
-                                        <div className="text-[10px] text-gray-500 font-normal italic tracking-tighter">
+                                        <div className="text-[10px] text-content-tertiary font-normal italic tracking-tighter">
                                             Base: {formulacion.cantidad ?? 0}
                                         </div>
                                     )}
@@ -371,9 +371,9 @@ export const FormulacionesTable = ({
                                         : formulacion.cantidad;
                                     const suficiente = formulacion.inventario_cantidad >= cantidadRef;
                                     return (
-                                        <div className={`text-sm font-bold ${suficiente ? 'text-green-600' : 'text-red-600'}`}>
+                                        <div className={`text-sm font-bold ${suficiente ? 'text-semantic-success-fg' : 'text-semantic-danger-fg'}`}>
                                             {formulacion.inventario_cantidad ?? 0}
-                                            <div className={`text-[10px] font-normal ${suficiente ? 'text-green-500' : 'text-red-500'}`}>
+                                            <div className={`text-[10px] font-normal ${suficiente ? 'text-semantic-success' : 'text-semantic-danger'}`}>
                                                 {suficiente ? 'Suficiente' : 'Insuficiente'}
                                             </div>
                                         </div>
@@ -387,10 +387,10 @@ export const FormulacionesTable = ({
                                     if (costoOverride) {
                                         return (
                                             <div>
-                                                <div className="text-sm font-bold text-amber-600">
+                                                <div className="text-sm font-bold text-semantic-warning-fg">
                                                     {fmtCOP(costoOverride.costo_unitario)}
                                                 </div>
-                                                <div className="text-[10px] text-gray-400 font-normal italic tracking-tighter flex items-center justify-center gap-0.5">
+                                                <div className="text-[10px] text-content-muted font-normal italic tracking-tighter flex items-center justify-center gap-0.5">
                                                     <Truck size={8} /> {costoOverride.nombre_empresa}
                                                 </div>
                                             </div>
@@ -400,23 +400,23 @@ export const FormulacionesTable = ({
                                     if (prov) {
                                         return (
                                             <div>
-                                                <div className={`text-sm font-bold ${prov.usa_precio_proveedor ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                                <div className={`text-sm font-bold ${prov.usa_precio_proveedor ? 'text-semantic-warning-fg' : 'text-semantic-success-fg'}`}>
                                                     $ {prov.costo_unitario_efectivo}
                                                 </div>
                                                 {prov.usa_precio_proveedor && (
-                                                    <div className="text-[10px] text-gray-400 font-normal italic tracking-tighter flex items-center justify-center gap-0.5">
+                                                    <div className="text-[10px] text-content-muted font-normal italic tracking-tighter flex items-center justify-center gap-0.5">
                                                         <Truck size={8} /> Prov.
                                                         <span className="ml-1 line-through">$ {prov.costo_unitario_estandar}</span>
                                                     </div>
                                                 )}
                                                 {!prov.usa_precio_proveedor && (
-                                                    <div className="text-[10px] text-gray-400 font-normal italic">Estándar</div>
+                                                    <div className="text-[10px] text-content-muted font-normal italic">Estándar</div>
                                                 )}
                                             </div>
                                         );
                                     }
                                     return (
-                                        <div className="text-sm font-bold text-emerald-600">
+                                        <div className="text-sm font-bold text-semantic-success-fg">
                                             {formulacion.materia_prima_costo_unitario ?? 0}
                                         </div>
                                     );
@@ -429,10 +429,10 @@ export const FormulacionesTable = ({
                                     if (costoOverride) {
                                         return (
                                             <div>
-                                                <div className="text-sm font-bold text-amber-600">
+                                                <div className="text-sm font-bold text-semantic-warning-fg">
                                                     {fmtCOP(costoOverride.costo_total)}
                                                 </div>
-                                                <div className="text-[10px] text-gray-400 font-normal italic tracking-tighter">
+                                                <div className="text-[10px] text-content-muted font-normal italic tracking-tighter">
                                                     <span className="line-through">
                                                         $ {recalculatedData == null
                                                             ? formulacion.costo_total_materia
@@ -446,11 +446,11 @@ export const FormulacionesTable = ({
                                     if (prov) {
                                         return (
                                             <div>
-                                                <div className={`text-sm font-bold ${prov.usa_precio_proveedor ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                                <div className={`text-sm font-bold ${prov.usa_precio_proveedor ? 'text-semantic-warning-fg' : 'text-semantic-success-fg'}`}>
                                                     $ {prov.costo_total_proveedor}
                                                 </div>
                                                 {prov.usa_precio_proveedor && (
-                                                    <div className="text-[10px] text-gray-400 font-normal italic tracking-tighter">
+                                                    <div className="text-[10px] text-content-muted font-normal italic tracking-tighter">
                                                         <span className="line-through">$ {prov.costo_total_estandar}</span>
                                                     </div>
                                                 )}
@@ -458,10 +458,10 @@ export const FormulacionesTable = ({
                                         );
                                     }
                                     return (
-                                        <div className="text-sm font-bold text-emerald-600">
+                                        <div className="text-sm font-bold text-semantic-success-fg">
                                             {recalculatedData == null ? formulacion.costo_total_materia : formulacion.costo_total_materia_recalculado ?? 0}
                                             {recalculatedData && (
-                                                <div className="text-[10px] text-gray-500 font-normal italic tracking-tighter">
+                                                <div className="text-[10px] text-content-tertiary font-normal italic tracking-tighter">
                                                     Base: {formulacion.costo_total_materia ?? 0}
                                                 </div>
                                             )}
@@ -474,7 +474,7 @@ export const FormulacionesTable = ({
                             })
                         ) : (
                             <tr>
-                            <td colSpan="6" className="text-center py-10 text-gray-400 text-xs uppercase font-bold tracking-widest bg-zinc-50">
+                            <td colSpan="6" className="text-center py-10 text-content-muted text-xs uppercase font-bold tracking-widest bg-surface-subtle">
                                 No hay componentes disponibles en esta formulación.
                             </td>
                             </tr>
@@ -485,43 +485,43 @@ export const FormulacionesTable = ({
             </div>
 
             {/* Footer */}
-            <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+            <div className="bg-surface-subtle px-4 py-3 border-t border-border-base">
                 <div className="flex justify-end items-center">
                     <div className="flex gap-6 flex-wrap">
                         <div className="text-sm flex items-center gap-1.5">
-                            <span className="text-gray-600 font-medium">Total Cantidad: </span>
+                            <span className="text-content-secondary font-medium">Total Cantidad: </span>
                             {isLoading
-                                ? <div className="h-3 w-10 bg-zinc-200 rounded animate-pulse inline-block" />
-                                : <span className={`font-bold ${recalculatedData ? 'text-green-600' : 'text-blue-600'}`}>
+                                ? <div className="h-3 w-10 bg-surface-strong rounded animate-pulse inline-block" />
+                                : <span className={`font-bold ${recalculatedData ? 'text-semantic-success-fg' : 'text-semantic-info-fg'}`}>
                                     {!recalculatedData ? productDetail?.costos?.total_cantidad_materia_prima : recalculatedData?.recalculados?.total_cantidad_materia_prima}
                                   </span>
                             }
                         </div>
-                        <div className="text-sm border-l border-gray-200 pl-6 flex items-center gap-1.5">
-                            <span className="text-gray-600 font-medium">Total Costo MP: </span>
+                        <div className="text-sm border-l border-border-base pl-6 flex items-center gap-1.5">
+                            <span className="text-content-secondary font-medium">Total Costo MP: </span>
                             {isLoading
-                                ? <div className="h-3 w-20 bg-zinc-200 rounded animate-pulse inline-block" />
-                                : <span className={`font-bold ${recalculatedData ? 'text-green-600' : 'text-emerald-600'}`}>
+                                ? <div className="h-3 w-20 bg-surface-strong rounded animate-pulse inline-block" />
+                                : <span className={`font-bold ${recalculatedData ? 'text-semantic-success-fg' : 'text-semantic-success-fg'}`}>
                                     $ {!recalculatedData ? productDetail?.costos?.total_costo_materia_prima : recalculatedData?.recalculados?.total_costo_materia_prima}
                                   </span>
                             }
                         </div>
                         {hasAnyOverride && totalCostoOverride && (
-                            <div className="text-sm border-l border-gray-200 pl-6">
-                                <span className="text-amber-600 font-medium flex items-center gap-1 inline-flex">
+                            <div className="text-sm border-l border-border-base pl-6">
+                                <span className="text-semantic-warning-fg font-medium flex items-center gap-1 inline-flex">
                                     <Truck size={12} /> Selección:
                                 </span>{' '}
-                                <span className="font-bold text-amber-700">
+                                <span className="font-bold text-semantic-warning-fg">
                                     {fmtCOP(totalCostoOverride)}
                                 </span>
                             </div>
                         )}
                         {costosProveedor && (
-                            <div className="text-sm border-l border-gray-200 pl-6">
-                                <span className="text-amber-600 font-medium flex items-center gap-1 inline-flex">
+                            <div className="text-sm border-l border-border-base pl-6">
+                                <span className="text-semantic-warning-fg font-medium flex items-center gap-1 inline-flex">
                                     <Truck size={12} /> Proveedor:
                                 </span>{' '}
-                                <span className="font-bold text-amber-700">
+                                <span className="font-bold text-semantic-warning-fg">
                                     $ {costosProveedor.costos_proveedor?.total_costo_materia_prima}
                                 </span>
                             </div>

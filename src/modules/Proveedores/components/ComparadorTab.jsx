@@ -24,8 +24,8 @@ const ComparadorTab = () => {
               key={v.id}
               onClick={() => setVista(v.id)}
               className={`flex items-center gap-1.5 px-4 py-2 uppercase rounded-lg text-xs font-semibold border transition-all ${active
-                ? 'bg-zinc-900 text-white border-zinc-900'
-                : 'bg-white text-zinc-500 border-zinc-200 hover:border-zinc-400'
+                ? 'bg-content-primary text-white border-content-primary'
+                : 'bg-white text-content-tertiary border-border-base hover:border-border-strong'
                 }`}
             >
               <Icon size={12} />

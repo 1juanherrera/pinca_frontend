@@ -8,7 +8,7 @@ const columns = [
     key:   'numero',
     label: 'Orden',
     render: (v) => (
-      <span className=" text-xs font-bold text-zinc-400">{v}</span>
+      <span className=" text-xs font-bold text-content-muted">{v}</span>
     ),
   },
   {
@@ -16,8 +16,8 @@ const columns = [
     label: 'Proveedor',
     render: (v, row) => (
       <div>
-        <p className="text-xs font-semibold text-zinc-800 truncate uppercase">{v}</p>
-        <p className="text-[10px] text-zinc-400">{row.bodega_nombre ?? '—'}</p>
+        <p className="text-xs font-semibold text-content-primary truncate uppercase">{v}</p>
+        <p className="text-[10px] text-content-muted">{row.bodega_nombre ?? '—'}</p>
       </div>
     ),
   },
@@ -26,7 +26,7 @@ const columns = [
     label: 'Fecha',
     align: 'center',
     render: (v) => (
-      <span className="text-xs text-zinc-500 tabular-nums">
+      <span className="text-xs text-content-tertiary tabular-nums">
         {v ? new Date(v + 'T00:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
       </span>
     ),
@@ -42,7 +42,7 @@ const columns = [
     label: 'Total',
     align: 'right',
     render: (v) => (
-      <span className="text-xs  tabular-nums font-bold text-amber-700">{fmt(v)}</span>
+      <span className="text-xs  tabular-nums font-bold text-semantic-warning-fg">{fmt(v)}</span>
     ),
   },
 ];
@@ -61,11 +61,11 @@ const RentabilidadComprasTable = ({ ordenes, isLoading }) => {
       />
 
       {!isLoading && ordenes.length > 0 && (
-        <div className="bg-zinc-900 text-white rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
-          <span className="text-zinc-300">{ordenes.length} orden(es)</span>
+        <div className="bg-content-primary text-white rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
+          <span className="text-content-muted">{ordenes.length} orden(es)</span>
           <div className="text-right">
-            <p className="text-zinc-400 font-normal text-[10px]">Total Compras</p>
-            <p className=" tabular-nums text-base text-amber-300">{fmt(totalGeneral)}</p>
+            <p className="text-content-muted font-normal text-[10px]">Total Compras</p>
+            <p className=" tabular-nums text-base text-semantic-warning/70">{fmt(totalGeneral)}</p>
           </div>
         </div>
       )}

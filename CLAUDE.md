@@ -1,468 +1,595 @@
-# CLAUDE.md
+# CLAUDE.md — Pinca Frontend
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+> Este archivo es la **fuente de verdad** para cualquier Claude que retome este proyecto. Está organizado para leerse en orden de necesidad: contexto rápido arriba, detalles técnicos abajo.
 
-## Commands
+## 1. Estado actual (snapshot 2026-05-12)
+
+**Proyecto**: PINCA (Pinturas Industriales del Caribe S.A.S) — Sistema ERP web.
+**Stack**: React 19, Vite 7, TailwindCSS 4, React Router 7, TanStack Query 5, Zustand 5, Axios, react-hook-form, lucide-react, recharts, jsPDF, xlsx.
+**Backend**: PHP en `pinca_backend/` (no relevante para frontend salvo endpoints).
+
+### Última fase completada — Pinca 2.0 Design Migration
+
+Estado: **✅ 100% completo** en `src/modules/` y `src/shared/`. Build limpio (~9s).
+
+| Métrica | Antes | Después |
+|---|---|---|
+| Hardcoded Tailwind colors (`zinc-X`, `blue-X`, etc.) | 2566 | **0** |
+| Archivos JSX migrados | — | 145 |
+| Build time | 12-19s | 9.24s |
+| Tipografía | system default | **Outfit** (Google Fonts) |
+| Brand color | Amarillo Pinca `#FBBF24` | Confirmado (único brand) |
+
+Excepción: `src/utils/avatarTheme.js` mantiene paleta de gradientes hardcoded por diseño (identidad por usuario).
+
+### Lo que se hizo en orden cronológico
+
+1. **Fase 0-1** — Foundation: tokens CSS completos (brand, surface, content, border, semantic con `-subtle`/`-fg`), radios (xs→pill), shadows (xs→2xl + lift), z-index scale.
+2. **Fase 2** — Refactor crítico: FacturaForm, PagoForm, ModalRegistrarPago, OrdenDrawer, ItemDetailModal, TraspasoModal, ExcelModal — todos pasaron a usar shared components (Drawer, Modal, FormInput, Button).
+3. **Fase 3** — Tablas + navegación: MovimientosTable migrado a `ErpTable`, `PageTabs` shared adoptado en Cartera+Comercial, otras tablas tokenizadas (Catalogo, Inventario DataTable, ProveedoresTable, FacturasTable).
+4. **Fase 4** — Polish: badges unificados con `StatusBadge` (ItemDetailModal, MovimientosTable, FacturasTable, ProveedoresTable, DisponibilidadModal, InventarioGlobal, TamboresPage…). Creación de `FormSection`. CotizacionDrawer y GestionesCobroDrawer tokenizados.
+5. **Fase 5-6** — Pinca 2.0: tipografía Outfit, radios generosos, hover-lift, nuevos componentes (`IconBox`, `FlowCard`, `EmptyState`, `ProgressPill`, `ActionMenu`). Pilot: Inventario + Cartera. Login redesign completo.
+6. **Migración masiva final** — 4 scripts `sed` aplicaron tokenización a los 18 módulos restantes en bloques. Topbar reescrito manualmente para chrome oscuro. Sidebar ya estaba migrado.
+
+---
+
+## 2. Comandos
 
 ```bash
-npm run dev       # Start Vite dev server (http://localhost:5173)
-npm run build     # Production build to dist/
-npm run lint      # ESLint check
-npm run preview   # Preview production build
+npm run dev       # Vite dev server → http://localhost:5173
+npm run build     # Build prod → dist/
+npm run lint      # ESLint
+npm run preview   # Preview build prod
 ```
 
-There is no test runner configured.
+**Sin tests configurados**. Si se agregan, usar Vitest.
 
-## Environment
+**Env**: copia `.env.example` → `.env` y setea `VITE_API_BASE_URL` (default `http://localhost:8080/api`).
 
-Copy `.env` and set `VITE_API_BASE_URL` (defaults to `http://localhost:8080/api`).
+---
 
-## Architecture
+## 3. Arquitectura
 
-**Stack:** React 19, Vite 7, TailwindCSS 4, React Router 7, TanStack Query 5, Zustand 5, Axios, react-hook-form, lucide-react, recharts, jsPDF, xlsx.
+### Routing — `src/App.jsx`
 
-### Module Structure
+Todas las rutas (excepto `/login` y `*`) están envueltas en `<Layout>`:
 
-Features live in `src/modules/`. Each module follows this layout:
+| Path | Componente |
+|---|---|
+| `/login` | `Login` |
+| `/` | `SedePage` (selector de sede) |
+| `/catalogo` | `CatalogoPage` |
+| `/inventario-global` | `InventarioGlobalPage` |
+| `/inventario/bodega/:id_bodega` | `InventarioPage` |
+| `/instalaciones/bodegas/:id` | `BodegaPage` |
+| `/formulaciones` | `FormulacionesPage` |
+| `/produccion` | `ProduccionPage` |
+| `/comercial` | `ComercialPage` (tabs internos: Cotizaciones, Remisiones, Facturas) |
+| `/compras` | `ComprasPage` |
+| `/cartera` | `CarteraPage` (tabs: Dashboard, Facturas) |
+| `/pagos` | `PagosPage` |
+| `/proveedores` | `ProveedoresPage` |
+| `/clientes` | `ClientePage` |
+| `/movimientos` | `MovimientosPage` |
+| `/rentabilidad` | `RentabilidadPage` |
+| `/tambores` | `TamboresPage` |
+| `/prorrateo` | `Prorrateo` |
+| `/roles` | `RolesPage` |
+| `*` | `NotFound` |
+
+`Layout` protege rutas: si no hay token en store → redirect a `/login`.
+
+### Módulos (`src/modules/`)
+
+20 módulos en total. Cada uno sigue el patrón:
 
 ```
 ModuleName/
 ├── ModulePage.jsx          # Page-level component
-├── components/             # UI sub-components (Table, Modal, Drawer, Form, Card)
+├── components/             # Sub-components (Table, Modal, Drawer, Form, Card)
 └── api/
     ├── use*.js             # React Query hooks (queries + mutations)
-    └── *Keys.js            # Query key factories for cache invalidation
+    └── *Keys.js            # Query key factories
 ```
 
-`src/modules/index.js` re-exports all modules for the router.
+**Inconsistencias conocidas**:
+- 🔴 `Costos/` (8 archivos JSX) y `CostosIndirectos/` (1) tienen páginas pero **NO tienen ruta** en App.jsx ni entrada en sidebar. Código muerto o pendiente de habilitar. **Decisión pendiente del usuario**: borrar o agregar rutas.
+- 🟡 `Comercial/` no tiene carpeta `api/` propia (usa `Cotizaciones/api/`, `Facturacion/api/`, `Remisiones/api/` anidados — es correcto).
+- 🟡 5 módulos sin enlace en sidebar pero con ruta: `Pagos`, `Tambores`, `Prorrateo`, `Roles`, `Login`. Acceso por URL directa o link desde otro módulo.
 
-### Modules (20 total)
+### Sidebar (`src/config/sidebarMenu.js`)
 
-| Module | Route | Description |
+12 items visibles (filtra por `moduloKey` contra `user.modulos`):
+
+`panel-principal`, `catalogo`, `inventario-global`, `formulaciones`, `produccion`, `rentabilidad`, `comercial`, `compras`, `cartera`, `clientes`, `proveedores`, `movimientos`.
+
+### Módulos del sistema (`src/config/modulos.js`)
+
+16 keys agrupadas para permisos: `MODULOS_SISTEMA` array + `ROLES_LABELS` map. Grupos: Sistema, Inventario, Producción, Análisis, Ventas, Compras, Finanzas, Relaciones.
+
+---
+
+## 4. Design System — Pinca 2.0
+
+Toda la verdad visual vive en **`src/index.css`**. Cambiar un token allí propaga al sistema entero.
+
+### Tipografía
+
+- **Familia**: `Outfit` (Google Fonts, pesos 300-800). Cargada via `@import url(...)` ANTES de `@import "tailwindcss"` (orden crítico — si se rompe, los `@import` posteriores se invalidan).
+- **Aplicada en**: `html, body, #root` + `button, input, select, textarea, optgroup` (via `font-family: inherit`).
+- **Antialiasing**: `-webkit-font-smoothing: antialiased`.
+- **Letter-spacing en headings**: `-0.015em`.
+
+### Escala tipográfica (compact ERP)
+
+| Token | rem | px |
 |---|---|---|
-| `sedes` | `/` | Sede (location) selection landing page |
-| `Catalogo` | `/catalogo` | **Maestro de ítems**: unified catalog (replaces MateriasPrimas + Productos) |
-| `Inventario` | `/inventario/bodega/:id_bodega` | Stock visualization per warehouse (read-only, no item creation) |
-| `Bodegas` | `/instalaciones/bodegas/:id` | Warehouse management |
-| `Formulaciones` | `/formulaciones` | Paint formulations (recipes) |
-| `Produccion` | `/produccion` | Production orders |
-| `Clientes` | `/clientes` | Client management |
-| `Costos` | — | Item cost tracking |
-| `CostosIndirectos` | — | Indirect costs |
-| `Pagos` | `/pagos` | Client payment registration |
-| `Cartera` | `/cartera` | Receivables / aging analysis |
-| `Comercial` | `/comercial` | Quotations, invoicing, remissions (nested) |
-| `Compras` | `/compras` | Purchase orders |
-| `Proveedores` | `/proveedores` | Supplier management |
-| `Movimientos` | `/movimientos` | Inventory movement log |
-| `Rentabilidad` | `/rentabilidad` | Profitability analysis |
-| `Tambores` | `/tambores` | Drum/container management |
-| `Prorrateo` | `/prorrateo` | Cost allocation tool |
-| `Login` | `/login` | Standalone auth page |
+| `text-xs` | 0.6875 | **11** |
+| `text-sm` | 0.8125 | **13** |
+| `text-base` | 0.875 | **14** |
+| `text-lg` | 1 | **16** (h3) |
+| `text-xl` | 1.125 | **18** (h2, hero values) |
+| `text-2xl` | 1.375 | **22** (h1 contado) |
+| `text-3xl` | 1.75 | **28** (hero KPIs) |
 
-### Routing (`src/App.jsx`)
+Las fuentes son **deliberadamente más chicas** que default Tailwind para mantener densidad ERP profesional. Si una vista se ve "muy grande", probablemente está usando `text-xl` donde debería ser `text-lg`.
 
-All authenticated routes are wrapped in `<Layout>` (sidebar + topbar + `<Outlet>`). `/login` is standalone. `<Layout>` protects routes by checking the auth state from Zustand.
+### Paleta (hex completos)
 
-### API Layer (`src/api/`)
+**Brand** (Amarillo Pinca, único color de marca):
+```
+brand-primary:        #FBBF24    brand-primary-hover:  #F59E0B
+brand-primary-active: #D97706    brand-on-primary:     #18181B (texto sobre amarillo)
+brand-subtle:         color-mix(#FBBF24 20%, transparent)
+```
 
-- `apiClient.js` — Axios instance. Reads `VITE_API_BASE_URL`. Auto-injects `Authorization: Bearer <token>` from `localStorage.token`. Handles 401 by redirecting to `/login`. Shows error toasts via `react-hot-toast`. **Important**: the response interceptor already extracts `response.data`, so hooks receive the payload directly — never do `res.data.data`.
-- `apiRoutes.js` — Centralized URL constants for all backend endpoints.
+**Surfaces** (capas verticales):
+```
+surface-base:    #FFFFFF   surface-subtle:        #FAFAFA
+surface-muted:   #F4F4F5   surface-strong:        #E4E4E7
+surface-elevated:#FFFFFF   surface-overlay:       rgba(9,9,11,0.45)
+surface-sidebar: #09090B   surface-sidebar-hover: #18181B
+```
 
-**Current `apiRoutes.js` key entries:**
-- `UNIDADES: '/unidades'`
-- `ITEMS.BUSCAR: (q, tipos) => '/item_general/buscar?q=...' + (tipos?.length ? '&tipos=...' : '')`
-- `REQUISICIONES` and `PREPARACIONES` objects
-- `CAPAS` object: `POR_ITEM(itemId)`, `BODEGAS`, `POR_PREPARACION(prepId)` — cost layer endpoints
-- `FORMULACIONES_OPCIONES_INGREDIENTES: (itemId) => '/formulaciones/{id}/opciones-ingredientes'` — per-ingredient supplier options
+**Content** (texto):
+```
+content-primary:   #18181B   content-secondary:  #3F3F46
+content-tertiary:  #71717A   content-muted:      #A1A1AA
+content-inverse:   #FAFAFA   content-on-brand:   #18181B
+```
 
-Data fetching uses **React Query** (stale: 5 min, gcTime: 30 min, retry: 1, no refetch on focus). Mutations invalidate related query keys on success and show success/error toasts.
+**Borders**:
+```
+border-subtle: #F4F4F5   border-base:   #E4E4E7
+border-strong: #D4D4D8   border-focus:  #18181B
+```
 
-### Global State (`src/store/`)
+**Semantic** (cada uno con base + `-subtle` + `-fg`):
+```
+success: #10B981 / #D1FAE5 / #065F46
+danger:  #EF4444 / #FEE2E2 / #991B1B
+warning: #F59E0B / #FEF3C7 / #92400E
+info:    #3B82F6 / #DBEAFE / #1E40AF
+```
 
-Zustand store composed from slices via `useBoundStore.js`:
-- `authSlice` (`slices/authSlice.js`) — User auth state (token, user info).
-- `useUISlice` (`slices/useUISlice.js`) — Modal/Drawer open state and payloads, page title, confirmation dialog.
-- `inventorySlice` (`slices/inventorySlice.js`) — Active warehouse ID and sede name (persisted to localStorage).
+### Radios
 
-**Modal/Drawer pattern:** call `useBoundStore().openDrawer('KEY', payload)` from any component. The drawer/modal component reads the store and renders conditionally. Confirmation dialogs use `openConfirmModal({ title, message, onConfirm })`.
+```
+xs:   4px    sm:   6px (badges, mini-buttons)
+md:   8px    (default inputs)
+lg:  12px    (cards, table rows estilo card)
+xl:  16px    (cards principales, modales)
+2xl: 20px    (drawers, hero cards)
+3xl: 24px    (modales grandes)
+pill: 9999   (botones, badges full-rounded — DEFAULT en Button)
+```
 
-### Shared Components (`src/shared/`)
+### Sombras
 
-Reusable UI primitives — prefer these over one-off implementations:
+```
+shadow-xs / sm / md / lg / xl / 2xl  (scale estándar)
+shadow-card    — sutil para card en reposo
+shadow-lift    — para card en hover + translateY(-2px)
+shadow-focus   — ring amarillo brand (3px, 25% opacity)
+```
 
-`AmountDisplay`, `Button`, `Card`, `ConfirmModal`, `DetailDrawer`, `Drawer`, `ErpTable`, `HeaderSection`, `ItemGeneralSearch`, `Loader`, `SearchFilterBar`, `Sidebar`, `Skeletons`, `StatusBadge`, `SummaryCard`, `Topbar`, `Form/` (form controls subdirectory).
+Utility custom: `hover-lift` aplica `translateY(-2px) + shadow-lift` con transición.
 
-#### `Drawer.jsx` — size prop
+### Z-index scale
 
-Accepts `size` prop: `'md'` (default) | `'lg'` | `'xl'` | `'2xl'`. Maps to Tailwind `max-w-*` classes. Use `size="xl"` for forms with many fields.
+```
+sticky: 10   dropdown: 40   overlay: 100   modal: 110
+popover: 120   toast: 200   tooltip: 300
+```
 
-#### `ItemGeneralSearch.jsx` — fuzzy search + price comparison
+### Compact mode
 
-Props:
-- `value` — selected item object (`{id_item_general, nombre, codigo, ...}`) or `null`
-- `onChange(item | null)` — selection callback
-- `label` — field label string
-- `placeholder` — input placeholder
-- `autoSearch` — string to trigger automatic search on mount
-- `tipos` — `number[]` filter by item tipo (default `[1, 2]` = Materia Prima + Insumo only; never shows Producto tipo=0)
-- `precioActual` — current item_proveedor price for comparison badge
+`<html class="pinca-compact">` reduce padding de `td/th` a 4px y font a 12px. Toggle desde UserPanel (Preferencias).
 
-**Selected state** shows a green card with:
-- `PrecioComparacion` sub-component: internal cost (`costo_unitario` from costos_item JOIN), supplier list (1 supplier → direct chip; multiple → collapsible with `ChevronDown/Up`), comparison badge (TrendingDown=cheaper, TrendingUp=more expensive, Minus=in range).
-- Supplier chips use `PROV_COLORS` cycling array.
-- `parseLista(raw)` parses `"Nombre|precio;;;Nombre2|precio2"` GROUP_CONCAT format.
+---
 
-**Dropdown** items show nombre, código, `costo_unitario` if available, provider count.
-Badges in dropdown: `w-20 text-center` fixed width to prevent layout shifts.
+## 5. Componentes shared (`src/shared/`)
 
-**Race condition prevention**: `ignorarRef = useRef(false)` — set to `true` when an item is selected to suppress in-flight API responses from re-opening the dropdown. Reset to `false` on new input.
+**Regla de oro**: nunca hardcodes `zinc-X`, `blue-X`, `emerald-X`, etc. en componentes nuevos. Usa siempre los tokens.
 
-### `src/api/useUnidades.js` (NEW 2026-04-21)
+### Layout & Navigation
+
+| Componente | API | Notas |
+|---|---|---|
+| `HeaderSection` | `title`, `subtitle`, `icon`, `breadcrumbs[{label, path}]` | Usa `IconBox` interno con tone="dark". Título es `text-lg`. |
+| `PageTabs` | `tabs[{key, label, icon?, count?}]`, `value`, `onChange`, `variant: underline\|pill`, `size: sm\|md` | Default `underline`. Usa `pill` para filtros internos. |
+| `Sidebar` | (sin props — lee Zustand) | Colapsable on hover. Logo Pinca. |
+| `Topbar` | (sin props) | Chrome oscuro, `bg-surface-sidebar`. h-14. |
+| `UserPanel` | (sin props — abre via `openDrawer('USER_PANEL')`) | Panel a 50vw con tabs: Mi Cuenta, Seguridad, Ajustes, Empresa (admin), Roles (admin). Color de avatar customizable desde Ajustes. |
+
+### Surfaces
+
+| Componente | API | Cuándo usar |
+|---|---|---|
+| `Card` | `title`, `bar`, `details[{icon,label,value,color}]`, `linkTo`, `onEdit`, `onDelete` | Cards de entidad (cliente, factura). |
+| `FlowCard` ✨ | `icon`, `tone`, `label`, `value`, `sub`, `active`, `onClick` | KPI con icon-box + número grande + barra lateral. **Usar en headers de dashboard**. |
+| `SummaryCard` | `label`, `value`, `icon`, `color`, `sub`, `trend` | Versión simple de FlowCard (legacy). Preferir FlowCard. |
+| `IconBox` ✨ | `icon`, `tone`, `variant: subtle\|solid\|outline`, `size: sm\|md\|lg\|xl`, `shape: square\|rounded\|pill` | Container coloreado para icons. Reusable en headers, KPIs. |
+
+### Forms (`src/shared/Form/`)
+
+Constantes en `Form/styles.js`: `INPUT_BASE`, `INPUT_BASE_DENSE`, `INPUT_ERROR`, `LABEL_BASE`, `LABEL_REQUIRED_MARK`, `FIELD_ERROR`, `FIELD_HINT`, `FIELD_WRAPPER`, `GRID_INPUT_BASE`.
+
+| Componente | Props clave |
+|---|---|
+| `FormInput` | `label`, `error`, `required`, `leftSymbol`, `registration` (RHF) |
+| `FormSelect` | `options`, `value`, `onChange`, `error`, `placeholder`, `disabled` — dropdown via portal |
+| `FormTextarea` (archivo: `FormTexarea.jsx` — typo legacy) | `label`, `rows`, `registration`, `error` |
+| `InputMoneda` | `label`, `value`, `onChange` — formatea COP automáticamente, retorna número |
+| `GridInput` | Input para celdas de tabla (no para forms normales) |
+| `FormSection` ✨ | `title`, `icon`, `description`, `action`, `variant: plain\|card`, `gap` |
+
+**Regla**: si vas a crear un input nuevo, importa `INPUT_BASE` de `Form/styles.js` en vez de copiar clases. **Nunca** reescribas un `inputCls = "..."` local (era un anti-patrón corregido en Fase 2).
+
+### Feedback
+
+| Componente | Notas |
+|---|---|
+| `StatusBadge` ✨ | **EL único componente de badge**. Props: `estado` (auto-detecta tone), `tone`, `label`, `icon`, `dot`, `size: sm\|md\|lg`, `variant: subtle\|solid\|outline`, `shape: pill\|square`, `fixedWidth`, `minWidth` (default true). Tiene `STATUS_TONE` map para estados conocidos (Pendiente→warning, Pagada→success, etc.). |
+| `EmptyState` ✨ | `icon`, `title`, `description`, `action`, `size: sm\|md\|lg` |
+| `ProgressPill` ✨ | `value` (0-100), `label`, `tone`, `size`, `showPercent`, `right` (override del % a la derecha) |
+| `Loader` | Exporta `FullPageLoader`, `ComponentLoader`, `MiniLoader` |
+| `Skeletons` | Exporta `SkeletonCard`, `SkeletonRow` |
+| `ErrorBoundary` | Envuelve `<App />` en main.jsx (verificar) |
+| `NotFound` | Página 404 (ruta `*`) |
+
+### Overlay
+
+| Componente | API |
+|---|---|
+| `Modal` ✨ | `isOpen`, `onClose`, `size: sm\|md\|lg\|xl\|2xl\|full`, `title`, `icon`, `description`, `footer`, `closeOnBackdrop`, `closeOnEsc`, `showClose`, `bodyClassName` |
+| `Drawer` | `isOpen`, `onClose`, `size: sm\|md\|lg\|xl\|2xl\|3xl\|4xl`, `title`, `icon`, `description`, `footer`, `bodyClassName`. Slide desde derecha. |
+| `DetailDrawer` | Read-only drawer. `width: sm\|md\|lg\|xl`. Sin footer. |
+| `ConfirmModal` | (sin props — controlado por Zustand). Variants: `danger\|success\|warning\|info`. |
+
+### Tables
+
+| Componente | API |
+|---|---|
+| `ErpTable` | `columns`, `data`, `isLoading`, `EmptyIcon`, `emptyMessage`, `emptySubMessage`, `onRowClick`, `sortBy/sortDir/onSort`, **`density: compact\|normal`**, **`variant: default\|cards`**, `stickyHeader` |
+
+**Cuándo usar cada variant**:
+- `variant="default"` — tablas densas (200+ filas, kardex, movimientos).
+- `variant="cards"` — listas con pocas filas donde cada fila es una entidad importante (facturas, clientes, pagos). Lift on hover + border brand-primary on hover.
+
+### Buttons
+
+| Componente | API |
+|---|---|
+| `Button` | `variant: primary\|secondary\|ghost\|dark\|danger\|success\|warning\|info\|outline-*` + legacy `black\|white\|blue\|emerald\|red\|amber\|orange\|zinc`. `size: xs\|sm\|md\|lg`. `shape: pill\|square` (default `pill`). `icon`, `iconRight`, `loading`. |
+| `ButtonSquare` | Botón cuadrado (siempre rounded-full). `variant`, `size`, `icon`, `title`, `animate`. |
+| `ActionMenu` ✨ | `items: [{label, icon, onClick, tone: danger\|success\|info\|default, disabled}]`, `trigger`, `align: right\|left`. Para 3+ acciones por fila. |
+
+### Otros
+
+| Componente | Notas |
+|---|---|
+| `SearchFilterBar` | `search`, `onSearch`, `filters[]`, `values`, `onChange`, `statusOptions[]`, `statusKey`. Input pill con sombra sutil. |
+| `AmountDisplay` | Muestra monto COP. Props: `value`, `color` (bool — colorea según signo). |
+| `ItemGeneralSearch` | Autocomplete de item_general con comparación de precios. Usa portal. |
+
+---
+
+## 6. Utils (`src/utils/`)
+
+| Archivo | Exports principales |
+|---|---|
+| `cn.js` | `cn(...args)` — clsx-like, acepta strings/arrays/objects/falsy. Default + named export. |
+| `avatarTheme.js` | `ROL_STYLES`, `AVATAR_PALETTE`, `useAvatarKey()`, `useAvatarGradient(rol)`, `setStoredAvatarKey(key)` |
+| `formatters.js` | `fmt(v)` (COP), `formatoPesoColombiano(v)`, `parsePesoColombiano(v)`, `formatLetterDate(date)`, `stableItemId(item)` |
+| `services.js` | `getDateTheme(dateString)` — retorna `{ classes, punto, estado }` según vencimiento de fecha |
+
+---
+
+## 7. State management
+
+### Zustand store (`src/store/useBoundStore.js`)
+
+Compuesto por 3 slices:
+
+- **`authSlice`** — `token`, `user`, `setAuth(token, user)`, `logout()`. Persist localStorage.
+- **`useUISlice`** — `activeDrawer`, `drawerPayload`, `openDrawer(key, payload)`, `closeDrawer()`, `activeModal`, `openModal(key)`, `closeModal()`, `confirmModal`, `openConfirm({title, message, onConfirm, variant})`, `closeConfirm()`, `activeTitle`, `setActiveTitle()`.
+- **`inventorySlice`** — `activeBodegaId`, `sedeName`, `setBodega(id)`, `clearBodega()`. Persist localStorage.
+
+### Hooks custom
+
+- `src/hooks/useTableSorts.js` — `const { sorted, sortBy, sortDir, handleSort } = useTableSort(data)`. Sort con `localeCompare('es', { numeric: true })`. Toggle automático on click mismo campo.
+
+---
+
+## 8. API layer
+
+### `src/api/apiClient.js`
+
+- Axios instance con `baseURL` de `VITE_API_BASE_URL`.
+- Request interceptor inyecta `Authorization: Bearer <token>` desde `localStorage.token`.
+- Response interceptor **extrae `response.data`** — los hooks reciben el payload directo. **Nunca hacer `res.data.data`**.
+- 401 → limpia token + redirect a `/login`.
+- Errores → toast automático via `react-hot-toast`.
+
+### `src/api/apiRoutes.js`
+
+Namespaces: `AUTH`, `EMPRESA`, `INSTALACIONES`, `BODEGAS`, `ITEMS`, `CARTERA`, `PAGOS`, `GESTIONES`, `NOTAS_CREDITO`, `TAMBORES`, `CATALOGO`, `UNIDADES`, `INVENTARIO`, `CAPAS`, `FORMULACIONES`, `FORMULACIONES_OPCIONES_INGREDIENTES`, `PROVEEDORES`, `CLIENTES`, `PREPARACIONES`, `ROLES`, `REQUISICIONES`.
+
+Algunas rutas son funciones (parámetros dinámicos):
+- `ITEMS.BUSCAR: (q, tipos) => '/item_general/buscar?...'`
+- `CAPAS.POR_ITEM: (itemId) => '/inventario/{id}/capas'`
+
+---
+
+## 9. Patrones de código (NO inventar — son convenciones reales)
+
+### Hook React Query típico
 
 ```js
-export const useUnidades = () => {
-  const { data = [], isLoading } = useQuery({
-    queryKey: ['unidades'],
-    queryFn: async () => { const res = await apiClient.get(API_ROUTES.UNIDADES); return Array.isArray(res) ? res : []; },
-    staleTime: Infinity,  // units rarely change
+// modules/X/api/useX.js
+export const useTambores = (filters = {}) => {
+  return useQuery({
+    queryKey: tamborKeys.list(filters),
+    queryFn: async () => {
+      const res = await apiClient.get(`/tambores?...`);
+      return res.data ?? res;  // apiClient ya retorna .data
+    },
+    staleTime: 5 * 60 * 1000,
   });
-  return { unidades: data, isLoading };
+};
+
+export const useCrearTambores = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => apiClient.post('/tambores', data),
+    onSuccess: (res) => {
+      toast.success('Creado');
+      queryClient.invalidateQueries({ queryKey: tamborKeys.all });
+    },
+  });
 };
 ```
 
-### Styling
+### Abrir un drawer/modal de form
 
-TailwindCSS 4 utility-first. Custom color tokens like `surface-base`, `surface-main` defined in the Tailwind config. No CSS modules.
+```jsx
+const { openDrawer } = useBoundStore();
 
-**Layout conventions:**
-- Page root: `flex flex-col w-full gap-4`
-- Use `HeaderSection` for page headers
-- Borders: `border-zinc-100`
-- Cards/panels: `rounded-2xl`
+// Crear
+<Button onClick={() => openDrawer('PAGO_FORM')} icon={Plus}>
+  Registrar pago
+</Button>
 
-### Sidebar Navigation
-
-`src/config/sidebarMenu.js` drives sidebar links and grouping. Add new routes here when creating a new module.
-
-### Exports
-
-- **PDF**: jsPDF (`^4.2.0`) + html2canvas (`^1.4.1`) + jspdf-autotable (`^5.0.7`)
-- **Excel**: xlsx (`^0.18.5`)
-- **Charts**: recharts (`^3.8.1`)
-
-## Key Recent Changes (2026-04-21) — Proveedores Module
-
-### `ItemProveedorForm.jsx` — complete rewrite
-
-- `NombreAutocomplete` sub-component manages product name input with two dropdown sections:
-  1. **"En inventario interno"** — results from `buscarFuzzy` (item_general with tipos=[1,2]), shows nombre + código + price
-  2. **"Registrado por proveedor — sin inventario"** — items from `catalogo` filtered by `!item_general_id`, shows nombre + supplier + price + orange "Sin inventario" badge
-- `ignorarRef = useRef(false)` + `cerrarTras(fn)` helper pattern prevents dropdown from reopening after selection due to in-flight debounced API calls.
-- `handleSelectInterno` → sets `itemGeneral` to the full item object (triggers green card in `ItemGeneralSearch`)
-- `handleSelectSinInventario` → sets `itemGeneral` to `{id_item_general: null, nombre, codigo, _pendiente: true}` — shows green card with "Se creará automáticamente..." message
-- **No `autoSearch` prop** on `ItemGeneralSearch` — avoids double dropdown. The nombre autocomplete and item_general search are deliberately decoupled.
-- `_pendiente` flag: when `itemGeneral?._pendiente === true`, shows info message that item_general will be auto-created on save.
-- Unit/factor panel (unidad_compra_id + factor_conversion) only shown when `itemGeneral` is set.
-- Drawer uses `size="xl"`.
-- Duplicate detection: checks `catalogo.find(c => same proveedor_id + same nombre)` before save.
-
-### `VincularModal.jsx` — updated
-
-- Replaced manual search input + `useItem()` with `ItemGeneralSearch` component.
-- Added `useUnidades` hook + unit/factor panel (identical to ItemProveedorForm).
-- `precioActual={item.precio_unitario ?? 0}` passed to ItemGeneralSearch for price comparison.
-
-## Unit of Measure Design
-
-- `item_general.unidad_id` = sales/presentation unit (GALON, TAMBOR, CUÑETE)
-- `item_general.unidad_almacenaje_id` = storage base unit (**KILO** for all raw materials; id=9)
-- `item_proveedor.unidad_compra_id` = unit the supplier sells in (e.g., BULTO, CANECA)
-- `item_proveedor.factor_conversion` = multiplier purchase→base (e.g., 1 BULTO = 25 KG → factor=25)
-- **Rule**: all inventory quantities stored in base unit (KILO). Conversion at OC receipt time.
-- **Costing strategy**: Promedio Ponderado Móvil (moving weighted average) — implemented via backend `InventarioCapasModel::recalcularPromedioPonderado()` on OC receipt.
-
-## Key Recent Changes (2026-04-24) — Cost Layers & Per-ingredient Provider Selection
-
-### Produccion Module — New files
-
-- `src/modules/Produccion/api/useCapasStock.js` — React Query hooks for cost layers:
-  - `useCapasStock(itemGeneralId, bodegaId)` — fetches active layers for an item (staleTime 30s)
-  - `useBodegasConCapas()` — fetches bodegas with active layers (staleTime 60s)
-  - Exports `capasKeys` for cache invalidation
-
-- `src/modules/Produccion/components/CapasStockPanel.jsx` — Collapsible panel per ingredient showing all cost layers:
-  - Displays: provider name, lot, entry date, days in stock, available qty, cost/kg, bodega
-  - Toggle between FIFO automatic and Manual selection modes
-  - Bodega dropdown filter
-  - Manual mode: quantity input per layer with max validation
-  - FIFO mode: auto-assigns from oldest layers
-  - Shows deficit warning when stock < needed
-  - Calculates weighted cost of selection in real-time
-  - Props: `itemGeneralId`, `nombre`, `cantidadNecesaria`, `modo`, `onModoChange`, `onSeleccionChange`, `seleccionActual`, `bodegaSeleccionada`, `onBodegaChange`
-
-### Formulaciones Module — Modified files
-
-- `src/modules/Formulaciones/components/ProveedorCostSelect.jsx` — Fixed dropdown using `createPortal` to render at document.body level. Dropdown was previously clipped by parent's `overflow-hidden`.
-
-- `src/modules/Formulaciones/components/FormulacionesTable.jsx` — Added per-ingredient provider selection:
-  - New `IngredienteProveedorSelect` sub-component: inline portal-based dropdown per ingredient row showing linked suppliers with `precio_por_kg`
-  - When a supplier is selected, the row's cost columns dynamically recalculate using that supplier's price
-  - Rows with overridden costs are highlighted in amber
-  - Footer shows "Selección" total when any ingredient has a custom supplier
-  - New props: `opcionesIngredientes`, `seleccionPorIngrediente`, `onSeleccionIngrediente`
-
-- `src/modules/Formulaciones/components/preparationModal.jsx` — Integrated `CapasStockPanel` into the preparation confirmation flow:
-  - `capasConfig` state manages per-ingredient layer selection: `{ [itemId]: { modo, capas, seleccionManual, bodega_id } }`
-  - "Fuentes de Suministro" collapsible section with `CapasStockPanel` per ingredient
-  - `buildPayload` includes `modo_consumo`, `capas`, and `bodega_id` per ingredient in detalle
-
-- `src/modules/Formulaciones/FormulacionesPage.jsx` — Added `seleccionPorIngrediente` state and passes `opcionesIngredientes` + handlers to `FormulacionesTable`
-
-- `src/modules/Formulaciones/api/useFormulaciones.js` — Added `queryOpcionesIngredientes` query for per-ingredient supplier options. Returns `opcionesIngredientes` and `isLoadingOpcionesIngredientes`.
-
-- `src/modules/Formulaciones/api/FormulacionKeys.js` — Added `opcionesIngredientes(itemId)` query key
-
-- `src/api/apiRoutes.js` — Added `CAPAS` object and `FORMULACIONES_OPCIONES_INGREDIENTES` route
-
-### Portal Dropdown Pattern
-
-When dropdowns inside tables or `overflow-hidden` containers get clipped, use `createPortal(dropdown, document.body)` with:
-1. `useRef` on the trigger button to get `getBoundingClientRect()`
-2. `fixed` positioning + `z-[9999]` on the portal element
-3. Scroll/resize listeners to reposition
-4. Outside-click handler checking both trigger and dropdown refs
-
-Used in: `ProveedorCostSelect`, `IngredienteProveedorSelect` (inside `FormulacionesTable`)
-
-## Key Recent Changes (2026-04-24) — Catálogo Module
-
-### New Module: `src/modules/Catalogo/`
-
-Replaces `Productos` and `MateriasPrimas` modules. Single source of truth for item creation and management.
-
-**Structure:**
-```
-Catalogo/
-├── CatalogoPage.jsx              # Main page with table + create button
-├── api/
-│   ├── catalogoKeys.js           # Query key factory
-│   └── useCatalogo.js            # React Query hooks (list, detail, proveedores, CRUD mutations)
-└── components/
-    ├── CatalogoTable.jsx         # Table with type-filter tabs (Todos/Productos/MP/Insumos) + search + pagination
-    ├── ItemDetailModal.jsx       # Detail modal with 2 tabs + stock badge
-    ├── InfoTab.jsx               # Tab 1: basic data + technical specs
-    ├── SuministroTab.jsx         # Tab 2: linked proveedores table + stock per bodega
-    └── CatalogoForm.jsx          # Create/edit form (item attributes only, no inventory)
+// Editar (con payload)
+<button onClick={() => openDrawer('PAGO_FORM', pago)}>
+  Editar
+</button>
 ```
 
-**API Routes (in `apiRoutes.js`):**
+El `<PagoForm />` global (montado en la page) lee `activeDrawer === 'PAGO_FORM'` y se auto-monta con `key={payload?.id ?? 'new'}` para reset on change.
+
+### Confirmar acción peligrosa
+
+```jsx
+const openConfirm = useBoundStore(s => s.openConfirm);
+
+openConfirm({
+  title: 'Eliminar factura',
+  message: `¿Eliminar la factura ${factura.numero}?`,
+  variant: 'danger',
+  onConfirm: async () => await removeAsync(factura.id),
+});
+```
+
+### Forma estándar de una página
+
+```jsx
+<div className="flex flex-col w-full gap-4">
+  {/* Header */}
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <HeaderSection title="..." icon={Icon} breadcrumbs={[...]} />
+    <Button variant="primary" icon={Plus} onClick={...}>Nueva X</Button>
+  </div>
+
+  {/* KPIs (opcional) */}
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <FlowCard icon={...} tone="info" label="..." value={...} />
+    {/* ... */}
+  </div>
+
+  {/* Filtros */}
+  <SearchFilterBar search={...} onSearch={...} filters={...} statusOptions={...} />
+
+  {/* Tabs (opcional) */}
+  <PageTabs tabs={...} value={tab} onChange={setTab} />
+
+  {/* Tabla */}
+  <ErpTable columns={cols} data={filtered} isLoading={...} variant="cards" />
+</div>
+```
+
+### Migración legacy → tokens (mapping referencia)
+
+```
+bg-zinc-50      → bg-surface-subtle        text-zinc-400     → text-content-muted
+bg-zinc-100     → bg-surface-muted         text-zinc-500     → text-content-tertiary
+bg-zinc-200     → bg-surface-strong        text-zinc-600/700 → text-content-secondary
+bg-zinc-900/950 → bg-content-primary       text-zinc-800/900 → text-content-primary
+border-zinc-100 → border-border-subtle     border-zinc-200   → border-border-base
+border-zinc-300 → border-border-strong
+
+bg-emerald-50/100 → bg-semantic-success-subtle    text-emerald-500/600/700 → text-semantic-success / -fg
+bg-red-50/100     → bg-semantic-danger-subtle     text-red-500/600/700     → text-semantic-danger / -fg
+bg-amber-50/100   → bg-semantic-warning-subtle    text-amber-500/600/700   → text-semantic-warning / -fg
+bg-blue-50/100    → bg-semantic-info-subtle       text-blue-500/600/700    → text-semantic-info / -fg
+bg-violet/purple/pink → bg-brand-subtle           text-violet/purple/pink → text-brand-primary-active
+
+rounded-md → cards/buttons rounded-xl o rounded-pill (más generoso en Pinca 2.0)
+```
+
+### Reglas establecidas
+
+- **Status badges**: SIEMPRE `<StatusBadge>` — nunca `<span className="inline-flex rounded px-X py-X bg-X text-X">`.
+- **Botones**: por default `rounded-pill`. Usar `shape="square"` solo en casos densos donde el pill no quepa.
+- **Acción primaria única** por header. El resto `secondary` o `ghost`.
+- **Acciones por fila**: ≤2 botones visibles, el resto en `ActionMenu` (`...`).
+- **Tabs**: `underline` para navegación de página, `pill` para filtros internos compactos.
+- **Empty states**: SIEMPRE con `<EmptyState>`.
+- **Form sections**: agrupar campos con `<FormSection>`.
+
+---
+
+## 10. Build & deploy
+
+### Vite config (`vite.config.js`)
+
 ```js
-CATALOGO: {
-  LIST:        '/catalogo',
-  DETAIL:      (id) => `/catalogo/${id}`,
-  PROVEEDORES: (id) => `/catalogo/${id}/proveedores`,
+build: {
+  sourcemap: false,
+  minify: 'esbuild',
+  rollupOptions: {
+    output: {
+      manualChunks: {
+        'vendor-react': ['react', 'react-dom', 'react-router'],
+        'vendor-ui':    ['lucide-react', 'recharts'],
+      },
+    },
+  },
 }
 ```
 
-**Key design decisions:**
-- Item creation from Catálogo does NOT create inventory entries — stock enters only via OC receipt
-- `InventarioPage` renamed to "Existencias y Lotes", removed "Agregar Item" button and `ItemFormModal`
-- `CatalogoTable` filters by `tipo` using tab buttons (server returns all types, filtering is client-side)
-- `ItemDetailModal` fetches full detail via `GET /api/catalogo/{id}` which includes proveedores array and stock_por_bodega
+Build actual: ~9s, bundle main ~1.36 MB (gzip ~362 KB). Warning de chunk > 500KB — mejorable con dynamic imports si se vuelve crítico.
 
-### Removed Modules
-- `MateriasPrimas/` — replaced by Catálogo with tipo=1 filter
-- `Productos/` — replaced by Catálogo with tipo=0 filter
-- Routes `/materias-primas` and `/productos` removed from App.jsx
+### Variables de entorno
 
-### Modified: `InventarioPage.jsx`
-- Title changed: "Gestión de Inventario" → "Existencias y Lotes"
-- Removed: `ItemFormModal` component, "Agregar Item" button, `FlaskConical` "Agregar Formulación" button
-- Kept: Refresh, Filters, Export, Import Excel, Conteo Rápido
-
-### Modified: `sidebarMenu.js`
-- Added: `{ link: 'catalogo', label: 'Catálogo', icon: BookOpen }` at position 2 (after Panel Principal)
-- Removed: Productos and MateriasPrimas were not in sidebar (they were accessed via other routes)
-
-## Pending / Next Steps
-
-- **Requisiciones management page**: frontend page in Compras module to list, approve, and convert requisitions to OC.
-- **"Sin vincular" badge**: visual indicator on item_proveedor table rows with no `item_general_id`.
+- `VITE_API_BASE_URL` — URL base del backend.
 
 ---
 
-## PRODUCCIÓN — Auditoría de Gaps (2026-05-09)
+## 11. Pendientes y áreas de mejora
 
-> Resultado de auditoría pre-producción completa del frontend. Resolver los CRÍTICOS antes de cualquier despliegue.
+### 🚧 Módulo nuevo planificado: "Sincronización"
 
-### 🔴 CRÍTICOS — Bloquean producción
+Hay un plan completo de ejecución en `pinca_frontend/SYNC_MODULE_PLAN.md` para un módulo de auditoría/depuración de la relación `item_general` ↔ `item_proveedor`. Incluye:
+- 7 fases de implementación (MVP en fases 1-4, ~3-4 horas)
+- Specs detallados de 4-5 endpoints backend nuevos
+- Mockups y estructura de archivos
+- Apéndices para retomar desde cero
 
-#### 1. Login Page no funcional
-- **Archivo**: `src/modules/Login/Login.jsx`
-- **Problema**: El componente es puramente presentacional. Los inputs no tienen `value`/`onChange`, el botón de submit es `type="button"` sin `onClick`, no hay integración con la API ni redirección tras login exitoso. **El usuario no puede autenticarse.**
-- **Fix**:
-  1. Agregar estado con `useState` para `username` y `password`
-  2. Llamar a `POST /api/login` via `apiClient`
-  3. Guardar el token en `localStorage` y en el store de Zustand (`authSlice`)
-  4. Redirigir a `/` con `useNavigate()` tras login exitoso
-  5. Mostrar error toast si falla
+Si vas a continuar trabajando en el proyecto, ese plan es lo siguiente lógico a ejecutar.
 
-#### 2. `<Layout>` no protege rutas autenticadas
-- **Archivo**: `src/Layout.jsx`
-- **Problema**: El componente que envuelve todas las rutas autenticadas NO verifica si hay token válido. Cualquier persona puede acceder a `/catalogo`, `/compras`, `/produccion`, etc. directamente por URL sin estar autenticada.
-- **Fix**: En `Layout.jsx`, agregar guard al montar:
-  ```jsx
-  const token = useBoundStore(s => s.token);
-  if (!token) return <Navigate to="/login" replace />;
-  ```
+### Decisión pendiente del usuario
 
-#### 3. Sin ruta 404
-- **Archivo**: `src/App.jsx`
-- **Problema**: No existe `<Route path="*" />`. Las URLs inválidas muestran pantalla en blanco.
-- **Fix**: Crear `src/shared/NotFound.jsx` y agregar al final de las rutas:
-  ```jsx
-  <Route path="*" element={<NotFound />} />
-  ```
+- **`Costos/` y `CostosIndirectos/`**: páginas implementadas sin ruta ni link sidebar. Decidir: agregar ruta y exponerlos, o eliminar el código.
 
-#### 4. React Query DevTools cargando en producción
-- **Archivo**: `src/main.jsx`
-- **Problema**: `<ReactQueryDevtools />` se carga incondicionalmente, exponiendo el cache de queries y estructura de datos en el navegador del usuario.
-- **Fix**:
-  ```jsx
-  {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-  ```
+### Refinamientos opcionales
+
+- **5 módulos sin enlace sidebar**: `Pagos`, `Tambores`, `Prorrateo`, `Roles`. Confirmar si es intencional o agregarlos.
+- **Code splitting**: bundle > 500KB. Si crece, considerar dynamic imports para módulos pesados (Formulaciones, Produccion).
+- **Test runner**: no hay tests configurados. Si se agregan, usar Vitest + testing-library.
+- **Refresh token**: el cliente cierra sesión cuando 401 sin aviso. Sería mejor un modal de "sesión expirada" + intento de refresh.
+
+### Componentes legacy que conviven con los nuevos
+
+- `SummaryCard` (legacy) coexiste con `FlowCard` (nuevo). `FlowCard` es mejor para dashboards — pero migración no es urgente, `SummaryCard` ya está tokenizado.
 
 ---
 
-### 🟠 ALTOS — Resolver antes de abrir a usuarios reales
+## 12. Notas operacionales para Claude
 
-#### 5. 31 `console.log()` activos en código de producción
-- **Archivos con más instancias**:
-  - `src/modules/Cartera/components/ModalRegistrarPago.jsx` — 6 console.log (líneas 90, 98, 102, 117, 121, 124)
-  - `src/modules/Cartera/api/useCartera.js` — 4 console.log + 2 console.error
-  - `src/modules/Inventario/Components/TraspasoModal.jsx` — `console.log('payload traspaso:', payload)` con comentario `← agrega esto`
-- **Impacto**: Expone estado interno, respuestas de API y lógica de negocio en el navegador. Degradación de rendimiento.
-- **Fix**: Buscar globalmente con `grep -r "console\." src/` y eliminar todos. Solo conservar `console.error()` en bloques `catch` para errores inesperados.
+### Reglas críticas
 
-#### 6. Sin Error Boundary
-- **Problema**: Si cualquier componente lanza una excepción no capturada, la app completa muestra pantalla en blanco sin mensaje amigable ni posibilidad de recuperación.
-- **Fix**: Crear `src/shared/ErrorBoundary.jsx` (componente de clase) y envolver `<App />` en `main.jsx`.
+1. **NUNCA hardcodear colores Tailwind** (`zinc-X`, `blue-X`, etc.). Usar siempre tokens. Si encuentras alguno, migrar.
+2. **NUNCA crear badges inline** (`<span className="inline-flex ... rounded ... bg-X text-X">`). Usar `<StatusBadge>`.
+3. **NUNCA copiar `inputCls = "..."` localmente** en un componente. Importar `INPUT_BASE` de `Form/styles.js`.
+4. **`@import url(...)` para fuentes va PRIMERO** en `index.css`, antes de `@import "tailwindcss"`. Crítico — si está después, no carga.
+5. **Migrar a Pinca 2.0**: si tocas un componente legacy, aprovecha para migrarlo a tokens. El sistema espera consistencia visual total.
+6. **Cuando crees una página nueva**, sigue la estructura estándar (HeaderSection + KPIs opcionales + Filtros + Tabla `variant="cards"`).
 
-#### 7. Vite no configurado para producción
-- **Archivo**: `vite.config.js`
-- **Problema**: Config mínima sin optimizaciones de build.
-- **Fix recomendado**:
-  ```js
-  build: {
-    sourcemap: false,
-    minify: 'terser',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router'],
-          'vendor-ui': ['lucide-react', 'recharts'],
-        }
-      }
-    }
-  }
-  ```
+### Para retomar trabajo
 
-#### 8. `VITE_API_BASE_URL` apunta a localhost
-- **Archivo**: `.env`
-- **Problema**: `VITE_API_BASE_URL=http://localhost:8080/api` — en producción debe apuntar al servidor real.
-- **Fix**: Crear `.env.production` con la URL del servidor de producción. Nunca commitear `.env.production`.
+1. `npm run dev` — verificar que arranca sin errores.
+2. `npm run build` — verificar build limpio.
+3. Revisar pantallas en el orden de migración: Login → Inventario → Cartera → Pagos. Estos son los pilots y deberían verse pulidos.
+4. Si encuentras una pantalla que se ve "mal" (fuentes grandes, badges inconsistentes, colores raros), refresca:
+   - ¿Está usando tokens (no zinc-X)?
+   - ¿Las fuentes son apropiadas (text-lg para títulos, no text-xl)?
+   - ¿Los badges usan `<StatusBadge>`?
+   - ¿Los inputs usan `FormInput` / `INPUT_BASE`?
 
-#### 9. Sin `.env.example`
-- **Problema**: Un desarrollador nuevo no sabe qué variables de entorno se necesitan.
-- **Fix**: Crear `.env.example`:
-  ```
-  VITE_API_BASE_URL=http://localhost:8080/api
-  ```
+### Áreas más complejas / dolorosas
 
-#### 10. Título de pestaña vacío
-- **Archivo**: `index.html` línea 7
-- **Problema**: `<title></title>` — el navegador muestra pestaña sin nombre.
-- **Fix**: `<title>PINCA — Gestión Industrial</title>`
+- **Formulaciones**: módulo más complejo (10+ archivos JSX, lógica de preparación, capas de stock).
+- **Produccion**: cerca en complejidad. Modal de disponibilidad usa portales.
+- **Cartera**: dashboard con múltiples drawers anidados, aging analysis.
+- **Comercial**: 3 sub-módulos (Cotizaciones, Remisiones, Facturación) con sus propias APIs.
+- **Proveedores**: tabla con comparador dual (lista normal ↔ comparación por producto).
+
+### Patrón de "key reset" en forms
+
+Algunos forms (FacturaForm, PagoForm, ModalRegistrarPago) usan el patrón:
+```jsx
+const Wrapper = () => {
+  const payload = useBoundStore(s => s.drawerPayload);
+  return <FormContent key={payload?.id ?? 'new'} editData={payload} />;
+};
+```
+El `key` fuerza a React a destruir y recrear el form al cambiar el ID — evita useEffects de reset. **Mantener este patrón**.
 
 ---
 
-### 🟡 MEDIOS — Mejoras importantes post-MVP
-
-#### 11. Módulos `MateriasPrimas/` y `Productos/` no eliminados (código muerto)
-- **Problema**: CLAUDE.md dice que fueron eliminados pero los directorios y archivos siguen existiendo. Aumentan el bundle size y generan confusión.
-- **Fix**: Eliminar `src/modules/MateriasPrimas/` y `src/modules/Productos/` completamente.
-
-#### 12. Módulos `Costos` y `CostosIndirectos` implementados pero sin ruta
-- **Archivos**: `src/modules/Costos/CostosPage.jsx` (196 líneas), `src/modules/CostosIndirectos/`
-- **Problema**: Páginas completas marcadas como `—` en la tabla de módulos. No están accesibles para el usuario.
-- **Decisión pendiente**: O agregar ruta + enlace en `sidebarMenu.js`, o documentar explícitamente que están deshabilitadas y por qué.
-
-#### 13. Sin manejo de sesión expirada (token refresh)
-- **Archivo**: `src/api/apiClient.js`
-- **Problema**: Cuando el token de 8 horas expira, la app redirige a `/login` abruptamente perdiendo el trabajo no guardado. No hay refresh token ni renovación silenciosa.
-- **Fix de mínimo**: Mostrar modal de "Tu sesión expiró, inicia sesión nuevamente" en lugar de redirigir sin aviso. Fix completo requiere implementar refresh token en backend.
-
-#### 14. Typo en nombre de archivo del módulo Prorrateo
-- **Archivo**: `src/App.jsx` línea 9
-- **Problema**: `import Prorrateo from "./modules/Prorrateo/Prorreateo"` — el archivo se llama `Prorreateo.jsx` (con 'e' extra).
-- **Fix**: Renombrar archivo a `Prorrateo.jsx` y actualizar el import.
-
-#### 15. Sin indicación visual de modo read-only en Inventario
-- **Problema**: El módulo "Existencias y Lotes" es read-only pero el usuario no lo sabe. Puede generar confusión esperando poder agregar items.
-- **Fix**: Agregar banner o badge informativo: "Este módulo es solo lectura. El stock ingresa vía Órdenes de Compra."
-
----
-
-### 🔵 BAJOS — Deuda técnica
-
-- **Sin tests**: No existe configuración de Vitest ni testing-library. Sin tests, los cambios en componentes críticos (Produccion, Formulaciones, Cartera) son riesgosos.
-- **Axios desactualizado**: v1.13.5 — verificar si hay actualizaciones de seguridad pendientes con `npm audit`.
-- **Sin documentación de componentes**: Los shared components clave (`CapasStockPanel`, `ItemGeneralSearch`, `ErpTable`) no tienen JSDoc en sus props.
-- **Queries sin error handling granular**: Muchos `useQuery` hooks no diferencian entre error de red, 404 y 500. El usuario ve el mismo mensaje genérico para todos.
-
----
-
-### Checklist Pre-Deploy
+## 13. Auditoría de archivos clave
 
 ```
-□ Login page funcional (form → API → token → redirect)
-□ Layout protege rutas (redirige a /login sin token)
-□ Ruta 404 creada y registrada
-□ ReactQueryDevtools solo en DEV
-□ Todos los console.log() eliminados
-□ Error Boundary configurado en main.jsx
-□ Vite build configurado para producción (minify, chunks)
-□ .env.production con URL real del backend
-□ Título de pestaña configurado en index.html
-□ npm audit sin vulnerabilidades críticas
-□ Build de producción ejecutado y testeado: npm run build && npm run preview
+src/
+├── App.jsx                     ← Routes (20 rutas + 404)
+├── Layout.jsx                  ← Wrapper con Sidebar+Topbar+Outlet, protege rutas
+├── main.jsx                    ← Entry point, React Query provider
+├── index.css                   ← ⭐ Design tokens — fuente de verdad visual
+├── api/
+│   ├── apiClient.js            ← Axios con interceptors
+│   └── apiRoutes.js            ← Endpoints centralizados
+├── config/
+│   ├── modulos.js              ← MODULOS_SISTEMA + ROLES_LABELS
+│   └── sidebarMenu.js          ← Items del sidebar
+├── hooks/
+│   └── useTableSorts.js        ← useTableSort()
+├── store/
+│   ├── useBoundStore.js        ← Zustand bound
+│   └── slices/{auth,useUISlice,inventorySlice}.js
+├── shared/                     ← 28 componentes shared (ver §5)
+├── modules/                    ← 20 módulos (ver §3)
+└── utils/                      ← cn, avatarTheme, formatters, services
 ```
 
 ---
 
-### Estado por módulo (2026-05-09)
+## 14. Cambios recientes (historial corto)
 
-| Módulo | Ruta | Estado UI | Notas |
-|--------|------|-----------|-------|
-| Login | `/login` | ❌ No funcional | Requiere implementación completa |
-| sedes | `/` | ✅ | — |
-| Catalogo | `/catalogo` | ✅ | — |
-| Inventario | `/inventario/...` | ✅ | Read-only, falta indicador visual |
-| Bodegas | `/instalaciones/bodegas/:id` | ✅ | — |
-| Formulaciones | `/formulaciones` | ✅ | — |
-| Produccion | `/produccion` | ✅ | — |
-| Clientes | `/clientes` | ✅ | — |
-| Comercial | `/comercial` | ✅ | — |
-| Compras | `/compras` | ✅ | Falta página Requisiciones |
-| Proveedores | `/proveedores` | ✅ | Falta badge "Sin vincular" |
-| Cartera | `/cartera` | ✅ | Tiene console.logs — limpiar |
-| Pagos | `/pagos` | ✅ | — |
-| Movimientos | `/movimientos` | ✅ | — |
-| Rentabilidad | `/rentabilidad` | ✅ | — |
-| Tambores | `/tambores` | ✅ | — |
-| Prorrateo | `/prorrateo` | ✅ | Typo en nombre de archivo |
-| Costos | — | ⚠️ Sin ruta | Página implementada, sin acceso |
-| CostosIndirectos | — | ⚠️ Sin ruta | Página implementada, sin acceso |
-| MateriasPrimas | — | 🗑️ Eliminar | Reemplazado por Catálogo |
-| Productos | — | 🗑️ Eliminar | Reemplazado por Catálogo |
+- **2026-05-12** — Pinca 2.0 completo: 145 archivos JSX migrados, 2566 hardcodes → 0, Outfit activa globalmente.
+- **2026-05-09** — Auditoría pre-producción (ver sección antigua del CLAUDE.md si existe — algunas cosas ya están corregidas).
+- **2026-04-24** — Catálogo unificado, módulo de Capas/cost layers.
+- **2026-04-21** — Proveedores rewrite, Tambores, modelo de unidades (KILO base).
+
+Si necesitás detalle histórico granular, revisa el git log o pregúntale al usuario.

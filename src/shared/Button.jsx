@@ -1,58 +1,169 @@
+import { Loader2 } from 'lucide-react';
+import cn from '../utils/cn';
 
-export const Button = ({ 
-  children, 
-  onClick, 
-  variant = "black", 
-  icon: Icon, 
-  sizeIcon = 18,
-  disabled,  
-  type = "button", 
-  className = ""  
+/**
+ * Button — Pinca 2.0 (pill-rounded por default).
+ *
+ * Variantes:
+ *   primary   — Brand amarillo, texto dark. Acción principal de la pantalla.
+ *   secondary — Blanco con borde. Acciones secundarias.
+ *   ghost     — Transparente con hover suave. Acciones terciarias/dentro de listas.
+ *   dark      — Negro con texto blanco. Para confirmaciones serias.
+ *   danger    — Rojo. Eliminar, anular.
+ *   success   — Verde. Aprobar, recibir, finalizar.
+ *   warning   — Naranja. Advertencias accionables.
+ *   info      — Azul. Información, ver detalle.
+ *   outline-* — Variantes outline (solo borde + texto) para los semantic anteriores.
+ *
+ * Legacy aliases (black/white/blue/emerald/red/amber/orange/zinc) se mantienen
+ * para no romper call-sites antiguos.
+ */
+const VARIANT_CLASSES = {
+  // ── Semánticas Pinca 2.0 ─────────────────────────────────────────────────
+  primary:
+    'bg-brand-primary hover:bg-brand-primary-hover active:bg-brand-primary-active ' +
+    'text-content-on-brand border-transparent shadow-xs',
+  secondary:
+    'bg-surface-base hover:bg-surface-muted active:bg-surface-strong ' +
+    'text-content-primary border-border-base shadow-xs',
+  ghost:
+    'bg-transparent hover:bg-surface-muted active:bg-surface-strong ' +
+    'text-content-secondary border-transparent shadow-none',
+  dark:
+    'bg-content-primary hover:bg-content-secondary active:bg-content-primary ' +
+    'text-content-inverse border-transparent shadow-xs',
+  danger:
+    'bg-semantic-danger hover:brightness-95 active:brightness-90 ' +
+    'text-white border-transparent shadow-xs',
+  success:
+    'bg-semantic-success hover:brightness-95 active:brightness-90 ' +
+    'text-white border-transparent shadow-xs',
+  warning:
+    'bg-semantic-warning hover:brightness-95 active:brightness-90 ' +
+    'text-white border-transparent shadow-xs',
+  info:
+    'bg-semantic-info hover:brightness-95 active:brightness-90 ' +
+    'text-white border-transparent shadow-xs',
+
+  // ── Outline variants (solo borde + texto del color) ──────────────────────
+  'outline-primary':
+    'bg-transparent hover:bg-brand-subtle text-brand-primary-active border-brand-primary shadow-none',
+  'outline-danger':
+    'bg-transparent hover:bg-semantic-danger-subtle text-semantic-danger-fg border-semantic-danger/40 shadow-none',
+  'outline-success':
+    'bg-transparent hover:bg-semantic-success-subtle text-semantic-success-fg border-semantic-success/40 shadow-none',
+  'outline-info':
+    'bg-transparent hover:bg-semantic-info-subtle text-semantic-info-fg border-semantic-info/40 shadow-none',
+
+  // ── Legacy (mapeadas) ────────────────────────────────────────────────────
+  black:   'bg-content-primary hover:bg-content-secondary text-content-inverse border-transparent shadow-xs',
+  white:   'bg-surface-base hover:bg-surface-muted text-content-primary border-border-base shadow-xs',
+  blue:    'bg-semantic-info hover:brightness-95 text-white border-transparent shadow-xs',
+  emerald: 'bg-semantic-success hover:brightness-95 text-white border-transparent shadow-xs',
+  red:     'bg-semantic-danger hover:brightness-95 text-white border-transparent shadow-xs',
+  amber:   'bg-brand-primary hover:bg-brand-primary-hover text-content-on-brand border-transparent shadow-xs',
+  orange:  'bg-semantic-warning hover:brightness-95 text-white border-transparent shadow-xs',
+  zinc:    'bg-content-secondary hover:bg-content-primary text-content-inverse border-transparent shadow-xs',
+};
+
+/**
+ * Forma del botón.
+ *   pill   — rounded-pill (totalmente redondeado, estilo Pinca 2.0 default)
+ *   square — rounded-md (rectangular con esquinas suaves, legacy / casos densos)
+ */
+const SHAPE = {
+  pill:   'rounded-pill',
+  square: 'rounded-md',
+};
+
+const SIZE_CLASSES = {
+  xs: 'h-6 px-2.5 text-[11px] gap-1',
+  sm: 'h-7 px-3 text-xs gap-1.5',
+  md: 'h-8 px-3.5 text-sm gap-1.5',
+  lg: 'h-10 px-5 text-sm gap-2',
+};
+
+const ICON_SIZE_BY_SIZE = { xs: 12, sm: 13, md: 15, lg: 16 };
+
+const BASE =
+  'inline-flex items-center justify-center font-medium border whitespace-nowrap ' +
+  'transition-all duration-150 ' +
+  'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40 focus-visible:ring-offset-1 ' +
+  'disabled:opacity-50 disabled:pointer-events-none';
+
+export const Button = ({
+  children,
+  onClick,
+  variant = 'primary',
+  size = 'md',
+  shape = 'pill',
+  icon: Icon,
+  iconRight: IconRight,
+  sizeIcon,
+  loading = false,
+  disabled,
+  type = 'button',
+  className = '',
+  ...rest
 }) => {
-    
-    const variants = {
-        black: "bg-zinc-950 hover:bg-zinc-800 text-white shadow-zinc-950/20",
-        blue: "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20",
-        emerald: "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20",
-        white: "bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-200 shadow-sm",
-        red: "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20",
-        zinc: "bg-zinc-600 hover:bg-zinc-700 text-white shadow-zinc-600/20",
-        orange: "bg-orange-600 hover:bg-orange-700 text-white shadow-orange-600/20",
-        amber: "bg-amber-500 hover:bg-amber-600 text-zinc-900 shadow-amber-500/20",
-    }
+  const variantCls = VARIANT_CLASSES[variant] ?? VARIANT_CLASSES.primary;
+  const sizeCls = SIZE_CLASSES[size] ?? SIZE_CLASSES.md;
+  const shapeCls = SHAPE[shape] ?? SHAPE.pill;
+  const iconSize = sizeIcon ?? ICON_SIZE_BY_SIZE[size] ?? 14;
 
-    return (
-        <button
-            type={type}
-            onClick={onClick}
-            disabled={disabled}
-            className={`flex items-center justify-center gap-2 px-5 py-2.5 active:scale-95 hover:scale-105 border border-transparent rounded-xl text-sm font-semibold shadow-md transition-all disabled:opacity-60 disabled:pointer-events-none disabled:hover:scale-100 disabled:active:scale-100 ${variants[variant]} ${className}`}
-        >
-            {Icon && <Icon size={sizeIcon} />}
-            {children}
-        </button>
-    )
-}
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled || loading}
+      className={cn(BASE, sizeCls, shapeCls, variantCls, className)}
+      {...rest}
+    >
+      {loading ? (
+        <Loader2 size={iconSize} className="animate-spin" />
+      ) : Icon ? (
+        <Icon size={iconSize} />
+      ) : null}
+      {children}
+      {!loading && IconRight && <IconRight size={iconSize} />}
+    </button>
+  );
+};
 
-export const ButtonSquare = ({ onClick, variant = "black", icon: Icon, sizeIcon = 18, title, animate = "" }) => {
+const SQUARE_SIZES = {
+  xs: 'w-6 h-6',
+  sm: 'w-7 h-7',
+  md: 'w-8 h-8',
+  lg: 'w-10 h-10',
+};
 
-    const variants = {
-        black: "bg-zinc-950 hover:bg-zinc-800 text-white shadow-zinc-950/20",
-        blue: "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20",
-        emerald: "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20",
-        white: "bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-200 shadow-sm",
-        red: "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20",
-        zinc: "bg-zinc-600 hover:bg-zinc-700 text-white shadow-zinc-600/20",
-        amber: "bg-amber-500 hover:bg-amber-600 text-zinc-900 shadow-amber-500/20",
-    }
+export const ButtonSquare = ({
+  onClick,
+  variant = 'secondary',
+  size = 'md',
+  icon: Icon,
+  sizeIcon,
+  title,
+  animate = '',
+  disabled,
+  type = 'button',
+  className = '',
+  ...rest
+}) => {
+  const variantCls = VARIANT_CLASSES[variant] ?? VARIANT_CLASSES.secondary;
+  const sizeCls = SQUARE_SIZES[size] ?? SQUARE_SIZES.md;
+  const iconSize = sizeIcon ?? ICON_SIZE_BY_SIZE[size] ?? 14;
 
-    return (
-        <button
-            onClick={onClick}
-            title={title}
-            className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all active:scale-95 hover:scale-105 disabled:opacity-60 disabled:pointer-events-none disabled:active:scale-100 ${variants[variant]}`}
-        >
-            {Icon && <Icon className={animate} size={sizeIcon} />}
-        </button>
-    )
-}
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={cn(BASE, sizeCls, 'rounded-full', variantCls, className)}
+      {...rest}
+    >
+      {Icon && <Icon className={animate} size={iconSize} />}
+    </button>
+  );
+};

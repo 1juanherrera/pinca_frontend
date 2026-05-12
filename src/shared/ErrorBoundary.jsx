@@ -17,15 +17,15 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+        <div className="min-h-screen flex items-center justify-center bg-surface-subtle">
           <div className="bg-white rounded-2xl shadow p-10 max-w-md text-center">
-            <h1 className="text-2xl font-bold text-zinc-800 mb-2">Algo salió mal</h1>
-            <p className="text-zinc-500 mb-6">
+            <h1 className="text-2xl font-bold text-content-primary mb-2">Algo salió mal</h1>
+            <p className="text-content-tertiary mb-6">
               Ocurrió un error inesperado. Recarga la página o contacta al administrador.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-5 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-700 transition"
+              className="px-5 py-2 bg-content-primary text-white rounded-lg hover:bg-content-secondary transition"
             >
               Recargar página
             </button>

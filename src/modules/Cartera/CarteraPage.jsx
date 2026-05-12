@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Wallet, ChartArea, FileText } from 'lucide-react';
 import HeaderSection        from '../../shared/HeaderSection';
+import PageTabs             from '../../shared/PageTabs';
 import DashboardCartera     from './components/DashboardCartera';
 import FacturasTable        from './components/FacturasTable';
 import ModalRegistrarPago   from './components/ModalRegistrarPago';
@@ -10,8 +11,8 @@ import GestionesCobroDrawer from './components/GestionesCobroDrawer';
 import NotasCreditoDrawer   from './components/NotasCreditoDrawer';
 
 const TABS = [
-  { id: 'dashboard', label: 'Dashboard', icon: ChartArea },
-  { id: 'facturas',  label: 'Facturas',  icon: FileText        },
+  { key: 'dashboard', label: 'Dashboard', icon: ChartArea },
+  { key: 'facturas',  label: 'Facturas',  icon: FileText  },
 ];
 
 const CarteraPage = () => {
@@ -49,27 +50,7 @@ const CarteraPage = () => {
         />
       </div>
 
-      {/* Navegación por tabs */}
-      <div className="flex items-center border-b border-zinc-200">
-        {TABS.map((t) => {
-          const Icon   = t.icon;
-          const active = tab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 pb-3 pt-1 text-sm font-semibold border-b-2 transition-all -mb-px whitespace-nowrap ${
-                active
-                  ? 'border-zinc-900 text-zinc-900'
-                  : 'border-transparent text-zinc-400 hover:text-zinc-700 hover:border-zinc-300'
-              }`}
-            >
-              <Icon size={14} />
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+      <PageTabs tabs={TABS} value={tab} onChange={setTab} />
 
       {tab === 'dashboard' && <DashboardCartera />}
 

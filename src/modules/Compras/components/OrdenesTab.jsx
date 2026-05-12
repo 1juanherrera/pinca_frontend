@@ -10,10 +10,10 @@ import { useCompras }    from '../api/useCompras';
 import useTableSort      from '../../../hooks/useTableSorts';
 
 const STATUS_OPTIONS = [
-  { value: 'Borrador',  label: 'Borrador',  dot: 'bg-zinc-400'    },
-  { value: 'Enviada',   label: 'Enviada',   dot: 'bg-blue-500'    },
-  { value: 'Recibida',  label: 'Recibida',  dot: 'bg-emerald-500' },
-  { value: 'Cancelada', label: 'Cancelada', dot: 'bg-red-400'     },
+  { value: 'Borrador',  label: 'Borrador',  dot: 'bg-content-muted'    },
+  { value: 'Enviada',   label: 'Enviada',   dot: 'bg-semantic-info'    },
+  { value: 'Recibida',  label: 'Recibida',  dot: 'bg-semantic-success' },
+  { value: 'Cancelada', label: 'Cancelada', dot: 'bg-semantic-danger/80'     },
 ];
 
 const OrdenesTab = ({ onVerDetalle }) => {
@@ -54,7 +54,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
       label:     'Número',
       className: 'w-28',
       render: (v) => (
-        <span className=" text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
+        <span className=" text-xs font-bold text-content-muted whitespace-nowrap">{v}</span>
       ),
     },
     {
@@ -63,8 +63,8 @@ const OrdenesTab = ({ onVerDetalle }) => {
       className: 'w-48',
       render: (v, row) => (
         <div className="min-w-0">
-          <p className="font-semibold text-zinc-800 text-xs leading-none truncate">{v || row.nombre_encargado}</p>
-          <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{row.bodega_nombre}</p>
+          <p className="font-semibold text-content-primary text-xs leading-none truncate">{v || row.nombre_encargado}</p>
+          <p className="text-[10px] text-content-muted mt-0.5 truncate">{row.bodega_nombre}</p>
         </div>
       ),
     },
@@ -73,7 +73,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
       label:     'Fecha',
       className: 'w-28',
       render: (v) => (
-        <span className="text-xs text-zinc-500 tabular-nums whitespace-nowrap">
+        <span className="text-xs text-content-tertiary tabular-nums whitespace-nowrap">
           {v ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
         </span>
       ),
@@ -83,7 +83,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
       label:     'F. esperada',
       className: 'w-28',
       render: (v) => (
-        <span className="text-xs text-zinc-500 tabular-nums whitespace-nowrap">
+        <span className="text-xs text-content-tertiary tabular-nums whitespace-nowrap">
           {v ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
         </span>
       ),
@@ -122,7 +122,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
                   onConfirm: async () => await cambiarEstadoAsync({ id: row.id_orden, estado: 'Enviada' }),
                 });
               }}
-              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all active:scale-95"
+              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-semantic-info hover:text-white hover:border-semantic-info transition-all active:scale-95"
               title="Marcar como enviada"
             >
               <Send size={12} />
@@ -132,7 +132,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
           {/* Ver detalle */}
           <button
             onClick={(e) => { e.stopPropagation(); onVerDetalle(row); }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
           >
             Ver
           </button>
@@ -141,7 +141,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
           {row.estado === 'Borrador' && (
             <button
               onClick={(e) => { e.stopPropagation(); openDrawer('ORDEN_COMPRA_FORM', row); }}
-              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95"
+              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
               title="Editar"
             >
               <Pencil size={12}/>
@@ -159,7 +159,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
                   onConfirm: async () => await removeAsync(row.id_orden),
                 });
               }}
-              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
+              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-all active:scale-95"
               title="Eliminar"
             >
               <Trash2 size={12}/>
@@ -179,7 +179,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
         <SummaryCard label="Canceladas"     value={metrics.canceladas} icon={XCircle}      color="red"   />
       </div>
 
-    <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm">
+    <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
       <SearchFilterBar
         search={search}
         onSearch={setSearch}

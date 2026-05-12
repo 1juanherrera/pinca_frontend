@@ -1,76 +1,66 @@
 import { DollarSign, AlertCircle } from 'lucide-react';
+import cn from '../../utils/cn';
+import {
+  INPUT_BASE, INPUT_ERROR,
+  LABEL_BASE, LABEL_REQUIRED_MARK,
+  FIELD_ERROR, FIELD_WRAPPER,
+} from './styles';
 
 export const InputMoneda = ({
   label,
   value,
   onChange,
   error,
-  placeholder = "0"
+  required = false,
+  placeholder = '0',
+  disabled = false,
 }) => {
-  // 🔥 LA MAGIA: Estado derivado directo. Cero useEffect, cero useState.
-  // Calculamos el texto formateado al vuelo durante el renderizado.
-  const displayValue = (value !== undefined && value !== null && value !== '') 
-    ? new Intl.NumberFormat('es-CO').format(value) 
+  const displayValue = (value !== undefined && value !== null && value !== '')
+    ? new Intl.NumberFormat('es-CO').format(value)
     : '';
 
   const handleChange = (e) => {
-    // 1. Capturamos lo que el usuario tecleó (ej. "1.500a")
-    const rawString = e.target.value;
-
-    // 2. Limpiamos la basura. Dejamos solo números (ej. "1500")
-    const soloNumeros = rawString.replace(/\D/g, '');
-
-    // 3. Convertimos a número real, si está vacío enviamos 0
+    const soloNumeros = e.target.value.replace(/\D/g, '');
     const valorNumerico = soloNumeros === '' ? 0 : parseInt(soloNumeros, 10);
-
-    // 4. Se lo pasamos a React Hook Form
     onChange(valorNumerico);
   };
 
   return (
-    <div className="flex flex-col gap-1.5 w-full">
-      {/* Etiqueta */}
+    <div className={cn(FIELD_WRAPPER, 'w-full')}>
       {label && (
-        <label className="text-sm font-semibold text-zinc-700">
-          {label}
+        <label className={LABEL_BASE}>
+          {label}{required && <span className={LABEL_REQUIRED_MARK}>*</span>}
         </label>
       )}
 
-      {/* Contenedor del Input */}
       <div className="relative">
-        {/* Icono de Moneda */}
-        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400">
-          <DollarSign size={18} strokeWidth={2.5} />
+        <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-content-muted">
+          <DollarSign size={14} strokeWidth={2} />
         </div>
 
         <input
-          type="text" // 'text' para que acepte los puntos de los miles
+          type="text"
+          inputMode="numeric"
           placeholder={placeholder}
-          value={displayValue} // Usamos el valor calculado al vuelo
+          value={displayValue}
           onChange={handleChange}
-          className={`w-full pl-10 pr-4 py-2.5 text-sm text-zinc-900 bg-zinc-50 border rounded-xl transition-all outline-none font-medium
-            ${error
-              ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-              : 'border-zinc-200/80 hover:border-zinc-300 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/10'
-            }
-            ${error ? 'pr-10' : ''}
-          `}
+          disabled={disabled}
+          className={cn(
+            INPUT_BASE,
+            'pl-8 tabular-nums',
+            error && INPUT_ERROR,
+            error && 'pr-9',
+          )}
         />
 
-        {/* Icono de Error */}
         {error && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-red-500">
-            <AlertCircle size={18} />
+          <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-semantic-danger">
+            <AlertCircle size={14} />
           </div>
         )}
       </div>
 
-      {/* Mensaje de Error */}
-      {error && (
-        <span className="text-xs font-medium text-red-500 animate-in fade-in slide-in-from-top-1">
-          {error}
-        </span>
-      )}
+      {error && <span className={FIELD_ERROR}>{error}</span>}
     </div>
   );
 };

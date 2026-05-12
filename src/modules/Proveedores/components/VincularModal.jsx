@@ -65,20 +65,20 @@ const VincularModal = ({ item, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-zinc-100">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-border-subtle">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 bg-zinc-50">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-surface-subtle">
           <div className="flex items-center gap-2">
-            <Link2 size={16} className="text-zinc-500" />
+            <Link2 size={16} className="text-content-tertiary" />
             <div>
-              <h2 className="text-sm font-bold text-zinc-800 uppercase tracking-wide">Vincular ítem</h2>
-              <p className="text-[10px] text-zinc-400 mt-0.5 uppercase">{item.nombre}</p>
+              <h2 className="text-sm font-bold text-content-primary uppercase tracking-wide">Vincular ítem</h2>
+              <p className="text-[10px] text-content-muted mt-0.5 uppercase">{item.nombre}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
           >
             <X size={14} />
           </button>
@@ -87,12 +87,12 @@ const VincularModal = ({ item, onClose }) => {
         <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
 
           {/* Info del producto del proveedor */}
-          <div className="flex items-start gap-3 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5">
-            <Info size={14} className="text-zinc-400 mt-0.5 shrink-0" />
-            <div className="text-[10px] text-zinc-500 space-y-0.5">
-              <p><span className="font-bold text-zinc-700">Código:</span> {item.codigo ?? '—'}</p>
-              <p><span className="font-bold text-zinc-700">Proveedor:</span> {item.nombre_empresa}</p>
-              <p><span className="font-bold text-zinc-700">Precio unit.:</span> ${item.precio_unitario?.toLocaleString('es-CO')}</p>
+          <div className="flex items-start gap-3 bg-surface-subtle border border-border-base rounded-lg px-3 py-2.5">
+            <Info size={14} className="text-content-muted mt-0.5 shrink-0" />
+            <div className="text-[10px] text-content-tertiary space-y-0.5">
+              <p><span className="font-bold text-content-secondary">Código:</span> {item.codigo ?? '—'}</p>
+              <p><span className="font-bold text-content-secondary">Proveedor:</span> {item.nombre_empresa}</p>
+              <p><span className="font-bold text-content-secondary">Precio unit.:</span> ${item.precio_unitario?.toLocaleString('es-CO')}</p>
             </div>
           </div>
 
@@ -102,8 +102,8 @@ const VincularModal = ({ item, onClose }) => {
               onClick={() => setModo('existente')}
               className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-all ${
                 modo === 'existente'
-                  ? 'bg-zinc-900 text-white border-zinc-900'
-                  : 'bg-white text-zinc-500 border-zinc-200 hover:border-zinc-400'
+                  ? 'bg-content-primary text-white border-content-primary'
+                  : 'bg-white text-content-tertiary border-border-base hover:border-border-strong'
               }`}
             >
               Buscar ítem existente
@@ -112,8 +112,8 @@ const VincularModal = ({ item, onClose }) => {
               onClick={() => setModo('nuevo')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold border transition-all ${
                 modo === 'nuevo'
-                  ? 'bg-zinc-900 text-white border-zinc-900'
-                  : 'bg-white text-zinc-500 border-zinc-200 hover:border-zinc-400'
+                  ? 'bg-content-primary text-white border-content-primary'
+                  : 'bg-white text-content-tertiary border-border-base hover:border-border-strong'
               }`}
             >
               <Plus size={12} /> Crear ítem nuevo
@@ -136,22 +136,22 @@ const VincularModal = ({ item, onClose }) => {
           {modo === 'nuevo' && (
             <div className="space-y-3">
               <div>
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Nombre *</label>
+                <label className="block text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1.5">Nombre *</label>
                 <input
                   type="text"
                   value={nuevoNombre}
                   onChange={(e) => setNuevoNombre(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 transition text-zinc-700 uppercase"
+                  className="w-full px-3 py-2 text-sm border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition text-content-secondary uppercase"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Código</label>
+                  <label className="block text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1.5">Código</label>
                   <input
                     type="text"
                     value={nuevoCodigo}
                     onChange={(e) => setNuevoCodigo(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 transition text-zinc-700"
+                    className="w-full px-3 py-2 text-sm border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition text-content-secondary"
                   />
                 </div>
                 <FormSelect
@@ -170,8 +170,8 @@ const VincularModal = ({ item, onClose }) => {
 
           {/* ── Unidad de compra + factor ── solo cuando hay ítem seleccionado */}
           {(selectedItem || modo === 'nuevo') && (
-            <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 space-y-3">
-              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+            <div className="rounded-xl border border-border-base bg-surface-subtle px-4 py-3 space-y-3">
+              <p className="text-[10px] font-bold text-content-muted uppercase tracking-widest">
                 Unidad de compra al proveedor
               </p>
               <div className="grid grid-cols-2 gap-3">
@@ -183,7 +183,7 @@ const VincularModal = ({ item, onClose }) => {
                   placeholder="Selecciona unidad..."
                 />
                 <div>
-                  <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">
+                  <label className="block text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1.5">
                     Factor → KG
                   </label>
                   <input
@@ -193,26 +193,26 @@ const VincularModal = ({ item, onClose }) => {
                     value={factorConversion}
                     onChange={e => setFactorConversion(e.target.value)}
                     disabled={esKilo}
-                    className="w-full px-3 py-2 text-sm font-mono border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 bg-white disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full px-3 py-2 text-sm font-mono border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 bg-white disabled:opacity-40 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
 
               {unidadSeleccionada && !esKilo && (
-                <div className="flex items-center gap-1.5 text-[10px] text-amber-600">
+                <div className="flex items-center gap-1.5 text-[10px] text-semantic-warning-fg">
                   <AlertCircle size={11} />
                   1 {unidadSeleccionada.nombre} = {factorConversion} {item.unidad_almacenaje_nombre ?? 'unidades base'} en inventario
                 </div>
               )}
               {esKilo && (
-                <p className="text-[10px] text-emerald-600">Unidad base — sin conversión necesaria.</p>
+                <p className="text-[10px] text-semantic-success-fg">Unidad base — sin conversión necesaria.</p>
               )}
             </div>
           )}
 
           {/* Ingreso a inventario (opcional) */}
-          <div className="border-t border-zinc-100 pt-4 space-y-3">
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+          <div className="border-t border-border-subtle pt-4 space-y-3">
+            <p className="text-[10px] font-bold text-content-muted uppercase tracking-widest">
               Ingresar al inventario <span className="font-normal normal-case">(opcional)</span>
             </p>
             <div className="grid grid-cols-2 gap-3">
@@ -224,7 +224,7 @@ const VincularModal = ({ item, onClose }) => {
                 onChange={setBodegaId}
               />
               <div>
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Cantidad</label>
+                <label className="block text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1.5">Cantidad</label>
                 <input
                   type="number"
                   step="0.01"
@@ -232,7 +232,7 @@ const VincularModal = ({ item, onClose }) => {
                   onChange={(e) => setCantidad(e.target.value)}
                   onFocus={(e) => e.target.select()}
                   placeholder="0"
-                  className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 transition text-zinc-700 placeholder:text-zinc-300"
+                  className="w-full px-3 py-2 text-sm border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition text-content-secondary placeholder:text-content-muted"
                 />
               </div>
             </div>
@@ -240,11 +240,11 @@ const VincularModal = ({ item, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 px-5 py-4 border-t border-zinc-100">
+        <div className="flex justify-end gap-2 px-5 py-4 border-t border-border-subtle">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-100 transition-all"
+            className="px-4 py-2 text-xs font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-surface-muted transition-all"
           >
             Cancelar
           </button>
@@ -253,8 +253,8 @@ const VincularModal = ({ item, onClose }) => {
             disabled={!esValido || isVinculando}
             className={`inline-flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold shadow-sm transition-all active:scale-95 ${
               !esValido || isVinculando
-                ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
-                : 'bg-zinc-900 text-white hover:bg-zinc-700'
+                ? 'bg-surface-strong text-content-muted cursor-not-allowed'
+                : 'bg-content-primary text-white hover:bg-content-secondary'
             }`}
           >
             <ArrowRight size={13} />

@@ -67,15 +67,15 @@ export const ProductSelect = ({
 
   return (
     // ESTILOS EXTERIORES ORIGINALES (px-4 py-3)
-    <div className="bg-white border border-zinc-200/60 rounded-xl px-4 py-3 shadow-sm transition-all hover:border-zinc-300 w-full">
+    <div className="bg-white border border-border-base/60 rounded-xl px-4 py-3 shadow-sm transition-all hover:border-border-strong w-full">
       
       {/* Cabecera Compacta Original */}
       <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2">
-              <div className="p-1 bg-blue-50 text-blue-600 rounded-md border border-blue-100">
+              <div className="p-1 bg-semantic-info-subtle text-semantic-info-fg rounded-md border border-semantic-info/15">
                   <Beaker size={14} />
               </div>
-              <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider leading-none">
+              <h3 className="text-[10px] font-bold text-content-muted uppercase tracking-wider leading-none">
                   Seleccionar Item
               </h3>
           </div>
@@ -83,7 +83,7 @@ export const ProductSelect = ({
           {selectedProduct && (
               <button
                   onClick={onClearSelection}
-                  className="flex items-center gap-1 px-2 py-1 text-[9px] font-bold text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded transition-all uppercase tracking-tight"
+                  className="flex items-center gap-1 px-2 py-1 text-[9px] font-bold text-content-muted hover:text-semantic-danger hover:bg-semantic-danger-subtle rounded transition-all uppercase tracking-tight"
               >
                   <Eraser size={11}/>
                   Limpiar
@@ -93,7 +93,7 @@ export const ProductSelect = ({
 
       {/* Trigger de Búsqueda */}
       <div className="relative group w-full">
-          <div className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${isOpen ? 'text-blue-500' : 'text-zinc-400'}`}>
+          <div className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${isOpen ? 'text-semantic-info' : 'text-content-muted'}`}>
               <SearchIcon size={14} />
           </div>
           
@@ -101,27 +101,27 @@ export const ProductSelect = ({
               ref={triggerRef}
               type="button"
               onClick={() => (isOpen ? setIsOpen(false) : handleOpen())}
-              className={`w-full pl-9 pr-8 py-1.5 text-left bg-zinc-50 border rounded-lg text-xs font-medium transition-all appearance-none truncate
-                ${isOpen ? 'border-blue-500 bg-white ring-2 ring-blue-500/10' : 'border-zinc-200 text-zinc-500'}
+              className={`w-full pl-9 pr-8 py-1.5 text-left bg-surface-subtle border rounded-lg text-xs font-medium transition-all appearance-none truncate
+                ${isOpen ? 'border-semantic-info bg-white ring-2 ring-semantic-info/10' : 'border-border-base text-content-tertiary'}
               `}
           >
               {currentProduct ? `${currentProduct.codigo_item_general} — ${currentProduct.nombre}` : 'Buscar producto o insumo...'}
           </button>
 
-          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-zinc-400">
+          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-content-muted">
               <ChevronDown size={14} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </div>
       </div>
 
       {/* Info Box Compacto Original */}
       {selectedProduct && currentProduct && !isOpen && (
-          <div className="mt-2.5 flex items-center gap-2.5 p-2 bg-zinc-50/80 border border-zinc-200/80 rounded-lg animate-in fade-in slide-in-from-top-1">
-              <div className="w-6 h-6 rounded-md bg-white border border-zinc-200 flex items-center justify-center text-blue-600 shadow-sm shrink-0">
+          <div className="mt-2.5 flex items-center gap-2.5 p-2 bg-surface-subtle/80 border border-border-base/80 rounded-lg animate-in fade-in slide-in-from-top-1">
+              <div className="w-6 h-6 rounded-md bg-white border border-border-base flex items-center justify-center text-semantic-info-fg shadow-sm shrink-0">
                   <Package size={13} />
               </div>
               <div>
-                  <p className="text-[9px] font-bold text-zinc-400 uppercase leading-none mb-0.5">Item Seleccionado</p>
-                  <p className="text-xs font-semibold text-zinc-900 tracking-tight leading-none">
+                  <p className="text-[9px] font-bold text-content-muted uppercase leading-none mb-0.5">Item Seleccionado</p>
+                  <p className="text-xs font-semibold text-content-primary tracking-tight leading-none">
                       ✓ {currentProduct.nombre}
                   </p>
               </div>
@@ -133,16 +133,16 @@ export const ProductSelect = ({
         <div 
           ref={dropdownRef}
           style={dropdownStyles}
-          className="bg-white border border-zinc-200 rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-100 flex flex-col"
+          className="bg-white border border-border-base rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-100 flex flex-col"
         >
           {/* Input de búsqueda interno */}
-          <div className="p-2 border-b border-zinc-100 bg-zinc-50">
+          <div className="p-2 border-b border-border-subtle bg-surface-subtle">
             <input 
               autoFocus
               placeholder="Filtrar por nombre o código..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-md focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 text-xs border border-border-base rounded-md focus:outline-none focus:border-semantic-info"
             />
           </div>
 
@@ -158,12 +158,12 @@ export const ProductSelect = ({
                   }}
                   className={`flex items-center justify-between w-full px-4 py-2 text-xs text-left transition-colors
                     ${String(selectedProduct) === String(f.id_item_general) 
-                      ? 'bg-blue-50 text-blue-700 font-bold' 
-                      : 'text-zinc-700 hover:bg-zinc-100 font-bold'}
+                      ? 'bg-semantic-info-subtle text-semantic-info-fg font-bold' 
+                      : 'text-content-secondary hover:bg-surface-muted font-bold'}
                   `}
                 >
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-blue-500  leading-none mb-1">
+                    <span className="text-[10px] text-semantic-info  leading-none mb-1">
                         {f.codigo_item_general}
                     </span>
                     <span className="uppercase">{f.nombre}</span>
@@ -174,12 +174,12 @@ export const ProductSelect = ({
             ) : loading ? (
               <div className="px-4 py-6 text-center">
                 <div className="flex items-center justify-center flex-col gap-2">
-                  <Loader2 className="animate-spin text-blue-500" size={22} />
-                  <span className="text-[10px] text-zinc-400 font-bold uppercase">Cargando productos...</span>
+                  <Loader2 className="animate-spin text-semantic-info" size={22} />
+                  <span className="text-[10px] text-content-muted font-bold uppercase">Cargando productos...</span>
                 </div>
               </div>
             ) : (
-              <div className="px-4 py-6 text-center text-zinc-400 text-[10px] font-bold uppercase">
+              <div className="px-4 py-6 text-center text-content-muted text-[10px] font-bold uppercase">
                 Sin resultados
               </div>
             )}

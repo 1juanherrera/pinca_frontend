@@ -27,17 +27,17 @@ const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   const total = payload.reduce((s, p) => s + (p.value ?? 0), 0);
   return (
-    <div className="bg-white border border-zinc-200 rounded-xl shadow-lg p-3 text-xs min-w-[180px]">
-      <p className="font-semibold text-zinc-700 mb-2">{label}</p>
+    <div className="bg-white border border-border-base rounded-xl shadow-lg p-3 text-xs min-w-[180px]">
+      <p className="font-semibold text-content-secondary mb-2">{label}</p>
       {payload.map((p) => (
         <div key={p.name} className="flex justify-between gap-6 py-0.5">
           <span style={{ color: p.color }} className="font-medium">{p.name}</span>
-          <span className=" tabular-nums text-zinc-700">{fmt(p.value)}</span>
+          <span className=" tabular-nums text-content-secondary">{fmt(p.value)}</span>
         </div>
       ))}
-      <div className="border-t border-zinc-100 mt-2 pt-2 flex justify-between">
-        <span className="font-semibold text-zinc-600">Total</span>
-        <span className=" tabular-nums font-bold text-zinc-900">{fmt(total)}</span>
+      <div className="border-t border-border-subtle mt-2 pt-2 flex justify-between">
+        <span className="font-semibold text-content-secondary">Total</span>
+        <span className=" tabular-nums font-bold text-content-primary">{fmt(total)}</span>
       </div>
     </div>
   );
@@ -72,7 +72,7 @@ const CostosChart = ({ ordenesProd, ordenesCompras, desde, hasta }) => {
 
   if (!chartData.length) {
     return (
-      <div className="bg-white border border-zinc-200/70 rounded-xl p-6 text-center text-zinc-400 text-sm h-64 flex items-center justify-center">
+      <div className="bg-white border border-border-base/70 rounded-xl p-6 text-center text-content-muted text-sm h-64 flex items-center justify-center">
         Sin datos para el gráfico en el período seleccionado.
       </div>
     );
@@ -85,8 +85,8 @@ const CostosChart = ({ ordenesProd, ordenesCompras, desde, hasta }) => {
   };
 
   return (
-    <div className="bg-white border border-zinc-200/70 rounded-xl p-4">
-      <p className="text-xs font-semibold text-zinc-500 mb-4">Costos por mes (COP)</p>
+    <div className="bg-white border border-border-base/70 rounded-xl p-4">
+      <p className="text-xs font-semibold text-content-tertiary mb-4">Costos por mes (COP)</p>
       <ResponsiveContainer width="100%" height={260}>
         <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barSize={20}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />

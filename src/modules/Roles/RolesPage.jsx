@@ -14,10 +14,10 @@ const Toggle = ({ checked, onChange, disabled }) => (
     onClick={() => !disabled && onChange(!checked)}
     className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
       disabled
-        ? 'bg-zinc-200 cursor-not-allowed opacity-60'
+        ? 'bg-surface-strong cursor-not-allowed opacity-60'
         : checked
-        ? 'bg-emerald-500 cursor-pointer'
-        : 'bg-zinc-300 cursor-pointer'
+        ? 'bg-semantic-success cursor-pointer'
+        : 'bg-surface-strong cursor-pointer'
     }`}
   >
     <span
@@ -41,7 +41,7 @@ const PermisosSection = () => {
   }, [permisos]);
 
   if (isLoading || !draft) {
-    return <div className="text-sm text-zinc-400">Cargando permisos…</div>;
+    return <div className="text-sm text-content-muted">Cargando permisos…</div>;
   }
 
   const toggle = (rol, moduloKey) => {
@@ -66,20 +66,20 @@ const PermisosSection = () => {
   const grupos = [...new Set(MODULOS_SISTEMA.map(m => m.grupo))];
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-zinc-100 bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-2xl border border-border-subtle bg-white shadow-sm">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-zinc-100 bg-zinc-50">
-            <th className="px-4 py-3 text-left font-semibold text-zinc-600 w-52">Módulo</th>
+          <tr className="border-b border-border-subtle bg-surface-subtle">
+            <th className="px-4 py-3 text-left font-semibold text-content-secondary w-52">Módulo</th>
             {ROLES.map(rol => (
-              <th key={rol} className="px-4 py-3 text-center font-semibold text-zinc-600 w-36">
+              <th key={rol} className="px-4 py-3 text-center font-semibold text-content-secondary w-36">
                 <div className="flex flex-col items-center gap-0.5">
                   <span>{ROLES_LABELS[rol]}</span>
                   {rol !== 'admin' && dirty[rol] && (
                     <button
                       onClick={() => save(rol)}
                       disabled={isPending}
-                      className="flex items-center gap-1 text-xs bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-0.5 rounded-full mt-1 transition-colors disabled:opacity-60"
+                      className="flex items-center gap-1 text-xs bg-semantic-success hover:bg-semantic-success text-white px-2 py-0.5 rounded-full mt-1 transition-colors disabled:opacity-60"
                     >
                       <Save size={10} />
                       Guardar
@@ -93,14 +93,14 @@ const PermisosSection = () => {
         <tbody>
           {grupos.map(grupo => (
             <>
-              <tr key={`grupo-${grupo}`} className="bg-zinc-50/60">
-                <td colSpan={4} className="px-4 py-1.5 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              <tr key={`grupo-${grupo}`} className="bg-surface-subtle/60">
+                <td colSpan={4} className="px-4 py-1.5 text-xs font-semibold text-content-muted uppercase tracking-wider">
                   {grupo}
                 </td>
               </tr>
               {MODULOS_SISTEMA.filter(m => m.grupo === grupo).map(modulo => (
-                <tr key={modulo.key} className="border-t border-zinc-50 hover:bg-zinc-50/50 transition-colors">
-                  <td className="px-4 py-2.5 text-zinc-700 font-medium">{modulo.label}</td>
+                <tr key={modulo.key} className="border-t border-border-subtle hover:bg-surface-subtle/50 transition-colors">
+                  <td className="px-4 py-2.5 text-content-secondary font-medium">{modulo.label}</td>
                   {ROLES.map(rol => {
                     const habilitado = (draft[rol] ?? []).includes(modulo.key);
                     return (
@@ -121,7 +121,7 @@ const PermisosSection = () => {
           ))}
         </tbody>
       </table>
-      <div className="px-4 py-2.5 text-xs text-zinc-400 border-t border-zinc-100">
+      <div className="px-4 py-2.5 text-xs text-content-muted border-t border-border-subtle">
         El rol <strong>Administrador</strong> siempre tiene acceso a todos los módulos y no es editable.
         Los cambios aplican en el próximo inicio de sesión.
       </div>
@@ -134,29 +134,29 @@ const UsuariosSection = () => {
   const { data: usuarios, isLoading } = useUsuariosRoles();
   const { mutate: cambiarRol, isPending } = useCambiarRol();
 
-  if (isLoading) return <div className="text-sm text-zinc-400">Cargando usuarios…</div>;
+  if (isLoading) return <div className="text-sm text-content-muted">Cargando usuarios…</div>;
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-zinc-100 bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-2xl border border-border-subtle bg-white shadow-sm">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-zinc-100 bg-zinc-50">
-            <th className="px-4 py-3 text-left font-semibold text-zinc-600">ID</th>
-            <th className="px-4 py-3 text-left font-semibold text-zinc-600">Usuario</th>
-            <th className="px-4 py-3 text-left font-semibold text-zinc-600">Rol actual</th>
-            <th className="px-4 py-3 text-left font-semibold text-zinc-600">Cambiar rol</th>
+          <tr className="border-b border-border-subtle bg-surface-subtle">
+            <th className="px-4 py-3 text-left font-semibold text-content-secondary">ID</th>
+            <th className="px-4 py-3 text-left font-semibold text-content-secondary">Usuario</th>
+            <th className="px-4 py-3 text-left font-semibold text-content-secondary">Rol actual</th>
+            <th className="px-4 py-3 text-left font-semibold text-content-secondary">Cambiar rol</th>
           </tr>
         </thead>
         <tbody>
           {(usuarios ?? []).map(u => (
-            <tr key={u.id_usuarios} className="border-t border-zinc-50 hover:bg-zinc-50/50">
-              <td className="px-4 py-2.5 text-zinc-400 text-xs">{u.id_usuarios}</td>
-              <td className="px-4 py-2.5 font-medium text-zinc-700">{u.username}</td>
+            <tr key={u.id_usuarios} className="border-t border-border-subtle hover:bg-surface-subtle/50">
+              <td className="px-4 py-2.5 text-content-muted text-xs">{u.id_usuarios}</td>
+              <td className="px-4 py-2.5 font-medium text-content-secondary">{u.username}</td>
               <td className="px-4 py-2.5">
                 <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                  u.rol === 'admin'    ? 'bg-violet-100 text-violet-700' :
-                  u.rol === 'operador' ? 'bg-blue-100 text-blue-700' :
-                                        'bg-zinc-100 text-zinc-600'
+                  u.rol === 'admin'    ? 'bg-brand-subtle text-brand-primary-active' :
+                  u.rol === 'operador' ? 'bg-semantic-info-subtle text-semantic-info-fg' :
+                                        'bg-surface-muted text-content-secondary'
                 }`}>
                   {ROLES_LABELS[u.rol] ?? u.rol}
                 </span>
@@ -166,7 +166,7 @@ const UsuariosSection = () => {
                   defaultValue={u.rol}
                   disabled={isPending}
                   onChange={(e) => cambiarRol({ userId: u.id_usuarios, rol: e.target.value })}
-                  className="border border-zinc-200 rounded-lg px-2 py-1 text-sm bg-white text-zinc-700 focus:outline-none focus:ring-1 focus:ring-zinc-400 disabled:opacity-60"
+                  className="border border-border-base rounded-lg px-2 py-1 text-sm bg-white text-content-secondary focus:outline-none focus:ring-1 focus:ring-border-strong disabled:opacity-60"
                 >
                   {ROLES.map(r => (
                     <option key={r} value={r}>{ROLES_LABELS[r]}</option>
@@ -194,13 +194,13 @@ const RolesPage = () => {
         breadcrumbs={[{ label: 'Administración' }, { label: 'Roles y Permisos' }]}
       />
 
-      <div className="flex gap-1 border-b border-zinc-100">
+      <div className="flex gap-1 border-b border-border-subtle">
         <button
           onClick={() => setTab('permisos')}
           className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
             tab === 'permisos'
-              ? 'border-zinc-800 text-zinc-800'
-              : 'border-transparent text-zinc-400 hover:text-zinc-600'
+              ? 'border-content-primary text-content-primary'
+              : 'border-transparent text-content-muted hover:text-content-secondary'
           }`}
         >
           <ShieldCheck size={15} />
@@ -210,8 +210,8 @@ const RolesPage = () => {
           onClick={() => setTab('usuarios')}
           className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
             tab === 'usuarios'
-              ? 'border-zinc-800 text-zinc-800'
-              : 'border-transparent text-zinc-400 hover:text-zinc-600'
+              ? 'border-content-primary text-content-primary'
+              : 'border-transparent text-content-muted hover:text-content-secondary'
           }`}
         >
           <Users size={15} />

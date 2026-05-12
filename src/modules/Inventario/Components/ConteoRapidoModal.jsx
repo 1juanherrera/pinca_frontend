@@ -60,14 +60,14 @@ const ConteoRapidoModal = ({ onClose }) => {
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-zinc-100">
+        <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-border-subtle">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-              <ClipboardList size={18} className="text-amber-600" />
+            <div className="w-9 h-9 rounded-xl bg-semantic-warning-subtle flex items-center justify-center shrink-0">
+              <ClipboardList size={18} className="text-semantic-warning-fg" />
             </div>
             <div>
-              <p className="text-sm font-bold text-zinc-900">Conteo rápido</p>
-              <p className="text-[11px] text-zinc-400">
+              <p className="text-sm font-bold text-content-primary">Conteo rápido</p>
+              <p className="text-[11px] text-content-muted">
                 {total > 0
                   ? `${pendientesFiltrados.length} item${pendientesFiltrados.length !== 1 ? 's' : ''} sin cantidad — ingresa los tambores contados`
                   : 'Cargando pendientes…'}
@@ -76,7 +76,7 @@ const ConteoRapidoModal = ({ onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg border border-zinc-200 text-zinc-400 hover:bg-zinc-100 transition-all"
+            className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg border border-border-base text-content-muted hover:bg-surface-muted transition-all"
           >
             <X size={14} />
           </button>
@@ -84,14 +84,14 @@ const ConteoRapidoModal = ({ onClose }) => {
 
         {/* Progreso */}
         {total > 0 && (
-          <div className="px-5 py-3 bg-zinc-50 border-b border-zinc-100">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-500 mb-1.5">
+          <div className="px-5 py-3 bg-surface-subtle border-b border-border-subtle">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-content-tertiary mb-1.5">
               <span>Progreso del conteo</span>
-              <span className="text-zinc-800 font-bold">{totalGuardados}/{total}</span>
+              <span className="text-content-primary font-bold">{totalGuardados}/{total}</span>
             </div>
-            <div className="h-1.5 rounded-full bg-zinc-200 overflow-hidden">
+            <div className="h-1.5 rounded-full bg-surface-strong overflow-hidden">
               <div
-                className="h-full rounded-full bg-amber-500 transition-all duration-500"
+                className="h-full rounded-full bg-semantic-warning transition-all duration-500"
                 style={{ width: `${total > 0 ? (totalGuardados / total) * 100 : 0}%` }}
               />
             </div>
@@ -103,20 +103,20 @@ const ConteoRapidoModal = ({ onClose }) => {
           {isLoadingItems ? (
             <div className="space-y-2 animate-pulse">
               {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="h-14 rounded-xl bg-zinc-100" />
+                <div key={i} className="h-14 rounded-xl bg-surface-muted" />
               ))}
             </div>
           ) : pendientesFiltrados.length === 0 && total === 0 ? (
-            <div className="flex flex-col items-center py-12 gap-3 text-zinc-400">
-              <CheckCircle2 size={32} className="text-emerald-400" />
-              <p className="text-sm font-semibold text-zinc-500">¡No hay pendientes!</p>
-              <p className="text-xs text-zinc-400">Todos los items tienen cantidad registrada.</p>
+            <div className="flex flex-col items-center py-12 gap-3 text-content-muted">
+              <CheckCircle2 size={32} className="text-semantic-success/80" />
+              <p className="text-sm font-semibold text-content-tertiary">¡No hay pendientes!</p>
+              <p className="text-xs text-content-muted">Todos los items tienen cantidad registrada.</p>
             </div>
           ) : pendientesFiltrados.length === 0 ? (
             <div className="flex flex-col items-center py-12 gap-3">
-              <CheckCircle2 size={32} className="text-emerald-400" />
-              <p className="text-sm font-bold text-emerald-600">¡Conteo completado!</p>
-              <p className="text-xs text-zinc-400">Se guardaron {totalGuardados} cantidades.</p>
+              <CheckCircle2 size={32} className="text-semantic-success/80" />
+              <p className="text-sm font-bold text-semantic-success-fg">¡Conteo completado!</p>
+              <p className="text-xs text-content-muted">Se guardaron {totalGuardados} cantidades.</p>
             </div>
           ) : (
             pendientesFiltrados.map((item, idx) => {
@@ -126,20 +126,20 @@ const ConteoRapidoModal = ({ onClose }) => {
                 <div
                   key={item.id_inventario}
                   className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                    isPorIdentificar ? 'border-orange-200 bg-orange-50' : 'border-zinc-100 bg-white hover:border-zinc-200'
+                    isPorIdentificar ? 'border-semantic-warning/20 bg-semantic-warning-subtle' : 'border-border-subtle bg-white hover:border-border-base'
                   }`}
                 >
                   {/* Info item */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <p className="text-xs font-bold text-zinc-800 truncate uppercase">
+                      <p className="text-xs font-bold text-content-primary truncate uppercase">
                         {item.nombre}
                       </p>
                       {isPorIdentificar && (
-                        <AlertCircle size={11} className="shrink-0 text-orange-400" />
+                        <AlertCircle size={11} className="shrink-0 text-semantic-warning/80" />
                       )}
                     </div>
-                    <p className="text-[10px]  text-zinc-400">{item.codigo}</p>
+                    <p className="text-[10px]  text-content-muted">{item.codigo}</p>
                   </div>
 
                   {/* Input cantidad */}
@@ -156,16 +156,16 @@ const ConteoRapidoModal = ({ onClose }) => {
                         onKeyDown={e => handleKeyDown(e, item, idx)}
                         onBlur={() => handleSave(item)}
                         disabled={isSaving}
-                        className="w-20 text-center text-sm font-bold border border-zinc-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 disabled:opacity-50 transition-all bg-white"
+                        className="w-20 text-center text-sm font-bold border border-border-base rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-semantic-warning focus:border-semantic-warning disabled:opacity-50 transition-all bg-white"
                       />
-                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-zinc-300 pointer-events-none">
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-content-muted pointer-events-none">
                         tam.
                       </span>
                     </div>
                     <button
                       onClick={() => handleSave(item)}
                       disabled={isSaving || valores[item.id_inventario] === ''}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg border border-zinc-200 text-zinc-400 hover:bg-amber-500 hover:text-white hover:border-amber-500 disabled:opacity-30 transition-all active:scale-95"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg border border-border-base text-content-muted hover:bg-semantic-warning hover:text-white hover:border-semantic-warning disabled:opacity-30 transition-all active:scale-95"
                     >
                       {isSaving
                         ? <Loader2 size={13} className="animate-spin" />
@@ -181,9 +181,9 @@ const ConteoRapidoModal = ({ onClose }) => {
 
         {/* Footer */}
         {pendientesFiltrados.length > 0 && (
-          <div className="px-5 py-3 border-t border-zinc-100 bg-zinc-50 rounded-b-2xl">
-            <p className="text-[10px] text-zinc-400 text-center">
-              Presiona <kbd className="px-1 py-0.5 rounded bg-zinc-200 text-zinc-600 text-[9px] ">Enter</kbd> para guardar y avanzar al siguiente
+          <div className="px-5 py-3 border-t border-border-subtle bg-surface-subtle rounded-b-2xl">
+            <p className="text-[10px] text-content-muted text-center">
+              Presiona <kbd className="px-1 py-0.5 rounded bg-surface-strong text-content-secondary text-[9px] ">Enter</kbd> para guardar y avanzar al siguiente
             </p>
           </div>
         )}

@@ -19,14 +19,14 @@ export const ProductSpecificationsTable = ({
     // 1. Estado de espera (Estilo Original)
     if (!selectedProductData) {
         return (
-            <div className="bg-white rounded-lg shadow-sm p-4 text-center border border-zinc-200/60">
-                <div className="text-gray-400 mb-3">
+            <div className="bg-white rounded-lg shadow-sm p-4 text-center border border-border-base/60">
+                <div className="text-content-muted mb-3">
                     <Beaker size={48} className="mx-auto" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className="text-lg font-medium text-content-primary mb-2">
                     Especificaciones Técnicas
                 </h3>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-content-tertiary">
                     Selecciona un producto para ver sus especificaciones
                 </p>
             </div>
@@ -37,52 +37,52 @@ export const ProductSpecificationsTable = ({
     const PARAMETER_DEFINITIONS = {
         viscosidad: {
             label: 'VISCOSIDAD',
-            icon: <Droplets className="text-blue-500" size={14} />,
+            icon: <Droplets className="text-semantic-info" size={14} />,
             format: (v) => v || '-'
         },
         p_g: {
             label: 'P / G',
-            icon: <Weight className="text-green-500" size={14} />,
+            icon: <Weight className="text-semantic-success" size={14} />,
             format: (v) => v || '-'
         },
         brillo: {
             label: 'BRILLO',
-            icon: <Eye className="text-yellow-500" size={14} />,
+            icon: <Eye className="text-semantic-warning" size={14} />,
             format: (v) => (v === 'MATE' ? 'MATE' : v || '-')
         },
         brillo_60: {
             label: 'BRILLO 60°',
-            icon: <Eye className="text-yellow-500" size={14} />,
+            icon: <Eye className="text-semantic-warning" size={14} />,
             format: (v) => v || '-'
         },
         molienda: {
             label: 'MOLIENDA',
-            icon: <Eye className="text-purple-500" size={14} />,
+            icon: <Eye className="text-brand-primary-active" size={14} />,
             format: (v) => (v ? `${v} H` : '-')
         },
         secado: {
             label: 'SECADO',
-            icon: <Clock className="text-orange-500" size={14} />,
+            icon: <Clock className="text-semantic-warning" size={14} />,
             format: (v) => v || '-'
         },
         cubrimiento: {
             label: 'CUBRIMIENTO',
-            icon: <Paintbrush className="text-indigo-500" size={14} />,
+            icon: <Paintbrush className="text-brand-primary" size={14} />,
             format: (v) => v || '-'
         },
         color: {
             label: 'COLOR',
-            icon: <Palette className="text-red-500" size={14} />,
+            icon: <Palette className="text-semantic-danger" size={14} />,
             format: (v) => (v === 'STD' ? 'STD' : v || '-')
         },
         ph: {
             label: 'PH',
-            icon: <Activity className="text-teal-500" size={14} />,
+            icon: <Activity className="text-semantic-info" size={14} />,
             format: (v) => (v === 0 ? '-' : v || '-')
         },
         poder_tintoreo: {
             label: 'PODER TINTÓREO',
-            icon: <Palette className="text-pink-500" size={14} />,
+            icon: <Palette className="text-brand-primary-active" size={14} />,
             format: (v) => (v === 'STD' ? 'STD' : v || '-')
         },
     };
@@ -98,9 +98,9 @@ export const ProductSpecificationsTable = ({
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-zinc-200/60">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-border-base/60">
             {/* Header con Degradado Teal Original */}
-            <div className="bg-zinc-700 text-white px-4 py-3">
+            <div className="bg-content-secondary text-white px-4 py-3">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="text-lg font-semibold flex items-center gap-2 tracking-tight">
@@ -122,28 +122,28 @@ export const ProductSpecificationsTable = ({
             {/* Tabla de Parámetros */}
             <div className="overflow-x-auto">
                 <table className="w-full">
-                    <thead className="bg-zinc-50 border-b border-zinc-100">
+                    <thead className="bg-surface-subtle border-b border-border-subtle">
                         <tr>
-                            <th className="px-3 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            <th className="px-3 py-2 text-left text-[10px] font-bold text-content-tertiary uppercase tracking-wider">
                                 Parámetro
                             </th>
-                            <th className="px-3 py-2 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            <th className="px-3 py-2 text-center text-[10px] font-bold text-content-tertiary uppercase tracking-wider">
                                 Patrón / Norma
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-zinc-50">
+                    <tbody className="bg-white divide-y divide-border-subtle">
                         {isLoading
                             ? [...Array(6)].map((_, i) => (
                                 <tr key={i} className="animate-pulse">
                                     <td className="px-3 py-2.5">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-6 w-6 bg-zinc-200 rounded shrink-0" />
-                                            <div className="h-3 bg-zinc-200 rounded w-24" />
+                                            <div className="h-6 w-6 bg-surface-strong rounded shrink-0" />
+                                            <div className="h-3 bg-surface-strong rounded w-24" />
                                         </div>
                                     </td>
                                     <td className="px-3 py-2.5 text-center">
-                                        <div className="h-3 bg-zinc-200 rounded w-12 mx-auto" />
+                                        <div className="h-3 bg-surface-strong rounded w-12 mx-auto" />
                                     </td>
                                 </tr>
                             ))
@@ -152,19 +152,19 @@ export const ProductSpecificationsTable = ({
                                 .map(([key, value]) => {
                                     const { label, icon } = PARAMETER_DEFINITIONS[key];
                                     return (
-                                        <tr key={key} className="hover:bg-teal-50/30 transition-colors">
+                                        <tr key={key} className="hover:bg-semantic-info-subtle/30 transition-colors">
                                             <td className="px-3 py-2.5 whitespace-nowrap">
                                                 <div className="flex items-center">
-                                                    <div className="shrink-0 mr-3 p-1 bg-zinc-50 rounded border border-zinc-100">
+                                                    <div className="shrink-0 mr-3 p-1 bg-surface-subtle rounded border border-border-subtle">
                                                         {icon}
                                                     </div>
-                                                    <div className="text-xs font-semibold text-zinc-700 uppercase tracking-tighter">
+                                                    <div className="text-xs font-semibold text-content-secondary uppercase tracking-tighter">
                                                         {label}
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-3 py-2.5 whitespace-nowrap text-center">
-                                                <div className="text-xs font-bold text-zinc-900">
+                                                <div className="text-xs font-bold text-content-primary">
                                                     {formatValue(key, value)}
                                                 </div>
                                             </td>
@@ -177,8 +177,8 @@ export const ProductSpecificationsTable = ({
             </div>
 
             {/* Footer Teal Original */}
-            <div className="bg-zinc-50 px-4 py-2 border-t border-zinc-200">
-                <div className="flex justify-between items-center text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
+            <div className="bg-surface-subtle px-4 py-2 border-t border-border-base">
+                <div className="flex justify-between items-center text-[9px] font-bold text-content-muted uppercase tracking-widest">
                     <div>
                         Certificado de Calidad Pinca
                     </div>

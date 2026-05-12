@@ -34,15 +34,15 @@ const KpiCard = ({ formulaciones = [], productDetail = null, recalculatedData = 
                 return (
                     <div 
                         key={index} 
-                        className="bg-white rounded-lg border border-zinc-200/60 shadow-sm px-3 py-2 transition-all hover:shadow-md group"
+                        className="bg-white rounded-lg border border-border-base/60 shadow-sm px-3 py-2 transition-all hover:shadow-md group"
                     >
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs font-medium text-gray-600">
+                                <p className="text-xs font-medium text-content-secondary">
                                     {item.label}
                                 </p>
                                 {isLoading ? (
-                                    <div className="h-6 w-16 bg-zinc-200 rounded animate-pulse mt-1" />
+                                    <div className="h-6 w-16 bg-surface-strong rounded animate-pulse mt-1" />
                                 ) : (
                                     <p className={`text-lg font-bold ${theme.value}`}>{value}</p>
                                 )}

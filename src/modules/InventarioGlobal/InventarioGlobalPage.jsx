@@ -9,6 +9,7 @@ import { useInventarioGlobal } from './api/useInventarioGlobal';
 import HeaderSection from '../../shared/HeaderSection';
 import { FullPageLoader } from '../../shared/Loader';
 import SummaryCard from '../../shared/SummaryCard';
+import StatusBadge from '../../shared/StatusBadge';
 import { fmt } from '../../utils/formatters';
 import logo from '../../assets/pincaicono.png';
 
@@ -32,11 +33,7 @@ const TIPO_TABS = [
   { label: 'Insumos',         tipo: 2    },
 ];
 
-const TIPO_BADGE = {
-  0: 'bg-blue-100   text-blue-800   border border-blue-200',
-  1: 'bg-amber-100  text-amber-800  border border-amber-200',
-  2: 'bg-violet-100 text-violet-800 border border-violet-200',
-};
+const TIPO_TONE  = { 0: 'info', 1: 'warning', 2: 'brand' };
 const TIPO_LABEL = { 0: 'Producto', 1: 'Materia Prima', 2: 'Insumo' };
 
 const fmtNum = (n, dec = 2) =>
@@ -44,32 +41,11 @@ const fmtNum = (n, dec = 2) =>
 
 // ── Semáforo ──────────────────────────────────────────────────────────────────
 
-const BASE_BADGE = 'inline-flex items-center justify-center gap-1.5 w-24 px-2 py-0.5 rounded font-semibold text-xs';
-
 const DiasRestantes = ({ dias }) => {
-  if (dias === null) return (
-    <span className={`${BASE_BADGE} bg-zinc-100 text-zinc-500 border border-zinc-200`}>
-      Sin datos
-    </span>
-  );
-  if (dias < 10) return (
-    <span className={`${BASE_BADGE} bg-red-100 text-red-700 border border-red-200`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-      {dias}d crítico
-    </span>
-  );
-  if (dias < 30) return (
-    <span className={`${BASE_BADGE} bg-amber-100 text-amber-700 border border-amber-200`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-      {dias}d
-    </span>
-  );
-  return (
-    <span className={`${BASE_BADGE} bg-emerald-100 text-emerald-700 border border-emerald-200`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-      {dias}d
-    </span>
-  );
+  if (dias === null) return <StatusBadge tone="neutral" label="Sin datos" dot={false} size="md" fixedWidth />;
+  if (dias < 10)     return <StatusBadge tone="danger"  label={`${dias}d crítico`} size="md" fixedWidth />;
+  if (dias < 30)     return <StatusBadge tone="warning" label={`${dias}d`}         size="md" fixedWidth />;
+  return                    <StatusBadge tone="success" label={`${dias}d`}         size="md" fixedWidth />;
 };
 
 // ── Fila expandible ───────────────────────────────────────────────────────────
@@ -84,46 +60,50 @@ const ItemRow = ({ item, index }) => {
       <tr
         onClick={() => hasBodegas && setOpen((o) => !o)}
         className={`
-          border-b border-zinc-100 text-sm transition-colors
-          ${open ? 'bg-indigo-50' : index % 2 === 0 ? 'bg-white' : 'bg-zinc-50'}
-          ${hasBodegas ? 'cursor-pointer hover:bg-indigo-50' : 'hover:bg-zinc-50'}
+          border-b border-border-subtle text-sm transition-colors
+          ${open ? 'bg-brand-subtle' : index % 2 === 0 ? 'bg-white' : 'bg-surface-subtle'}
+          ${hasBodegas ? 'cursor-pointer hover:bg-brand-subtle' : 'hover:bg-surface-subtle'}
         `}
       >
         {/* Expand */}
         <td className="pl-4 pr-2 py-3 w-8">
           {hasBodegas
             ? (open
-                ? <ChevronDown size={14} className="text-indigo-500" />
-                : <ChevronRight size={14} className="text-zinc-400" />)
+                ? <ChevronDown size={14} className="text-brand-primary" />
+                : <ChevronRight size={14} className="text-content-muted" />)
             : null}
         </td>
 
         {/* # */}
-        <td className="px-2 py-3 text-xs text-zinc-400 tabular-nums w-10 text-center">
+        <td className="px-2 py-3 text-xs text-content-muted tabular-nums w-10 text-center">
           {index + 1}
         </td>
 
         {/* Ítem */}
         <td className="px-3 py-3 min-w-[200px]">
-          <p className="font-semibold text-zinc-900">{item.nombre}</p>
-          <p className="text-zinc-500 text-xs mt-0.5 font-mono">{item.codigo}</p>
+          <p className="font-semibold text-content-primary">{item.nombre}</p>
+          <p className="text-content-tertiary text-xs mt-0.5 font-mono">{item.codigo}</p>
         </td>
 
         {/* Tipo */}
         <td className="px-3 py-3">
-          <span className={`inline-flex items-center justify-center w-28 text-xs px-2 py-1 rounded font-semibold ${TIPO_BADGE[item.tipo] ?? ''}`}>
-            {TIPO_LABEL[item.tipo] ?? '—'}
-          </span>
+          <StatusBadge
+            tone={TIPO_TONE[item.tipo] ?? 'neutral'}
+            label={TIPO_LABEL[item.tipo] ?? '—'}
+            dot={false}
+            size="md"
+            fixedWidth
+          />
         </td>
 
         {/* Stock */}
         <td className="px-3 py-3 text-right tabular-nums">
           {sinStock ? (
-            <span className="text-zinc-400 text-xs italic">Sin stock</span>
+            <span className="text-content-muted text-xs italic">Sin stock</span>
           ) : (
             <span>
-              <span className="font-bold text-zinc-900">{fmtNum(item.stock_total)}</span>
-              <span className="text-zinc-500 text-xs ml-1">{item.unidad_base}</span>
+              <span className="font-bold text-content-primary">{fmtNum(item.stock_total)}</span>
+              <span className="text-content-tertiary text-xs ml-1">{item.unidad_base}</span>
             </span>
           )}
         </td>
@@ -131,11 +111,15 @@ const ItemRow = ({ item, index }) => {
         {/* Bodegas */}
         <td className="px-3 py-3 text-center">
           {item.bodegas_con_stock > 0 ? (
-            <span className="inline-flex items-center justify-center w-24 gap-1 text-xs font-medium text-zinc-700 bg-zinc-100 border border-zinc-200 px-2 py-1 rounded">
-              {item.bodegas_con_stock} {item.bodegas_con_stock === 1 ? 'bodega' : 'bodegas'}
-            </span>
+            <StatusBadge
+              tone="neutral"
+              label={`${item.bodegas_con_stock} ${item.bodegas_con_stock === 1 ? 'bodega' : 'bodegas'}`}
+              dot={false}
+              size="md"
+              fixedWidth
+            />
           ) : (
-            <span className="text-zinc-400 text-xs">—</span>
+            <span className="text-content-muted text-xs">—</span>
           )}
         </td>
 
@@ -143,28 +127,28 @@ const ItemRow = ({ item, index }) => {
         <td className="px-3 py-3 text-right tabular-nums">
           {item.costo_promedio > 0 ? (
             <span>
-              <span className="font-medium text-zinc-800">{fmt(item.costo_promedio)}</span>
-              <span className="text-zinc-500 text-xs ml-1">/{item.unidad_base}</span>
+              <span className="font-medium text-content-primary">{fmt(item.costo_promedio)}</span>
+              <span className="text-content-tertiary text-xs ml-1">/{item.unidad_base}</span>
             </span>
           ) : (
-            <span className="text-zinc-400 text-xs">—</span>
+            <span className="text-content-muted text-xs">—</span>
           )}
         </td>
 
         {/* Valor inventario */}
         <td className="px-3 py-3 text-right tabular-nums">
           {item.valor_inventario > 0 ? (
-            <span className="font-bold text-zinc-900">{fmt(item.valor_inventario)}</span>
+            <span className="font-bold text-content-primary">{fmt(item.valor_inventario)}</span>
           ) : (
-            <span className="text-zinc-400 text-xs">—</span>
+            <span className="text-content-muted text-xs">—</span>
           )}
         </td>
 
         {/* Consumo 30d */}
-        <td className="px-3 py-3 text-right tabular-nums text-zinc-700 text-sm">
+        <td className="px-3 py-3 text-right tabular-nums text-content-secondary text-sm">
           {item.consumo_30_dias
-            ? <span>{fmtNum(item.consumo_30_dias, 1)} <span className="text-zinc-500 text-xs">{item.unidad_base}</span></span>
-            : <span className="text-zinc-400 text-xs">—</span>}
+            ? <span>{fmtNum(item.consumo_30_dias, 1)} <span className="text-content-tertiary text-xs">{item.unidad_base}</span></span>
+            : <span className="text-content-muted text-xs">—</span>}
         </td>
 
         {/* Días restantes */}
@@ -175,24 +159,24 @@ const ItemRow = ({ item, index }) => {
 
       {/* Desglose bodegas */}
       {open && (
-        <tr className="border-b border-indigo-100 bg-indigo-50/60">
+        <tr className="border-b border-brand-primary/15 bg-brand-subtle/60">
           <td colSpan={10} className="px-10 py-4">
-            <p className="text-xs font-bold text-zinc-600 uppercase tracking-wider mb-3">
+            <p className="text-xs font-bold text-content-secondary uppercase tracking-wider mb-3">
               Stock por bodega
             </p>
             <div className="flex flex-wrap gap-2">
               {item.stock_por_bodega.map((b) => (
                 <div
                   key={b.bodega_id}
-                  className="bg-white border border-indigo-100 rounded-xl px-4 py-3 min-w-40 shadow-sm"
+                  className="bg-white border border-brand-primary/15 rounded-xl px-4 py-3 min-w-40 shadow-sm"
                 >
-                  <p className="font-semibold text-zinc-800 text-sm">{b.bodega}</p>
+                  <p className="font-semibold text-content-primary text-sm">{b.bodega}</p>
                   {b.instalacion && (
-                    <p className="text-zinc-500 text-xs mt-0.5">{b.instalacion}</p>
+                    <p className="text-content-tertiary text-xs mt-0.5">{b.instalacion}</p>
                   )}
-                  <p className="font-bold text-zinc-900 mt-2 text-base tabular-nums">
+                  <p className="font-bold text-content-primary mt-2 text-base tabular-nums">
                     {fmtNum(b.cantidad)}{' '}
-                    <span className="font-normal text-zinc-500 text-sm">{item.unidad_base}</span>
+                    <span className="font-normal text-content-tertiary text-sm">{item.unidad_base}</span>
                   </p>
                 </div>
               ))}
@@ -405,19 +389,19 @@ const InventarioGlobalPage = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={refetch}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm text-zinc-600 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition"
+              className="flex items-center gap-1.5 px-3 py-2 text-sm text-content-secondary border border-border-base rounded-lg hover:bg-surface-subtle transition"
             >
               <RefreshCw size={13} /> Actualizar
             </button>
             <button
               onClick={() => exportarExcel(filtrados, tipoLabel)}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm text-emerald-700 border border-emerald-200 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition"
+              className="flex items-center gap-1.5 px-3 py-2 text-sm text-semantic-success-fg border border-semantic-success/20 bg-semantic-success-subtle rounded-lg hover:bg-semantic-success-subtle transition"
             >
               <FileSpreadsheet size={13} /> Excel
             </button>
             <button
               onClick={() => exportarPdf(filtrados, tipoLabel)}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm text-red-700 border border-red-200 bg-red-50 rounded-lg hover:bg-red-100 transition"
+              className="flex items-center gap-1.5 px-3 py-2 text-sm text-semantic-danger-fg border border-semantic-danger/20 bg-semantic-danger-subtle rounded-lg hover:bg-semantic-danger-subtle transition"
             >
               <FileText size={13} /> PDF
             </button>
@@ -434,18 +418,18 @@ const InventarioGlobalPage = () => {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm">
+      <div className="bg-white rounded-2xl border border-border-subtle shadow-sm">
 
         {/* Tabs tipo */}
-        <div className="flex items-center border-b border-zinc-100 px-4">
+        <div className="flex items-center border-b border-border-subtle px-4">
           {TIPO_TABS.map((tab) => (
             <button
               key={String(tab.tipo)}
               onClick={() => setTipoActivo(tab.tipo)}
               className={`px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
                 tipoActivo === tab.tipo
-                  ? 'border-zinc-800 text-zinc-800'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-700'
+                  ? 'border-content-primary text-content-primary'
+                  : 'border-transparent text-content-tertiary hover:text-content-secondary'
               }`}
             >
               {tab.label}
@@ -456,25 +440,25 @@ const InventarioGlobalPage = () => {
         {/* Barra de búsqueda + toggles */}
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="relative flex-1 max-w-xs">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
             <input
               type="text"
               placeholder="Buscar ítem o código…"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full text-sm pl-8 pr-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 transition"
+              className="w-full text-sm pl-8 pr-3 py-2 border border-border-base rounded-lg focus:outline-none focus:border-border-strong focus:ring-1 focus:ring-border-base transition"
             />
           </div>
-          <label className="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer select-none">
+          <label className="flex items-center gap-2 text-sm text-content-secondary cursor-pointer select-none">
             <input
               type="checkbox"
               checked={soloStock}
               onChange={(e) => setSoloStock(e.target.checked)}
-              className="w-4 h-4 rounded border-zinc-300 accent-zinc-800"
+              className="w-4 h-4 rounded border-border-strong accent-content-primary"
             />
             Solo con stock
           </label>
-          <span className="ml-auto text-xs text-zinc-400">
+          <span className="ml-auto text-xs text-content-muted">
             {filtrados.length} ítem{filtrados.length !== 1 ? 's' : ''}
           </span>
         </div>
@@ -483,17 +467,17 @@ const InventarioGlobalPage = () => {
         {isLoading ? (
           <div className="py-16"><FullPageLoader message="Cargando inventario" /></div>
         ) : isError ? (
-          <div className="text-center py-16 text-red-500 text-sm">Error al cargar el inventario.</div>
+          <div className="text-center py-16 text-semantic-danger text-sm">Error al cargar el inventario.</div>
         ) : filtrados.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-zinc-400 gap-3">
-            <Boxes size={36} className="text-zinc-200" />
+          <div className="flex flex-col items-center justify-center py-16 text-content-muted gap-3">
+            <Boxes size={36} className="text-content-muted" />
             <p className="text-sm">No hay ítems que coincidan con los filtros.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-zinc-100 text-xs text-zinc-400 uppercase tracking-wider">
+                <tr className="border-b border-border-subtle text-xs text-content-muted uppercase tracking-wider">
                   <th className="pl-4 pr-2 py-3 w-8" />
                   <th className="px-2 py-3 w-10 text-center">#</th>
                   <th className="px-3 py-3">Ítem</th>
@@ -512,11 +496,11 @@ const InventarioGlobalPage = () => {
                 ))}
               </tbody>
               <tfoot>
-                <tr className="border-t-2 border-zinc-200 bg-zinc-50 text-sm font-semibold text-zinc-700">
-                  <td colSpan={7} className="px-3 py-3 text-right text-zinc-500">
+                <tr className="border-t-2 border-border-base bg-surface-subtle text-sm font-semibold text-content-secondary">
+                  <td colSpan={7} className="px-3 py-3 text-right text-content-tertiary">
                     Valor total ({filtrados.length} ítems):
                   </td>
-                  <td className="px-3 py-3 text-right text-zinc-900">
+                  <td className="px-3 py-3 text-right text-content-primary">
                     {fmt(filtrados.reduce((s, i) => s + i.valor_inventario, 0))}
                   </td>
                   <td colSpan={2} />
@@ -527,7 +511,7 @@ const InventarioGlobalPage = () => {
         )}
       </div>
 
-      <p className="text-xs text-zinc-400 text-right pb-2">
+      <p className="text-xs text-content-muted text-right pb-2">
         Stock en unidad base · Días restantes calculados sobre consumo promedio de los últimos 30 días de producción
       </p>
     </div>

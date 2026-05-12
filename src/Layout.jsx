@@ -36,9 +36,9 @@ const Layout = () => {
 
         <main className="p-2 bg-surface-main h-full overflow-auto">
           {sinAcceso ? (
-            <div className="flex flex-col items-center justify-center h-full gap-4 text-zinc-400">
+            <div className="flex flex-col items-center justify-center h-full gap-4 text-content-muted">
               <ShieldOff size={48} />
-              <p className="text-lg font-medium text-zinc-600">Sin acceso a este módulo</p>
+              <p className="text-lg font-medium text-content-secondary">Sin acceso a este módulo</p>
               <p className="text-sm">Tu rol no tiene permiso para ver esta sección.</p>
             </div>
           ) : (

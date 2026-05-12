@@ -8,19 +8,19 @@ import DetailDrawer from '../../../../shared/DetailDrawer';
 import StatusBadge from '../../../../shared/StatusBadge';
 
 const Section = ({ title, icon: Icon, children }) => (
-  <div className="px-5 py-4 border-b border-gray-100 last:border-b-0">
+  <div className="px-5 py-4 border-b border-border-subtle last:border-b-0">
     <div className="flex items-center gap-2 mb-3">
-      <Icon className="w-4 h-4 text-gray-400" />
-      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{title}</h3>
+      <Icon className="w-4 h-4 text-content-muted" />
+      <h3 className="text-xs font-semibold text-content-tertiary uppercase tracking-wider">{title}</h3>
     </div>
     {children}
   </div>
 );
 
 const InfoRow = ({ label, value }) => (
-  <div className="flex items-start justify-between py-1.5 border-b border-gray-50 last:border-b-0 gap-3">
-    <span className="text-xs text-gray-500 shrink-0">{label}</span>
-    <span className="text-xs font-medium text-gray-800 text-right">{value ?? '—'}</span>
+  <div className="flex items-start justify-between py-1.5 border-b border-surface-subtle last:border-b-0 gap-3">
+    <span className="text-xs text-content-tertiary shrink-0">{label}</span>
+    <span className="text-xs font-medium text-content-primary text-right">{value ?? '—'}</span>
   </div>
 );
 
@@ -43,26 +43,26 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
       {isLoadingDetalle ? (
         <div className="p-5 space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-4 bg-gray-100 rounded animate-pulse" />
+            <div key={i} className="h-4 bg-surface-muted rounded animate-pulse" />
           ))}
         </div>
       ) : !r ? (
-        <div className="flex flex-col items-center gap-2 p-10 text-gray-400">
+        <div className="flex flex-col items-center gap-2 p-10 text-content-muted">
           <AlertCircle className="w-8 h-8" />
           <span className="text-sm">No se pudo cargar la remisión</span>
         </div>
       ) : (
         <>
           {/* Hero con estado, dirección y botón PDF */}
-          <div className="px-5 py-5 bg-gray-50 border-b border-gray-100">
+          <div className="px-5 py-5 bg-surface-subtle border-b border-border-subtle">
             <div className="flex items-center justify-between mb-3">
               <StatusBadge estado={r.estado} />
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400">{r.fecha_remision}</span>
+                <span className="text-xs text-content-muted">{r.fecha_remision}</span>
                 {/* Botón descargar PDF */}
                 <button
                   onClick={() => openDrawer('EXPORT_MODAL_REMISIONES', r)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-zinc-600 border border-zinc-200 rounded-lg bg-white hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all active:scale-95"
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-content-secondary border border-border-base rounded-lg bg-white hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
                   title="Descargar PDF"
                 >
                   <Download className="w-3 h-3" />
@@ -70,18 +70,18 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
                 </button>
               </div>
             </div>
-            <div className="flex items-start gap-2 bg-white rounded-lg p-3 border border-gray-100">
-              <MapPin className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 bg-white rounded-lg p-3 border border-border-subtle">
+              <MapPin className="w-4 h-4 text-semantic-info shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500 font-medium">Dirección de entrega</p>
-                <p className="text-sm text-gray-800 font-medium">{r.direccion_entrega}</p>
+                <p className="text-xs text-content-tertiary font-medium">Dirección de entrega</p>
+                <p className="text-sm text-content-primary font-medium">{r.direccion_entrega}</p>
               </div>
             </div>
           </div>
 
           {/* Acciones de estado */}
-          <div className="px-5 py-3 border-b border-gray-100">
-            <p className="text-xs text-gray-500 mb-2 font-medium">Cambiar estado:</p>
+          <div className="px-5 py-3 border-b border-border-subtle">
+            <p className="text-xs text-content-tertiary mb-2 font-medium">Cambiar estado:</p>
             <div className="flex flex-wrap gap-1.5">
               {ESTADOS.filter((e) => e !== r.estado).map((estado) => (
                 <button
@@ -93,7 +93,7 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
                       onConfirm: () => { onCambiarEstado?.(r.id_remisiones, estado); onClose(); },
                     });
                   }}
-                  className="flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-200 rounded-lg bg-white hover:bg-gray-50 text-gray-600 transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs border border-border-base rounded-lg bg-white hover:bg-surface-subtle text-content-secondary transition-colors"
                 >
                   <RefreshCw className="w-3 h-3" />
                   {estado}
@@ -109,7 +109,7 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
                       onConfirm: () => { onConvertir?.(r.id_remisiones); onClose(); },
                     });
                   }}
-                  className="flex items-center gap-1 px-2.5 py-1 text-xs border border-emerald-200 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs border border-semantic-success/20 rounded-lg bg-semantic-success-subtle hover:bg-semantic-success-subtle text-semantic-success-fg font-semibold transition-colors"
                 >
                   <ArrowRight className="w-3 h-3" />
                   Convertir a Factura
@@ -117,7 +117,7 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
               )}
 
               {r.facturas_id && (
-                <span className="flex items-center gap-1 px-2.5 py-1 text-xs bg-blue-50 border border-blue-100 rounded-lg text-blue-700 font-medium">
+                <span className="flex items-center gap-1 px-2.5 py-1 text-xs bg-semantic-info-subtle border border-semantic-info/15 rounded-lg text-semantic-info-fg font-medium">
                   <FileText className="w-3 h-3" />
                   {r.numero_factura || `FAC-${r.facturas_id}`}
                 </span>
@@ -145,27 +145,27 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
           {/* Ítems del despacho */}
           <Section title="Ítems Despachados" icon={Package}>
             {!items || items.length === 0 ? (
-              <p className="text-xs text-gray-400 py-2">Sin ítems registrados</p>
+              <p className="text-xs text-content-muted py-2">Sin ítems registrados</p>
             ) : (
-              <div className="rounded-lg border border-gray-200 overflow-hidden">
+              <div className="rounded-lg border border-border-base overflow-hidden">
                 <table className="w-full text-xs">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-surface-subtle">
                     <tr>
-                      <th className="px-3 py-2 text-left text-gray-500">Producto</th>
-                      <th className="px-3 py-2 text-right text-gray-500">Cant.</th>
-                      <th className="px-3 py-2 text-right text-gray-500">Vr. Unit.</th>
-                      <th className="px-3 py-2 text-right text-gray-500">Subtotal</th>
+                      <th className="px-3 py-2 text-left text-content-tertiary">Producto</th>
+                      <th className="px-3 py-2 text-right text-content-tertiary">Cant.</th>
+                      <th className="px-3 py-2 text-right text-content-tertiary">Vr. Unit.</th>
+                      <th className="px-3 py-2 text-right text-content-tertiary">Subtotal</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-border-subtle">
                     {items.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 text-gray-700 font-medium">{item.descripcion ?? `Ítem ${idx + 1}`}</td>
-                        <td className="px-3 py-2 text-right text-gray-600  tabular-nums">{Number(item.cantidad).toFixed(2)}</td>
-                        <td className="px-3 py-2 text-right text-gray-500  tabular-nums">
+                      <tr key={idx} className="hover:bg-surface-subtle">
+                        <td className="px-3 py-2 text-content-secondary font-medium">{item.descripcion ?? `Ítem ${idx + 1}`}</td>
+                        <td className="px-3 py-2 text-right text-content-secondary  tabular-nums">{Number(item.cantidad).toFixed(2)}</td>
+                        <td className="px-3 py-2 text-right text-content-tertiary  tabular-nums">
                           {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(item.precio_unit ?? 0)}
                         </td>
-                        <td className="px-3 py-2 text-right text-gray-800 font-semibold  tabular-nums">
+                        <td className="px-3 py-2 text-right text-content-primary font-semibold  tabular-nums">
                           {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(item.subtotal ?? 0)}
                         </td>
                       </tr>
@@ -173,7 +173,7 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
                   </tbody>
                   {/* Total */}
                   <tfoot>
-                    <tr className="bg-zinc-950">
+                    <tr className="bg-content-primary">
                       <td colSpan={3} className="px-3 py-2 text-xs font-bold text-white text-right">Total</td>
                       <td className="px-3 py-2 text-right text-xs font-bold text-white  tabular-nums">
                         {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(

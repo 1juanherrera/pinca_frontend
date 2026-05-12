@@ -624,14 +624,14 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
         <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
 
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 shrink-0">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-zinc-900 rounded-xl flex items-center justify-center">
+              <div className="w-9 h-9 bg-content-primary rounded-xl flex items-center justify-center">
                 <Download size={16} className="text-white" />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-zinc-900">Vista previa — {cotizacion.numero}</h2>
-                <p className="text-xs text-zinc-400">{cotizacion.nombre_empresa}</p>
+                <h2 className="text-sm font-semibold text-content-primary">Vista previa — {cotizacion.numero}</h2>
+                <p className="text-xs text-content-muted">{cotizacion.nombre_empresa}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -640,31 +640,31 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
                 onClick={() => setSinPrecio(v => !v)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
                   sinPrecio
-                    ? 'bg-amber-50 border-amber-300 text-amber-700'
-                    : 'bg-white border-zinc-200 text-zinc-500 hover:border-zinc-400'
+                    ? 'bg-semantic-warning-subtle border-semantic-warning/70 text-semantic-warning-fg'
+                    : 'bg-white border-border-base text-content-tertiary hover:border-border-strong'
                 }`}
                 title={sinPrecio ? 'Mostrar precios' : 'Ocultar precios'}
               >
                 {sinPrecio ? <EyeOff size={13} /> : <Eye size={13} />}
                 {sinPrecio ? 'Sin precios' : 'Con precios'}
               </button>
-              <button onClick={closeModal} className="p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors">
+              <button onClick={closeModal} className="p-1.5 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-lg transition-colors">
                 <X size={18} />
               </button>
             </div>
           </div>
 
           {/* Controles de tipo y formato */}
-          <div className="flex items-center gap-3 px-5 py-2.5 border-b border-zinc-100 bg-zinc-50 shrink-0">
+          <div className="flex items-center gap-3 px-5 py-2.5 border-b border-border-subtle bg-surface-subtle shrink-0">
             {/* Tipo de documento */}
-            <div className="flex items-center gap-1 text-xs text-zinc-400 font-medium">
+            <div className="flex items-center gap-1 text-xs text-content-muted font-medium">
               Tipo:
             </div>
-            <div className="flex items-center gap-0.5 bg-zinc-200/60 rounded-lg p-0.5">
+            <div className="flex items-center gap-0.5 bg-surface-strong/60 rounded-lg p-0.5">
               <button
                 onClick={() => setTipo('cotizacion')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                  tipo === 'cotizacion' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
+                  tipo === 'cotizacion' ? 'bg-white text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'
                 }`}
               >
                 <ClipboardList size={12} />
@@ -673,7 +673,7 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
               <button
                 onClick={() => setTipo('factura')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                  tipo === 'factura' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
+                  tipo === 'factura' ? 'bg-white text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'
                 }`}
               >
                 <FileCheck size={12} />
@@ -681,17 +681,17 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
               </button>
             </div>
 
-            <div className="w-px h-5 bg-zinc-200" />
+            <div className="w-px h-5 bg-surface-strong" />
 
             {/* Formato */}
-            <div className="flex items-center gap-1 text-xs text-zinc-400 font-medium">
+            <div className="flex items-center gap-1 text-xs text-content-muted font-medium">
               Formato:
             </div>
-            <div className="flex items-center gap-0.5 bg-zinc-200/60 rounded-lg p-0.5">
+            <div className="flex items-center gap-0.5 bg-surface-strong/60 rounded-lg p-0.5">
               <button
                 onClick={() => setFormat('carta')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                  format === 'carta' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
+                  format === 'carta' ? 'bg-white text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'
                 }`}
               >
                 <FileText size={12} />
@@ -700,7 +700,7 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
               <button
                 onClick={() => setFormat('ticket')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                  format === 'ticket' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
+                  format === 'ticket' ? 'bg-white text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'
                 }`}
               >
                 <Receipt size={12} />
@@ -710,9 +710,9 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
           </div>
 
           {/* Preview */}
-          <div className="flex-1 overflow-y-auto bg-zinc-100 p-6">
+          <div className="flex-1 overflow-y-auto bg-surface-muted p-6">
             {isLoadingItems ? (
-              <div className="flex items-center justify-center h-64 gap-3 text-zinc-400">
+              <div className="flex items-center justify-center h-64 gap-3 text-content-muted">
                 <Loader2 size={20} className="animate-spin" />
                 <span className="text-sm font-medium">Cargando ítems...</span>
               </div>
@@ -734,18 +734,18 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
           </div>
 
           {/* Footer */}
-          <div className="px-5 py-4 border-t border-zinc-100 bg-zinc-50 flex items-center justify-between shrink-0">
-            <p className="text-xs text-zinc-400">
+          <div className="px-5 py-4 border-t border-border-subtle bg-surface-subtle flex items-center justify-between shrink-0">
+            <p className="text-xs text-content-muted">
               {items.length} ítem(s)
-              {!sinPrecio && <> · Total: <span className="font-semibold text-zinc-700">{fmt(cotizacion.total)}</span></>}
-              {sinPrecio  && <span className="ml-2 text-amber-600 font-semibold">Sin precios</span>}
-              <span className="ml-2 text-zinc-500">· {docLabel}</span>
+              {!sinPrecio && <> · Total: <span className="font-semibold text-content-secondary">{fmt(cotizacion.total)}</span></>}
+              {sinPrecio  && <span className="ml-2 text-semantic-warning-fg font-semibold">Sin precios</span>}
+              <span className="ml-2 text-content-tertiary">· {docLabel}</span>
             </p>
             <button
               onClick={handleDownload}
               disabled={isExporting || isLoadingItems}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95
-                ${done ? 'bg-emerald-500 text-white' : 'bg-zinc-900 text-white hover:bg-zinc-700 disabled:opacity-50 disabled:pointer-events-none'}`}
+                ${done ? 'bg-semantic-success text-white' : 'bg-content-primary text-white hover:bg-content-secondary disabled:opacity-50 disabled:pointer-events-none'}`}
             >
               {done ? <><CheckCircle2 size={16} /> Descargado</>
                 : isExporting ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando PDF...</>

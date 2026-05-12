@@ -55,29 +55,29 @@ export const CostCalculator = ({
   if (!selectedProductData) {
     return (
       <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-        <div className="text-gray-400 mb-3">
+        <div className="text-content-muted mb-3">
           <Calculator size={compact ? 32 : 48} className="mx-auto" />
         </div>
-        <h3 className={`${compact ? 'text-base' : 'text-lg'} font-medium text-gray-900 mb-2`}>
+        <h3 className={`${compact ? 'text-base' : 'text-lg'} font-medium text-content-primary mb-2`}>
           Calculadora de Costos
         </h3>
-        <p className="text-sm text-gray-500">Selecciona un producto para calcular costos</p>
+        <p className="text-sm text-content-tertiary">Selecciona un producto para calcular costos</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-zinc-200/60">
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-border-base/60">
 
       {/* Header */}
-      <div className="bg-zinc-700 text-white px-4 py-3">
+      <div className="bg-content-secondary text-white px-4 py-3">
         <div className="flex items-center justify-between">
           <div>
             <h3 className={`${compact ? 'text-base' : 'text-lg'} font-semibold flex items-center gap-2`}>
               <Calculator size={compact ? 16 : 20} />
               Calculadora de Costos
             </h3>
-            <p className="text-zinc-100 text-xs">
+            <p className="text-content-inverse text-xs">
               {productDetail?.item?.nombre || selectedProductData.nombre} — {productDetail?.item?.codigo || selectedProductData.codigo}
             </p>
           </div>
@@ -88,7 +88,7 @@ export const CostCalculator = ({
       <div className="p-4">
         <div className="grid grid-cols-1 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nuevo Volumen</label>
+            <label className="block text-sm font-medium text-content-secondary mb-1">Nuevo Volumen</label>
             <div className="flex gap-2">
               <input
                 type="number"
@@ -96,7 +96,7 @@ export const CostCalculator = ({
                 onChange={(e) => setInputVolumen(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={productDetail?.item?.volumen_base || '0'}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-border-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-content-tertiary focus:border-transparent"
                 min="0.01"
                 step="0.01"
                 disabled={isProcessing}
@@ -105,16 +105,16 @@ export const CostCalculator = ({
                 onClick={confirmar}
                 disabled={isProcessing || !inputVolumen}
                 variant="zinc"
-                className="hover:bg-zinc-700 hover:scale-105 text-white px-3 py-2 cursor-pointer rounded-lg transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="hover:bg-content-secondary hover:scale-105 text-white px-3 py-2 cursor-pointer rounded-lg transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <RotateCw size={18} className={isRecalculating ? 'animate-spin' : ''} />
               </Button>
             </div>
 
             {recalculatedData && (
-              <div className="mt-3 p-2 bg-green-100 border border-green-200 flex justify-center items-center rounded-md text-center font-semibold animate-in fade-in slide-in-from-top-1">
-                <CheckSquare size={16} className="text-green-700" />
-                <p className="text-sm ml-2 text-green-700">
+              <div className="mt-3 p-2 bg-semantic-success-subtle border border-semantic-success/20 flex justify-center items-center rounded-md text-center font-semibold animate-in fade-in slide-in-from-top-1">
+                <CheckSquare size={16} className="text-semantic-success-fg" />
+                <p className="text-sm ml-2 text-semantic-success-fg">
                   Costo total: $ {formatNumber(proyectado?.total_costo_materia_prima)}
                 </p>
               </div>
@@ -122,8 +122,8 @@ export const CostCalculator = ({
           </div>
 
           {!recalculatedData && (
-            <div className="flex justify-center items-center py-2 bg-zinc-50 rounded-lg border border-zinc-100">
-              <p className="text-[10px] text-zinc-700 font-bold uppercase tracking-tight flex items-center gap-1">
+            <div className="flex justify-center items-center py-2 bg-surface-subtle rounded-lg border border-border-subtle">
+              <p className="text-[10px] text-content-secondary font-bold uppercase tracking-tight flex items-center gap-1">
                 <Info size={12} /> Escribe un volumen y presiona Enter o el botón
               </p>
             </div>
@@ -133,10 +133,10 @@ export const CostCalculator = ({
 
       {/* Resultados — solo tras recalcular */}
       {recalculatedData && productDetail && (
-        <div className="bg-gray-50 p-4 border-t border-gray-200">
+        <div className="bg-surface-subtle p-4 border-t border-border-base">
 
-          <div className="flex items-center justify-between mb-3 border-b border-gray-200 pb-2">
-            <h4 className="text-sm font-bold text-gray-800 uppercase tracking-tighter">
+          <div className="flex items-center justify-between mb-3 border-b border-border-base pb-2">
+            <h4 className="text-sm font-bold text-content-primary uppercase tracking-tighter">
               Resultados Simulación
             </h4>
             <div className="flex gap-2 items-center">
@@ -157,27 +157,27 @@ export const CostCalculator = ({
 
                 {/* Tooltip al hover cuando está bloqueado */}
                 {!puedePreparar && (
-                  <div className="absolute bottom-full right-0 mb-2 w-64 bg-zinc-900 text-white rounded-xl shadow-xl p-3 z-50
+                  <div className="absolute bottom-full right-0 mb-2 w-64 bg-content-primary text-white rounded-xl shadow-xl p-3 z-50
                                   opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-red-400 mb-1.5 flex items-center gap-1">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-semantic-danger mb-1.5 flex items-center gap-1">
                       <AlertTriangle size={10} /> No se puede preparar
                     </p>
-                    <p className="text-[10px] text-zinc-300 mb-2">{razonBloqueo}</p>
+                    <p className="text-[10px] text-content-muted mb-2">{razonBloqueo}</p>
                     {faltantes.length > 0 && (
-                      <div className="flex flex-col gap-1.5 border-t border-zinc-700 pt-2">
+                      <div className="flex flex-col gap-1.5 border-t border-content-secondary pt-2">
                         {faltantes.map((f) => {
                           const recalc     = formulacionesRecalc.find(r => String(r.item_general_id) === String(f.item_general_id));
                           const requerido  = recalc ? parseFloat(recalc.cantidad_recalculada ?? 0) : parseFloat(f.cantidad ?? 0);
                           const disponible = parseFloat(f.inventario_cantidad ?? 0);
                           return (
                             <div key={f.item_general_id} className="flex flex-col">
-                              <span className="text-[10px] font-semibold text-zinc-200 truncate">
+                              <span className="text-[10px] font-semibold text-content-muted truncate">
                                 {f.materia_prima_nombre}
                               </span>
-                              <div className="flex justify-between text-[9px] text-zinc-400 mt-0.5">
+                              <div className="flex justify-between text-[9px] text-content-muted mt-0.5">
                                 <span>Disp: {disponible}</span>
                                 <span>Req: {requerido}</span>
-                                <span className="text-red-400 font-bold">
+                                <span className="text-semantic-danger font-bold">
                                   Falta: {(requerido - disponible).toFixed(3)}
                                 </span>
                               </div>
@@ -194,42 +194,42 @@ export const CostCalculator = ({
 
           {/* Grid original vs calculado */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white rounded-lg border-2 border-gray-200 p-3 shadow-sm">
-              <h5 className="font-bold text-gray-400 mb-2 text-[10px] uppercase tracking-widest leading-none">
+            <div className="bg-white rounded-lg border-2 border-border-base p-3 shadow-sm">
+              <h5 className="font-bold text-content-muted mb-2 text-[10px] uppercase tracking-widest leading-none">
                 Original ({productDetail.item?.volumen_base} G)
               </h5>
               <div className="space-y-1 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">T/Costos:</span>
-                  <span className="font-bold text-gray-700">$ {formatNumber(original?.total_costo_materia_prima)}</span>
+                  <span className="text-content-tertiary">T/Costos:</span>
+                  <span className="font-bold text-content-secondary">$ {formatNumber(original?.total_costo_materia_prima)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Cantidad:</span>
-                  <span className="font-bold text-gray-700">{original?.total_cantidad_materia_prima}</span>
+                  <span className="text-content-tertiary">Cantidad:</span>
+                  <span className="font-bold text-content-secondary">{original?.total_cantidad_materia_prima}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Venta C/U:</span>
-                  <span className="font-bold text-gray-700">$ {formatNumber(original?.precio_venta)}</span>
+                  <span className="text-content-tertiary">Venta C/U:</span>
+                  <span className="font-bold text-content-secondary">$ {formatNumber(original?.precio_venta)}</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-3 border-2 border-green-200 shadow-sm">
-              <h5 className="font-bold text-green-700 mb-2 text-[10px] uppercase tracking-widest leading-none">
+            <div className="bg-white rounded-lg p-3 border-2 border-semantic-success/20 shadow-sm">
+              <h5 className="font-bold text-semantic-success-fg mb-2 text-[10px] uppercase tracking-widest leading-none">
                 Nuevo ({recalculatedData?.item?.volumen_nuevo} G)
               </h5>
               <div className="space-y-1 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-green-600 font-medium">T/Costos:</span>
-                  <span className="font-bold text-green-700">$ {formatNumber(proyectado?.total_costo_materia_prima)}</span>
+                  <span className="text-semantic-success-fg font-medium">T/Costos:</span>
+                  <span className="font-bold text-semantic-success-fg">$ {formatNumber(proyectado?.total_costo_materia_prima)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-green-600 font-medium">Cantidad:</span>
-                  <span className="font-bold text-green-700">{proyectado?.total_cantidad_materia_prima}</span>
+                  <span className="text-semantic-success-fg font-medium">Cantidad:</span>
+                  <span className="font-bold text-semantic-success-fg">{proyectado?.total_cantidad_materia_prima}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-green-600 font-medium">Venta C/U:</span>
-                  <span className="font-bold text-green-700">$ {formatNumber(proyectado?.precio_venta)}</span>
+                  <span className="text-semantic-success-fg font-medium">Venta C/U:</span>
+                  <span className="font-bold text-semantic-success-fg">$ {formatNumber(proyectado?.precio_venta)}</span>
                 </div>
               </div>
             </div>
@@ -237,14 +237,14 @@ export const CostCalculator = ({
 
           {/* Alerta de bloqueo */}
           {!puedePreparar && (
-            <div className="mt-3 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
-              <AlertTriangle size={13} className="text-red-500 shrink-0 mt-0.5" />
+            <div className="mt-3 flex items-start gap-2 bg-semantic-danger-subtle border border-semantic-danger/20 rounded-lg px-3 py-2.5">
+              <AlertTriangle size={13} className="text-semantic-danger shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold text-red-700 uppercase tracking-widest">
+                <p className="text-[10px] font-bold text-semantic-danger-fg uppercase tracking-widest">
                   {razonBloqueo}
                 </p>
                 {faltantes.length > 0 && (
-                  <p className="text-[10px] text-red-500 mt-0.5 leading-relaxed">
+                  <p className="text-[10px] text-semantic-danger mt-0.5 leading-relaxed">
                     {faltantes.map((f) => f.materia_prima_nombre).join(' · ')}
                   </p>
                 )}
@@ -252,7 +252,7 @@ export const CostCalculator = ({
             </div>
           )}
 
-          <div className="mt-3 p-2 bg-zinc-100 border border-zinc-200 rounded-lg flex justify-between text-[9px] font-black text-zinc-800 uppercase tracking-tight">
+          <div className="mt-3 p-2 bg-surface-muted border border-border-base rounded-lg flex justify-between text-[9px] font-black text-content-primary uppercase tracking-tight">
             <p>Factor de Volumen: x{recalculatedData?.item?.factor_volumen}</p>
           </div>
         </div>

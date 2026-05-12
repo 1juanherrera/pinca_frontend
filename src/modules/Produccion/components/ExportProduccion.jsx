@@ -427,25 +427,25 @@ const ExportProduccionContent = ({ preparacion, closeModal }) => {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-content-primary/60 backdrop-blur-sm">
         <div className="w-full max-w-6xl h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
 
-          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 shrink-0">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-zinc-900 rounded-xl flex items-center justify-center">
+              <div className="w-9 h-9 bg-content-primary rounded-xl flex items-center justify-center">
                 <Download size={16} className="text-white" />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-zinc-900">Vista previa — ORD-{String(preparacion.id_preparaciones).padStart(4, '0')}</h2>
-                <p className="text-xs text-zinc-400">{preparacion.item_nombre}</p>
+                <h2 className="text-sm font-semibold text-content-primary">Vista previa — ORD-{String(preparacion.id_preparaciones).padStart(4, '0')}</h2>
+                <p className="text-xs text-content-muted">{preparacion.item_nombre}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setModo('ESTANDAR')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${modo === 'ESTANDAR'
-                  ? 'bg-zinc-900 border-zinc-900 text-white'
-                  : 'bg-white border-zinc-200 text-zinc-500 hover:border-zinc-400'
+                  ? 'bg-content-primary border-content-primary text-white'
+                  : 'bg-white border-border-base text-content-tertiary hover:border-border-strong'
                   }`}
               >
                 <ClipboardList size={13} />
@@ -454,22 +454,22 @@ const ExportProduccionContent = ({ preparacion, closeModal }) => {
               <button
                 onClick={() => setModo('MUESTRARIO')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${modo === 'MUESTRARIO'
-                  ? 'bg-blue-50 border-blue-300 text-blue-700'
-                  : 'bg-white border-zinc-200 text-zinc-500 hover:border-zinc-400'
+                  ? 'bg-semantic-info-subtle border-semantic-info/30 text-semantic-info-fg'
+                  : 'bg-white border-border-base text-content-tertiary hover:border-border-strong'
                   }`}
               >
                 <FlaskConical size={13} />
                 Muestrario
               </button>
-              <button onClick={closeModal} className="p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors ml-4">
+              <button onClick={closeModal} className="p-1.5 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-lg transition-colors ml-4">
                 <X size={18} />
               </button>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto bg-zinc-100 p-6">
+          <div className="flex-1 overflow-y-auto bg-surface-muted p-6">
             {isLoadingDetail ? (
-              <div className="flex items-center justify-center h-64 gap-3 text-zinc-400">
+              <div className="flex items-center justify-center h-64 gap-3 text-content-muted">
                 <Loader2 size={20} className="animate-spin" />
                 <span className="text-sm font-medium">Cargando ítems...</span>
               </div>
@@ -484,15 +484,15 @@ const ExportProduccionContent = ({ preparacion, closeModal }) => {
             )}
           </div>
 
-          <div className="px-5 py-4 border-t border-zinc-100 bg-zinc-50 flex items-center justify-between shrink-0">
-            <p className="text-xs text-zinc-400">
+          <div className="px-5 py-4 border-t border-border-subtle bg-surface-subtle flex items-center justify-between shrink-0">
+            <p className="text-xs text-content-muted">
               {items.length} materias primas
             </p>
             <button
               onClick={handleDownload}
               disabled={isExporting || isLoadingDetail}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95
-                ${done ? 'bg-emerald-500 text-white' : 'bg-zinc-900 text-white hover:bg-zinc-700 disabled:opacity-50 disabled:pointer-events-none'}`}
+                ${done ? 'bg-semantic-success text-white' : 'bg-content-primary text-white hover:bg-content-secondary disabled:opacity-50 disabled:pointer-events-none'}`}
             >
               {done ? <><CheckCircle2 size={16} /> Descargado</>
                 : isExporting ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando PDF...</>

@@ -21,13 +21,13 @@ const TABS = [
 ];
 
 const ViewToggle = ({ value, onChange }) => (
-  <div className="inline-flex items-center rounded-lg border border-zinc-200/60 p-0.5 bg-zinc-100/40">
+  <div className="inline-flex items-center rounded-lg border border-border-base/60 p-0.5 bg-surface-muted/40">
     <button
       onClick={() => onChange('tabla')}
       className={`p-1.5 rounded-md transition-all duration-150 ${
         value === 'tabla'
-          ? 'bg-white text-zinc-900 shadow-sm'
-          : 'text-zinc-400 hover:text-zinc-600'
+          ? 'bg-white text-content-primary shadow-sm'
+          : 'text-content-muted hover:text-content-secondary'
       }`}
       title="Vista de tabla"
     >
@@ -37,8 +37,8 @@ const ViewToggle = ({ value, onChange }) => (
       onClick={() => onChange('cards')}
       className={`p-1.5 rounded-md transition-all duration-150 ${
         value === 'cards'
-          ? 'bg-white text-zinc-900 shadow-sm'
-          : 'text-zinc-400 hover:text-zinc-600'
+          ? 'bg-white text-content-primary shadow-sm'
+          : 'text-content-muted hover:text-content-secondary'
       }`}
       title="Vista de tarjetas"
     >
@@ -108,7 +108,7 @@ const ProveedoresPage = () => {
       </div>
 
       {/* Navegación por tabs */}
-      <div className="flex items-center border-b border-zinc-200">
+      <div className="flex items-center border-b border-border-base">
         {TABS.map((t) => {
           const Icon   = t.icon;
           const active = tab === t.id;
@@ -118,8 +118,8 @@ const ProveedoresPage = () => {
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 pb-3 pt-1 text-sm font-semibold border-b-2 transition-all -mb-px whitespace-nowrap ${
                 active
-                  ? 'border-zinc-900 text-zinc-900'
-                  : 'border-transparent text-zinc-400 hover:text-zinc-700 hover:border-zinc-300'
+                  ? 'border-content-primary text-content-primary'
+                  : 'border-transparent text-content-muted hover:text-content-secondary hover:border-border-strong'
               }`}
             >
               <Icon size={14} />
@@ -150,16 +150,16 @@ const ProveedoresPage = () => {
       {tab === 'proveedores' && viewMode === 'cards' && (
         <>
           <div className="relative max-w-xs">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-300" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
             <input
               type="text"
               value={cardSearch}
               onChange={(e) => setCardSearch(e.target.value)}
               placeholder="Buscar proveedor..."
-              className="w-full pl-9 pr-9 py-2 text-xs bg-white border border-zinc-200/60 rounded-xl focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 outline-none transition-all duration-150 placeholder:text-zinc-300"
+              className="w-full pl-9 pr-9 py-2 text-xs bg-white border border-border-base/60 rounded-xl focus:ring-1 focus:ring-brand-primary/30 focus:border-brand-primary outline-none transition-all duration-150 placeholder:text-content-muted"
             />
             {cardSearch && (
-              <button onClick={() => setCardSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-300 hover:text-zinc-600 transition-colors">
+              <button onClick={() => setCardSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-secondary transition-colors">
                 <X size={12} />
               </button>
             )}
@@ -171,9 +171,9 @@ const ProveedoresPage = () => {
               : filteredCards.length === 0
                 ? (
                   <div className="col-span-full flex flex-col items-center justify-center py-16 gap-2">
-                    <p className="text-sm font-semibold text-zinc-400">No se encontraron proveedores</p>
+                    <p className="text-sm font-semibold text-content-muted">No se encontraron proveedores</p>
                     {cardSearch && (
-                      <button onClick={() => setCardSearch('')} className="text-xs text-zinc-400 hover:text-zinc-600 underline transition-colors">
+                      <button onClick={() => setCardSearch('')} className="text-xs text-content-muted hover:text-content-secondary underline transition-colors">
                         Limpiar búsqueda
                       </button>
                     )}

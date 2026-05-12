@@ -27,27 +27,27 @@ const CapaRow = ({ capa, modo, cantidadAsignada, onCantidadChange, disabled }) =
   return (
     <div className={`rounded-xl border px-3 py-2.5 transition-all ${
       cantidadAsignada > 0
-        ? 'border-blue-300 bg-blue-50/50'
-        : 'border-zinc-100 bg-white hover:border-zinc-200'
+        ? 'border-semantic-info/30 bg-semantic-info-subtle/50'
+        : 'border-border-subtle bg-white hover:border-border-base'
     }`}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
-            <Building2 size={13} className="text-zinc-500" />
+          <div className="w-7 h-7 rounded-lg bg-surface-muted flex items-center justify-center shrink-0">
+            <Building2 size={13} className="text-content-tertiary" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-zinc-800 truncate">
+            <p className="text-xs font-semibold text-content-primary truncate">
               {capa.proveedor_nombre || 'Sin proveedor'}
             </p>
             <div className="flex items-center gap-2 mt-0.5">
               {capa.lote_proveedor && (
-                <span className="text-[9px] text-zinc-400 font-mono">{capa.lote_proveedor}</span>
+                <span className="text-[9px] text-content-muted font-mono">{capa.lote_proveedor}</span>
               )}
-              <span className="text-[9px] text-zinc-400 flex items-center gap-0.5">
+              <span className="text-[9px] text-content-muted flex items-center gap-0.5">
                 <Calendar size={8} /> {fmtFecha(capa.fecha_ingreso)}
               </span>
               {capa.dias_en_stock > 0 && (
-                <span className="text-[9px] text-zinc-400">{capa.dias_en_stock}d</span>
+                <span className="text-[9px] text-content-muted">{capa.dias_en_stock}d</span>
               )}
             </div>
           </div>
@@ -55,27 +55,27 @@ const CapaRow = ({ capa, modo, cantidadAsignada, onCantidadChange, disabled }) =
 
         <div className="flex items-center gap-3 shrink-0">
           <div className="text-right">
-            <p className="text-[9px] text-zinc-400 uppercase tracking-wider font-bold">Disponible</p>
-            <p className="text-xs font-bold text-zinc-700 tabular-nums">{fmtNum(capa.cantidad_disponible)} kg</p>
+            <p className="text-[9px] text-content-muted uppercase tracking-wider font-bold">Disponible</p>
+            <p className="text-xs font-bold text-content-secondary tabular-nums">{fmtNum(capa.cantidad_disponible)} kg</p>
           </div>
           <div className="text-right">
-            <p className="text-[9px] text-zinc-400 uppercase tracking-wider font-bold">Costo/kg</p>
-            <p className="text-xs font-bold text-emerald-700 tabular-nums">{fmtCOP(capa.costo_unitario)}</p>
+            <p className="text-[9px] text-content-muted uppercase tracking-wider font-bold">Costo/kg</p>
+            <p className="text-xs font-bold text-semantic-success-fg tabular-nums">{fmtCOP(capa.costo_unitario)}</p>
           </div>
         </div>
       </div>
 
       <div className="mt-2 flex items-center gap-2">
-        <div className="flex-1 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-          <div className="h-full bg-zinc-300 rounded-full" style={{ width: `${pctUsado}%` }} />
+        <div className="flex-1 h-1.5 bg-surface-muted rounded-full overflow-hidden">
+          <div className="h-full bg-surface-strong rounded-full" style={{ width: `${pctUsado}%` }} />
         </div>
-        <span className="text-[9px] text-zinc-400 w-8 text-right shrink-0">{Math.round(100 - pctUsado)}%</span>
+        <span className="text-[9px] text-content-muted w-8 text-right shrink-0">{Math.round(100 - pctUsado)}%</span>
       </div>
 
       {modo === 'MANUAL' && (
         <div className="mt-2 flex items-center gap-2">
-          <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest shrink-0">Consumir:</label>
-          <div className="flex items-center border border-zinc-200 rounded-lg overflow-hidden focus-within:ring-1 focus-within:ring-blue-400 flex-1">
+          <label className="text-[10px] font-bold text-content-muted uppercase tracking-widest shrink-0">Consumir:</label>
+          <div className="flex items-center border border-border-base rounded-lg overflow-hidden focus-within:ring-1 focus-within:ring-semantic-info/40 flex-1">
             <input
               type="number"
               min="0"
@@ -90,17 +90,17 @@ const CapaRow = ({ capa, modo, cantidadAsignada, onCantidadChange, disabled }) =
               placeholder="0"
               className="flex-1 px-2 py-1.5 text-xs focus:outline-none disabled:opacity-50 tabular-nums"
             />
-            <span className="px-2 text-[10px] text-zinc-400 bg-zinc-50 border-l border-zinc-200 py-1.5">kg</span>
+            <span className="px-2 text-[10px] text-content-muted bg-surface-subtle border-l border-border-base py-1.5">kg</span>
           </div>
         </div>
       )}
 
       <div className="mt-1.5 flex items-center gap-1.5">
-        <span className="inline-flex items-center gap-0.5 text-[9px] font-medium text-zinc-400 bg-zinc-50 px-1.5 py-0.5 rounded">
+        <span className="inline-flex items-center gap-1 text-[9px] font-medium text-content-tertiary bg-surface-muted px-1.5 py-0.5 rounded-sm">
           <Package size={8} /> {capa.bodega_nombre}
         </span>
         {capa.unidad_compra_nombre && capa.precio_compra && (
-          <span className="text-[9px] text-zinc-400">
+          <span className="text-[9px] text-content-muted">
             {fmtCOP(capa.precio_compra)}/{capa.unidad_compra_nombre}
           </span>
         )}
@@ -252,14 +252,14 @@ const CapasStockPanel = ({
     : stockTotal >= cantidadNecesaria;
 
   const headerBg = deficitEfectivo > 0.001 && proveedorId
-    ? 'bg-red-50 hover:bg-red-100/70'
+    ? 'bg-semantic-danger-subtle hover:bg-semantic-danger-subtle/70'
     : deficitEfectivo > 0.001
-      ? 'bg-amber-50 hover:bg-amber-100/70'
-      : 'bg-zinc-50 hover:bg-zinc-100';
+      ? 'bg-semantic-warning-subtle hover:bg-semantic-warning-subtle/70'
+      : 'bg-surface-subtle hover:bg-surface-muted';
 
   return (
     <div className={`rounded-xl border overflow-hidden ${
-      deficitEfectivo > 0.001 && proveedorId ? 'border-red-300' : 'border-zinc-200'
+      deficitEfectivo > 0.001 && proveedorId ? 'border-semantic-danger/30' : 'border-border-base'
     }`}>
       {/* Header colapsable */}
       <button
@@ -268,31 +268,31 @@ const CapasStockPanel = ({
         className={`w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors ${headerBg}`}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <Layers size={13} className={deficitEfectivo > 0.001 ? (proveedorId ? 'text-red-500' : 'text-amber-500') : 'text-zinc-500'} />
+          <Layers size={13} className={deficitEfectivo > 0.001 ? (proveedorId ? 'text-semantic-danger' : 'text-semantic-warning') : 'text-content-tertiary'} />
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-zinc-800 truncate">{nombre}</p>
-            <p className="text-[10px] text-zinc-400">
-              Necesario: <span className="font-bold text-zinc-600">{fmtNum(cantidadNecesaria)} kg</span>
-              {' · '}Stock: <span className={`font-bold ${stockSuficiente ? 'text-emerald-600' : 'text-red-600'}`}>
+            <p className="text-xs font-semibold text-content-primary truncate">{nombre}</p>
+            <p className="text-[10px] text-content-muted">
+              Necesario: <span className="font-bold text-content-secondary">{fmtNum(cantidadNecesaria)} kg</span>
+              {' · '}Stock: <span className={`font-bold ${stockSuficiente ? 'text-semantic-success-fg' : 'text-semantic-danger-fg'}`}>
                 {fmtNum(proveedorId ? stockProveedor : stockTotal)} kg
               </span>
               {proveedorId && (
-                <span className="text-zinc-400"> (proveedor)</span>
+                <span className="text-content-muted"> (proveedor)</span>
               )}
-              {capas.length > 0 && <> · <span className="font-bold text-zinc-500">{capas.length} capa{capas.length !== 1 ? 's' : ''}</span></>}
+              {capas.length > 0 && <> · <span className="font-bold text-content-tertiary">{capas.length} capa{capas.length !== 1 ? 's' : ''}</span></>}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
           {costoPonderadoSeleccion > 0 && (
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+            <span className="text-[10px] font-bold text-semantic-success-fg bg-semantic-success-subtle px-1.5 py-0.5 rounded">
               {fmtCOP(costoPonderadoSeleccion)}/kg
             </span>
           )}
           {deficitEfectivo > 0.001 && (
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
-              proveedorId ? 'text-red-700 bg-red-50' : 'text-amber-700 bg-amber-50'
+              proveedorId ? 'text-semantic-danger-fg bg-semantic-danger-subtle' : 'text-semantic-warning-fg bg-semantic-warning-subtle'
             }`}>
               <AlertTriangle size={9} /> -{fmtNum(deficitEfectivo)} kg
             </span>
@@ -301,21 +301,21 @@ const CapasStockPanel = ({
             <Link
               to={`/compras?item_id=${itemGeneralId}`}
               onClick={e => e.stopPropagation()}
-              className="flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg hover:bg-amber-100 transition-colors"
+              className="flex items-center gap-1 text-[10px] font-bold text-semantic-warning-fg bg-semantic-warning-subtle border border-semantic-warning/20 px-2 py-0.5 rounded-lg hover:bg-semantic-warning-subtle transition-colors"
               title="Ir a Compras para generar una OC"
             >
               <ShoppingCart size={9} /> Generar OC
             </Link>
           )}
-          {expanded ? <ChevronUp size={14} className="text-zinc-400" /> : <ChevronDown size={14} className="text-zinc-400" />}
+          {expanded ? <ChevronUp size={14} className="text-content-muted" /> : <ChevronDown size={14} className="text-content-muted" />}
         </div>
       </button>
 
       {/* Contenido expandido */}
       {expanded && (
-        <div className="border-t border-zinc-200 px-3 py-3 space-y-3">
+        <div className="border-t border-border-base px-3 py-3 space-y-3">
           {isLoading ? (
-            <div className="flex items-center justify-center py-6 gap-2 text-zinc-400">
+            <div className="flex items-center justify-center py-6 gap-2 text-content-muted">
               <Loader2 size={16} className="animate-spin" /> Cargando capas...
             </div>
           ) : (
@@ -327,12 +327,12 @@ const CapasStockPanel = ({
                 {proveedoresDisponibles.length > 0 && onProveedorChange && (
                   <div className="flex flex-col gap-1 flex-1 min-w-0">
                     <div className="flex items-center gap-1">
-                      <User size={10} className="text-zinc-400 shrink-0" />
+                      <User size={10} className="text-content-muted shrink-0" />
                       <select
                         value={proveedorId ?? ''}
                         onChange={e => onProveedorChange(itemGeneralId, e.target.value ? parseInt(e.target.value) : null)}
-                        className={`text-[10px] border rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900 w-full ${
-                          proveedorId ? 'border-blue-300 text-blue-700 bg-blue-50' : 'border-zinc-200'
+                        className={`text-[10px] border rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-brand-primary/30 w-full ${
+                          proveedorId ? 'border-semantic-info/30 text-semantic-info-fg bg-semantic-info-subtle' : 'border-border-base'
                         }`}
                       >
                         <option value="">Todos los proveedores (FIFO global)</option>
@@ -351,20 +351,20 @@ const CapasStockPanel = ({
                         ? Math.round((Date.now() - new Date(pInfo.ultima_fecha).getTime()) / 86400000)
                         : null;
                       return (
-                        <div className="flex items-center gap-2 text-[9px] text-zinc-500 bg-blue-50 border border-blue-100 rounded-lg px-2 py-1">
-                          <Calendar size={8} className="text-blue-400 shrink-0" />
-                          <span>Última recepción: <strong className="text-blue-700">{fmtFecha(pInfo.ultima_fecha)}</strong></span>
+                        <div className="flex items-center gap-2 text-[9px] text-content-tertiary bg-semantic-info-subtle border border-semantic-info/15 rounded-lg px-2 py-1">
+                          <Calendar size={8} className="text-semantic-info/70 shrink-0" />
+                          <span>Última recepción: <strong className="text-semantic-info-fg">{fmtFecha(pInfo.ultima_fecha)}</strong></span>
                           {diasDesde !== null && (
                             <span className={`ml-auto font-semibold px-1.5 py-0.5 rounded ${
-                              diasDesde <= 30 ? 'text-emerald-700 bg-emerald-50' :
-                              diasDesde <= 90 ? 'text-amber-700 bg-amber-50' :
-                              'text-red-700 bg-red-50'
+                              diasDesde <= 30 ? 'text-semantic-success-fg bg-semantic-success-subtle' :
+                              diasDesde <= 90 ? 'text-semantic-warning-fg bg-semantic-warning-subtle' :
+                              'text-semantic-danger-fg bg-semantic-danger-subtle'
                             }`}>
                               {diasDesde}d
                             </span>
                           )}
                           <span>·</span>
-                          <span>Costo prom: <strong className="text-zinc-700">{fmtCOP(pInfo.costo_prom)}/kg</strong></span>
+                          <span>Costo prom: <strong className="text-content-secondary">{fmtCOP(pInfo.costo_prom)}/kg</strong></span>
                         </div>
                       );
                     })()}
@@ -376,7 +376,7 @@ const CapasStockPanel = ({
                   <select
                     value={bodegaSeleccionada ?? ''}
                     onChange={e => onBodegaChange(itemGeneralId, e.target.value ? parseInt(e.target.value) : null)}
-                    className="text-[10px] border border-zinc-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                    className="text-[10px] border border-border-base rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-brand-primary/30"
                   >
                     <option value="">Todas las bodegas</option>
                     {bodegas.map(b => (
@@ -391,8 +391,8 @@ const CapasStockPanel = ({
                   onClick={() => onModoChange?.(itemGeneralId, modo === 'FIFO' ? 'MANUAL' : 'FIFO')}
                   className={`flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg border transition-all ${
                     modo === 'MANUAL'
-                      ? 'bg-blue-50 border-blue-200 text-blue-700'
-                      : 'bg-zinc-50 border-zinc-200 text-zinc-600'
+                      ? 'bg-semantic-info-subtle border-semantic-info/20 text-semantic-info-fg'
+                      : 'bg-surface-subtle border-border-base text-content-secondary'
                   }`}
                 >
                   {modo === 'MANUAL'
@@ -404,16 +404,16 @@ const CapasStockPanel = ({
 
               {/* Alerta de déficit con proveedor */}
               {deficitEfectivo > 0.001 && proveedorId && (
-                <div className="flex items-center justify-between gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                <div className="flex items-center justify-between gap-2 bg-semantic-danger-subtle border border-semantic-danger/20 rounded-lg px-3 py-2">
                   <div className="flex items-center gap-2">
-                    <AlertTriangle size={12} className="text-red-500 shrink-0" />
-                    <p className="text-[10px] text-red-700 font-medium">
+                    <AlertTriangle size={12} className="text-semantic-danger shrink-0" />
+                    <p className="text-[10px] text-semantic-danger-fg font-medium">
                       Stock insuficiente con este proveedor: faltan {fmtNum(deficitEfectivo)} kg
                     </p>
                   </div>
                   <Link
                     to={`/compras?item_id=${itemGeneralId}&proveedor_id=${proveedorId}`}
-                    className="shrink-0 flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg hover:bg-amber-100 transition-colors"
+                    className="shrink-0 flex items-center gap-1 text-[10px] font-bold text-semantic-warning-fg bg-semantic-warning-subtle border border-semantic-warning/20 px-2 py-1 rounded-lg hover:bg-semantic-warning-subtle transition-colors"
                     title="Ir a Compras para generar una OC a este proveedor"
                   >
                     <ShoppingCart size={9} /> Generar OC
@@ -423,7 +423,7 @@ const CapasStockPanel = ({
 
               {/* Lista de capas */}
               {capas.length === 0 ? (
-                <div className="flex flex-col items-center py-6 gap-1 text-zinc-300">
+                <div className="flex flex-col items-center py-6 gap-1 text-content-muted">
                   <Layers size={20} />
                   <p className="text-xs">Sin capas de stock disponibles</p>
                 </div>
@@ -444,7 +444,7 @@ const CapasStockPanel = ({
                   }
                   {/* Si hay proveedor filtrado, mostrar capas de otros proveedores en gris */}
                   {proveedorId && capas.filter(c => String(c.proveedor_id) !== String(proveedorId)).length > 0 && (
-                    <p className="text-[9px] text-zinc-400 text-center pt-1">
+                    <p className="text-[9px] text-content-muted text-center pt-1">
                       {capas.filter(c => String(c.proveedor_id) !== String(proveedorId)).length} capa(s) de otros proveedores ocultas
                     </p>
                   )}
@@ -452,12 +452,12 @@ const CapasStockPanel = ({
               )}
 
               {/* Resumen */}
-              <div className="flex items-center justify-between pt-2 border-t border-zinc-100">
-                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+              <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
+                <p className="text-[10px] font-bold text-content-muted uppercase tracking-widest">
                   Asignado: {fmtNum(totalAsignado)} / {fmtNum(cantidadNecesaria)} kg
                 </p>
                 {costoPonderadoSeleccion > 0 && (
-                  <p className="text-[10px] font-bold text-zinc-600">
+                  <p className="text-[10px] font-bold text-content-secondary">
                     Costo total: {fmtCOP(totalAsignado * costoPonderadoSeleccion)}
                   </p>
                 )}

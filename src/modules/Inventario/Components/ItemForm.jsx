@@ -270,7 +270,7 @@ const ItemFormModal = () => {
           </div>
           <button 
             type="button" onClick={handleGenerateCode} title="Generar código"
-            className="group mb-px p-2.5 text-zinc-500 bg-zinc-100 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white transition-all active:scale-95"
+            className="group mb-px p-2.5 text-content-tertiary bg-surface-muted border border-border-base rounded-lg hover:bg-content-primary hover:text-white transition-all active:scale-95"
           >
             <Wand2 size={16} className="group-hover:rotate-12 transition-transform" />
           </button>
@@ -333,7 +333,7 @@ const ItemFormModal = () => {
 
   const renderTabPropiedades = () => (
     <div className="animate-in fade-in duration-500">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-t border-l border-zinc-200 rounded-b-xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-t border-l border-border-base rounded-b-xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)]">
         <GridInput label="Viscosidad"      id="viscosidad"     placeholder="100 - 105 KU" registration={register('viscosidad')}     error={errors.viscosidad} />
         <GridInput label="Densidad / P.G." id="p_g"            placeholder="1.25 gal/kg"  registration={register('p_g')}            error={errors.p_g} />
         <GridInput label="pH"              id="ph"             placeholder="8.5 - 9.0"    registration={register('ph')}             error={errors.ph} />
@@ -344,9 +344,9 @@ const ItemFormModal = () => {
         <GridInput label="Cubrimiento"     id="cubrimiento"    placeholder="98%"          registration={register('cubrimiento')}    error={errors.cubrimiento} />
         <GridInput label="Molienda"        id="molienda"       placeholder="6 Hegman"     registration={register('molienda')}       error={errors.molienda} />
       </div>
-      <div className="p-3 bg-zinc-50 border-t border-zinc-200">
-        <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider flex items-center gap-2">
-          <span className="w-1 h-1 bg-zinc-300 rounded-full"></span>
+      <div className="p-3 bg-surface-subtle border-t border-border-base">
+        <p className="text-[10px] text-content-muted font-semibold uppercase tracking-wider flex items-center gap-2">
+          <span className="w-1 h-1 bg-surface-strong rounded-full"></span>
           Especificaciones Técnicas Pinca S.A.S.
         </p>
       </div>
@@ -364,10 +364,10 @@ const ItemFormModal = () => {
 
     return (
       <div className="p-6 animate-in fade-in space-y-4">
-        <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+        <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
           <div>
-            <h3 className="text-sm font-bold text-zinc-800 uppercase tracking-tight">Receta / Formulación</h3>
-            <p className="text-xs text-zinc-500 mt-1">Agrega las materias primas necesarias para fabricar este producto.</p>
+            <h3 className="text-sm font-bold text-content-primary uppercase tracking-tight">Receta / Formulación</h3>
+            <p className="text-xs text-content-tertiary mt-1">Agrega las materias primas necesarias para fabricar este producto.</p>
           </div>
           <Button 
             variant="emerald" icon={PlusCircle}
@@ -378,13 +378,13 @@ const ItemFormModal = () => {
         </div>
 
         {fields.length === 0 ? (
-          <div className="py-10 text-center text-zinc-500 text-sm font-medium border-2 border-dashed border-zinc-200 rounded-2xl">
+          <div className="py-10 text-center text-content-tertiary text-sm font-medium border-2 border-dashed border-border-base rounded-2xl">
             Aún no has agregado ninguna materia prima.
           </div>
         ) : (
           <div className="space-y-3">
             {fields.map((field, index) => (
-              <div key={field.id} className="flex items-start gap-4 p-4 bg-zinc-50 border border-zinc-100 rounded-2xl animate-in slide-in-from-left-4">
+              <div key={field.id} className="flex items-start gap-4 p-4 bg-surface-subtle border border-border-subtle rounded-2xl animate-in slide-in-from-left-4">
                 <div className="flex-1">
                   <Controller
                     name={`formulaciones.${index}.id_item_general`}
@@ -419,11 +419,11 @@ const ItemFormModal = () => {
                     control={control}
                     render={({ field: costoField }) => (
                       <div className="flex flex-col">
-                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Costo Unit.</label>
+                        <label className="text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1">Costo Unit.</label>
                         <InputMoneda
                           value={costoField.value}
                           onChange={costoField.onChange}
-                          className="border border-zinc-200 rounded-lg p-2 text-sm font-semibold text-zinc-900"
+                          className="border border-border-base rounded-lg p-2 text-sm font-semibold text-content-primary"
                         />
                       </div>
                     )}
@@ -431,7 +431,7 @@ const ItemFormModal = () => {
                 </div>
                 <button 
                   type="button" onClick={() => remove(index)}
-                  className="mt-7 p-3 text-red-500 bg-red-50 hover:bg-red-100 rounded-xl transition-colors"
+                  className="mt-7 p-3 text-semantic-danger bg-semantic-danger-subtle hover:bg-semantic-danger-subtle rounded-xl transition-colors"
                 >
                   <Trash2 size={20} />
                 </button>
@@ -448,12 +448,12 @@ const ItemFormModal = () => {
       <Controller
         name={id} control={control}
         render={({ field }) => (
-          <div className="flex flex-col border-r border-b border-zinc-200 bg-white p-4 focus-within:ring-1 focus-within:ring-inset focus-within:ring-zinc-900 focus-within:z-10 transition-colors">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">{label}</label>
+          <div className="flex flex-col border-r border-b border-border-base bg-white p-4 focus-within:ring-1 focus-within:ring-inset focus-within:ring-brand-primary/30 focus-within:z-10 transition-colors">
+            <label className="text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1">{label}</label>
             <InputMoneda
               value={field.value} onChange={field.onChange}
               error={errors[id]?.message}
-              className="border-none! p-0! bg-transparent! shadow-none! font-semibold text-zinc-900"
+              className="border-none! p-0! bg-transparent! shadow-none! font-semibold text-content-primary"
             />
           </div>
         )}
@@ -464,16 +464,16 @@ const ItemFormModal = () => {
       <div className="animate-in fade-in duration-500 space-y-4 p-5">
 
         {/* ── Unidad de Almacenaje ── */}
-        <div className="rounded-xl border border-zinc-200 overflow-hidden">
-          <div className="px-4 py-2.5 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between">
+        <div className="rounded-xl border border-border-base overflow-hidden">
+          <div className="px-4 py-2.5 bg-surface-subtle border-b border-border-base flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-zinc-700 uppercase tracking-widest">
+              <p className="text-xs font-semibold text-content-secondary uppercase tracking-widest">
                 Unidad de Almacenaje
               </p>
-              <p className="text-[10px] text-zinc-400 mt-0.5">Presentación en la que se almacena físicamente</p>
+              <p className="text-[10px] text-content-muted mt-0.5">Presentación en la que se almacena físicamente</p>
             </div>
             {factorConversion && (
-              <span className="text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1 rounded-full">
+              <span className="text-[10px] font-bold bg-semantic-warning-subtle border border-semantic-warning/20 text-semantic-warning-fg px-2.5 py-1 rounded-full">
                 1 {unidadesData?.find(u => String(u.unidad_id || u.id_unidad) === String(unidadAlmacenajeId))?.nombre} = {factorConversion % 1 === 0 ? factorConversion : factorConversion.toFixed(3)} {unidadesData?.find(u => String(u.unidad_id || u.id_unidad) === String(unidadVentaId))?.nombre}
               </span>
             )}
@@ -494,20 +494,20 @@ const ItemFormModal = () => {
           </div>
         </div>
 
-        <div className="flex flex-col border border-zinc-200 rounded-xl overflow-hidden shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-4 bg-emerald-50/20 border-b border-zinc-200">
+        <div className="flex flex-col border border-border-base rounded-xl overflow-hidden shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-4 bg-semantic-success-subtle/20 border-b border-border-base">
             <div className="md:col-span-4 p-4 flex items-center justify-between">
               <div className="flex flex-col flex-1">
-                <label className="text-[10px] font-black text-emerald-600 uppercase mb-1">Existencias Iniciales</label>
+                <label className="text-[10px] font-black text-semantic-success-fg uppercase mb-1">Existencias Iniciales</label>
                 <input 
                   type="number" step="0.01" placeholder="0.00"
                   {...register('cantidad', { valueAsNumber: true })}
-                  className="w-full bg-transparent border-none p-0 text-2xl font-bold text-zinc-900 placeholder:text-zinc-200 focus:ring-0 outline-none"
+                  className="w-full bg-transparent border-none p-0 text-2xl font-bold text-content-primary placeholder:text-content-muted focus:ring-0 outline-none"
                 />
-                {errors.cantidad && <span className="text-[9px] text-red-500 font-bold uppercase">{errors.cantidad.message}</span>}
+                {errors.cantidad && <span className="text-[9px] text-semantic-danger font-bold uppercase">{errors.cantidad.message}</span>}
               </div>
-              <div className="hidden md:block px-4 py-2 bg-white border border-emerald-100 rounded-lg shadow-sm">
-                <span className="text-[10px] font-bold text-emerald-500 uppercase">Inventario</span>
+              <div className="hidden md:block px-4 py-2 bg-white border border-semantic-success/15 rounded-lg shadow-sm">
+                <span className="text-[10px] font-bold text-semantic-success uppercase">Inventario</span>
               </div>
             </div>
           </div>
@@ -524,15 +524,15 @@ const ItemFormModal = () => {
           name="precio_manual_activo"
           control={control}
           render={({ field: toggleField }) => (
-            <div className="mt-4 rounded-xl border border-zinc-200 overflow-hidden">
+            <div className="mt-4 rounded-xl border border-border-base overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 bg-zinc-50 border-b border-zinc-200">
+              <div className="flex items-center justify-between px-4 py-3 bg-surface-subtle border-b border-border-base">
                 <div>
-                  <p className="text-xs font-semibold text-zinc-700 uppercase tracking-widest flex items-center gap-1.5">
-                    <Tag size={12} className="text-zinc-400" />
+                  <p className="text-xs font-semibold text-content-secondary uppercase tracking-widest flex items-center gap-1.5">
+                    <Tag size={12} className="text-content-muted" />
                     Precio Manual
                   </p>
-                  <p className="text-[10px] text-zinc-400 mt-0.5">
+                  <p className="text-[10px] text-content-muted mt-0.5">
                     Precio de venta fijo independiente del markup calculado
                   </p>
                 </div>
@@ -542,11 +542,11 @@ const ItemFormModal = () => {
                   onClick={() => toggleField.onChange(!toggleField.value)}
                   className={`relative flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all duration-200 ${
                     toggleField.value
-                      ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200'
-                      : 'bg-white border-zinc-300 text-zinc-400 hover:border-zinc-400'
+                      ? 'bg-semantic-success border-semantic-success text-white shadow-sm shadow-semantic-success/30'
+                      : 'bg-white border-border-strong text-content-muted hover:border-border-strong'
                   }`}
                 >
-                  <span className={`relative inline-block w-7 h-4 rounded-full transition-colors duration-200 ${toggleField.value ? 'bg-white/30' : 'bg-zinc-200'}`}>
+                  <span className={`relative inline-block w-7 h-4 rounded-full transition-colors duration-200 ${toggleField.value ? 'bg-white/30' : 'bg-surface-strong'}`}>
                     <span className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full shadow transition-transform duration-200 ${toggleField.value ? 'translate-x-3 bg-white' : 'bg-white'}`} />
                   </span>
                   <span className="leading-none">{toggleField.value ? 'Activo' : 'Inactivo'}</span>
@@ -561,40 +561,40 @@ const ItemFormModal = () => {
                     control={control}
                     render={({ field }) => (
                       <div>
-                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">
+                        <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest mb-1.5">
                           Precio de Venta Manual
                         </p>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-semibold text-zinc-500">$</span>
+                          <span className="text-sm font-semibold text-content-tertiary">$</span>
                           <InputMoneda
                             value={field.value}
                             onChange={field.onChange}
-                            className="flex-1 text-sm font-bold text-zinc-900 border border-zinc-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-zinc-950 focus:border-transparent outline-none transition-all bg-zinc-50 focus:bg-white"
+                            className="flex-1 text-sm font-bold text-content-primary border border-border-base rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary/40 focus:border-transparent outline-none transition-all bg-surface-subtle focus:bg-white"
                           />
                         </div>
-                        <p className="text-[10px] text-zinc-400 mt-1">
+                        <p className="text-[10px] text-content-muted mt-1">
                           Este precio reemplazará el calculado al momento de la venta
                         </p>
                       </div>
                     )}
                   />
                 ) : (
-                  <p className="text-sm text-zinc-300 italic py-1">— Sin precio manual fijado —</p>
+                  <p className="text-sm text-content-muted italic py-1">— Sin precio manual fijado —</p>
                 )}
               </div>
             </div>
           )}
         />
 
-        <div className="mt-4 p-4 bg-zinc-900 flex items-center justify-between text-white shadow-lg">
+        <div className="mt-4 p-4 bg-content-primary flex items-center justify-between text-white shadow-lg">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-              <CircleDollarSign size={18} className="text-emerald-400" />
+              <CircleDollarSign size={18} className="text-semantic-success/80" />
             </div>
-            <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Análisis de Costos</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-content-muted">Análisis de Costos</span>
           </div>
           <div className="text-right">
-            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-tighter">Referencia de Valor</p>
+            <p className="text-[9px] font-bold text-content-tertiary uppercase tracking-tighter">Referencia de Valor</p>
             <p className="text-lg font-black ">ESTIMADO</p>
           </div>
         </div>
@@ -603,36 +603,36 @@ const ItemFormModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-zinc-950/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-content-primary/50 backdrop-blur-sm">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
         
         {/* Encabezado */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-100 bg-white">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle bg-white">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-zinc-900 text-white rounded-xl">
+            <div className="flex items-center justify-center w-10 h-10 bg-content-primary text-white rounded-xl">
               <FlaskConical size={20} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-zinc-900 tracking-tight">
+              <h2 className="text-xl font-bold text-content-primary tracking-tight">
                 {payload?.id_item_general ? 'Editar Ítem' : 'Registrar Nuevo Ítem'}
               </h2>
-              <p className="text-xs font-medium text-zinc-500">Gestión de Inventario y Ficha Técnica</p>
+              <p className="text-xs font-medium text-content-tertiary">Gestión de Inventario y Ficha Técnica</p>
             </div>
           </div>
-          <button onClick={handleClose} className="p-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-full transition-colors">
+          <button onClick={handleClose} className="p-2 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-full transition-colors">
             <X size={24} />
           </button>
         </div>
 
         {/* Pestañas */}
-        <div className="flex px-6 bg-zinc-50 border-b border-zinc-200 overflow-x-auto hide-scrollbar">
+        <div className="flex px-6 bg-surface-subtle border-b border-border-base overflow-x-auto hide-scrollbar">
           {tabsFiltrados.map(tab => (
             <button 
               key={tab.id} type="button" onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-4 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap
                 ${currentTab === tab.id
-                  ? 'border-zinc-900 text-zinc-900 bg-white' 
-                  : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:bg-zinc-200/50'
+                  ? 'border-content-primary text-content-primary bg-white' 
+                  : 'border-transparent text-content-tertiary hover:text-content-secondary hover:bg-surface-strong/50'
                 }`}
             >
               {tab.icon} {tab.label}
@@ -654,7 +654,7 @@ const ItemFormModal = () => {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 px-6 py-5 bg-zinc-50 border-t border-zinc-200">
+          <div className="flex items-center justify-end gap-3 px-6 py-5 bg-surface-subtle border-t border-border-base">
             <Button variant="white" onClick={handleClose} disabled={isSaving}>
               Cancelar
             </Button>

@@ -42,22 +42,22 @@ export const getDateRange = (periodoId) => {
 };
 
 const RentabilidadFilters = ({ periodo, desde, hasta, onPeriodo, onDesde, onHasta }) => (
-  <div className="bg-white border border-zinc-200/70 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3">
-    <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500">
+  <div className="bg-white border border-border-base/70 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3">
+    <div className="flex items-center gap-1.5 text-xs font-semibold text-content-tertiary">
       <Calendar className="w-3.5 h-3.5" />
       Período:
     </div>
 
     {/* Botones de período predefinido */}
-    <div className="flex items-center gap-1 bg-zinc-100 rounded-lg p-0.5">
+    <div className="flex items-center gap-1 bg-surface-muted rounded-lg p-0.5">
       {PERIODOS.map((p) => (
         <button
           key={p.id}
           onClick={() => onPeriodo(p.id)}
           className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
             periodo === p.id
-              ? 'bg-white text-zinc-900 shadow-sm'
-              : 'text-zinc-500 hover:text-zinc-700'
+              ? 'bg-white text-content-primary shadow-sm'
+              : 'text-content-tertiary hover:text-content-secondary'
           }`}
         >
           {p.label}
@@ -69,28 +69,28 @@ const RentabilidadFilters = ({ periodo, desde, hasta, onPeriodo, onDesde, onHast
     {periodo === 'custom' && (
       <div className="flex items-center gap-2 ml-1">
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-zinc-400">Desde</span>
+          <span className="text-xs text-content-muted">Desde</span>
           <input
             type="date"
             value={desde}
             onChange={(e) => onDesde(e.target.value)}
-            className="text-xs border border-zinc-200 rounded-lg px-2 py-1.5 text-zinc-700 focus:outline-none focus:ring-1 focus:ring-zinc-400"
+            className="text-xs border border-border-base rounded-lg px-2 py-1.5 text-content-secondary focus:outline-none focus:ring-1 focus:ring-border-strong"
           />
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-zinc-400">Hasta</span>
+          <span className="text-xs text-content-muted">Hasta</span>
           <input
             type="date"
             value={hasta}
             onChange={(e) => onHasta(e.target.value)}
-            className="text-xs border border-zinc-200 rounded-lg px-2 py-1.5 text-zinc-700 focus:outline-none focus:ring-1 focus:ring-zinc-400"
+            className="text-xs border border-border-base rounded-lg px-2 py-1.5 text-content-secondary focus:outline-none focus:ring-1 focus:ring-border-strong"
           />
         </div>
       </div>
     )}
 
     {periodo !== 'custom' && (
-      <span className="text-xs text-zinc-400 ml-1">
+      <span className="text-xs text-content-muted ml-1">
         {desde} → {hasta}
       </span>
     )}

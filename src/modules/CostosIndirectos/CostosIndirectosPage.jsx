@@ -9,10 +9,10 @@ const fmtCOP = (v) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(v) || 0);
 
 const CATEGORIAS = [
-  { value: 'servicios',      label: 'Servicios',       icon: Zap,        color: 'text-amber-500 bg-amber-50 border-amber-100' },
-  { value: 'mano_de_obra',   label: 'Mano de Obra',    icon: Users,      color: 'text-blue-500 bg-blue-50 border-blue-100'   },
-  { value: 'instalaciones',  label: 'Instalaciones',   icon: Building2,  color: 'text-violet-500 bg-violet-50 border-violet-100' },
-  { value: 'otros',          label: 'Otros',            icon: HelpCircle, color: 'text-zinc-500 bg-zinc-50 border-zinc-100'   },
+  { value: 'servicios',      label: 'Servicios',       icon: Zap,        color: 'text-semantic-warning bg-semantic-warning-subtle border-semantic-warning/15' },
+  { value: 'mano_de_obra',   label: 'Mano de Obra',    icon: Users,      color: 'text-semantic-info bg-semantic-info-subtle border-semantic-info/15'   },
+  { value: 'instalaciones',  label: 'Instalaciones',   icon: Building2,  color: 'text-brand-primary bg-brand-subtle border-brand-primary/20' },
+  { value: 'otros',          label: 'Otros',            icon: HelpCircle, color: 'text-content-tertiary bg-surface-subtle border-border-subtle'   },
 ];
 
 const EMPTY_FORM = { nombre: '', categoria: 'servicios', valor_mensual: '' };
@@ -27,24 +27,24 @@ const CostoForm = ({ inicial, onSave, onClose, isSaving }) => {
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" onClick={onClose} />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
-          <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-zinc-900">{inicial ? 'Editar Costo' : 'Nuevo Costo Indirecto'}</h2>
-            <button onClick={onClose} className="p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors">✕</button>
+          <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between">
+            <h2 className="text-sm font-bold text-content-primary">{inicial ? 'Editar Costo' : 'Nuevo Costo Indirecto'}</h2>
+            <button onClick={onClose} className="p-1.5 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-lg transition-colors">✕</button>
           </div>
 
           <div className="p-5 space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-zinc-500 mb-1">Nombre *</label>
+              <label className="block text-xs font-semibold text-content-tertiary mb-1">Nombre *</label>
               <input
                 value={form.nombre}
                 onChange={e => set('nombre', e.target.value)}
                 placeholder="ej: Factura de Luz, Arrendamiento Bodega"
-                className="w-full text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                className="w-full text-sm border border-border-base rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-500 mb-1">Categoría *</label>
+              <label className="block text-xs font-semibold text-content-tertiary mb-1">Categoría *</label>
               <div className="grid grid-cols-2 gap-2">
                 {CATEGORIAS.map(({ value, label, icon: Icon }) => (
                   <button
@@ -53,8 +53,8 @@ const CostoForm = ({ inicial, onSave, onClose, isSaving }) => {
                     onClick={() => set('categoria', value)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all ${
                       form.categoria === value
-                        ? 'bg-zinc-900 text-white border-zinc-900'
-                        : 'border-zinc-200 text-zinc-500 hover:border-zinc-400'
+                        ? 'bg-content-primary text-white border-content-primary'
+                        : 'border-border-base text-content-tertiary hover:border-border-strong'
                     }`}
                   >
                     <Icon size={13} />
@@ -65,9 +65,9 @@ const CostoForm = ({ inicial, onSave, onClose, isSaving }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-500 mb-1">Valor Mensual (COP) *</label>
-              <div className="flex items-center border border-zinc-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-zinc-900">
-                <span className="px-3 py-2 text-xs text-zinc-500 bg-zinc-50 border-r border-zinc-200">$</span>
+              <label className="block text-xs font-semibold text-content-tertiary mb-1">Valor Mensual (COP) *</label>
+              <div className="flex items-center border border-border-base rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-primary/30">
+                <span className="px-3 py-2 text-xs text-content-tertiary bg-surface-subtle border-r border-border-base">$</span>
                 <input
                   type="number"
                   min="0"
@@ -80,14 +80,14 @@ const CostoForm = ({ inicial, onSave, onClose, isSaving }) => {
             </div>
           </div>
 
-          <div className="px-5 py-4 border-t border-zinc-100 bg-zinc-50 flex justify-end gap-2">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-zinc-600 border border-zinc-200 rounded-lg hover:bg-zinc-100 transition-colors">
+          <div className="px-5 py-4 border-t border-border-subtle bg-surface-subtle flex justify-end gap-2">
+            <button onClick={onClose} className="px-4 py-2 text-sm text-content-secondary border border-border-base rounded-lg hover:bg-surface-muted transition-colors">
               Cancelar
             </button>
             <button
               onClick={() => onSave(form)}
               disabled={isSaving || !form.nombre || !form.valor_mensual}
-              className="px-4 py-2 text-sm font-semibold text-white bg-zinc-900 rounded-lg hover:bg-zinc-700 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 text-sm font-semibold text-white bg-content-primary rounded-lg hover:bg-content-secondary disabled:opacity-50 transition-colors"
             >
               {isSaving ? 'Guardando...' : inicial ? 'Actualizar' : 'Crear'}
             </button>
@@ -137,7 +137,7 @@ const CostosIndirectosPage = () => {
       >
         <button
           onClick={() => setModal('nuevo')}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-zinc-900 rounded-xl hover:bg-zinc-700 transition-all active:scale-95"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-content-primary rounded-xl hover:bg-content-secondary transition-all active:scale-95"
         >
           <Plus size={15} /> Nuevo Costo
         </button>
@@ -146,9 +146,9 @@ const CostosIndirectosPage = () => {
       {/* KPIs */}
       {resumen && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-zinc-100 rounded-2xl p-4 shadow-sm col-span-2 md:col-span-1">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Total Mensual</p>
-            <p className="text-xl font-black text-zinc-900 ">{fmtCOP(resumen.total_mensual)}</p>
+          <div className="bg-white border border-border-subtle rounded-2xl p-4 shadow-sm col-span-2 md:col-span-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-content-muted mb-1">Total Mensual</p>
+            <p className="text-xl font-black text-content-primary ">{fmtCOP(resumen.total_mensual)}</p>
           </div>
           {CATEGORIAS.map(({ value, label, icon: Icon, color }) => {
             const cat = resumen.por_categoria?.find(c => c.categoria === value);
@@ -169,13 +169,13 @@ const CostosIndirectosPage = () => {
       {/* Tabla por categoría */}
       {isLoading ? (
         <div className="flex flex-col gap-2">
-          {[1,2,3].map(i => <div key={i} className="h-12 bg-zinc-100 rounded-xl animate-pulse" />)}
+          {[1,2,3].map(i => <div key={i} className="h-12 bg-surface-muted rounded-xl animate-pulse" />)}
         </div>
       ) : (
         <div className="flex flex-col gap-4">
           {porCategoria.map(({ value, label, icon: Icon, color, items, total }) => (
-            <div key={value} className="bg-white border border-zinc-100 rounded-2xl shadow-sm overflow-hidden">
-              <div className={`flex items-center justify-between px-5 py-3 border-b border-zinc-100 ${color}`}>
+            <div key={value} className="bg-white border border-border-subtle rounded-2xl shadow-sm overflow-hidden">
+              <div className={`flex items-center justify-between px-5 py-3 border-b border-border-subtle ${color}`}>
                 <div className="flex items-center gap-2">
                   <Icon size={13} />
                   <span className="text-xs font-bold uppercase tracking-widest">{label}</span>
@@ -185,17 +185,17 @@ const CostosIndirectosPage = () => {
               </div>
 
               {items.length === 0 ? (
-                <p className="px-5 py-4 text-xs text-zinc-400">Sin costos en esta categoría.</p>
+                <p className="px-5 py-4 text-xs text-content-muted">Sin costos en esta categoría.</p>
               ) : (
                 <table className="w-full text-xs">
-                  <tbody className="divide-y divide-zinc-50">
+                  <tbody className="divide-y divide-border-subtle">
                     {items.map(item => (
-                      <tr key={item.id_costos_indirectos} className="hover:bg-zinc-50 transition-colors group">
-                        <td className="px-5 py-3 font-semibold text-zinc-800">{item.nombre}</td>
-                        <td className="px-5 py-3 text-right  font-bold text-zinc-700">{fmtCOP(item.valor_mensual)}</td>
+                      <tr key={item.id_costos_indirectos} className="hover:bg-surface-subtle transition-colors group">
+                        <td className="px-5 py-3 font-semibold text-content-primary">{item.nombre}</td>
+                        <td className="px-5 py-3 text-right  font-bold text-content-secondary">{fmtCOP(item.valor_mensual)}</td>
                         <td className="px-5 py-3 text-center">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold border ${
-                            item.activo ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-zinc-50 text-zinc-400 border-zinc-100'
+                            item.activo ? 'bg-semantic-success-subtle text-semantic-success-fg border-semantic-success/15' : 'bg-surface-subtle text-content-muted border-border-subtle'
                           }`}>
                             {item.activo ? 'Activo' : 'Inactivo'}
                           </span>
@@ -204,13 +204,13 @@ const CostosIndirectosPage = () => {
                           <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={() => setModal(item)}
-                              className="p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
+                              className="p-1.5 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-lg transition-colors"
                             >
                               <Edit2 size={12} />
                             </button>
                             <button
                               onClick={() => handleDelete(item)}
-                              className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-1.5 text-content-muted hover:text-semantic-danger hover:bg-semantic-danger-subtle rounded-lg transition-colors"
                             >
                               <Trash2 size={12} />
                             </button>

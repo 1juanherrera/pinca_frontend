@@ -14,10 +14,10 @@ import { useFactura }     from './api/useFactura';
 import useTableSort       from '../../../hooks/useTableSorts';
 
 const STATUS_OPTIONS = [
-  { value: 'Pendiente', label: 'Pendiente', dot: 'bg-amber-400'   },
-  { value: 'Pagada',    label: 'Pagada',    dot: 'bg-emerald-500' },
-  { value: 'Vencida',   label: 'Vencida',   dot: 'bg-red-400'     },
-  { value: 'Anulada',   label: 'Anulada',   dot: 'bg-zinc-400'    },
+  { value: 'Pendiente', label: 'Pendiente', dot: 'bg-semantic-warning'   },
+  { value: 'Pagada',    label: 'Pagada',    dot: 'bg-semantic-success' },
+  { value: 'Vencida',   label: 'Vencida',   dot: 'bg-semantic-danger/80'     },
+  { value: 'Anulada',   label: 'Anulada',   dot: 'bg-content-muted'    },
 ];
 
 const FacturacionTab = () => {
@@ -62,7 +62,7 @@ const FacturacionTab = () => {
       label:     'Número',
       className: 'w-28',
       render: (v) => (
-        <span className=" text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
+        <span className=" text-xs font-bold text-content-muted whitespace-nowrap">{v}</span>
       ),
     },
     {
@@ -70,7 +70,7 @@ const FacturacionTab = () => {
       label:     'Emisión',
       className: 'w-28',
       render: (v) => (
-        <span className="text-xs text-zinc-500 tabular-nums whitespace-nowrap">
+        <span className="text-xs text-content-tertiary tabular-nums whitespace-nowrap">
           {v
             ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' })
             : '—'}
@@ -85,7 +85,7 @@ const FacturacionTab = () => {
         const retrasada = v && new Date(v) < new Date();
         return (
           <div className={`inline-flex items-center gap-1.5 text-xs tabular-nums whitespace-nowrap ${
-            retrasada ? 'text-red-500 font-semibold' : 'text-zinc-500'
+            retrasada ? 'text-semantic-danger font-semibold' : 'text-content-tertiary'
           }`}>
             {retrasada && <CircleAlert size={12} />}
             {v ?? '—'}
@@ -107,7 +107,7 @@ const FacturacionTab = () => {
       className: 'w-32',
       render: (v) => (
         <span className={` text-xs tabular-nums font-bold whitespace-nowrap ${
-          Number(v) > 0 ? 'text-amber-600' : 'text-emerald-600'
+          Number(v) > 0 ? 'text-semantic-warning-fg' : 'text-semantic-success-fg'
         }`}>
           {fmt(v)}
         </span>
@@ -130,7 +130,7 @@ const FacturacionTab = () => {
         <div className="flex items-center justify-end gap-1.5">
           <button
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
             title="Ver detalle"
           >
             <Eye size={12} /> Ver
@@ -144,7 +144,7 @@ const FacturacionTab = () => {
                 onConfirm: async () => removeAsync(row.id_facturas),
               });
             }}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-all active:scale-95"
             title="Eliminar"
           >
             <Trash2 size={12} />
@@ -169,7 +169,7 @@ const FacturacionTab = () => {
         />
       </div>
 
-    <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm">
+    <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
       <SearchFilterBar
         search={search}
         onSearch={setSearch}

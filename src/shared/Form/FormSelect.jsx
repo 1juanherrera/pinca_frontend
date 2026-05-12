@@ -1,6 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown, Check, AlertCircle } from 'lucide-react';
+import cn from '../../utils/cn';
+import {
+  INPUT_BASE, INPUT_ERROR,
+  LABEL_BASE, LABEL_REQUIRED_MARK,
+  FIELD_ERROR, FIELD_WRAPPER,
+} from './styles';
 
 export const FormSelect = ({
   label,
@@ -8,33 +14,33 @@ export const FormSelect = ({
   value,
   onChange,
   error,
-  placeholder = "Selecciona una opción..."
+  required = false,
+  disabled = false,
+  placeholder = 'Selecciona una opción...',
+  className = '',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownStyles, setDropdownStyles] = useState({});
-  
   const triggerRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  // 1. Calcular la posición exacta en la pantalla antes de abrir
   const handleOpen = () => {
+    if (disabled) return;
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
       setDropdownStyles({
-        position: 'fixed', // Lo saca del flujo normal para evitar scrolls
-        top: `${rect.bottom + 8}px`, // 8px de espacio debajo del botón
+        position: 'fixed',
+        top: `${rect.bottom + 4}px`,
         left: `${rect.left}px`,
         width: `${rect.width}px`,
-        zIndex: 999999, // Asegura que esté por encima de absolutamente todo
+        zIndex: 999999,
       });
       setIsOpen(true);
     }
   };
 
-  // 2. Cerrar si hacen clic fuera O si hacen scroll (vital en portales fijos)
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Verificamos que el clic no sea ni en el botón ni en la lista flotante
       if (
         triggerRef.current && !triggerRef.current.contains(event.target) &&
         dropdownRef.current && !dropdownRef.current.contains(event.target)
@@ -42,22 +48,14 @@ export const FormSelect = ({
         setIsOpen(false);
       }
     };
-
     const handleScroll = (event) => {
-      // Si el usuario está scrolleando DENTRO de la lista de opciones, no hagas nada
-      if (dropdownRef.current && dropdownRef.current.contains(event.target)) {
-        return;
-      }
-      // Si scrollea la pantalla de fondo, entonces sí ciérralo
-      if (isOpen) setIsOpen(false); 
+      if (dropdownRef.current && dropdownRef.current.contains(event.target)) return;
+      if (isOpen) setIsOpen(false);
     };
-
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      // 'true' al final permite capturar scrolls dentro de contenedores (como el modal)
-      window.addEventListener('scroll', handleScroll, true); 
+      window.addEventListener('scroll', handleScroll, true);
     }
-
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
@@ -67,59 +65,70 @@ export const FormSelect = ({
   const selectedOption = options?.find(opt => opt.value === value);
 
   return (
-    <div className="flex flex-col gap-1.5 w-full">
+    <div className={cn(FIELD_WRAPPER, 'w-full')}>
       {label && (
-        <label className="text-sm font-semibold text-zinc-700">
-          {label}
+        <label className={LABEL_BASE}>
+          {label}{required && <span className={LABEL_REQUIRED_MARK}>*</span>}
         </label>
       )}
 
-      {/* Trigger / Botón Visible */}
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => isOpen ? setIsOpen(false) : handleOpen()}
-        className={`flex items-center justify-between w-full px-4 py-2.5 text-sm text-left bg-zinc-50 border rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-zinc-900/10
-          ${error ? 'border-red-400 focus:border-red-500' : 'border-zinc-200/80 hover:border-zinc-300 focus:border-zinc-400'}
-        `}
+        disabled={disabled}
+        onClick={() => (isOpen ? setIsOpen(false) : handleOpen())}
+        className={cn(
+          INPUT_BASE,
+          'flex items-center justify-between text-left',
+          error && INPUT_ERROR,
+          className,
+        )}
       >
-        <span className={selectedOption ? 'text-zinc-900' : 'text-zinc-400'}>
+        <span className={selectedOption ? 'text-content-primary truncate' : 'text-content-muted'}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown
-          size={16}
-          className={`text-zinc-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          size={14}
+          className={cn('text-content-muted transition-transform shrink-0', isOpen && 'rotate-180')}
         />
       </button>
 
-      {/* EL PORTAL: Renderiza la lista directamente en el <body> */}
       {isOpen && createPortal(
-        <div 
+        <div
           ref={dropdownRef}
           style={dropdownStyles}
-          className="bg-white border border-zinc-200/80 rounded-xl shadow-2xl py-1 max-h-60 overflow-y-auto"
+          className="bg-surface-base border border-border-base rounded-md shadow-lg py-1 max-h-60 overflow-y-auto"
         >
-          {options?.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => {
-                onChange(option.value); 
-                setIsOpen(false);       
-              }}
-              className={`flex items-center justify-between w-full px-4 py-2.5 text-sm transition-colors hover:bg-zinc-50
-                ${value === option.value ? 'text-zinc-900 font-semibold bg-zinc-100' : 'text-zinc-700'}
-              `}
-            >
-              {option.label}
-              {value === option.value && <Check size={16} className="text-zinc-600" />}
-            </button>
-          ))}
+          {options?.map((option) => {
+            const active = value === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => { onChange(option.value); setIsOpen(false); }}
+                className={cn(
+                  'flex items-center justify-between w-full px-3 py-1.5 text-sm transition-colors',
+                  'hover:bg-surface-muted',
+                  active ? 'text-content-primary font-medium bg-surface-muted' : 'text-content-secondary',
+                )}
+              >
+                <span className="truncate">{option.label}</span>
+                {active && <Check size={14} className="text-content-primary shrink-0" />}
+              </button>
+            );
+          })}
+          {(!options || options.length === 0) && (
+            <p className="px-3 py-2 text-xs text-content-muted">Sin opciones</p>
+          )}
         </div>,
-        document.body 
+        document.body,
       )}
 
-      {error && <span className="text-xs font-medium text-red-500">{error}</span>}
+      {error && (
+        <span className={FIELD_ERROR}>
+          <AlertCircle size={11} /> {error}
+        </span>
+      )}
     </div>
-  )
-}
+  );
+};

@@ -18,8 +18,8 @@ const FICHA_TECNICA = [
 
 const Field = ({ label, value }) => (
   <div>
-    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5">{label}</p>
-    <p className="text-sm font-semibold text-zinc-800">{value || '—'}</p>
+    <p className="text-[10px] font-bold text-content-muted uppercase tracking-widest mb-0.5">{label}</p>
+    <p className="text-sm font-semibold text-content-primary">{value || '—'}</p>
   </div>
 );
 
@@ -32,12 +32,12 @@ const InfoTab = ({ item, onEdit }) => {
       {/* Datos básicos */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xs font-bold text-zinc-800 uppercase tracking-widest">Datos Generales</h3>
+          <h3 className="text-xs font-bold text-content-primary uppercase tracking-widest">Datos Generales</h3>
           <Button variant="white" size="sm" icon={Pencil} onClick={() => onEdit(item)}>
             Editar
           </Button>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 p-4 bg-surface-subtle rounded-xl border border-border-subtle">
           <Field label="Nombre"    value={item.nombre} />
           <Field label="Código"    value={item.codigo} />
           <Field label="Tipo"      value={TIPO_LABELS[Number(item.tipo)]} />
@@ -52,8 +52,8 @@ const InfoTab = ({ item, onEdit }) => {
       {/* Costos empaque */}
       {(item.envase || item.etiqueta || item.plastico) && (
         <div>
-          <h3 className="text-xs font-bold text-zinc-800 uppercase tracking-widest mb-3">Costos de Empaque</h3>
-          <div className="grid grid-cols-3 gap-4 p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+          <h3 className="text-xs font-bold text-content-primary uppercase tracking-widest mb-3">Costos de Empaque</h3>
+          <div className="grid grid-cols-3 gap-4 p-4 bg-surface-subtle rounded-xl border border-border-subtle">
             <Field label="Envase"   value={item.envase   ? fmt(item.envase) : null} />
             <Field label="Etiqueta" value={item.etiqueta ? fmt(item.etiqueta) : null} />
             <Field label="Plástico" value={item.plastico ? fmt(item.plastico) : null} />
@@ -64,21 +64,21 @@ const InfoTab = ({ item, onEdit }) => {
       {/* Ficha técnica */}
       {hasFicha && (
         <div>
-          <h3 className="text-xs font-bold text-zinc-800 uppercase tracking-widest mb-3">Ficha Técnica</h3>
-          <div className="grid grid-cols-3 gap-0 border border-zinc-200 rounded-xl overflow-hidden">
+          <h3 className="text-xs font-bold text-content-primary uppercase tracking-widest mb-3">Ficha Técnica</h3>
+          <div className="grid grid-cols-3 gap-0 border border-border-base rounded-xl overflow-hidden">
             {FICHA_TECNICA.map(f => (
               <div
                 key={f.key}
-                className="flex flex-col p-3 border-r border-b border-zinc-200 last:border-r-0 bg-white"
+                className="flex flex-col p-3 border-r border-b border-border-base last:border-r-0 bg-white"
               >
-                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5">{f.label}</p>
-                <p className="text-sm font-semibold text-zinc-800">{item[f.key] || '—'}</p>
+                <p className="text-[10px] font-bold text-content-muted uppercase tracking-widest mb-0.5">{f.label}</p>
+                <p className="text-sm font-semibold text-content-primary">{item[f.key] || '—'}</p>
               </div>
             ))}
           </div>
-          <div className="p-2 bg-zinc-50 border-x border-b border-zinc-200 rounded-b-xl">
-            <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider flex items-center gap-2">
-              <span className="w-1 h-1 bg-zinc-300 rounded-full" />
+          <div className="p-2 bg-surface-subtle border-x border-b border-border-base rounded-b-xl">
+            <p className="text-[10px] text-content-muted font-semibold uppercase tracking-wider flex items-center gap-2">
+              <span className="w-1 h-1 bg-surface-strong rounded-full" />
               Especificaciones Técnicas Pinca S.A.S.
             </p>
           </div>

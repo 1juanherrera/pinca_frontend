@@ -13,11 +13,11 @@ import { useCostosItem } from '../api/useCostosItem';
 // ─── Config campos ────────────────────────────────────────────────────────────
 
 const COST_FIELDS = [
-  { id: 'envase',    label: 'Envase',       icon: Package,    iconColor: 'text-sky-500',     iconBg: 'bg-sky-50',     description: 'Empaque primario' },
-  { id: 'etiqueta',  label: 'Etiqueta',     icon: Tag,        iconColor: 'text-violet-500',  iconBg: 'bg-violet-50',  description: 'Impresión y adhesivo' },
-  { id: 'bandeja',   label: 'Bandeja',      icon: LayoutGrid, iconColor: 'text-amber-500',   iconBg: 'bg-amber-50',   description: 'Material de agrupación' },
-  { id: 'plastico',  label: 'Plástico',     icon: Layers,     iconColor: 'text-emerald-500', iconBg: 'bg-emerald-50', description: 'Film termoencogible' },
-  { id: 'costo_mod', label: 'Mano de Obra', icon: Wrench,     iconColor: 'text-rose-500',    iconBg: 'bg-rose-50',    description: 'Costo MOD por unidad' },
+  { id: 'envase',    label: 'Envase',       icon: Package,    iconColor: 'text-semantic-info',     iconBg: 'bg-semantic-info-subtle',     description: 'Empaque primario' },
+  { id: 'etiqueta',  label: 'Etiqueta',     icon: Tag,        iconColor: 'text-brand-primary',  iconBg: 'bg-brand-subtle',  description: 'Impresión y adhesivo' },
+  { id: 'bandeja',   label: 'Bandeja',      icon: LayoutGrid, iconColor: 'text-semantic-warning',   iconBg: 'bg-semantic-warning-subtle',   description: 'Material de agrupación' },
+  { id: 'plastico',  label: 'Plástico',     icon: Layers,     iconColor: 'text-semantic-success', iconBg: 'bg-semantic-success-subtle', description: 'Film termoencogible' },
+  { id: 'costo_mod', label: 'Mano de Obra', icon: Wrench,     iconColor: 'text-semantic-danger',    iconBg: 'bg-semantic-danger-subtle',    description: 'Costo MOD por unidad' },
 ];
 
 // ─── Preview — useWatch para compatibilidad con React Compiler ────────────────
@@ -45,29 +45,29 @@ const PricePreview = ({ control, costos }) => {
   const utilidad        = ventaSugerida - costoTotal;
 
   return (
-    <div className="bg-zinc-950 rounded-xl shadow-md shadow-zinc-950/20 overflow-hidden">
+    <div className="bg-content-primary rounded-xl shadow-md shadow-content-primary/20 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2 border-b border-white/5">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-        <span className="text-[9px] font-bold tracking-widest text-zinc-500 uppercase">Preview en tiempo real</span>
-        <span className="ml-auto text-[9px] text-zinc-600">{pct}% markup</span>
+        <span className="w-1.5 h-1.5 rounded-full bg-semantic-success/80 animate-pulse" />
+        <span className="text-[9px] font-bold tracking-widest text-content-tertiary uppercase">Preview en tiempo real</span>
+        <span className="ml-auto text-[9px] text-content-secondary">{pct}% markup</span>
       </div>
       <div className="grid grid-cols-3 divide-x divide-white/5 px-1 py-1">
         <div className="flex flex-col gap-0.5 px-4 py-3">
-          <span className="text-[9px] font-bold tracking-widest text-zinc-500 uppercase">Costo Total</span>
-          <span className="text-sm font-semibold text-zinc-300 tabular-nums">{formatCOP(costoTotal)}</span>
-          <span className="text-[9px] text-zinc-600">MP/galón + indirectos</span>
+          <span className="text-[9px] font-bold tracking-widest text-content-tertiary uppercase">Costo Total</span>
+          <span className="text-sm font-semibold text-content-muted tabular-nums">{formatCOP(costoTotal)}</span>
+          <span className="text-[9px] text-content-secondary">MP/galón + indirectos</span>
         </div>
         <div className="flex flex-col gap-0.5 px-4 py-3">
-          <span className="text-[9px] font-bold tracking-widest text-emerald-500 uppercase">Utilidad</span>
-          <span className="text-sm font-semibold text-emerald-400 tabular-nums">{formatCOP(utilidad)}</span>
-          <span className="text-[9px] text-zinc-600">Ganancia bruta</span>
+          <span className="text-[9px] font-bold tracking-widest text-semantic-success uppercase">Utilidad</span>
+          <span className="text-sm font-semibold text-semantic-success/80 tabular-nums">{formatCOP(utilidad)}</span>
+          <span className="text-[9px] text-content-secondary">Ganancia bruta</span>
         </div>
         <div className="flex flex-col gap-0.5 px-4 py-3">
           <span className="text-[9px] font-bold tracking-widest text-white uppercase flex items-center gap-1">
-            Venta <ArrowUpRight size={9} className="text-emerald-400" />
+            Venta <ArrowUpRight size={9} className="text-semantic-success/80" />
           </span>
           <span className="text-sm font-semibold text-white tabular-nums">{formatCOP(ventaSugerida)}</span>
-          <span className="text-[9px] text-zinc-600">Precio sugerido</span>
+          <span className="text-[9px] text-content-secondary">Precio sugerido</span>
         </div>
       </div>
     </div>
@@ -92,18 +92,18 @@ const PrecioLista = ({ control, costos, precioManualActivo, setPrecioManualActiv
   const diff      = precioManualActivo && manualNum > 0 ? manualNum - precioCalculado : 0;
   const diffPct   = precioCalculado > 0 ? (diff / precioCalculado) * 100 : 0;
 
-  const diffColor = diff > 0 ? 'text-emerald-500' : diff < 0 ? 'text-red-500' : 'text-zinc-400';
+  const diffColor = diff > 0 ? 'text-semantic-success' : diff < 0 ? 'text-semantic-danger' : 'text-content-muted';
   const DiffIcon  = diff > 0 ? TrendingUp : diff < 0 ? TrendingDown : Minus;
 
   return (
-    <div className="rounded-xl border border-zinc-200 overflow-hidden">
+    <div className="rounded-xl border border-border-base overflow-hidden">
       {/* Header con toggle */}
-      <div className="flex items-center justify-between px-4 py-3 bg-zinc-50 border-b border-zinc-200">
+      <div className="flex items-center justify-between px-4 py-3 bg-surface-subtle border-b border-border-base">
         <div>
-          <p className="text-xs font-semibold text-zinc-700 uppercase tracking-widest">
+          <p className="text-xs font-semibold text-content-secondary uppercase tracking-widest">
             Precio Manual
           </p>
-          <p className="text-[10px] text-zinc-400 mt-0.5">
+          <p className="text-[10px] text-content-muted mt-0.5">
             Precio negociado independiente del markup
           </p>
         </div>
@@ -114,12 +114,12 @@ const PrecioLista = ({ control, costos, precioManualActivo, setPrecioManualActiv
           onClick={() => setPrecioManualActivo(v => !v)}
           className={`relative flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all duration-200 ${
             precioManualActivo
-              ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200'
-              : 'bg-white border-zinc-300 text-zinc-400 hover:border-zinc-400'
+              ? 'bg-semantic-success border-semantic-success text-white shadow-sm shadow-semantic-success/30'
+              : 'bg-white border-border-strong text-content-muted hover:border-border-strong'
           }`}
         >
           {/* Switch track */}
-          <span className={`relative inline-block w-7 h-4 rounded-full transition-colors duration-200 ${precioManualActivo ? 'bg-white/30' : 'bg-zinc-200'}`}>
+          <span className={`relative inline-block w-7 h-4 rounded-full transition-colors duration-200 ${precioManualActivo ? 'bg-white/30' : 'bg-surface-strong'}`}>
             <span className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full shadow transition-transform duration-200 ${
               precioManualActivo ? 'translate-x-3 bg-white' : 'translate-x-0 bg-white'
             }`} />
@@ -131,49 +131,49 @@ const PrecioLista = ({ control, costos, precioManualActivo, setPrecioManualActiv
       </div>
 
       {/* Comparación siempre visible */}
-      <div className="grid grid-cols-2 divide-x divide-zinc-100 bg-white">
+      <div className="grid grid-cols-2 divide-x divide-border-subtle bg-white">
         {/* Precio calculado (referencia) */}
         <div className="px-4 py-3">
-          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
+          <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest mb-1">
             Precio Calculado
           </p>
-          <p className="text-sm font-semibold text-zinc-500 tabular-nums">
+          <p className="text-sm font-semibold text-content-tertiary tabular-nums">
             {formatCOP(precioCalculado)}
           </p>
-          <p className="text-[9px] text-zinc-400 mt-0.5">Costo + {pct}% markup</p>
+          <p className="text-[9px] text-content-muted mt-0.5">Costo + {pct}% markup</p>
         </div>
 
         {/* Precio de lista */}
         <div className="px-4 py-3">
           <p className="text-[9px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
-            <span className={precioManualActivo ? 'text-zinc-700' : 'text-zinc-400'}>
+            <span className={precioManualActivo ? 'text-content-secondary' : 'text-content-muted'}>
               Precio Manual
             </span>
             {precioManualActivo && (
-              <span className="bg-emerald-100 text-emerald-700 text-[8px] px-1.5 py-px rounded-full font-bold">ACTIVO</span>
+              <span className="bg-semantic-success-subtle text-semantic-success-fg text-[8px] px-1.5 py-px rounded-full font-bold">ACTIVO</span>
             )}
           </p>
           {precioManualActivo ? (
             <div className="flex items-center gap-1">
-              <span className="text-xs font-semibold text-zinc-500">$</span>
+              <span className="text-xs font-semibold text-content-tertiary">$</span>
               <input
                 type="text"
                 inputMode="numeric"
                 value={precioManual}
                 onChange={e => setPrecioManual(e.target.value.replace(/[^0-9.,]/g, ''))}
                 placeholder="0"
-                className="flex-1 text-sm font-bold text-zinc-900 bg-transparent border-b-2 border-zinc-900 outline-none tabular-nums min-w-0 pb-0.5"
+                className="flex-1 text-sm font-bold text-content-primary bg-transparent border-b-2 border-content-primary outline-none tabular-nums min-w-0 pb-0.5"
               />
             </div>
           ) : (
-            <p className="text-sm text-zinc-300 italic">— Sin fijar —</p>
+            <p className="text-sm text-content-muted italic">— Sin fijar —</p>
           )}
         </div>
       </div>
 
       {/* Badge de diferencia */}
       {precioManualActivo && manualNum > 0 && (
-        <div className="flex items-center justify-end gap-2 px-4 py-2 bg-zinc-50 border-t border-zinc-100">
+        <div className="flex items-center justify-end gap-2 px-4 py-2 bg-surface-subtle border-t border-border-subtle">
           <DiffIcon size={12} className={diffColor} />
           <span className={`text-xs font-bold tabular-nums ${diffColor}`}>
             {diff > 0 ? '+' : ''}{formatCOP(diff)}
@@ -257,47 +257,47 @@ const FormCostProducts = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-content-primary/50 backdrop-blur-sm">
       <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
 
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-100">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-zinc-950 flex items-center justify-center shadow-md shadow-zinc-950/20">
+            <div className="w-10 h-10 rounded-xl bg-content-primary flex items-center justify-center shadow-md shadow-content-primary/20">
               <CircleDollarSign size={18} className="text-white" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-zinc-900 tracking-tight leading-none">
+              <h2 className="text-base font-semibold text-content-primary tracking-tight leading-none">
                 Editar Costos Indirectos
               </h2>
-              <p className="text-xs text-zinc-400 font-medium mt-0.5">
+              <p className="text-xs text-content-muted font-medium mt-0.5">
                 {item?.nombre ?? '—'}
               </p>
             </div>
           </div>
           <button
             onClick={handleClose}
-            className="p-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-xl transition-all active:scale-95"
+            className="p-2 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-xl transition-all active:scale-95"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* ── KPIs ── */}
-        <div className="grid grid-cols-2 gap-3 px-6 py-4 border-b border-zinc-100 bg-zinc-50/50">
-          <div className="bg-white border border-zinc-200 rounded-xl px-4 py-3 shadow-sm">
-            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
+        <div className="grid grid-cols-2 gap-3 px-6 py-4 border-b border-border-subtle bg-surface-subtle/50">
+          <div className="bg-white border border-border-base rounded-xl px-4 py-3 shadow-sm">
+            <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest mb-1">
               Total Materia Prima
             </p>
-            <p className="text-sm font-semibold text-zinc-900 ">
+            <p className="text-sm font-semibold text-content-primary ">
               $ {costos?.total_costo_materia_prima ?? '—'}
             </p>
           </div>
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 shadow-sm">
-            <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mb-1">
+          <div className="bg-semantic-success-subtle border border-semantic-success/15 rounded-xl px-4 py-3 shadow-sm">
+            <p className="text-[9px] font-bold text-semantic-success uppercase tracking-widest mb-1">
               Precio de Venta Actual
             </p>
-            <p className="text-sm font-semibold text-emerald-700">
+            <p className="text-sm font-semibold text-semantic-success-fg">
               $ {costos?.precio_venta ?? '—'}
             </p>
           </div>
@@ -311,8 +311,8 @@ const FormCostProducts = () => {
         >
           <div className="overflow-y-auto flex-1 px-6 py-5 space-y-3">
 
-            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-zinc-300" />
+            <p className="text-[10px] font-semibold text-content-muted uppercase tracking-widest flex items-center gap-2">
+              <span className="w-1 h-1 rounded-full bg-surface-strong" />
               Costos Indirectos
             </p>
 
@@ -324,22 +324,22 @@ const FormCostProducts = () => {
                   name={f.id}
                   control={control}
                   render={({ field }) => (
-                    <div className="flex items-center gap-4 bg-white border border-zinc-200 rounded-xl px-4 py-3 shadow-sm hover:border-zinc-300 hover:shadow-md transition-all">
+                    <div className="flex items-center gap-4 bg-white border border-border-base rounded-xl px-4 py-3 shadow-sm hover:border-border-strong hover:shadow-md transition-all">
                       <div className={`w-9 h-9 rounded-xl ${f.iconBg} flex items-center justify-center shrink-0`}>
                         <Icon size={16} className={f.iconColor} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-zinc-800 uppercase tracking-tight leading-none">
+                        <p className="text-xs font-semibold text-content-primary uppercase tracking-tight leading-none">
                           {f.label}
                         </p>
-                        <p className="text-[10px] text-zinc-400 font-medium mt-0.5">{f.description}</p>
+                        <p className="text-[10px] text-content-muted font-medium mt-0.5">{f.description}</p>
                       </div>
                       <div className="w-36 shrink-0">
                         <InputMoneda
                           value={field.value}
                           onChange={field.onChange}
                           error={errors[f.id]?.message}
-                          className="text-right font-bold text-zinc-900 text-sm border border-zinc-200 rounded-xl px-3 py-2 w-full focus:ring-2 focus:ring-zinc-950 focus:border-transparent outline-none transition-all bg-zinc-50 focus:bg-white"
+                          className="text-right font-bold text-content-primary text-sm border border-border-base rounded-xl px-3 py-2 w-full focus:ring-2 focus:ring-brand-primary/40 focus:border-transparent outline-none transition-all bg-surface-subtle focus:bg-white"
                         />
                       </div>
                     </div>
@@ -348,8 +348,8 @@ const FormCostProducts = () => {
               );
             })}
 
-            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest flex items-center gap-2 pt-1">
-              <span className="w-1 h-1 rounded-full bg-zinc-300" />
+            <p className="text-[10px] font-semibold text-content-muted uppercase tracking-widest flex items-center gap-2 pt-1">
+              <span className="w-1 h-1 rounded-full bg-surface-strong" />
               Precio de Venta
             </p>
 
@@ -361,17 +361,17 @@ const FormCostProducts = () => {
                 max: { value: 99, message: 'Máximo 99%' }
               }}
               render={({ field }) => (
-                <div className={`flex items-center gap-4 bg-white border rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition-all ${errors.porcentaje_utilidad ? 'border-red-300' : 'border-zinc-200 hover:border-zinc-300'}`}>
-                  <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center shrink-0">
-                    <Percent size={16} className="text-orange-500" />
+                <div className={`flex items-center gap-4 bg-white border rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition-all ${errors.porcentaje_utilidad ? 'border-semantic-danger/30' : 'border-border-base hover:border-border-strong'}`}>
+                  <div className="w-9 h-9 rounded-xl bg-semantic-warning-subtle flex items-center justify-center shrink-0">
+                    <Percent size={16} className="text-semantic-warning" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-zinc-800 uppercase tracking-tight leading-none">
+                    <p className="text-xs font-semibold text-content-primary uppercase tracking-tight leading-none">
                       % Utilidad (Markup)
                     </p>
-                    <p className="text-[10px] text-zinc-400 font-medium mt-0.5">Ganancia sobre costo × (1 + %)</p>
+                    <p className="text-[10px] text-content-muted font-medium mt-0.5">Ganancia sobre costo × (1 + %)</p>
                     {errors.porcentaje_utilidad && (
-                      <p className="text-[10px] text-red-500 font-bold mt-0.5">{errors.porcentaje_utilidad.message}</p>
+                      <p className="text-[10px] text-semantic-danger font-bold mt-0.5">{errors.porcentaje_utilidad.message}</p>
                     )}
                   </div>
                   <div className="w-36 shrink-0 relative">
@@ -379,9 +379,9 @@ const FormCostProducts = () => {
                       type="number" min="0" max="99" step="0.1"
                       value={field.value}
                       onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
-                      className="text-right font-bold text-zinc-900 text-sm border border-zinc-200 rounded-xl px-3 py-2 w-full pr-7 focus:ring-2 focus:ring-zinc-950 focus:border-transparent outline-none transition-all bg-zinc-50 focus:bg-white"
+                      className="text-right font-bold text-content-primary text-sm border border-border-base rounded-xl px-3 py-2 w-full pr-7 focus:ring-2 focus:ring-brand-primary/40 focus:border-transparent outline-none transition-all bg-surface-subtle focus:bg-white"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold">%</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-content-muted text-xs font-bold">%</span>
                   </div>
                 </div>
               )}
@@ -402,17 +402,17 @@ const FormCostProducts = () => {
           </div>
 
           {/* ── Footer ── */}
-          <div className="flex items-center justify-between gap-3 px-6 py-4 bg-zinc-50 border-t border-zinc-100">
+          <div className="flex items-center justify-between gap-3 px-6 py-4 bg-surface-subtle border-t border-border-subtle">
             <div className="flex items-center gap-1.5">
               {(isDirty || precioManualDirty) ? (
                 <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Cambios sin guardar</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-semantic-warning" />
+                  <span className="text-[10px] font-bold text-semantic-warning-fg uppercase tracking-wider">Cambios sin guardar</span>
                 </>
               ) : (
                 <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-300" />
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Sin cambios</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-surface-strong" />
+                  <span className="text-[10px] font-bold text-content-muted uppercase tracking-wider">Sin cambios</span>
                 </>
               )}
             </div>
@@ -421,14 +421,14 @@ const FormCostProducts = () => {
                 type="button"
                 onClick={handleClose}
                 disabled={isUpdating}
-                className="flex items-center gap-2 px-5 py-2.5 border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-700 bg-white shadow-sm hover:bg-zinc-50 transition-all active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-2 px-5 py-2.5 border border-border-base rounded-xl text-sm font-semibold text-content-secondary bg-white shadow-sm hover:bg-surface-subtle transition-all active:scale-95 disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={isUpdating || isUpdatingPrecio || (!isDirty && !precioManualDirty)}
-                className="flex items-center gap-2 px-5 py-2.5 border border-transparent rounded-xl text-sm font-semibold text-white bg-zinc-950 shadow-md shadow-zinc-950/20 hover:bg-zinc-900 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-5 py-2.5 border border-transparent rounded-xl text-sm font-semibold text-white bg-content-primary shadow-md shadow-content-primary/20 hover:bg-content-primary transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {(isUpdating || isUpdatingPrecio) ? (
                   <>

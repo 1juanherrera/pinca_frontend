@@ -4,19 +4,19 @@ import { fmt } from '../../../utils/formatters';
 
 const MetricCard = ({ title, value, subtitle, icon: Icon, theme = 'default', trend }) => {
   const themes = {
-    success: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-    warning: 'bg-amber-50 border-amber-200 text-amber-800',
-    danger: 'bg-red-50 border-red-200 text-red-800',
-    info: 'bg-blue-50 border-blue-200 text-blue-800',
-    default: 'bg-zinc-50 border-zinc-200 text-zinc-800'
+    success: 'bg-semantic-success-subtle border-semantic-success/20 text-semantic-success-fg',
+    warning: 'bg-semantic-warning-subtle border-semantic-warning/20 text-semantic-warning-fg',
+    danger: 'bg-semantic-danger-subtle border-semantic-danger/20 text-semantic-danger-fg',
+    info: 'bg-semantic-info-subtle border-semantic-info/20 text-semantic-info-fg',
+    default: 'bg-surface-subtle border-border-base text-content-primary'
   };
 
   const iconThemes = {
-    success: 'text-emerald-600',
-    warning: 'text-amber-600',
-    danger: 'text-red-600',
-    info: 'text-blue-600',
-    default: 'text-zinc-600'
+    success: 'text-semantic-success-fg',
+    warning: 'text-semantic-warning-fg',
+    danger: 'text-semantic-danger-fg',
+    info: 'text-semantic-info-fg',
+    default: 'text-content-secondary'
   };
 
   return (
@@ -27,7 +27,7 @@ const MetricCard = ({ title, value, subtitle, icon: Icon, theme = 'default', tre
           <h3 className="text-sm font-semibold">{title}</h3>
         </div>
         {trend && (
-          <div className={`flex items-center gap-1 text-xs ${trend > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+          <div className={`flex items-center gap-1 text-xs ${trend > 0 ? 'text-semantic-success-fg' : 'text-semantic-danger-fg'}`}>
             {trend > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
             <span>{Math.abs(trend).toFixed(1)}%</span>
           </div>
@@ -41,20 +41,20 @@ const MetricCard = ({ title, value, subtitle, icon: Icon, theme = 'default', tre
 
 const AnalysisRow = ({ label, description, status }) => {
   const statusConfig = {
-    excellent: { icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    good: { icon: CheckCircle, color: 'text-blue-600', bg: 'bg-blue-50' },
-    warning: { icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50' },
-    danger: { icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50' }
+    excellent: { icon: CheckCircle, color: 'text-semantic-success-fg', bg: 'bg-semantic-success-subtle' },
+    good: { icon: CheckCircle, color: 'text-semantic-info-fg', bg: 'bg-semantic-info-subtle' },
+    warning: { icon: AlertCircle, color: 'text-semantic-warning-fg', bg: 'bg-semantic-warning-subtle' },
+    danger: { icon: AlertCircle, color: 'text-semantic-danger-fg', bg: 'bg-semantic-danger-subtle' }
   };
 
   const config = statusConfig[status] || statusConfig.warning;
   const Icon = config.icon;
 
   return (
-    <div className="flex items-center justify-between p-3 rounded-lg border border-zinc-100 hover:bg-zinc-50">
+    <div className="flex items-center justify-between p-3 rounded-lg border border-border-subtle hover:bg-surface-subtle">
       <div className="flex-1">
-        <p className="text-sm font-medium text-zinc-800">{label}</p>
-        <p className="text-xs text-zinc-500">{description}</p>
+        <p className="text-sm font-medium text-content-primary">{label}</p>
+        <p className="text-xs text-content-tertiary">{description}</p>
       </div>
       <div className={`w-8 h-8 rounded-full ${config.bg} flex items-center justify-center`}>
         <Icon className={`w-4 h-4 ${config.color}`} />
@@ -134,12 +134,12 @@ const RentabilidadResumen = ({
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-24 bg-zinc-100 rounded-xl animate-pulse" />
+            <div key={i} className="h-24 bg-surface-muted rounded-xl animate-pulse" />
           ))}
         </div>
         <div className="space-y-3">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-16 bg-zinc-100 rounded-lg animate-pulse" />
+            <div key={i} className="h-16 bg-surface-muted rounded-lg animate-pulse" />
           ))}
         </div>
       </div>
@@ -192,8 +192,8 @@ const RentabilidadResumen = ({
       </div>
 
       {/* Análisis detallado */}
-      <div className="bg-white border border-zinc-200/70 rounded-xl p-6">
-        <h3 className="text-lg font-bold text-zinc-800 mb-4">Análisis de Rentabilidad</h3>
+      <div className="bg-white border border-border-base/70 rounded-xl p-6">
+        <h3 className="text-lg font-bold text-content-primary mb-4">Análisis de Rentabilidad</h3>
         <div className="space-y-3">
           {analysis.analyses.map((item, index) => (
             <AnalysisRow key={index} {...item} />
@@ -202,32 +202,32 @@ const RentabilidadResumen = ({
       </div>
 
       {/* Distribución de costos */}
-      <div className="bg-white border border-zinc-200/70 rounded-xl p-6">
-        <h3 className="text-lg font-bold text-zinc-800 mb-4">Distribución de Costos</h3>
+      <div className="bg-white border border-border-base/70 rounded-xl p-6">
+        <h3 className="text-lg font-bold text-content-primary mb-4">Distribución de Costos</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-3 bg-blue-50 rounded-full flex items-center justify-center">
-              <div className="w-8 h-8 bg-blue-500 rounded-full"></div>
+            <div className="w-16 h-16 mx-auto mb-3 bg-semantic-info-subtle rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-semantic-info rounded-full"></div>
             </div>
-            <p className="text-2xl font-bold text-blue-700">{analysis.costoProdPct.toFixed(1)}%</p>
-            <p className="text-sm text-zinc-600">Costos de Producción</p>
-            <p className="text-xs text-zinc-400">{fmt(totalProduccion)}</p>
+            <p className="text-2xl font-bold text-semantic-info-fg">{analysis.costoProdPct.toFixed(1)}%</p>
+            <p className="text-sm text-content-secondary">Costos de Producción</p>
+            <p className="text-xs text-content-muted">{fmt(totalProduccion)}</p>
           </div>
           <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-3 bg-amber-50 rounded-full flex items-center justify-center">
-              <div className="w-8 h-8 bg-amber-500 rounded-full"></div>
+            <div className="w-16 h-16 mx-auto mb-3 bg-semantic-warning-subtle rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-semantic-warning rounded-full"></div>
             </div>
-            <p className="text-2xl font-bold text-amber-700">{analysis.costoCompraPct.toFixed(1)}%</p>
-            <p className="text-sm text-zinc-600">Costos de Compras</p>
-            <p className="text-xs text-zinc-400">{fmt(totalCompras)}</p>
+            <p className="text-2xl font-bold text-semantic-warning-fg">{analysis.costoCompraPct.toFixed(1)}%</p>
+            <p className="text-sm text-content-secondary">Costos de Compras</p>
+            <p className="text-xs text-content-muted">{fmt(totalCompras)}</p>
           </div>
           <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-3 bg-violet-50 rounded-full flex items-center justify-center">
-              <div className="w-8 h-8 bg-violet-500 rounded-full"></div>
+            <div className="w-16 h-16 mx-auto mb-3 bg-brand-subtle rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-brand-primary-active rounded-full"></div>
             </div>
-            <p className="text-2xl font-bold text-violet-700">{analysis.costoIndirectoPct.toFixed(1)}%</p>
-            <p className="text-sm text-zinc-600">Costos Indirectos</p>
-            <p className="text-xs text-zinc-400">{fmt(totalIndirectos)}</p>
+            <p className="text-2xl font-bold text-brand-primary-active">{analysis.costoIndirectoPct.toFixed(1)}%</p>
+            <p className="text-sm text-content-secondary">Costos Indirectos</p>
+            <p className="text-xs text-content-muted">{fmt(totalIndirectos)}</p>
           </div>
         </div>
       </div>

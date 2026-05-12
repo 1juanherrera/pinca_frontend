@@ -48,12 +48,14 @@ export const getEstadoEfectivo = (factura) => {
 
 // ── Badges ───────────────────────────────────────────────────
 
+// NOTA: Prefiere usar <StatusBadge estado="X" /> en JSX en lugar de estas clases.
+// Estas se mantienen por compatibilidad con código viejo.
 export const ESTADO_BADGE = {
-  Pagada:    'bg-emerald-100 text-emerald-800 border border-emerald-200',
-  Vencida:   'bg-red-100    text-red-800    border border-red-200',
-  Parcial:   'bg-blue-100   text-blue-800   border border-blue-200',
-  Pendiente: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
-  Borrador:  'bg-zinc-100   text-zinc-600   border border-zinc-200',
+  Pagada:    'bg-semantic-success-subtle text-semantic-success-fg border border-semantic-success/20',
+  Vencida:   'bg-semantic-danger-subtle text-semantic-danger-fg border border-semantic-danger/20',
+  Parcial:   'bg-semantic-info-subtle text-semantic-info-fg border border-semantic-info/20',
+  Pendiente: 'bg-semantic-warning-subtle text-semantic-warning-fg border border-semantic-warning/20',
+  Borrador:  'bg-surface-muted text-content-secondary border border-border-base',
 };
 
 export const getBadgeClases = (estado) => ESTADO_BADGE[estado] ?? ESTADO_BADGE.Pendiente;

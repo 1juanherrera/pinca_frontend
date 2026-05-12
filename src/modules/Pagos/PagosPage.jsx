@@ -9,7 +9,7 @@ import { Button } from '../../shared/Button';
 import ConfirmModal from '../../shared/ConfirmModal';
 import ERPTable from '../../shared/ERPTable';
 import StatusBadge from '../../shared/StatusBadge';
-import SummaryCard from '../../shared/SummaryCard';
+import FlowCard from '../../shared/FlowCard';
 import SearchFilterBar from '../../shared/SearchFilterBar';
 import AmountDisplay from '../../shared/AmountDisplay';
 import PagoForm from './components/PagoForm';
@@ -17,21 +17,18 @@ import PagoDrawer from './components/PagoDrawer';
 import { usePagos } from './api/usePago';
 import { fmt } from '../../utils/formatters';
 
-// Mapa de ícono por método de pago
+// Tone semántico por método de pago (badges unificados con StatusBadge)
+const METODO_TONE = {
+  nequi:         { label: 'Nequi',         tone: 'danger'  },
+  daviplata:     { label: 'Daviplata',     tone: 'danger'  },
+  transferencia: { label: 'Transferencia', tone: 'info'    },
+  efectivo:      { label: 'Efectivo',      tone: 'success' },
+  cheque:        { label: 'Cheque',        tone: 'warning' },
+};
+
 const MetodoBadge = ({ metodo }) => {
-  const MAP = {
-    nequi:         { label: 'Nequi',         bg: 'bg-pink-50',   text: 'text-pink-700',   border: 'border-pink-100'  },
-    daviplata:     { label: 'Daviplata',      bg: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-100'   },
-    transferencia: { label: 'Transferencia',  bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-100'  },
-    efectivo:      { label: 'Efectivo',       bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100' },
-    cheque:        { label: 'Cheque',         bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-100' },
-  };
-  const s = MAP[metodo?.toLowerCase()] ?? { label: metodo, bg: 'bg-zinc-100', text: 'text-zinc-600', border: 'border-zinc-200' };
-  return (
-    <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded border ${s.bg} ${s.text} ${s.border}`}>
-      {s.label}
-    </span>
-  );
+  const s = METODO_TONE[metodo?.toLowerCase()] ?? { label: metodo, tone: 'neutral' };
+  return <StatusBadge tone={s.tone} label={s.label} dot={false} size="sm" />;
 };
 
 const PagosPage = () => {
@@ -74,7 +71,7 @@ const PagosPage = () => {
       key: 'numero_referencia',
       label: 'Referencia',
       render: (v) => (
-        <span className=" text-xs font-bold text-zinc-400 whitespace-nowrap">
+        <span className="text-xs font-mono font-medium text-content-tertiary whitespace-nowrap">
           {v}
         </span>
       ),
@@ -84,15 +81,15 @@ const PagosPage = () => {
       label: 'Cliente',
       render: (v, row) => (
         <div className="min-w-0">
-          <p className="font-semibold text-zinc-800 text-xs leading-none truncate uppercase">{v}</p>
-          <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{row.nombre_encargado}</p>
+          <p className="font-semibold text-content-primary text-xs leading-tight truncate">{v}</p>
+          <p className="text-[10px] text-content-muted mt-0.5 truncate">{row.nombre_encargado}</p>
         </div>
       ),
     },
     {
       key: 'fecha_pago',
       label: 'Fecha',
-      render: (v) => <span className="text-xs text-zinc-500 tabular-nums whitespace-nowrap">{v}</span>,
+      render: (v) => <span className="text-xs text-content-tertiary tabular-nums whitespace-nowrap">{v}</span>,
     },
     {
       key: 'metodo_pago',
@@ -102,7 +99,7 @@ const PagosPage = () => {
     {
       key: 'tipo',
       label: 'Tipo',
-      render: (v) => <StatusBadge estado={v} />,
+      render: (v) => <StatusBadge estado={v} size="sm" />,
     },
     {
       key: 'monto',
@@ -116,27 +113,24 @@ const PagosPage = () => {
       align: 'right',
       render: (_, row) => (
         <div className="flex items-center justify-end gap-1.5">
-          <button
+          <Button
+            size="sm" variant="secondary" icon={Eye}
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
-            title="Ver detalle"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
           >
-            <Eye size={12} /> Ver
-          </button>
-          <button
+            Ver
+          </Button>
+          <Button
+            size="sm" variant="secondary" icon={Trash2}
+            className="!w-7 !px-0 hover:!bg-semantic-danger hover:!text-white hover:!border-semantic-danger"
             onClick={(e) => {
               e.stopPropagation();
               openConfirm({
-                title: 'Eliminar Pago',
+                title: 'Eliminar pago',
                 message: `¿Eliminar el pago ${row.numero_referencia}?`,
                 onConfirm: async () => removeAsync(row.id_pagos_cliente),
               });
             }}
-            title="Eliminar"
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
-          >
-            <Trash2 size={12} />
-          </button>
+          />
         </div>
       ),
     },
@@ -145,28 +139,27 @@ const PagosPage = () => {
   return (
     <div className="flex flex-col w-full gap-4">
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <HeaderSection
-          title="Pagos de Clientes"
-          subtitle="Facturación"
-          description="Registro de abonos, anticipos y pagos totales"
+          title="Pagos de clientes"
+          subtitle="Registro de abonos, anticipos y pagos totales"
           icon={Wallet}
           breadcrumbs={[
             { label: 'Facturación' },
             { label: 'Pagos', path: '/pagos_cliente' },
           ]}
         />
-        <Button variant="black" onClick={() => openDrawer('PAGO_FORM')} icon={Plus}>
-          Registrar Pago
+        <Button variant="primary" onClick={() => openDrawer('PAGO_FORM')} icon={Plus}>
+          Registrar pago
         </Button>
       </div>
 
-      {/* ── Métricas ── */}
+      {/* ── KPIs FlowCards ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <SummaryCard label="Total Pagos"     value={metrics.count}      icon={CreditCard}  color="gray"   />
-        <SummaryCard label="Abonos"           value={metrics.abonos}     icon={Banknote}    color="blue"   />
-        <SummaryCard label="Anticipos"        value={metrics.anticipos}  icon={TrendingUp}  color="violet" />
-        <SummaryCard label="Recaudado Total"  value={fmt(metrics.total)} icon={Wallet}      color="green"  />
+        <FlowCard icon={CreditCard} tone="neutral" label="Total pagos"     value={metrics.count}      sub="Registrados" />
+        <FlowCard icon={Banknote}   tone="info"    label="Abonos"          value={metrics.abonos}     sub="parciales" />
+        <FlowCard icon={TrendingUp} tone="brand"   label="Anticipos"       value={metrics.anticipos}  sub="anticipados" />
+        <FlowCard icon={Wallet}     tone="success" label="Recaudado total" value={fmt(metrics.total)} sub="acumulado" />
       </div>
 
       {/* ── Filtros ── */}
@@ -205,7 +198,9 @@ const PagosPage = () => {
         columns={columns}
         data={filtered}
         isLoading={isLoadingPagos}
+        variant="cards"
         emptyMessage="No se encontraron pagos"
+        emptySubMessage="Ajusta los filtros o registra un nuevo pago."
         onRowClick={(row) => setSelected(row)}
       />
 

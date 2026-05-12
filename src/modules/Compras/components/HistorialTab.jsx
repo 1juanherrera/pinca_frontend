@@ -33,7 +33,7 @@ const HistorialTab = ({ onVerDetalle }) => {
       label:     'Número',
       className: 'w-28',
       render: (v) => (
-        <span className=" text-xs font-bold text-zinc-400 whitespace-nowrap">{v}</span>
+        <span className=" text-xs font-bold text-content-muted whitespace-nowrap">{v}</span>
       ),
     },
     {
@@ -41,8 +41,8 @@ const HistorialTab = ({ onVerDetalle }) => {
       label: 'Proveedor',
       render: (v, row) => (
         <div className="min-w-0">
-          <p className="font-semibold text-zinc-800 text-xs leading-none truncate">{v || row.nombre_encargado}</p>
-          <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{row.bodega_nombre}</p>
+          <p className="font-semibold text-content-primary text-xs leading-none truncate">{v || row.nombre_encargado}</p>
+          <p className="text-[10px] text-content-muted mt-0.5 truncate">{row.bodega_nombre}</p>
         </div>
       ),
     },
@@ -51,7 +51,7 @@ const HistorialTab = ({ onVerDetalle }) => {
       label:     'Fecha orden',
       className: 'w-28',
       render: (v) => (
-        <span className="text-xs text-zinc-500 tabular-nums whitespace-nowrap">
+        <span className="text-xs text-content-tertiary tabular-nums whitespace-nowrap">
           {v ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
         </span>
       ),
@@ -72,7 +72,7 @@ const HistorialTab = ({ onVerDetalle }) => {
       render: (_, row) => (
         <button
           onClick={(e) => { e.stopPropagation(); onVerDetalle(row); }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
         >
           Ver
         </button>
@@ -82,7 +82,7 @@ const HistorialTab = ({ onVerDetalle }) => {
 
   return (
     <div className="flex flex-col gap-2">
-        <div className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-sm">
+        <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
             <SearchFilterBar
                 search={search}
                 onSearch={setSearch}

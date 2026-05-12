@@ -8,7 +8,7 @@ const columns = [
     key: 'numero',
     label: 'Factura',
     render: (v) => (
-      <span className=" text-xs font-bold text-zinc-400">{v}</span>
+      <span className=" text-xs font-bold text-content-muted">{v}</span>
     ),
   },
   {
@@ -16,8 +16,8 @@ const columns = [
     label: 'Cliente',
     render: (v, row) => (
       <div>
-        <p className="text-xs font-semibold text-zinc-800 truncate uppercase">{v || row.nombre_encargado}</p>
-        <p className="text-[10px] text-zinc-400">{row.fecha_emision ? new Date(row.fecha_emision + 'T00:00:00').toLocaleDateString('es-CO') : '—'}</p>
+        <p className="text-xs font-semibold text-content-primary truncate uppercase">{v || row.nombre_encargado}</p>
+        <p className="text-[10px] text-content-muted">{row.fecha_emision ? new Date(row.fecha_emision + 'T00:00:00').toLocaleDateString('es-CO') : '—'}</p>
       </div>
     ),
   },
@@ -26,7 +26,7 @@ const columns = [
     label: 'Ventas',
     align: 'right',
     render: (v) => (
-      <span className="text-xs  tabular-nums text-green-700 font-semibold">{fmt(v)}</span>
+      <span className="text-xs  tabular-nums text-semantic-success-fg font-semibold">{fmt(v)}</span>
     ),
   },
   {
@@ -34,7 +34,7 @@ const columns = [
     label: 'Costos',
     align: 'right',
     render: (v) => (
-      <span className="text-xs  tabular-nums text-red-600">{fmt(v ?? 0)}</span>
+      <span className="text-xs  tabular-nums text-semantic-danger-fg">{fmt(v ?? 0)}</span>
     ),
   },
   {
@@ -45,7 +45,7 @@ const columns = [
       const utilidad = (row.total ?? 0) - (row.costo_total ?? 0);
       const isPositive = utilidad >= 0;
       return (
-        <span className={`text-xs  tabular-nums font-semibold ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+        <span className={`text-xs  tabular-nums font-semibold ${isPositive ? 'text-semantic-success-fg' : 'text-semantic-danger-fg'}`}>
           {fmt(utilidad)}
         </span>
       );
@@ -61,7 +61,7 @@ const columns = [
       const margen = total > 0 ? ((total - costo) / total * 100) : 0;
       const isPositive = margen >= 0;
       return (
-        <span className={`text-xs  tabular-nums font-bold ${isPositive ? 'text-emerald-700' : 'text-red-700'}`}>
+        <span className={`text-xs  tabular-nums font-bold ${isPositive ? 'text-semantic-success-fg' : 'text-semantic-danger-fg'}`}>
           {margen.toFixed(1)}%
         </span>
       );
@@ -97,26 +97,26 @@ const GananciasVentasTable = ({ ventas, isLoading }) => {
 
       {/* Fila de totales */}
       {!isLoading && ventas.length > 0 && (
-        <div className="bg-zinc-900 text-white rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
-          <span className="text-zinc-300">{ventas.length} venta(s)</span>
+        <div className="bg-content-primary text-white rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
+          <span className="text-content-muted">{ventas.length} venta(s)</span>
           <div className="flex items-center gap-8">
             <div className="text-right">
-              <p className="text-zinc-400 font-normal text-[10px]">Total Ventas</p>
-              <p className=" tabular-nums text-green-300">{fmt(totales.totalVentas)}</p>
+              <p className="text-content-muted font-normal text-[10px]">Total Ventas</p>
+              <p className=" tabular-nums text-semantic-success/60">{fmt(totales.totalVentas)}</p>
             </div>
             <div className="text-right">
-              <p className="text-zinc-400 font-normal text-[10px]">Total Costos</p>
-              <p className=" tabular-nums text-red-300">{fmt(totales.totalCostos)}</p>
+              <p className="text-content-muted font-normal text-[10px]">Total Costos</p>
+              <p className=" tabular-nums text-semantic-danger/60">{fmt(totales.totalCostos)}</p>
             </div>
             <div className="text-right">
-              <p className="text-zinc-400 font-normal text-[10px]">Utilidad Bruta</p>
-              <p className={` tabular-nums text-base ${totales.utilidadBruta >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+              <p className="text-content-muted font-normal text-[10px]">Utilidad Bruta</p>
+              <p className={` tabular-nums text-base ${totales.utilidadBruta >= 0 ? 'text-semantic-success' : 'text-semantic-danger/60'}`}>
                 {fmt(totales.utilidadBruta)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-zinc-400 font-normal text-[10px]">Margen Promedio</p>
-              <p className={` tabular-nums text-sm ${totales.margenPromedio >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+              <p className="text-content-muted font-normal text-[10px]">Margen Promedio</p>
+              <p className={` tabular-nums text-sm ${totales.margenPromedio >= 0 ? 'text-semantic-success' : 'text-semantic-danger/60'}`}>
                 {totales.margenPromedio.toFixed(1)}%
               </p>
             </div>

@@ -30,26 +30,26 @@ const TamborForm = ({ onSubmit, isLoading, onCancel }) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-      <div className="p-3 rounded-lg bg-blue-50 border border-blue-100 text-xs text-blue-700">
+      <div className="p-3 rounded-lg bg-semantic-info-subtle border border-semantic-info/15 text-xs text-semantic-info-fg">
         Para múltiples tambores del mismo material, ingresa los números separados por coma.<br />
         <span className="font-semibold">Ej: 223, 224, 225</span>
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold text-zinc-600 uppercase">Nº de Tambor(es) *</label>
+        <label className="text-xs font-semibold text-content-secondary uppercase">Nº de Tambor(es) *</label>
         <input
           type="text"
           placeholder="223, 224, 225"
-          className={`w-full px-3 py-2 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 ${errors.numeros ? 'border-red-400' : 'border-zinc-200'}`}
+          className={`w-full px-3 py-2 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-semantic-info/30 ${errors.numeros ? 'border-semantic-danger/40' : 'border-border-base'}`}
           {...register('numeros', { required: 'Ingresa al menos un número de tambor' })}
         />
-        {errors.numeros && <p className="text-xs text-red-500">{errors.numeros.message}</p>}
+        {errors.numeros && <p className="text-xs text-semantic-danger">{errors.numeros.message}</p>}
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold text-zinc-600 uppercase">Materia Prima *</label>
+        <label className="text-xs font-semibold text-content-secondary uppercase">Materia Prima *</label>
         <select
-          className={`w-full px-3 py-2 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 ${errors.item_general_id ? 'border-red-400' : 'border-zinc-200'}`}
+          className={`w-full px-3 py-2 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-semantic-info/30 ${errors.item_general_id ? 'border-semantic-danger/40' : 'border-border-base'}`}
           {...register('item_general_id', { required: 'Selecciona una materia prima' })}
         >
           <option value="">Seleccionar...</option>
@@ -59,13 +59,13 @@ const TamborForm = ({ onSubmit, isLoading, onCancel }) => {
             </option>
           ))}
         </select>
-        {errors.item_general_id && <p className="text-xs text-red-500">{errors.item_general_id.message}</p>}
+        {errors.item_general_id && <p className="text-xs text-semantic-danger">{errors.item_general_id.message}</p>}
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold text-zinc-600 uppercase">Ubicación (Bodega) *</label>
+        <label className="text-xs font-semibold text-content-secondary uppercase">Ubicación (Bodega) *</label>
         <select
-          className={`w-full px-3 py-2 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 ${errors.bodegas_id ? 'border-red-400' : 'border-zinc-200'}`}
+          className={`w-full px-3 py-2 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-semantic-info/30 ${errors.bodegas_id ? 'border-semantic-danger/40' : 'border-border-base'}`}
           {...register('bodegas_id', { required: 'Selecciona una bodega' })}
         >
           <option value="">Seleccionar...</option>
@@ -73,27 +73,27 @@ const TamborForm = ({ onSubmit, isLoading, onCancel }) => {
             <option key={b.id_bodegas} value={b.id_bodegas}>{b.nombre}</option>
           ))}
         </select>
-        {errors.bodegas_id && <p className="text-xs text-red-500">{errors.bodegas_id.message}</p>}
+        {errors.bodegas_id && <p className="text-xs text-semantic-danger">{errors.bodegas_id.message}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-zinc-600 uppercase">Cantidad por Tambor *</label>
+          <label className="text-xs font-semibold text-content-secondary uppercase">Cantidad por Tambor *</label>
           <input
             type="number"
             step="0.01"
             min="0.01"
-            className={`w-full px-3 py-2 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 ${errors.cantidad_inicial ? 'border-red-400' : 'border-zinc-200'}`}
+            className={`w-full px-3 py-2 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-semantic-info/30 ${errors.cantidad_inicial ? 'border-semantic-danger/40' : 'border-border-base'}`}
             {...register('cantidad_inicial', { required: 'Requerido', min: { value: 0.01, message: 'Debe ser mayor a 0' } })}
           />
-          {errors.cantidad_inicial && <p className="text-xs text-red-500">{errors.cantidad_inicial.message}</p>}
+          {errors.cantidad_inicial && <p className="text-xs text-semantic-danger">{errors.cantidad_inicial.message}</p>}
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-zinc-600 uppercase">Fecha de Ingreso</label>
+          <label className="text-xs font-semibold text-content-secondary uppercase">Fecha de Ingreso</label>
           <input
             type="date"
-            className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="w-full px-3 py-2 rounded-lg border border-border-base text-sm bg-white focus:outline-none focus:ring-2 focus:ring-semantic-info/30"
             {...register('fecha_ingreso')}
           />
         </div>

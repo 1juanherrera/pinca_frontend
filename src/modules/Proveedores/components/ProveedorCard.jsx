@@ -9,12 +9,12 @@ const getInitials = (name = '') =>
   name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase();
 
 const AVATAR_PALETTES = [
-  { bg: 'bg-blue-600',    ring: 'ring-blue-200',    text: 'text-blue-600',    light: 'bg-blue-50'    },
-  { bg: 'bg-violet-600',  ring: 'ring-violet-200',   text: 'text-violet-600',  light: 'bg-violet-50'  },
-  { bg: 'bg-teal-600',    ring: 'ring-teal-200',     text: 'text-teal-600',    light: 'bg-teal-50'    },
-  { bg: 'bg-amber-500',   ring: 'ring-amber-200',    text: 'text-amber-600',   light: 'bg-amber-50'   },
-  { bg: 'bg-rose-600',    ring: 'ring-rose-200',     text: 'text-rose-600',    light: 'bg-rose-50'    },
-  { bg: 'bg-emerald-600', ring: 'ring-emerald-200',  text: 'text-emerald-600', light: 'bg-emerald-50' },
+  { bg: 'bg-semantic-info',    ring: 'ring-semantic-info/30',    text: 'text-semantic-info-fg',    light: 'bg-semantic-info-subtle'    },
+  { bg: 'bg-brand-primary-active',  ring: 'ring-brand-primary/30',   text: 'text-brand-primary-active',  light: 'bg-brand-subtle'  },
+  { bg: 'bg-semantic-info',    ring: 'ring-semantic-info/30',     text: 'text-semantic-info-fg',    light: 'bg-semantic-info-subtle'    },
+  { bg: 'bg-semantic-warning',   ring: 'ring-semantic-warning/40',    text: 'text-semantic-warning-fg',   light: 'bg-semantic-warning-subtle'   },
+  { bg: 'bg-semantic-danger',    ring: 'ring-semantic-danger/30',     text: 'text-semantic-danger-fg',    light: 'bg-semantic-danger-subtle'    },
+  { bg: 'bg-semantic-success', ring: 'ring-semantic-success/30',  text: 'text-semantic-success-fg', light: 'bg-semantic-success-subtle' },
 ];
 const getPalette = (id) => AVATAR_PALETTES[Number(id) % AVATAR_PALETTES.length];
 
@@ -44,7 +44,7 @@ const ActionsMenu = ({ onEdit, onDelete }) => {
             <div className="my-1 border-t border-slate-100" />
             <button
               onClick={() => { setOpen(false); onDelete?.(); }}
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-semantic-danger-fg hover:bg-semantic-danger-subtle transition-colors"
             >
               <Trash2 size={14} /> Eliminar
             </button>
@@ -86,7 +86,7 @@ const ProveedorCard = ({ proveedor, totalProductos = null, onEdit, onDelete }) =
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border bg-blue-50 text-blue-700 border-blue-200">
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border bg-semantic-info-subtle text-semantic-info-fg border-semantic-info/20">
               <Building2 size={10} /> Proveedor
             </span>
             <ActionsMenu onEdit={onEdit} onDelete={onDelete} />
@@ -113,7 +113,7 @@ const ProveedorCard = ({ proveedor, totalProductos = null, onEdit, onDelete }) =
             <Phone size={13} className="text-slate-300 shrink-0" />
             <a
               href={`tel:${proveedor.telefono}`}
-              className="text-xs text-slate-600 hover:text-blue-600 transition-colors"
+              className="text-xs text-slate-600 hover:text-semantic-info-fg transition-colors"
               onClick={(e) => e.stopPropagation()}
             >
               {proveedor.telefono}
@@ -126,7 +126,7 @@ const ProveedorCard = ({ proveedor, totalProductos = null, onEdit, onDelete }) =
             <Mail size={13} className="text-slate-300 shrink-0" />
             <a
               href={`mailto:${proveedor.email}`}
-              className="text-xs text-slate-600 hover:text-blue-600 transition-colors truncate"
+              className="text-xs text-slate-600 hover:text-semantic-info-fg transition-colors truncate"
               onClick={(e) => e.stopPropagation()}
             >
               {proveedor.email}

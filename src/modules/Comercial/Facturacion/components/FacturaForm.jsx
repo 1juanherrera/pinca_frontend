@@ -1,42 +1,57 @@
 /**
- * FacturaForm – drawer de creación/edición de factura
- * Se controla desde useBoundStore con openDrawer('FACTURA_FORM', data?)
- *
- * Patrón sin useEffect:
- *   - FacturaForm (wrapper) solo decide si montar FacturaFormContent
- *   - FacturaFormContent recibe `key={id|'new'}` → React destruye y
- *     recrea el componente completo al cambiar el key, reseteando
- *     todo el estado local sin efectos secundarios.
+ * FacturaForm – drawer de creación/edición de factura.
+ * Se controla desde useBoundStore con openDrawer('FACTURA_FORM', data?).
  */
-
 import { useState } from 'react';
-import { X, Plus, Trash2, Save } from 'lucide-react';
+import { Plus, Trash2, Save, FileText } from 'lucide-react';
 import { useBoundStore } from '../../../../store/useBoundStore';
 import { useFactura } from '../api/useFactura';
+import Drawer from '../../../../shared/Drawer';
 import { Button } from '../../../../shared/Button';
+import { FormInput } from '../../../../shared/Form/FormInput';
+import { FormTextarea } from '../../../../shared/Form/FormTexarea';
+import { LABEL_BASE } from '../../../../shared/Form/styles';
+import cn from '../../../../utils/cn';
 
 const EMPTY_ITEM = { descripcion: '', cantidad: 1, precio_unitario: 0 };
 
 const buildInitialForm = (data) => ({
   cliente_id:        data?.cliente_id        ?? '',
-  fecha_emision:     data?.fecha_emision      ?? '',
-  fecha_vencimiento: data?.fecha_vencimiento  ?? '',
-  descuento:         data?.descuento          ?? 0,
-  impuestos:         data?.impuestos          ?? 0,
-  retencion:         data?.retencion          ?? 0,
-  observaciones:     data?.observaciones      ?? '',
+  fecha_emision:     data?.fecha_emision     ?? '',
+  fecha_vencimiento: data?.fecha_vencimiento ?? '',
+  descuento:         data?.descuento         ?? 0,
+  impuestos:         data?.impuestos         ?? 0,
+  retencion:         data?.retencion         ?? 0,
+  observaciones:     data?.observaciones     ?? '',
 });
 
-// ── Contenido del form — estado inicializado una sola vez en el montaje ──────
+const fmtCOP = (v) =>
+  Number(v).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+
+// Mini-input para celdas de la tabla de ítems (densidad alta).
+const RowInput = ({ value, onChange, type = 'text', placeholder, align = 'left', min }) => (
+  <input
+    type={type}
+    value={value}
+    onChange={onChange}
+    placeholder={placeholder}
+    min={min}
+    className={cn(
+      'w-full text-xs bg-transparent border border-transparent rounded-sm px-2 py-1',
+      'text-content-primary placeholder:text-content-muted',
+      'hover:border-border-base focus:outline-none focus:border-border-focus focus:bg-surface-base focus:ring-1 focus:ring-border-focus/30',
+      align === 'right' && 'text-right tabular-nums',
+    )}
+  />
+);
+
 const FacturaFormContent = ({ editData, closeDrawer }) => {
   const { createAsync, updateAsync, isCreating, isUpdating } = useFactura();
 
-  // Lazy init: la función se ejecuta solo al montar el componente
-  const [form, setForm]   = useState(() => buildInitialForm(editData));
+  const [form,  setForm]  = useState(() => buildInitialForm(editData));
   const [items, setItems] = useState(() =>
     editData?.items?.length ? editData.items : [{ ...EMPTY_ITEM }]
   );
-
   const [ivaActivo, setIvaActivo] = useState(() => Number(editData?.impuestos ?? 0) > 0);
   const [ivaPct,    setIvaPct]    = useState(19);
 
@@ -46,11 +61,10 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
   const addItem    = () => setItems((p) => [...p, { ...EMPTY_ITEM }]);
   const removeItem = (idx) => setItems((p) => p.filter((_, i) => i !== idx));
 
-  const subtotal   = items.reduce((acc, it) => acc + Number(it.precio_unitario) * Number(it.cantidad), 0);
-  const baseIva    = subtotal - Number(form.descuento);
-  const impuestos  = ivaActivo ? Math.round(baseIva * ivaPct / 100) : Number(form.impuestos);
-  const total      = subtotal - Number(form.descuento) + impuestos - Number(form.retencion);
-  const fmtCOP     = (v) => Number(v).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+  const subtotal  = items.reduce((acc, it) => acc + Number(it.precio_unitario) * Number(it.cantidad), 0);
+  const baseIva   = subtotal - Number(form.descuento);
+  const impuestos = ivaActivo ? Math.round(baseIva * ivaPct / 100) : Number(form.impuestos);
+  const total     = subtotal - Number(form.descuento) + impuestos - Number(form.retencion);
 
   const handleSubmit = async () => {
     const payload = { ...form, impuestos, items, subtotal, total };
@@ -65,188 +79,226 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
   const isSaving = isCreating || isUpdating;
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]" onClick={closeDrawer} />
-      <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
-          <div>
-            <h2 className="text-sm font-bold text-gray-900">
-              {editData ? 'Editar Factura' : 'Nueva Factura'}
-            </h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {editData ? `Modificando ${editData.numero}` : 'Complete los datos de la factura'}
-            </p>
+    <Drawer
+      isOpen
+      onClose={closeDrawer}
+      icon={FileText}
+      title={editData ? 'Editar factura' : 'Nueva factura'}
+      description={editData ? `Modificando ${editData.numero}` : 'Complete los datos de la factura'}
+      size="2xl"
+      footer={
+        <>
+          <Button variant="secondary" onClick={closeDrawer} disabled={isSaving}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleSubmit} loading={isSaving} icon={Save}>
+            {editData ? 'Actualizar' : 'Crear factura'}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-5">
+        {/* ─ Datos generales ─ */}
+        <section className="space-y-2.5">
+          <p className="text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">
+            Datos generales
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <FormInput
+              label="Cliente ID"
+              required
+              type="number"
+              placeholder="ID del cliente"
+              value={form.cliente_id}
+              onChange={(e) => setField('cliente_id', e.target.value)}
+            />
+            <FormInput
+              label="Fecha emisión"
+              required
+              type="date"
+              value={form.fecha_emision}
+              onChange={(e) => setField('fecha_emision', e.target.value)}
+            />
+            <FormInput
+              label="Fecha vencimiento"
+              type="date"
+              value={form.fecha_vencimiento}
+              onChange={(e) => setField('fecha_vencimiento', e.target.value)}
+            />
           </div>
-          <button onClick={closeDrawer} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-200">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+          <FormTextarea
+            label="Observaciones"
+            rows={2}
+            placeholder="Notas adicionales..."
+            value={form.observaciones}
+            onChange={(e) => setField('observaciones', e.target.value)}
+          />
+        </section>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        {/* ─ Ítems ─ */}
+        <section className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">
+              Ítems
+            </p>
+            <button
+              type="button"
+              onClick={addItem}
+              className="inline-flex items-center gap-1 text-xs text-semantic-info-fg hover:text-semantic-info font-medium"
+            >
+              <Plus size={12} /> Agregar ítem
+            </button>
+          </div>
 
-          <fieldset className="space-y-3">
-            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wider pb-1">Datos Generales</legend>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Cliente ID *</label>
-                <input type="number" value={form.cliente_id} onChange={(e) => setField('cliente_id', e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
-                  placeholder="ID del cliente" />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Fecha Emisión *</label>
-                <input type="date" value={form.fecha_emision} onChange={(e) => setField('fecha_emision', e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900" />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Fecha Vencimiento</label>
-                <input type="date" value={form.fecha_vencimiento} onChange={(e) => setField('fecha_vencimiento', e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Observaciones</label>
-              <textarea rows={2} value={form.observaciones} onChange={(e) => setField('observaciones', e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
-                placeholder="Notas adicionales..." />
-            </div>
-          </fieldset>
+          <div className="rounded-md border border-border-base overflow-hidden bg-surface-base">
+            <table className="w-full">
+              <thead className="bg-surface-muted border-b border-border-base">
+                <tr>
+                  <th className="px-3 py-1.5 text-left  text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Descripción</th>
+                  <th className="px-3 py-1.5 text-right text-[10px] font-semibold text-content-tertiary uppercase tracking-wider w-16">Cant.</th>
+                  <th className="px-3 py-1.5 text-right text-[10px] font-semibold text-content-tertiary uppercase tracking-wider w-28">P. Unit.</th>
+                  <th className="px-2 py-1.5 w-8" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-subtle">
+                {items.map((item, idx) => (
+                  <tr key={idx}>
+                    <td className="px-1.5 py-1">
+                      <RowInput
+                        value={item.descripcion}
+                        onChange={(e) => setItem(idx, 'descripcion', e.target.value)}
+                        placeholder="Descripción"
+                      />
+                    </td>
+                    <td className="px-1.5 py-1">
+                      <RowInput
+                        type="number" min="1" align="right"
+                        value={item.cantidad}
+                        onChange={(e) => setItem(idx, 'cantidad', e.target.value)}
+                      />
+                    </td>
+                    <td className="px-1.5 py-1">
+                      <RowInput
+                        type="number" min="0" align="right"
+                        value={item.precio_unitario}
+                        onChange={(e) => setItem(idx, 'precio_unitario', e.target.value)}
+                      />
+                    </td>
+                    <td className="px-1.5 py-1 text-center">
+                      {items.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeItem(idx)}
+                          className="text-content-muted hover:text-semantic-danger transition-colors"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-          <fieldset className="space-y-2">
-            <div className="flex items-center justify-between pb-1">
-              <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ítems</legend>
-              <button onClick={addItem} className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium">
-                <Plus className="w-3.5 h-3.5" /> Agregar ítem
+        {/* ─ Ajustes financieros ─ */}
+        <section className="space-y-2.5">
+          <p className="text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">
+            Ajustes financieros
+          </p>
+
+          <FormInput
+            label="Descuento ($)"
+            type="number" min="0"
+            value={form.descuento}
+            onChange={(e) => setField('descuento', e.target.value)}
+            className="text-right tabular-nums"
+          />
+
+          {/* IVA */}
+          <div className="rounded-md border border-border-base p-3 space-y-2 bg-surface-base">
+            <div className="flex items-center justify-between">
+              <label className={LABEL_BASE + ' mb-0'}>IVA</label>
+              <button
+                type="button"
+                onClick={() => setIvaActivo(v => !v)}
+                className={cn(
+                  'relative inline-flex h-5 w-9 items-center rounded-full transition-colors',
+                  ivaActivo ? 'bg-semantic-info' : 'bg-surface-strong',
+                )}
+              >
+                <span className={cn(
+                  'inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform',
+                  ivaActivo ? 'translate-x-4' : 'translate-x-1',
+                )} />
               </button>
             </div>
-            <div className="rounded-lg border border-gray-200 overflow-hidden">
-              <table className="w-full text-xs">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-gray-500">Descripción</th>
-                    <th className="px-3 py-2 text-right text-gray-500 w-16">Cant.</th>
-                    <th className="px-3 py-2 text-right text-gray-500 w-28">P. Unit.</th>
-                    <th className="px-3 py-2 w-8" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {items.map((item, idx) => (
-                    <tr key={idx}>
-                      <td className="px-2 py-1.5">
-                        <input type="text" value={item.descripcion} onChange={(e) => setItem(idx, 'descripcion', e.target.value)}
-                          className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-900"
-                          placeholder="Descripción" />
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <input type="number" value={item.cantidad} onChange={(e) => setItem(idx, 'cantidad', e.target.value)}
-                          className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right focus:outline-none focus:ring-1 focus:ring-gray-900" min="1" />
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <input type="number" value={item.precio_unitario} onChange={(e) => setItem(idx, 'precio_unitario', e.target.value)}
-                          className="w-full text-xs border border-gray-200 rounded px-2 py-1 text-right  focus:outline-none focus:ring-1 focus:ring-gray-900" min="0" />
-                      </td>
-                      <td className="px-2 py-1.5 text-center">
-                        {items.length > 1 && (
-                          <button onClick={() => removeItem(idx)} className="text-gray-400 hover:text-red-500 transition-colors">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </fieldset>
 
-          <fieldset className="space-y-3">
-            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wider pb-1">Ajustes Financieros</legend>
-
-            {/* Descuento */}
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Descuento ($)</label>
-              <input type="number" value={form.descuento} onChange={(e) => setField('descuento', e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right  focus:outline-none focus:ring-2 focus:ring-gray-900" min="0" />
-            </div>
-
-            {/* IVA toggle */}
-            <div className="rounded-lg border border-gray-200 p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-gray-600">IVA</label>
-                <button
-                  type="button"
-                  onClick={() => setIvaActivo(v => !v)}
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${ivaActivo ? 'bg-blue-600' : 'bg-gray-200'}`}
-                >
-                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${ivaActivo ? 'translate-x-4' : 'translate-x-1'}`} />
-                </button>
+            {ivaActivo ? (
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-content-tertiary shrink-0">Porcentaje:</label>
+                <div className="flex items-center border border-border-base rounded-md overflow-hidden">
+                  <input
+                    type="number" value={ivaPct} min="0" max="100"
+                    onChange={(e) => setIvaPct(Number(e.target.value))}
+                    className="w-16 text-sm px-2 py-1 text-right tabular-nums focus:outline-none bg-surface-base"
+                  />
+                  <span className="px-2 text-xs text-content-tertiary bg-surface-muted border-l border-border-base py-1">%</span>
+                </div>
+                <span className="text-xs text-semantic-info-fg font-semibold ml-auto tabular-nums">{fmtCOP(impuestos)}</span>
               </div>
-              {ivaActivo && (
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-500 shrink-0">Porcentaje:</label>
-                  <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                    <input
-                      type="number" value={ivaPct} min="0" max="100"
-                      onChange={(e) => setIvaPct(Number(e.target.value))}
-                      className="w-16 text-sm px-2 py-1.5 text-right  focus:outline-none"
-                    />
-                    <span className="px-2 text-xs text-gray-500 bg-gray-50 border-l border-gray-200 py-1.5">%</span>
-                  </div>
-                  <span className="text-xs text-blue-600 font-semibold  ml-auto">{fmtCOP(impuestos)}</span>
-                </div>
-              )}
-              {!ivaActivo && (
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Impuestos manuales ($)</label>
-                  <input type="number" value={form.impuestos} onChange={(e) => setField('impuestos', e.target.value)}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right  focus:outline-none focus:ring-2 focus:ring-gray-900" min="0" />
-                </div>
-              )}
-            </div>
+            ) : (
+              <FormInput
+                label="Impuestos manuales ($)"
+                type="number" min="0"
+                value={form.impuestos}
+                onChange={(e) => setField('impuestos', e.target.value)}
+                className="text-right tabular-nums"
+              />
+            )}
+          </div>
 
-            {/* Retención */}
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Retención ($)</label>
-              <input type="number" value={form.retencion} onChange={(e) => setField('retencion', e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right  focus:outline-none focus:ring-2 focus:ring-gray-900" min="0" />
-            </div>
-          </fieldset>
+          <FormInput
+            label="Retención ($)"
+            type="number" min="0"
+            value={form.retencion}
+            onChange={(e) => setField('retencion', e.target.value)}
+            className="text-right tabular-nums"
+          />
+        </section>
 
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-1.5 text-xs">
-            <div className="flex justify-between text-gray-500"><span>Subtotal</span><span className="">{fmtCOP(subtotal)}</span></div>
-            <div className="flex justify-between text-gray-500"><span>Descuento</span><span className=" text-red-600">- {fmtCOP(form.descuento)}</span></div>
-            <div className="flex justify-between text-gray-500">
-              <span>IVA{ivaActivo ? ` (${ivaPct}%)` : ' / Impuestos'}</span>
-              <span className="">{fmtCOP(impuestos)}</span>
-            </div>
-            <div className="flex justify-between text-gray-500"><span>Retención</span><span className=" text-red-600">- {fmtCOP(form.retencion)}</span></div>
-            <div className="border-t border-gray-300 pt-1.5 flex justify-between font-bold text-gray-900">
-              <span>Total</span><span className=" text-base">{fmtCOP(total)}</span>
-            </div>
+        {/* ─ Totales ─ */}
+        <div className="bg-surface-subtle border border-border-base rounded-md p-4 space-y-1.5 text-xs">
+          <div className="flex justify-between text-content-tertiary">
+            <span>Subtotal</span>
+            <span className="tabular-nums">{fmtCOP(subtotal)}</span>
+          </div>
+          <div className="flex justify-between text-content-tertiary">
+            <span>Descuento</span>
+            <span className="text-semantic-danger-fg tabular-nums">- {fmtCOP(form.descuento)}</span>
+          </div>
+          <div className="flex justify-between text-content-tertiary">
+            <span>IVA{ivaActivo ? ` (${ivaPct}%)` : ' / Impuestos'}</span>
+            <span className="tabular-nums">{fmtCOP(impuestos)}</span>
+          </div>
+          <div className="flex justify-between text-content-tertiary">
+            <span>Retención</span>
+            <span className="text-semantic-danger-fg tabular-nums">- {fmtCOP(form.retencion)}</span>
+          </div>
+          <div className="border-t border-border-base pt-1.5 flex justify-between font-semibold text-content-primary">
+            <span>Total</span>
+            <span className="text-base tabular-nums">{fmtCOP(total)}</span>
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="px-5 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-2">
-          <button onClick={closeDrawer} className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
-            Cancelar
-          </button>
-          <Button variant="black" onClick={handleSubmit} disabled={isSaving} icon={Save}>
-            {isSaving ? 'Guardando...' : editData ? 'Actualizar' : 'Crear Factura'}
-          </Button>
-        </div>
       </div>
-    </>
-  )
-}
+    </Drawer>
+  );
+};
 
 const FacturaForm = () => {
-
-  const activeDrawer = useBoundStore((s) => s.activeDrawer);  
-  const payload      = useBoundStore((s) => s.drawerPayload); 
+  const activeDrawer = useBoundStore((s) => s.activeDrawer);
+  const payload      = useBoundStore((s) => s.drawerPayload);
   const closeDrawer  = useBoundStore((s) => s.closeDrawer);
 
   if (activeDrawer !== 'FACTURA_FORM') return null;
@@ -257,7 +309,7 @@ const FacturaForm = () => {
       editData={payload}
       closeDrawer={closeDrawer}
     />
-  )
-}
+  );
+};
 
 export default FacturaForm;

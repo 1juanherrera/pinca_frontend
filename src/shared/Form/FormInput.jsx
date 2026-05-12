@@ -1,43 +1,50 @@
-// src/shared/Form/FormInput.jsx
 import { AlertCircle } from 'lucide-react';
+import cn from '../../utils/cn';
+import {
+  INPUT_BASE, INPUT_ERROR,
+  LABEL_BASE, LABEL_REQUIRED_MARK,
+  FIELD_ERROR, FIELD_WRAPPER,
+} from './styles';
 
-export const FormInput = ({ 
-  label, 
-  error, 
-  required = false, 
+export const FormInput = ({
+  label,
+  error,
+  required = false,
   leftSymbol,
   registration,
-  ...props 
+  className = '',
+  ...props
 }) => {
   return (
-    <div className="flex flex-col gap-1.5 w-full">
+    <div className={cn(FIELD_WRAPPER, 'w-full')}>
       {label && (
-        <label className="text-sm font-semibold text-zinc-700">
-          {label} {required && <span className="text-red-500">*</span>}
+        <label className={LABEL_BASE}>
+          {label}{required && <span className={LABEL_REQUIRED_MARK}>*</span>}
         </label>
       )}
-      
+
       <div className="relative">
         {leftSymbol && (
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm font-medium">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-content-tertiary text-xs font-medium pointer-events-none">
             {leftSymbol}
           </span>
         )}
-        
+
         <input
-          className={`w-full ${leftSymbol ? 'pl-8' : 'pl-4'} pr-4 py-2.5 bg-zinc-50 border rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:bg-white transition-all ${
-            error
-              ? 'border-red-400 focus:ring-red-500/20'
-              : 'border-zinc-200/80 focus:ring-zinc-900/10 focus:border-zinc-400'
-          }`}
-          {...registration} // <--- Esparcimos los eventos (onChange, onBlur, name, ref)
+          className={cn(
+            INPUT_BASE,
+            leftSymbol && 'pl-7',
+            error && INPUT_ERROR,
+            className,
+          )}
+          {...registration}
           {...props}
         />
       </div>
 
       {error && (
-        <span className="flex items-center gap-1 text-[11px] text-red-500 font-medium mt-1">
-          <AlertCircle size={12}/> {error}
+        <span className={FIELD_ERROR}>
+          <AlertCircle size={11} /> {error}
         </span>
       )}
     </div>

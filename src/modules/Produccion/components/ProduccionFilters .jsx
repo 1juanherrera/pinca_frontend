@@ -3,11 +3,11 @@ import { Search, SlidersHorizontal, X } from 'lucide-react';
 const ESTADOS = ['TODOS', 'PENDIENTE', 'EN_PROCESO', 'COMPLETADA', 'CANCELADA'];
 
 const ESTADO_CONFIG = {
-  TODOS:      { label: 'Todos',       dot: 'bg-zinc-400'    },
-  PENDIENTE:  { label: 'Pendiente',   dot: 'bg-amber-400'   },
-  EN_PROCESO: { label: 'En proceso',  dot: 'bg-blue-500'    },
-  COMPLETADA: { label: 'Completada',  dot: 'bg-emerald-500' },
-  CANCELADA:  { label: 'Cancelada',   dot: 'bg-red-400'     },
+  TODOS:      { label: 'Todos',       dot: 'bg-content-muted'    },
+  PENDIENTE:  { label: 'Pendiente',   dot: 'bg-semantic-warning'   },
+  EN_PROCESO: { label: 'En proceso',  dot: 'bg-semantic-info'    },
+  COMPLETADA: { label: 'Completada',  dot: 'bg-semantic-success' },
+  CANCELADA:  { label: 'Cancelada',   dot: 'bg-semantic-danger/80'     },
 };
 
 export const ProduccionFilters = ({ filters, onChange, itemOptions = [] }) => {
@@ -29,13 +29,13 @@ export const ProduccionFilters = ({ filters, onChange, itemOptions = [] }) => {
 
         {/* Búsqueda */}
         <div className="relative flex-1 min-w-48">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
           <input
             type="text"
             placeholder="Buscar por producto o código…"
             value={filters.search}
             onChange={e => onChange({ ...filters, search: e.target.value })}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-zinc-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900 transition placeholder:text-zinc-300"
+            className="w-full pl-9 pr-4 py-2 text-sm border border-border-base rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition placeholder:text-content-muted"
           />
         </div>
 
@@ -44,7 +44,7 @@ export const ProduccionFilters = ({ filters, onChange, itemOptions = [] }) => {
           <select
             value={filters.item}
             onChange={e => onChange({ ...filters, item: e.target.value })}
-            className="px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-white text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition"
+            className="px-3 py-2 text-sm border border-border-base rounded-lg bg-white text-content-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition"
           >
             <option value="">Todos los productos</option>
             {itemOptions.map(opt => (
@@ -59,15 +59,15 @@ export const ProduccionFilters = ({ filters, onChange, itemOptions = [] }) => {
             type="date"
             value={filters.desde}
             onChange={e => onChange({ ...filters, desde: e.target.value })}
-            className="px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-white text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition"
+            className="px-3 py-2 text-sm border border-border-base rounded-lg bg-white text-content-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition"
           />
-          <span className="text-zinc-300 text-xs font-medium">→</span>
+          <span className="text-content-muted text-xs font-medium">→</span>
           <input
             type="date"
             value={filters.hasta}
             min={filters.desde || undefined}
             onChange={e => onChange({ ...filters, hasta: e.target.value })}
-            className="px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-white text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition"
+            className="px-3 py-2 text-sm border border-border-base rounded-lg bg-white text-content-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition"
           />
         </div>
 
@@ -75,7 +75,7 @@ export const ProduccionFilters = ({ filters, onChange, itemOptions = [] }) => {
         {hasActiveFilters && (
           <button
             onClick={clearAll}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-500 border border-red-100 bg-red-50 rounded-lg hover:bg-red-100 transition"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-semantic-danger border border-semantic-danger/15 bg-semantic-danger-subtle rounded-lg hover:bg-semantic-danger-subtle transition"
           >
             <X size={12} /> Limpiar filtros
           </button>
@@ -84,7 +84,7 @@ export const ProduccionFilters = ({ filters, onChange, itemOptions = [] }) => {
 
       {/* Fila 2: tabs de estado */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        <SlidersHorizontal size={12} className="text-zinc-400 mr-1" />
+        <SlidersHorizontal size={12} className="text-content-muted mr-1" />
         {ESTADOS.map(estado => {
           const cfg      = ESTADO_CONFIG[estado];
           const selected = filters.estado === estado;
@@ -94,8 +94,8 @@ export const ProduccionFilters = ({ filters, onChange, itemOptions = [] }) => {
               onClick={() => onChange({ ...filters, estado })}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
                 ${selected
-                  ? 'bg-zinc-950 text-white shadow-sm'
-                  : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
+                  ? 'bg-content-primary text-white shadow-sm'
+                  : 'bg-surface-muted text-content-tertiary hover:bg-surface-strong'
                 }`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />

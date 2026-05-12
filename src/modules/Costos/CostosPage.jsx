@@ -140,16 +140,16 @@ const CostosPage = () => {
       />
 
       {/* ── Tabs ────────────────────────────────────────────────────────────── */}
-      <div className="bg-white border border-zinc-100 rounded-2xl shadow-sm overflow-hidden">
-        <div className="flex items-center gap-1 px-4 pt-3 border-b border-zinc-100">
+      <div className="bg-white border border-border-subtle rounded-2xl shadow-sm overflow-hidden">
+        <div className="flex items-center gap-1 px-4 pt-3 border-b border-border-subtle">
           {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setTab(id)}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all -mb-px ${
                 tab === id
-                  ? 'border-zinc-900 text-zinc-900'
-                  : 'border-transparent text-zinc-400 hover:text-zinc-600'
+                  ? 'border-content-primary text-content-primary'
+                  : 'border-transparent text-content-muted hover:text-content-secondary'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />

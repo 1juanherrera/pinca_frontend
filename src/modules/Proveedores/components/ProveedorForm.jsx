@@ -58,7 +58,7 @@ const ProveedorForm = () => {
           <button
             onClick={handleClose}
             type="button"
-            className="px-5 py-2.5 text-sm font-semibold text-zinc-600 bg-white border border-zinc-200/80 rounded-xl hover:bg-zinc-50 transition-all"
+            className="px-5 py-2.5 text-sm font-semibold text-content-secondary bg-white border border-border-base/80 rounded-xl hover:bg-surface-subtle transition-all"
           >
             Cancelar
           </button>
@@ -66,7 +66,7 @@ const ProveedorForm = () => {
             type="submit"
             form="proveedor-form"
             disabled={isSaving}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 disabled:opacity-70 transition-all shadow-md shadow-emerald-600/20"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-semantic-success rounded-xl hover:bg-semantic-success disabled:opacity-70 transition-all shadow-md shadow-sm"
           >
             {isSaving ? (
               <span className="flex items-center gap-2">

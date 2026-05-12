@@ -2,44 +2,16 @@ import { useMemo } from 'react';
 import { DollarSign, AlertTriangle, TrendingUp, Users, TriangleAlert } from 'lucide-react';
 import ERPTable    from '../../../shared/ERPTable';
 import StatusBadge from '../../../shared/StatusBadge';
+import FlowCard    from '../../../shared/FlowCard';
 import { fmt, formatLetterDate } from '../../../utils/formatters';
 import { useResumenCartera, useAgingCartera } from '../api/useCartera';
 
-/* ─── Mismo KPICard que ProduccionKPIs ────────────────────── */
-const THEME = {
-  zinc:    { iconBg: 'bg-zinc-100',    iconText: 'text-zinc-600',    value: 'text-zinc-700'    },
-  amber:   { iconBg: 'bg-amber-100',   iconText: 'text-amber-600',   value: 'text-amber-600'   },
-  blue:    { iconBg: 'bg-blue-100',    iconText: 'text-blue-600',    value: 'text-blue-600'    },
-  emerald: { iconBg: 'bg-emerald-100', iconText: 'text-emerald-600', value: 'text-emerald-600' },
-  red:     { iconBg: 'bg-red-100',     iconText: 'text-red-500',     value: 'text-red-500'     },
-}
-
-const KPICard = ({ icon: Icon, label, value, sub, theme = 'zinc' }) => {
-  const t = THEME[theme] ?? THEME.zinc;
-  return (
-    <div className="bg-white rounded-lg border border-zinc-200/60 shadow-sm px-3 py-2 transition-all hover:shadow-md group">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-medium text-zinc-500">{label}</p>
-          <p className={`text-lg font-bold ${t.value}`}>{value}</p>
-          {sub && <p className="text-[10px] text-zinc-400 font-medium">{sub}</p>}
-        </div>
-        <div className={`h-10 w-10 ${t.iconBg} rounded-full flex items-center justify-center transition-transform group-hover:scale-110 shrink-0`}>
-          <Icon className={`h-5 w-5 ${t.iconText}`} />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
-/* ─── Columnas tabla mora ──────────────────────────────────── */
 const columnsVencidas = [
   {
     key: 'numero',
     label: 'Factura',
     render: (v) => (
-      <span className=" text-[11px] font-medium text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded">
+      <span className="text-[11px] font-mono font-medium text-content-secondary bg-surface-muted px-2 py-0.5 rounded-sm">
         {v}
       </span>
     ),
@@ -48,7 +20,7 @@ const columnsVencidas = [
     key: 'cliente',
     label: 'Cliente',
     render: (_, row) => (
-      <span className="text-xs font-semibold text-zinc-800 truncate max-w-40 block">
+      <span className="text-xs font-semibold text-content-primary truncate max-w-40 block">
         {row.nombre_empresa || row.nombre_encargado || `#${row.cliente_id}`}
       </span>
     ),
@@ -57,7 +29,7 @@ const columnsVencidas = [
     key: 'fecha_vencimiento',
     label: 'Venció',
     render: (v) => (
-      <span className="text-[11px] text-zinc-500 uppercase">{formatLetterDate(v)}</span>
+      <span className="text-[11px] text-content-tertiary uppercase">{formatLetterDate(v)}</span>
     ),
   },
   {
@@ -66,15 +38,8 @@ const columnsVencidas = [
     align: 'center',
     render: (v) => {
       const d = Number(v);
-      const cls =
-        d > 60 ? 'bg-red-50 text-red-700 border-red-200'
-        : d > 30 ? 'bg-orange-50 text-orange-700 border-orange-200'
-        : 'bg-amber-50 text-amber-700 border-amber-200';
-      return (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${cls}`}>
-          {d}d
-        </span>
-      );
+      const tone = d > 60 ? 'danger' : d > 30 ? 'warning' : 'warning';
+      return <StatusBadge tone={tone} label={`${d}d`} dot={false} size="sm" />;
     },
   },
   {
@@ -82,18 +47,17 @@ const columnsVencidas = [
     label: 'Saldo',
     align: 'right',
     render: (v) => (
-      <span className=" text-xs font-semibold tabular-nums text-zinc-900">{fmt(v)}</span>
+      <span className="text-xs font-semibold tabular-nums text-content-primary">{fmt(v)}</span>
     ),
   },
   {
     key: 'estado',
     label: 'Estado',
     align: 'center',
-    render: (v) => <StatusBadge estado={v} />,
+    render: (v) => <StatusBadge estado={v} size="sm" />,
   },
 ];
 
-/* ─── Componente principal ─────────────────────────────────── */
 const DashboardCartera = () => {
   const { resumen, isLoadingResumen } = useResumenCartera();
   const { aging,   isLoadingAging   } = useAgingCartera();
@@ -109,50 +73,49 @@ const DashboardCartera = () => {
 
   return (
     <div className="flex flex-col w-full gap-4">
-
-      {/* ── KPIs ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KPICard
+      {/* ── FlowCards KPI (estilo Torre Control) ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <FlowCard
           icon={DollarSign}
+          tone="info"
           label="Total cartera"
           value={isLoadingResumen ? '…' : fmt(resumen?.total_cartera ?? 0)}
           sub="cartera activa"
-          theme="blue"
         />
-        <KPICard
+        <FlowCard
           icon={AlertTriangle}
+          tone="danger"
           label="Cartera vencida"
           value={isLoadingResumen ? '…' : fmt(resumen?.cartera_vencida ?? 0)}
           sub="requiere gestión"
-          theme="red"
         />
-        <KPICard
+        <FlowCard
           icon={TrendingUp}
+          tone="success"
           label="Recaudo del mes"
           value={isLoadingResumen ? '…' : fmt(resumen?.recaudo_mes ?? 0)}
           sub="ingresos cobrados"
-          theme="emerald"
         />
-        <KPICard
+        <FlowCard
           icon={Users}
+          tone="warning"
           label="Clientes en mora"
           value={isLoadingResumen ? '…' : resumen?.clientes_en_mora ?? 0}
           sub={resumen?.factura_mas_vieja ? `Más vieja: ${resumen.factura_mas_vieja.dias_mora}d` : 'con saldo vencido'}
-          theme="amber"
         />
       </div>
 
-      {/* ── Tabla mora ── */}
-      <div className="bg-white border border-zinc-100 rounded-2xl shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100">
-          <p className="text-xs font-bold text-zinc-500">
+      {/* ── Tabla mora con header limpio ── */}
+      <div>
+        <div className="flex items-center justify-between px-1 mb-2.5">
+          <p className="text-[11px] font-semibold text-content-tertiary uppercase tracking-wider">
             {isLoadingAging
-              ? 'Cargando facturas…'
+              ? 'Cargando facturas...'
               : `${facturasVencidas.length} ${facturasVencidas.length === 1 ? 'factura' : 'facturas'} en mora`}
           </p>
           {!isLoadingAging && facturasVencidas.length > 0 && (
-            <span className="text-[10px] flex justify-center items-center gap-1 font-bold text-red-500 uppercase tracking-widest">
-              <TriangleAlert size={16} className="animate-pulse"/> Requieren gestión
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-semantic-danger-fg uppercase tracking-wider">
+              <TriangleAlert size={12} className="animate-pulse" /> Requieren gestión
             </span>
           )}
         </div>
@@ -160,10 +123,11 @@ const DashboardCartera = () => {
           columns={columnsVencidas}
           data={facturasVencidas}
           isLoading={isLoadingAging}
-          emptyMessage="No hay facturas vencidas 🎉"
+          variant="cards"
+          emptyMessage="No hay facturas vencidas"
+          emptySubMessage="Excelente trabajo manteniendo la cartera al día."
         />
       </div>
-
     </div>
   );
 };

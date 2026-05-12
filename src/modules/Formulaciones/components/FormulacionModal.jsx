@@ -72,34 +72,34 @@ const IngredientCard = ({
     onCostoChange(field.id, { costoUnitario: costoEfectivo, stockDisponible: stockEfectivo, hasDeficit });
   }, [costoEfectivo, stockEfectivo, hasDeficit, field.id, onCostoChange]);
 
-  const stockBarColor = isLoading ? 'bg-zinc-200 animate-pulse'
-    : hasDeficit        ? 'bg-red-400'
-    : stockEfectivo > 0 ? 'bg-emerald-400'
-    : 'bg-zinc-300';
+  const stockBarColor = isLoading ? 'bg-surface-strong animate-pulse'
+    : hasDeficit        ? 'bg-semantic-danger/80'
+    : stockEfectivo > 0 ? 'bg-semantic-success/80'
+    : 'bg-surface-strong';
 
-  const stockTextColor = hasDeficit ? 'text-red-600'
-    : stockEfectivo > 0 ? 'text-emerald-700'
-    : 'text-zinc-400';
+  const stockTextColor = hasDeficit ? 'text-semantic-danger-fg'
+    : stockEfectivo > 0 ? 'text-semantic-success-fg'
+    : 'text-content-muted';
 
-  const subtotalColor = !subtotal ? 'text-zinc-300'
-    : hasDeficit ? 'text-red-600'
-    : 'text-zinc-800';
+  const subtotalColor = !subtotal ? 'text-content-muted'
+    : hasDeficit ? 'text-semantic-danger-fg'
+    : 'text-content-primary';
 
   return (
     <div className={`rounded-2xl border overflow-hidden animate-in slide-in-from-left-4 duration-200 transition-colors ${
-      hasDeficit ? 'border-red-200' : 'border-zinc-100'
+      hasDeficit ? 'border-semantic-danger/20' : 'border-border-subtle'
     }`}>
       {/* Cabecera */}
-      <div className={`flex items-center gap-2 px-3 py-2.5 ${hasDeficit ? 'bg-red-50' : 'bg-zinc-50'}`}>
-        <span className="w-5 h-5 flex items-center justify-center rounded bg-zinc-200 text-[9px] font-black text-zinc-500 shrink-0">
+      <div className={`flex items-center gap-2 px-3 py-2.5 ${hasDeficit ? 'bg-semantic-danger-subtle' : 'bg-surface-subtle'}`}>
+        <span className="w-5 h-5 flex items-center justify-center rounded bg-surface-strong text-[9px] font-black text-content-tertiary shrink-0">
           {String(index + 1).padStart(2, '0')}
         </span>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold text-zinc-800 truncate leading-none">{field.nombre}</p>
+          <p className="text-xs font-bold text-content-primary truncate leading-none">{field.nombre}</p>
           {field.fuente === 'proveedor' && field.proveedor_nombre && (
             <span className="flex items-center gap-0.5 mt-0.5">
-              <Truck size={8} className="text-amber-500" />
-              <span className="text-[9px] text-amber-600">{field.proveedor_nombre}</span>
+              <Truck size={8} className="text-semantic-warning" />
+              <span className="text-[9px] text-semantic-warning-fg">{field.proveedor_nombre}</span>
             </span>
           )}
         </div>
@@ -110,7 +110,7 @@ const IngredientCard = ({
             value={proveedorId ?? ''}
             onChange={e => onProveedorChange(field.id, e.target.value ? parseInt(e.target.value) : null)}
             tabIndex={tabBase + 1}
-            className="text-[10px] border border-zinc-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900 max-w-[150px] shrink-0"
+            className="text-[10px] border border-border-base rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-brand-primary/30 max-w-[150px] shrink-0"
           >
             <option value="">— Todo stock —</option>
             {proveedoresDisponibles.map(p => (
@@ -121,31 +121,31 @@ const IngredientCard = ({
           </select>
         )}
         {modoGlobal === 'MANUAL' && isLoading && (
-          <div className="h-6 w-28 bg-zinc-200 animate-pulse rounded-lg shrink-0" />
+          <div className="h-6 w-28 bg-surface-strong animate-pulse rounded-lg shrink-0" />
         )}
 
         <button
           type="button"
           onClick={() => onRemove(index)}
           tabIndex={-1}
-          className="w-7 h-7 flex items-center justify-center rounded-lg text-zinc-300 hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-content-muted hover:bg-semantic-danger-subtle hover:text-semantic-danger transition-all shrink-0"
         >
           <Trash2 size={13} />
         </button>
       </div>
 
       {/* Cuerpo: 3 celdas */}
-      <div className="grid grid-cols-3 divide-x divide-zinc-100 bg-white">
+      <div className="grid grid-cols-3 divide-x divide-border-subtle bg-white">
         {/* Cantidad */}
         <div className="px-3 py-2.5 flex flex-col gap-1">
           <div className="flex items-center justify-between mb-0.5">
-            <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Cantidad</label>
+            <label className="text-[9px] font-bold text-content-muted uppercase tracking-widest">Cantidad</label>
             <button
               type="button"
               tabIndex={-1}
               onClick={() => setUnidad(u => u === 'kg' ? 'g' : 'kg')}
               title={unidad === 'kg' ? 'Cambiar a gramos' : 'Cambiar a kilogramos'}
-              className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-zinc-100 text-zinc-500 hover:bg-zinc-900 hover:text-white transition-colors"
+              className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-surface-muted text-content-tertiary hover:bg-content-primary hover:text-white transition-colors"
             >
               {unidad}
             </button>
@@ -160,11 +160,11 @@ const IngredientCard = ({
               required: true, valueAsNumber: true, min: 0.001,
             })}
             placeholder="0.000"
-            className={`w-full text-sm font-bold text-center rounded-lg px-2 py-1.5 border focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums transition-colors ${
+            className={`w-full text-sm font-bold text-center rounded-lg px-2 py-1.5 border focus:outline-none focus:ring-1 focus:ring-brand-primary/30 tabular-nums transition-colors ${
               unidad === 'g' ? 'hidden' : ''
             } ${errors?.materias_primas?.[index]?.cantidad
-                ? 'border-red-300 bg-red-50 text-red-700'
-                : 'border-zinc-200 text-zinc-800'
+                ? 'border-semantic-danger/30 bg-semantic-danger-subtle text-semantic-danger-fg'
+                : 'border-border-base text-content-primary'
             }`}
           />
           {/* Input proxy en gramos: solo visible en modo 'g' */}
@@ -177,15 +177,15 @@ const IngredientCard = ({
               value={parseFloat(quantity) > 0 ? Math.round(parseFloat(quantity) * 1000) : ''}
               onChange={(e) => setValue(`materias_primas.${index}.cantidad`, (parseFloat(e.target.value) || 0) / 1000)}
               placeholder="0 g"
-              className={`w-full text-sm font-bold text-center rounded-lg px-2 py-1.5 border focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums transition-colors ${
+              className={`w-full text-sm font-bold text-center rounded-lg px-2 py-1.5 border focus:outline-none focus:ring-1 focus:ring-brand-primary/30 tabular-nums transition-colors ${
                 errors?.materias_primas?.[index]?.cantidad
-                  ? 'border-red-300 bg-red-50 text-red-700'
-                  : 'border-zinc-200 text-zinc-800'
+                  ? 'border-semantic-danger/30 bg-semantic-danger-subtle text-semantic-danger-fg'
+                  : 'border-border-base text-content-primary'
               }`}
             />
           )}
           {errors?.materias_primas?.[index]?.cantidad && (
-            <p className="text-[9px] text-red-500 flex items-center gap-0.5">
+            <p className="text-[9px] text-semantic-danger flex items-center gap-0.5">
               <AlertTriangle size={8} /> Requerido
             </p>
           )}
@@ -193,15 +193,15 @@ const IngredientCard = ({
 
         {/* Stock */}
         <div className="px-3 py-2.5 flex flex-col gap-1.5 justify-center">
-          <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Disponibilidad</label>
+          <label className="text-[9px] font-bold text-content-muted uppercase tracking-widest">Disponibilidad</label>
           {isLoading ? (
             <div className="space-y-1.5">
-              <div className="h-1.5 bg-zinc-200 rounded-full animate-pulse" />
-              <div className="h-3 bg-zinc-200 rounded w-3/4 animate-pulse" />
+              <div className="h-1.5 bg-surface-strong rounded-full animate-pulse" />
+              <div className="h-3 bg-surface-strong rounded w-3/4 animate-pulse" />
             </div>
           ) : (
             <>
-              <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+              <div className="w-full h-1.5 bg-surface-muted rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${stockBarColor}`}
                   style={{ width: `${pctStock}%` }}
@@ -213,7 +213,7 @@ const IngredientCard = ({
                   ? <span className="flex items-center gap-0.5"><AlertTriangle size={8} /> Déficit</span>
                   : stockEfectivo > 0
                     ? <span className="flex items-center gap-0.5"><CheckCircle2 size={8} /> OK</span>
-                    : <span className="text-zinc-400">Sin stock</span>
+                    : <span className="text-content-muted">Sin stock</span>
                 }
               </div>
             </>
@@ -222,15 +222,15 @@ const IngredientCard = ({
 
         {/* Costo / Subtotal */}
         <div className="px-3 py-2.5 flex flex-col gap-0.5 justify-center">
-          <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Costo</label>
+          <label className="text-[9px] font-bold text-content-muted uppercase tracking-widest">Costo</label>
           {isLoading ? (
             <div className="space-y-1.5">
-              <div className="h-3 bg-zinc-200 rounded w-3/4 animate-pulse" />
-              <div className="h-4 bg-zinc-200 rounded animate-pulse" />
+              <div className="h-3 bg-surface-strong rounded w-3/4 animate-pulse" />
+              <div className="h-4 bg-surface-strong rounded animate-pulse" />
             </div>
           ) : (
             <>
-              <p className="text-[10px] text-zinc-500 tabular-nums">
+              <p className="text-[10px] text-content-tertiary tabular-nums">
                 {costoEfectivo > 0 ? `${fmtCOP(costoEfectivo)}/kg` : '—'}
               </p>
               <p className={`text-sm font-black tabular-nums transition-colors duration-300 ${subtotalColor}`}>
@@ -243,17 +243,17 @@ const IngredientCard = ({
 
       {/* Alerta inline de déficit */}
       {hasDeficit && (
-        <div className="flex items-center justify-between gap-2 px-3 py-2 bg-red-50 border-t border-red-100">
+        <div className="flex items-center justify-between gap-2 px-3 py-2 bg-semantic-danger-subtle border-t border-semantic-danger/15">
           <div className="flex items-center gap-1.5 min-w-0">
-            <AlertTriangle size={10} className="text-red-500 shrink-0" />
-            <p className="text-[10px] text-red-700 font-medium truncate">
+            <AlertTriangle size={10} className="text-semantic-danger shrink-0" />
+            <p className="text-[10px] text-semantic-danger-fg font-medium truncate">
               Faltan {fmtKg(cantidadNecesaria - stockEfectivo, 1)} kg
               {provActual ? ` con ${provActual.nombre}` : ' en stock total'}
             </p>
           </div>
           <Link
             to={`/compras?item_id=${field.materia_prima_id}${proveedorId ? `&proveedor_id=${proveedorId}` : ''}`}
-            className="shrink-0 flex items-center gap-1 text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg hover:bg-amber-100 transition-colors"
+            className="shrink-0 flex items-center gap-1 text-[9px] font-bold text-semantic-warning-fg bg-semantic-warning-subtle border border-semantic-warning/20 px-2 py-1 rounded-lg hover:bg-semantic-warning-subtle transition-colors"
           >
             <ShoppingCart size={8} /> Generar OC
           </Link>
@@ -450,33 +450,33 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-content-primary/50 backdrop-blur-sm">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]">
 
         {/* ─── HEADER ───────────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-zinc-900 text-white rounded-xl flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 bg-content-primary text-white rounded-xl flex items-center justify-center shrink-0">
               <FlaskConical size={18} />
             </div>
             <div>
-              <h2 className="text-base font-bold text-zinc-900 tracking-tight leading-none">
+              <h2 className="text-base font-bold text-content-primary tracking-tight leading-none">
                 {formulacion ? 'Editar Formulación' : 'Nueva Formulación'}
               </h2>
-              <p className="text-[10px] text-zinc-400 mt-0.5">Dashboard de Composición y Costeo</p>
+              <p className="text-[10px] text-content-muted mt-0.5">Dashboard de Composición y Costeo</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             {/* Toggle FIFO / Manual */}
-            <div className="flex items-center gap-1 p-1 bg-zinc-100 rounded-xl border border-zinc-200">
+            <div className="flex items-center gap-1 p-1 bg-surface-muted rounded-xl border border-border-base">
               <button
                 type="button"
                 onClick={() => setModoGlobal('FIFO')}
                 className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all ${
                   modoGlobal === 'FIFO'
-                    ? 'bg-white text-zinc-900 shadow-sm'
-                    : 'text-zinc-400 hover:text-zinc-600'
+                    ? 'bg-white text-content-primary shadow-sm'
+                    : 'text-content-muted hover:text-content-secondary'
                 }`}
               >
                 <Layers size={10} /> FIFO Auto
@@ -486,8 +486,8 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                 onClick={() => setModoGlobal('MANUAL')}
                 className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all ${
                   modoGlobal === 'MANUAL'
-                    ? 'bg-white text-zinc-900 shadow-sm'
-                    : 'text-zinc-400 hover:text-zinc-600'
+                    ? 'bg-white text-content-primary shadow-sm'
+                    : 'text-content-muted hover:text-content-secondary'
                 }`}
               >
                 <TrendingUp size={10} /> Manual
@@ -495,7 +495,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
             </div>
             <button
               onClick={handleClose}
-              className="p-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-full transition-colors"
+              className="p-2 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-full transition-colors"
             >
               <X size={20} />
             </button>
@@ -512,41 +512,41 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
               <div className="space-y-5 animate-pulse">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <div className="h-3 w-20 bg-zinc-200 rounded" />
-                    <div className="h-9 bg-zinc-100 rounded-xl" />
+                    <div className="h-3 w-20 bg-surface-strong rounded" />
+                    <div className="h-9 bg-surface-muted rounded-xl" />
                   </div>
                   <div className="space-y-2">
-                    <div className="h-3 w-32 bg-zinc-200 rounded" />
-                    <div className="h-9 bg-zinc-100 rounded-xl" />
+                    <div className="h-3 w-32 bg-surface-strong rounded" />
+                    <div className="h-9 bg-surface-muted rounded-xl" />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <div className="h-3 w-40 bg-zinc-200 rounded" />
-                  <div className="h-20 bg-zinc-100 rounded-xl" />
+                  <div className="h-3 w-40 bg-surface-strong rounded" />
+                  <div className="h-20 bg-surface-muted rounded-xl" />
                 </div>
-                <div className="h-3 w-28 bg-zinc-200 rounded" />
-                <div className="h-10 bg-zinc-100 rounded-xl" />
+                <div className="h-3 w-28 bg-surface-strong rounded" />
+                <div className="h-10 bg-surface-muted rounded-xl" />
                 <div className="space-y-2.5">
                   {[...Array(4)].map((_, i) => (
-                    <div key={i} className="rounded-2xl border border-zinc-100 overflow-hidden">
-                      <div className="h-10 bg-zinc-50 px-3 flex items-center gap-2">
-                        <div className="h-5 w-5 bg-zinc-200 rounded" />
-                        <div className="h-3 bg-zinc-200 rounded w-40" />
+                    <div key={i} className="rounded-2xl border border-border-subtle overflow-hidden">
+                      <div className="h-10 bg-surface-subtle px-3 flex items-center gap-2">
+                        <div className="h-5 w-5 bg-surface-strong rounded" />
+                        <div className="h-3 bg-surface-strong rounded w-40" />
                       </div>
-                      <div className="grid grid-cols-3 divide-x divide-zinc-100">
+                      <div className="grid grid-cols-3 divide-x divide-border-subtle">
                         <div className="px-3 py-3 space-y-2">
-                          <div className="h-2.5 bg-zinc-100 rounded w-12" />
-                          <div className="h-7 bg-zinc-100 rounded-lg" />
+                          <div className="h-2.5 bg-surface-muted rounded w-12" />
+                          <div className="h-7 bg-surface-muted rounded-lg" />
                         </div>
                         <div className="px-3 py-3 space-y-2">
-                          <div className="h-2.5 bg-zinc-100 rounded w-16" />
-                          <div className="h-1.5 bg-zinc-100 rounded-full" />
-                          <div className="h-2.5 bg-zinc-100 rounded w-24" />
+                          <div className="h-2.5 bg-surface-muted rounded w-16" />
+                          <div className="h-1.5 bg-surface-muted rounded-full" />
+                          <div className="h-2.5 bg-surface-muted rounded w-24" />
                         </div>
                         <div className="px-3 py-3 space-y-2">
-                          <div className="h-2.5 bg-zinc-100 rounded w-10" />
-                          <div className="h-3 bg-zinc-100 rounded w-20" />
-                          <div className="h-5 bg-zinc-100 rounded w-24" />
+                          <div className="h-2.5 bg-surface-muted rounded w-10" />
+                          <div className="h-3 bg-surface-muted rounded w-20" />
+                          <div className="h-5 bg-surface-muted rounded w-24" />
                         </div>
                       </div>
                     </div>
@@ -577,34 +577,34 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                 />
                 {!showNuevoProducto ? (
                   <button type="button" onClick={() => setShowNuevoProducto(true)}
-                    className="flex items-center gap-1 text-[10px] font-semibold text-zinc-400 hover:text-zinc-700 transition-colors">
+                    className="flex items-center gap-1 text-[10px] font-semibold text-content-muted hover:text-content-secondary transition-colors">
                     <PlusCircle size={10} /> Crear nuevo producto
                   </button>
                 ) : (
-                  <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-2 animate-in slide-in-from-top-2 duration-150">
+                  <div className="p-3 bg-surface-subtle border border-border-base rounded-xl space-y-2 animate-in slide-in-from-top-2 duration-150">
                     <div className="flex items-center gap-2">
-                      <PackagePlus size={12} className="text-zinc-500" />
-                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Nuevo producto</span>
+                      <PackagePlus size={12} className="text-content-tertiary" />
+                      <span className="text-[10px] font-bold text-content-tertiary uppercase tracking-widest">Nuevo producto</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <input type="text" value={nuevoProductoData.nombre}
                         onChange={e => setNuevoProductoData(p => ({ ...p, nombre: e.target.value }))}
                         placeholder="Nombre *"
-                        className="px-3 py-1.5 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 bg-white placeholder:text-zinc-300" />
+                        className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-white placeholder:text-content-muted" />
                       <input type="text" value={nuevoProductoData.codigo}
                         onChange={e => setNuevoProductoData(p => ({ ...p, codigo: e.target.value }))}
                         placeholder="Código (opcional)"
-                        className="px-3 py-1.5 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 bg-white placeholder:text-zinc-300" />
+                        className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-white placeholder:text-content-muted" />
                     </div>
                     <div className="flex justify-end gap-2">
                       <button type="button"
                         onClick={() => { setShowNuevoProducto(false); setNuevoProductoData(EMPTY_PRODUCTO); }}
-                        className="px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 transition-colors">
+                        className="px-3 py-1.5 text-xs text-content-tertiary hover:text-content-secondary transition-colors">
                         Cancelar
                       </button>
                       <button type="button" onClick={handleCrearProducto}
                         disabled={isActioning || !nuevoProductoData.nombre.trim()}
-                        className="px-3 py-1.5 text-xs font-semibold bg-zinc-900 text-white rounded-lg hover:bg-zinc-700 disabled:opacity-40 transition-colors">
+                        className="px-3 py-1.5 text-xs font-semibold bg-content-primary text-white rounded-lg hover:bg-content-secondary disabled:opacity-40 transition-colors">
                         {isActioning ? 'Creando...' : '+ Crear'}
                       </button>
                     </div>
@@ -628,19 +628,19 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
             {/* Sección 2: Buscador */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                  Ingredientes {fields.length > 0 && <span className="text-zinc-600">({fields.length})</span>}
+                <label className="text-[10px] font-bold text-content-muted uppercase tracking-widest">
+                  Ingredientes {fields.length > 0 && <span className="text-content-secondary">({fields.length})</span>}
                 </label>
                 {!showNuevaMp && (
                   <button type="button" onClick={() => setShowNuevaMp(true)}
-                    className="flex items-center gap-1 text-[10px] font-semibold text-zinc-400 hover:text-zinc-700 transition-colors">
+                    className="flex items-center gap-1 text-[10px] font-semibold text-content-muted hover:text-content-secondary transition-colors">
                     <PlusCircle size={10} /> Nueva materia prima
                   </button>
                 )}
               </div>
 
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -655,11 +655,11 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                     }
                   }}
                   placeholder="Buscar en inventario y catálogo de proveedores..."
-                  className="w-full pl-9 pr-3 py-2.5 text-sm border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 transition placeholder:text-zinc-300"
+                  className="w-full pl-9 pr-3 py-2.5 text-sm border border-border-base rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition placeholder:text-content-muted"
                 />
 
                 {searchTerm && mpFiltradas.length > 0 && (
-                  <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-white border border-zinc-100 rounded-xl shadow-xl overflow-hidden max-h-56 overflow-y-auto">
+                  <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-white border border-border-subtle rounded-xl shadow-xl overflow-hidden max-h-56 overflow-y-auto">
                     {mpFiltradas.map((mp, i) => {
                       const esProveedor = mp.fuente === 'proveedor';
                       return (
@@ -668,42 +668,42 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                           type="button"
                           onClick={() => agregarMateriaPrima(mp)}
                           disabled={isActioning}
-                          className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50 transition-colors text-left border-b border-zinc-50 last:border-0 disabled:opacity-50"
+                          className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-surface-subtle transition-colors text-left border-b border-border-subtle last:border-0 disabled:opacity-50"
                         >
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <p className="text-xs font-semibold text-zinc-800 truncate">{mp.nombre}</p>
+                              <p className="text-xs font-semibold text-content-primary truncate">{mp.nombre}</p>
                               {esProveedor && (
-                                <span className="shrink-0 flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 border border-amber-200 text-amber-700 rounded text-[9px] font-bold uppercase">
+                                <span className="shrink-0 flex items-center gap-1 px-1.5 py-0.5 bg-semantic-warning-subtle border border-semantic-warning/20 text-semantic-warning-fg rounded text-[9px] font-bold uppercase">
                                   <Truck size={8} /> Proveedor
                                 </span>
                               )}
                             </div>
                             {esProveedor && mp.proveedor_nombre && (
-                              <p className="text-[10px] text-amber-600 font-medium mt-0.5">{mp.proveedor_nombre}</p>
+                              <p className="text-[10px] text-semantic-warning-fg font-medium mt-0.5">{mp.proveedor_nombre}</p>
                             )}
                           </div>
-                          <PlusCircle size={13} className="text-zinc-400 shrink-0 ml-2" />
+                          <PlusCircle size={13} className="text-content-muted shrink-0 ml-2" />
                         </button>
                       );
                     })}
                     <button
                       type="button"
                       onClick={() => { setNuevaMpData(d => ({ ...d, nombre: searchTerm })); setShowNuevaMp(true); setSearchTerm(''); }}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 border-t border-zinc-100 hover:bg-zinc-50 transition-colors text-left"
+                      className="w-full flex items-center gap-2 px-4 py-2.5 border-t border-border-subtle hover:bg-surface-subtle transition-colors text-left"
                     >
-                      <PlusCircle size={13} className="text-zinc-400 shrink-0" />
-                      <span className="text-xs font-semibold text-zinc-500">Crear nueva materia prima</span>
+                      <PlusCircle size={13} className="text-content-muted shrink-0" />
+                      <span className="text-xs font-semibold text-content-tertiary">Crear nueva materia prima</span>
                     </button>
                   </div>
                 )}
 
                 {searchTerm && mpFiltradas.length === 0 && (
-                  <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-white border border-zinc-100 rounded-xl shadow-xl p-3 space-y-2">
-                    <p className="text-xs text-zinc-400">No se encontraron resultados</p>
+                  <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-white border border-border-subtle rounded-xl shadow-xl p-3 space-y-2">
+                    <p className="text-xs text-content-muted">No se encontraron resultados</p>
                     <button type="button"
                       onClick={() => { setNuevaMpData(d => ({ ...d, nombre: searchTerm })); setShowNuevaMp(true); setSearchTerm(''); }}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-zinc-700 hover:text-zinc-900 transition-colors">
+                      className="flex items-center gap-1.5 text-xs font-semibold text-content-secondary hover:text-content-primary transition-colors">
                       <PlusCircle size={13} /> Crear "{searchTerm}" como materia prima
                     </button>
                   </div>
@@ -711,34 +711,34 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
               </div>
 
               {showNuevaMp && (
-                <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-2 animate-in slide-in-from-top-2 duration-150">
+                <div className="p-3 bg-surface-subtle border border-border-base rounded-xl space-y-2 animate-in slide-in-from-top-2 duration-150">
                   <div className="flex items-center gap-2">
-                    <PackagePlus size={12} className="text-zinc-500" />
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Nueva materia prima</span>
+                    <PackagePlus size={12} className="text-content-tertiary" />
+                    <span className="text-[10px] font-bold text-content-tertiary uppercase tracking-widest">Nueva materia prima</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <input type="text" value={nuevaMpData.nombre}
                       onChange={e => setNuevaMpData(p => ({ ...p, nombre: e.target.value }))}
                       placeholder="Nombre *"
-                      className="px-3 py-1.5 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 bg-white placeholder:text-zinc-300" />
+                      className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-white placeholder:text-content-muted" />
                     <input type="text" value={nuevaMpData.codigo}
                       onChange={e => setNuevaMpData(p => ({ ...p, codigo: e.target.value }))}
                       placeholder="Código (opcional)"
-                      className="px-3 py-1.5 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 bg-white placeholder:text-zinc-300" />
+                      className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-white placeholder:text-content-muted" />
                   </div>
                   <input type="number" step="0.01" min="0" value={nuevaMpData.costo_unitario}
                     onChange={e => setNuevaMpData(p => ({ ...p, costo_unitario: e.target.value }))}
                     placeholder="Costo unitario (opcional)"
-                    className="w-full px-3 py-1.5 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 bg-white placeholder:text-zinc-300" />
+                    className="w-full px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-white placeholder:text-content-muted" />
                   <div className="flex justify-end gap-2">
                     <button type="button"
                       onClick={() => { setShowNuevaMp(false); setNuevaMpData(EMPTY_MP); }}
-                      className="px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 transition-colors">
+                      className="px-3 py-1.5 text-xs text-content-tertiary hover:text-content-secondary transition-colors">
                       Cancelar
                     </button>
                     <button type="button" onClick={handleCrearMateriaPrima}
                       disabled={isActioning || !nuevaMpData.nombre.trim()}
-                      className="px-3 py-1.5 text-xs font-semibold bg-zinc-900 text-white rounded-lg hover:bg-zinc-700 disabled:opacity-40 transition-colors">
+                      className="px-3 py-1.5 text-xs font-semibold bg-content-primary text-white rounded-lg hover:bg-content-secondary disabled:opacity-40 transition-colors">
                       {isActioning ? 'Creando...' : '+ Crear y agregar'}
                     </button>
                   </div>
@@ -748,10 +748,10 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
 
             {/* Sección 3: Cards de ingredientes */}
             {fields.length === 0 ? (
-              <div className="py-14 text-center border-2 border-dashed border-zinc-200 rounded-2xl">
-                <FlaskConical size={28} className="mx-auto text-zinc-300 mb-2" />
-                <p className="text-sm font-medium text-zinc-400">Busca y agrega materias primas</p>
-                <p className="text-xs text-zinc-300 mt-1">
+              <div className="py-14 text-center border-2 border-dashed border-border-base rounded-2xl">
+                <FlaskConical size={28} className="mx-auto text-content-muted mb-2" />
+                <p className="text-sm font-medium text-content-muted">Busca y agrega materias primas</p>
+                <p className="text-xs text-content-muted mt-1">
                   Incluye materiales de tu inventario o catálogo de proveedores
                 </p>
               </div>
@@ -781,33 +781,33 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
           </div>
 
           {/* ─── STICKY FOOTER ────────────────────────────────────────────── */}
-          <div className="shrink-0 border-t border-zinc-100 bg-white">
+          <div className="shrink-0 border-t border-border-subtle bg-white">
             {fields.length > 0 && (
-              <div className="grid grid-cols-3 divide-x divide-zinc-100 border-b border-zinc-100">
+              <div className="grid grid-cols-3 divide-x divide-border-subtle border-b border-border-subtle">
                 <div className="px-5 py-3">
-                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1 mb-1">
+                  <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest flex items-center gap-1 mb-1">
                     <Package size={8} /> Peso Total
                   </p>
-                  <p className="text-xl font-black text-zinc-900 tabular-nums leading-none transition-all duration-300">
+                  <p className="text-xl font-black text-content-primary tabular-nums leading-none transition-all duration-300">
                     {fmtKg(totales.pesoTotal)}
-                    <span className="text-xs font-normal text-zinc-400 ml-1">kg</span>
+                    <span className="text-xs font-normal text-content-muted ml-1">kg</span>
                   </p>
                 </div>
                 <div className="px-5 py-3">
-                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1 mb-1">
+                  <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest flex items-center gap-1 mb-1">
                     <DollarSign size={8} /> Costo Total MP
                   </p>
                   <p className={`text-xl font-black tabular-nums leading-none transition-colors duration-300 ${
-                    hasAnyDeficit ? 'text-red-700' : 'text-zinc-900'
+                    hasAnyDeficit ? 'text-semantic-danger-fg' : 'text-content-primary'
                   }`}>
                     {fmtCOP(totales.costoTotal)}
                   </p>
                 </div>
                 <div className="px-5 py-3">
-                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1 mb-1">
+                  <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest flex items-center gap-1 mb-1">
                     <TrendingUp size={8} /> Costo Prom/kg
                   </p>
-                  <p className="text-xl font-black text-zinc-900 tabular-nums leading-none transition-all duration-300">
+                  <p className="text-xl font-black text-content-primary tabular-nums leading-none transition-all duration-300">
                     {totales.pesoTotal > 0 ? fmtCOP(totales.costoPorKg) : '—'}
                   </p>
                 </div>
@@ -817,12 +817,12 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
             <div className="flex items-center justify-between gap-4 px-6 py-4">
               <div className="text-[10px] min-w-0">
                 {hasAnyDeficit ? (
-                  <span className="flex items-center gap-1.5 text-red-600 font-medium">
+                  <span className="flex items-center gap-1.5 text-semantic-danger-fg font-medium">
                     <AlertTriangle size={11} className="shrink-0" />
                     {deficitItems.length} ingrediente{deficitItems.length !== 1 ? 's' : ''} con déficit · revisa antes de producir
                   </span>
                 ) : (
-                  <span className="text-zinc-400">
+                  <span className="text-content-muted">
                     {modoGlobal === 'MANUAL'
                       ? 'Modo Manual — simula costos por proveedor sin comprometerlos'
                       : 'Modo FIFO — al producir se usarán las capas más antiguas automáticamente'}
@@ -841,7 +841,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                     onClick={() => { saveAndContinue.current = true; handleSubmit(onSubmit)(); }}
                   >
                     {isSaving && saveAndContinue.current
-                      ? <><span className="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin inline-block mr-1.5" />Guardando...</>
+                      ? <><span className="w-4 h-4 border-2 border-border-strong border-t-transparent rounded-full animate-spin inline-block mr-1.5" />Guardando...</>
                       : 'Guardar y continuar →'
                     }
                   </Button>
