@@ -3,6 +3,7 @@ export const API_ROUTES = {
     LOGIN:             '/login',
     REGISTER:          '/crear',
     CAMBIAR_PASSWORD:  '/usuarios/mi-password',
+    ACTUALIZAR_PERFIL: '/usuarios/mi-perfil',
     MI_ACTIVIDAD:      '/usuarios/mi-actividad',
   },
   EMPRESA: {
@@ -86,9 +87,31 @@ export const API_ROUTES = {
   },
   REQUISICIONES: {
     LIST:           '/requisiciones',
+    LIST_BY_ESTADO: (estado) => `/requisiciones?estado=${encodeURIComponent(estado)}`,
     CREATE:         '/requisiciones',
+    SUGERIR_MRP:    '/requisiciones/sugerir-mrp',
     POR_PREPARACION:(prepId) => `/requisiciones/preparacion/${prepId}`,
     ESTADO:         (id)     => `/requisiciones/${id}/estado`,
     CONVERTIR_OC:   '/requisiciones/convertir-oc',
+  },
+  DASHBOARD: '/dashboard',
+  NOTIFICACIONES: {
+    LIST:        '/notificaciones',
+    UNREAD_COUNT:'/notificaciones/no-leidas',
+    LEER:        (id) => `/notificaciones/${id}/leer`,
+    LEER_TODAS:  '/notificaciones/leer-todas',
+  },
+  TRAZABILIDAD: {
+    POR_PREPARACION: (id)   => `/trazabilidad/preparacion/${id}`,
+    POR_LOTE:        (lote) => `/trazabilidad/lote/${encodeURIComponent(lote)}`,
+    LOTES_SEARCH:    (q)    => `/trazabilidad/lotes${q ? `?q=${encodeURIComponent(q)}` : ''}`,
+  },
+  SINCRONIZACION: {
+    STATS:      '/sincronizacion/stats',
+    MAESTRO:    '/sincronizacion/maestro',
+    PENDIENTES: '/sincronizacion/pendientes',
+    DUPLICADOS: '/sincronizacion/duplicados',
+    HUERFANOS:  '/sincronizacion/huerfanos',
+    MERGE:      '/sincronizacion/merge',
   },
 };

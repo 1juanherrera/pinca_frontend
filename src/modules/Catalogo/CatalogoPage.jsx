@@ -75,6 +75,7 @@ const CatalogoPage = () => {
             title="Actualizar"
             variant="white"
             onClick={refetch}
+            animate={isLoading ? 'animate-spin' : ''}
           />
           <Button variant="black" onClick={handleOpenCreate} icon={Plus}>
             Nuevo Ítem

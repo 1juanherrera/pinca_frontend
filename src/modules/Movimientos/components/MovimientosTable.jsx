@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ArrowDownUp, PackageOpen, ArrowUpRight, ArrowDownLeft, Shuffle } from 'lucide-react';
+import { ArrowDownUp, PackageOpen, ArrowUpRight, ArrowDownLeft, Shuffle, Settings2 } from 'lucide-react';
 import { fmt } from '../../../utils/formatters';
 import ErpTable from '../../../shared/ErpTable';
 import StatusBadge from '../../../shared/StatusBadge';
@@ -10,18 +10,20 @@ const TIPO_ICON = {
   ENTRADA:  ArrowDownLeft,
   SALIDA:   ArrowUpRight,
   TRASPASO: Shuffle,
+  AJUSTE:   Settings2,
 };
 
 const TIPO_CANT_COLOR = {
   ENTRADA:  'text-semantic-success-fg',
   SALIDA:   'text-semantic-danger-fg',
   TRASPASO: 'text-semantic-info-fg',
+  AJUSTE:   'text-semantic-warning-fg',
 };
 
 const fmtFecha = (d) => new Date(d).toLocaleDateString('es-CO');
 const fmtHora  = (d) => new Date(d).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
 
-export const MovimientosTable = ({ data, meta, isLoading, onPageChange }) => {
+export const MovimientosTable = ({ data, meta, isLoading, onPageChange, onRowClick }) => {
   const columns = useMemo(() => [
     {
       key: 'id_movimiento_inventario',
@@ -163,6 +165,7 @@ export const MovimientosTable = ({ data, meta, isLoading, onPageChange }) => {
         isLoading={isLoading}
         density="normal"
         stickyHeader
+        onRowClick={onRowClick}
         EmptyIcon={PackageOpen}
         emptyMessage="No hay movimientos registrados"
         emptySubMessage="No se encontraron movimientos de inventario que coincidan con los filtros actuales."

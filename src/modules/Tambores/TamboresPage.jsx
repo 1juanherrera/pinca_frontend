@@ -84,6 +84,7 @@ const TamboresPage = () => {
             sizeIcon={18}
             title="Actualizar datos"
             variant="white"
+            animate={isLoading ? 'animate-spin' : ''}
           />
           <Button variant="black" icon={Plus} onClick={() => setFormOpen(true)}>
             Nuevo Tambor

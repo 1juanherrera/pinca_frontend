@@ -3,7 +3,7 @@ import {
   X, KeyRound, Eye, EyeOff, LogOut, ShieldCheck, UserCircle,
   CheckCircle2, Clock, History, Settings2, Building2, Save,
   Globe, Phone, MapPin, FileText, Hash, AlertCircle, Bell,
-  BellOff, Rows3, Maximize2, Palette, Check,
+  BellOff, Rows3, Maximize2, Palette, Check, User as UserIcon,
 } from 'lucide-react';
 import { useBoundStore }  from '../store/useBoundStore';
 import { useNavigate }    from 'react-router';
@@ -70,6 +70,11 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
   const [show, setShow]  = useState({ curr: false, next: false, conf: false });
   const [form, setForm]  = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [ok,   setOk]    = useState(false);
+  const [nombreInput, setNombreInput] = useState(user?.nombre ?? '');
+  const setAuth = useBoundStore(s => s.setAuth);
+
+  // Sync local cuando el user cambia (post-login o post-save)
+  useEffect(() => { setNombreInput(user?.nombre ?? ''); }, [user?.nombre]);
 
   const rol   = user?.rol  ?? 'visor';
   const style = ROL_STYLES[rol] ?? ROL_STYLES.visor;
@@ -101,6 +106,21 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
     onError: (e) => toast.error(e?.response?.data?.msg || 'Contraseña actual incorrecta'),
   });
 
+  const { mutate: guardarNombre, isPending: isPendingNombre } = useMutation({
+    mutationFn: (nombre) => apiClient.patch(API_ROUTES.AUTH.ACTUALIZAR_PERFIL, { nombre }),
+    onSuccess: (res) => {
+      // El backend re-emite el token con el nombre nuevo
+      const nuevoToken   = res?.token   ?? res?.data?.token;
+      const nuevoUsuario = res?.usuario ?? res?.data?.usuario;
+      if (nuevoToken && nuevoUsuario) {
+        localStorage.setItem('token', nuevoToken);
+        setAuth(nuevoToken, nuevoUsuario);
+      }
+      toast.success('Nombre actualizado');
+    },
+    onError: (e) => toast.error(e?.response?.data?.msg || 'No se pudo actualizar el nombre'),
+  });
+
   const handlePwd = (e) => {
     e.preventDefault();
     if (form.newPassword.length < 8) return toast.error('Mínimo 8 caracteres.');
@@ -122,10 +142,13 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
       {/* Avatar + info */}
       <div className="flex items-center gap-4">
         <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${avatarGrad} flex items-center justify-center text-white text-2xl font-bold shadow-lg shrink-0`}>
-          {getInitials(user?.username)}
+          {getInitials(user?.nombre || user?.username)}
         </div>
         <div className="min-w-0">
-          <p className="text-xl font-bold text-content-primary truncate">{user?.username}</p>
+          <p className="text-xl font-bold text-content-primary truncate">{user?.nombre || user?.username}</p>
+          {user?.nombre && (
+            <p className="text-[11px] text-content-tertiary font-mono truncate">@{user.username}</p>
+          )}
           <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${style.badge}`}>
             {ROLES_LABELS[rol] ?? rol}
           </span>
@@ -167,6 +190,42 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
           </div>
         </div>
       )}
+
+      {/* Editar perfil */}
+      <div>
+        <SectionTitle icon={UserIcon}>Editar perfil</SectionTitle>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const trimmed = nombreInput.trim();
+            if (trimmed.length > 100) return toast.error('Máximo 100 caracteres.');
+            guardarNombre(trimmed);
+          }}
+          className="flex flex-col gap-2.5"
+        >
+          <div>
+            <label className="block text-xs text-content-tertiary mb-1">Nombre para mostrar</label>
+            <input
+              type="text"
+              value={nombreInput}
+              onChange={(e) => setNombreInput(e.target.value)}
+              placeholder="Ej. Juan Pérez"
+              maxLength={100}
+              className="w-full border border-border-base rounded-lg px-3 py-2 text-sm bg-surface-subtle text-content-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:bg-white transition-all"
+            />
+            <p className="text-[10px] text-content-muted mt-1">
+              Es el nombre que verás en el saludo y la cabecera. Tu username (<span className="font-mono">{user?.username}</span>) sigue siendo el identificador para iniciar sesión.
+            </p>
+          </div>
+          <button
+            type="submit"
+            disabled={isPendingNombre || nombreInput.trim() === (user?.nombre ?? '')}
+            className="w-full py-2 rounded-lg text-sm font-semibold bg-content-primary hover:bg-content-secondary text-white transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isPendingNombre ? 'Guardando…' : 'Guardar nombre'}
+          </button>
+        </form>
+      </div>
 
       {/* Cambiar contraseña */}
       <div>
@@ -557,9 +616,16 @@ const UsuariosRoles = () => {
             className={`flex items-center justify-between px-3 py-2.5 ${i < arr.length-1 ? 'border-b border-border-subtle':''} hover:bg-surface-subtle`}>
             <div className="flex items-center gap-2 min-w-0">
               <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${(ROL_STYLES[u.rol]??ROL_STYLES.visor).grad} flex items-center justify-center text-white text-[10px] font-bold shrink-0`}>
-                {getInitials(u.username)}
+                {getInitials(u.nombre || u.username)}
               </div>
-              <span className="text-sm font-medium text-content-secondary truncate">{u.username}</span>
+              <div className="min-w-0">
+                <span className="block text-sm font-medium text-content-secondary truncate">
+                  {u.nombre || u.username}
+                </span>
+                {u.nombre && (
+                  <span className="block text-[10px] text-content-muted font-mono truncate">@{u.username}</span>
+                )}
+              </div>
             </div>
             <select defaultValue={u.rol} disabled={isPending}
               onChange={e => cambiarRol({userId: u.id_usuarios, rol: e.target.value})}
@@ -626,10 +692,10 @@ const UserPanel = () => {
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-border-subtle shrink-0">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${headerGrad} flex items-center justify-center text-white text-xs font-bold`}>
-              {getInitials(user?.username)}
+              {getInitials(user?.nombre || user?.username)}
             </div>
             <div>
-              <p className="text-sm font-semibold text-content-primary leading-none">{user?.username}</p>
+              <p className="text-sm font-semibold text-content-primary leading-none">{user?.nombre || user?.username}</p>
               <p className="text-[10px] text-content-muted mt-0.5">{ROLES_LABELS[user?.rol] ?? user?.rol}</p>
             </div>
           </div>

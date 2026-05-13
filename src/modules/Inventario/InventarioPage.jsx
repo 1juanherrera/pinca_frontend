@@ -35,7 +35,7 @@ const InventarioPage = () => {
         />
 
         <div className="flex items-center gap-1.5">
-          <ButtonSquare icon={RefreshCw} onClick={refresh} size="md" title="Actualizar datos"   variant="secondary" />
+          <ButtonSquare icon={RefreshCw} onClick={refresh} size="md" title="Actualizar datos"   variant="secondary" animate={isLoadingItems ? 'animate-spin' : ''} />
           <ButtonSquare icon={Filter}                       size="md" title="Filtros avanzados"  variant="secondary" />
           <ButtonSquare icon={Download}                     size="md" title="Exportar datos"     variant="secondary" />
           <ButtonSquare icon={FileCog}                      size="md" title="Importar Excel"     variant="primary"   onClick={() => openModal('EXPORT_EXCEL')} />

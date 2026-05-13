@@ -22,6 +22,8 @@ import NotFound from "./shared/NotFound";
 import PageTitle from "./shared/PageTitle";
 import InventarioGlobalPage from "./modules/InventarioGlobal/InventarioGlobalPage";
 import RolesPage from "./modules/Roles/RolesPage";
+import SincronizacionPage from "./modules/Sincronizacion/SincronizacionPage";
+import PanelPrincipalPage from "./modules/Dashboard/PanelPrincipalPage";
 
 const App = () => {
   return (
@@ -30,7 +32,8 @@ const App = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route element={<Layout />}>
-          <Route path="/" element={<SedePage />} />
+          <Route path="/"      element={<PanelPrincipalPage />} />
+          <Route path="/sedes" element={<SedePage />} />
           <Route path="/inventario/bodega/:id_bodega" element={<InventarioPage />} />
           <Route path="/formulaciones" element={<FormulacionesPage />} />
           <Route path="/instalaciones/bodegas/:id" element={<BodegaPage />} />
@@ -50,6 +53,7 @@ const App = () => {
           <Route path="/tambores" element={<TamboresPage />} />
           <Route path="/inventario-global" element={<InventarioGlobalPage />} />
           <Route path="/roles" element={<RolesPage />} />
+          <Route path="/sincronizacion" element={<SincronizacionPage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

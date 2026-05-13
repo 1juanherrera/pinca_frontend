@@ -9,7 +9,8 @@ import { useFormulaciones } from "./api/useFormulaciones";
 import FormCostProducts from "./components/FormCostProducts ";
 import { PreparationModal } from "./components/preparationModal";
 import FormulacionModal from "./components/FormulacionModal";
-import { FlaskConical, Plus } from "lucide-react";
+import VersionesByItemWrapper from "./components/VersionesByItemWrapper";
+import { FlaskConical, History, Plus } from "lucide-react";
 import { Button } from "../../shared/Button";
 import HeaderSection from "../../shared/HeaderSection";
 
@@ -20,6 +21,7 @@ const FormulacionesPage = () => {
   const [modalFormulacion, setModalFormulacion]  = useState(false);
   const [editItemId,       setEditItemId]        = useState(null);
   const [selectedProveedorId, setSelectedProveedorId] = useState(null);
+  const [historialItemId,  setHistorialItemId]  = useState(null);
 
   const [seleccionPorIngrediente, setSeleccionPorIngrediente] = useState({});
 
@@ -56,13 +58,24 @@ const FormulacionesPage = () => {
             { label: 'Formulaciones', path: '/formulaciones' },
           ]}
         />
-        <Button
-          variant="black"
-          icon={Plus}
-          onClick={() => setModalFormulacion(true)}
-        >
-          Nueva Formulación
-        </Button>
+        <div className="flex items-center gap-2">
+          {selectedId && (
+            <Button
+              variant="secondary"
+              icon={History}
+              onClick={() => setHistorialItemId(selectedId)}
+            >
+              Historial de versiones
+            </Button>
+          )}
+          <Button
+            variant="black"
+            icon={Plus}
+            onClick={() => setModalFormulacion(true)}
+          >
+            Nueva Formulación
+          </Button>
+        </div>
       </div>
 
       {/* KPIs */}
@@ -141,6 +154,13 @@ const FormulacionesPage = () => {
         onClose={() => { setModalFormulacion(false); setEditItemId(null); }}
         itemId={editItemId}
       />
+
+      {historialItemId && (
+        <VersionesByItemWrapper
+          itemGeneralId={historialItemId}
+          onClose={() => setHistorialItemId(null)}
+        />
+      )}
 
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { X, Plus, Trash2, Save, Search, ChevronDown, User, Package, Warehouse } from 'lucide-react';
+import { X, Plus, Trash2, Save, Search, ChevronDown, User, Package, Warehouse, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useBoundStore }       from '../../../../store/useBoundStore';
 import { useRemisiones }       from '../api/useRemisiones';
@@ -42,12 +42,19 @@ const SearchSelect = ({ placeholder, value, onChange, options = [], loading = fa
       <button
         type="button"
         onClick={() => { setOpen((p) => !p); setSearch(''); }}
-        className="w-full flex items-center justify-between text-sm border border-border-base rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 text-left"
+        disabled={loading && !value}
+        className="w-full flex items-center justify-between text-sm border border-border-base rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 text-left disabled:opacity-60 disabled:cursor-wait"
       >
         <span className={value ? 'text-content-primary' : 'text-content-muted'}>
-          {value ? renderValue(value) : placeholder}
+          {value
+            ? renderValue(value)
+            : loading
+              ? 'Cargando opciones…'
+              : placeholder}
         </span>
-        <ChevronDown size={14} className={`text-content-muted transition-transform ${open ? 'rotate-180' : ''}`} />
+        {loading && !value
+          ? <Loader2 size={14} className="text-content-muted animate-spin" />
+          : <ChevronDown size={14} className={`text-content-muted transition-transform ${open ? 'rotate-180' : ''}`} />}
       </button>
 
       {open && (
@@ -180,10 +187,12 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
       facturas_id:    form.facturas_id || null,
       observaciones:  form.observaciones || null,
       items: items.map((it) => ({
-        descripcion: it.descripcion,
-        cantidad:    Number(it.cantidad),
-        precio_unit: Number(it.precio_unit),
-        subtotal:    Number(it.subtotal),
+        item_general_id: it.item_general_id || null,   // ← clave del Hito 5: vincula al catálogo
+        bodega_id:       it.bodega_id || bodegaSel?.id_bodegas || null,
+        descripcion:     it.descripcion,
+        cantidad:        Number(it.cantidad),
+        precio_unit:     Number(it.precio_unit),
+        subtotal:        Number(it.subtotal),
       })),
     };
     if (editData) await updateAsync({ id: editData.id_remisiones, data: payload });

@@ -32,7 +32,7 @@ export const CostProductsTable = ({
                 <h3 className='text-lg font-medium text-content-primary mb-2'>
                     Desglose de Costos
                 </h3>
-                <p className="text-xs text-content-tertiary">
+                <p className="text-xs text-content-primary">
                     Selecciona un producto para ver su desglose de costos
                 </p>
             </div>
@@ -70,22 +70,21 @@ export const CostProductsTable = ({
                                 </span>
                             )}
                         </h3>
-                        <p className="text-semantic-success-subtle text-xs opacity-90">
+                        <p className="text-xs opacity-90">
                             {productDetail?.item?.nombre || selectedProductData.nombre}
                         </p>
                     </div>
 
-
                         {/* Único botón de edición — abre el drawer con todo el productDetail */}
                         {productDetail?.costos && (
-                            <ButtonSquare
-                                icon={Pencil}
+                            <button
+                                type="button"
                                 onClick={() => openDrawer('COSTOS_FORM', productDetail)}
                                 title="Editar costos indirectos"
-                                variant="emerald"
-                                className="flex items-center gap-1.5 px-3 py-2 bg-semantic-info hover:bg-semantic-info/25 border border-white/20 hover:border-white/40 rounded-lg text-white text-[12px] font-semibold transition-all active:scale-95"
-                            >   
-                            </ButtonSquare>
+                                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/25 text-white transition-colors"
+                            >
+                                <Pencil size={14} />
+                            </button>
                         )}
                 </div>
             </div>

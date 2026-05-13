@@ -83,7 +83,7 @@ export const Login = () => {
               onChange={(e) => setUsername(e.target.value)}
               disabled={loading}
               autoComplete="username"
-              placeholder="Tu nombre de usuario"
+              placeholder="Nombre de usuario"
             />
 
             <FormInput
@@ -104,7 +104,7 @@ export const Login = () => {
 
             <Button
               type="submit"
-              variant="primary"
+              variant="dark"
               size="lg"
               loading={loading}
               className="w-full"

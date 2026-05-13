@@ -36,6 +36,7 @@ const SedePage = () => {
             sizeIcon={18}
             title="Actualizar datos"
             variant="white"
+            animate={isLoading ? 'animate-spin' : ''}
           />
 
           <Button 

@@ -275,6 +275,17 @@ input[type="number"] { -moz-appearance: textfield; }
   to   { transform: translateX(0); }
 }
 
+/* Indeterminate progress bar (NProgress / YouTube style) — barra que se desplaza
+   horizontalmente para indicar carga en curso sin progreso conocido */
+@keyframes top-progress-slide {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(150%); }
+  100% { transform: translateX(400%); }
+}
+@utility animate-top-progress {
+  animation: top-progress-slide 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 @utility animate-in {
   animation-fill-mode: both;
 }

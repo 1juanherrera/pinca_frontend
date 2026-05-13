@@ -142,6 +142,7 @@ const ProduccionPage = () => {
           sizeIcon={18}
           title="Actualizar datos"
           variant="white"
+          animate={isLoadingByItem ? 'animate-spin' : ''}
         />
       </div>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, X, Calendar } from 'lucide-react';
+import { Search, X, Calendar, GitBranch } from 'lucide-react';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 
 const inputCls =
@@ -7,8 +7,9 @@ const inputCls =
   'text-content-primary placeholder:text-content-muted ' +
   'focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-border-focus/15 transition-colors';
 
-export const MovimientosFilters = ({ filters, onChange, onClear }) => {
+export const MovimientosFilters = ({ filters, onChange, onClear, onBuscarLote }) => {
   const [localSearch, setLocalSearch] = useState(filters.search || '');
+  const [loteInput,   setLoteInput]   = useState('');
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -16,6 +17,12 @@ export const MovimientosFilters = ({ filters, onChange, onClear }) => {
     }, 500);
     return () => clearTimeout(handler);
   }, [localSearch, filters.search, onChange]);
+
+  const handleBuscarLote = (e) => {
+    e.preventDefault();
+    const trimmed = loteInput.trim();
+    if (trimmed) onBuscarLote?.(trimmed);
+  };
 
   return (
     <div className="flex flex-col gap-3">
@@ -38,10 +45,11 @@ export const MovimientosFilters = ({ filters, onChange, onClear }) => {
             value={filters.tipo_movimiento || ''}
             onChange={(val) => onChange({ tipo_movimiento: val })}
             options={[
-              { value: '',         label: 'Todos los tipos'   },
-              { value: 'ENTRADA',  label: 'Entradas'           },
-              { value: 'SALIDA',   label: 'Salidas'            },
-              { value: 'TRASPASO', label: 'Traspasos'          },
+              { value: '',         label: 'Todos los tipos' },
+              { value: 'ENTRADA',  label: 'Entradas'        },
+              { value: 'SALIDA',   label: 'Salidas'         },
+              { value: 'TRASPASO', label: 'Traspasos'       },
+              { value: 'AJUSTE',   label: 'Ajustes'         },
             ]}
           />
         </div>
@@ -52,12 +60,12 @@ export const MovimientosFilters = ({ filters, onChange, onClear }) => {
             value={filters.referencia_tipo || ''}
             onChange={(val) => onChange({ referencia_tipo: val })}
             options={[
-              { value: '',                 label: 'Todas las fuentes'  },
-              { value: 'FACTURA_COMPRA',   label: 'Factura de compra'   },
+              { value: '',                 label: 'Todas las fuentes'   },
+              { value: 'ORDEN_COMPRA',     label: 'Recepción de OC'      },
               { value: 'ORDEN_PRODUCCION', label: 'Orden de producción' },
-              { value: 'REMISION',         label: 'Remisión de venta'   },
-              { value: 'AJUSTE',           label: 'Ajuste manual'       },
-              { value: 'COMPRA',           label: 'Compra'              },
+              { value: 'TRASPASO_BODEGA',  label: 'Traspaso de bodega'   },
+              { value: 'AJUSTE_MANUAL',    label: 'Ajuste manual'        },
+              { value: 'ANULACION',        label: 'Anulación / Reverso'  },
             ]}
           />
         </div>
@@ -94,6 +102,29 @@ export const MovimientosFilters = ({ filters, onChange, onClear }) => {
           <X size={14} />
         </button>
       </div>
+
+      {/* Búsqueda por lote (trazabilidad inversa) */}
+      {onBuscarLote && (
+        <form onSubmit={handleBuscarLote} className="flex items-center gap-2">
+          <div className="relative flex-1 max-w-sm">
+            <GitBranch size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-brand-primary-active" />
+            <input
+              type="text"
+              value={loteInput}
+              onChange={(e) => setLoteInput(e.target.value)}
+              placeholder="Buscar trazabilidad por lote del proveedor..."
+              className={`w-full pl-8 pr-3 ${inputCls}`}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={!loteInput.trim()}
+            className="px-3 h-8 text-xs font-semibold rounded-md bg-content-primary text-white hover:bg-content-secondary disabled:opacity-50 transition-colors"
+          >
+            Rastrear lote
+          </button>
+        </form>
+      )}
     </div>
   );
 };

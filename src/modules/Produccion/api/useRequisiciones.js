@@ -84,6 +84,34 @@ export function useActualizarEstadoRequisicion() {
   });
 }
 
+// ── MRP: sugerir requisiciones para producir un item ──────────────────────────
+// Body: { item_general_id, cantidad, unidad_id, preparacion_id?: int }
+// Response: { creadas: [...], sin_proveedor: [...], sin_deficit: bool }
+export function useSugerirMRP() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (body) => {
+      const res = await apiClient.post(API_ROUTES.REQUISICIONES.SUGERIR_MRP, body);
+      return res.data ?? res;
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: requisicionesKeys.all() });
+      const cant = data?.creadas?.length ?? 0;
+      const sin  = data?.sin_proveedor?.length ?? 0;
+      if (data?.sin_deficit) {
+        toast.success('Sin déficit detectado. Stock suficiente.');
+      } else if (cant === 0) {
+        toast.error('Hay déficit pero ninguna MP tiene proveedor activo.');
+      } else {
+        toast.success(`MRP generó ${cant} requisición(es) sugerida(s)${sin > 0 ? ` · ${sin} sin proveedor` : ''}`);
+      }
+    },
+    onError: (err) => {
+      toast.error(err?.response?.data?.message ?? 'Error al ejecutar MRP');
+    },
+  });
+}
+
 // ── Convertir requisiciones a OC ───────────────────────────────────────────────
 export function useConvertirAOC() {
   const qc = useQueryClient();

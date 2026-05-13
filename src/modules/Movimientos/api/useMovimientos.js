@@ -17,10 +17,11 @@ export const useMovimientos = (filters = {}) => {
           params.append(key, val);
         }
       });
-      const response = await apiClient.get(`/movimientos?${params.toString()}`);
-      return response.data;
+      // apiClient ya extrae response.data en el interceptor → devuelve {data, meta} directo.
+      return await apiClient.get(`/movimientos?${params.toString()}`);
     },
     keepPreviousData: true,
+    staleTime: 30 * 1000,
   });
 
   return {

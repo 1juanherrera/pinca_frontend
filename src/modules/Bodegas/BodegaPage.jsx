@@ -79,6 +79,7 @@ const BodegaPage = () => {
             sizeIcon={18}
             title="Actualizar datos"
             variant="white"
+            animate={isLoadingBodegas ? 'animate-spin' : ''}
           />
           <Button
             variant="black"

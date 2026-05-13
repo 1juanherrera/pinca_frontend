@@ -3,11 +3,12 @@ import {
   X, ClipboardList, Package, Calendar, StickyNote,
   ChevronRight, Loader2, AlertCircle, CheckCircle2,
   FlaskConical, Hash, Scale, Clock, PlayCircle, XCircle,
-  Zap, Plus, Trash2, Edit2, Check, Download
+  Zap, Plus, Trash2, Edit2, Check, Download, History, GitBranch,
 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { EstadoBadge } from './ProduccionTable ';
 import { usePreparaciones } from '../../Formulaciones/api/usePreparaciones';
+import FormulacionVersionesDrawer from '../../Formulaciones/components/FormulacionVersionesDrawer';
 import apiClient from '../../../api/apiClient';
 import toast from 'react-hot-toast';
 
@@ -249,6 +250,7 @@ const InfoRow = ({ icon: Icon, label, value }) => (
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 export const ProduccionDetailModal = ({ preparacion, onClose, onUpdated }) => {
+  const [verHistorial, setVerHistorial] = useState(false);
   const [error, setError] = useState(null);
   const [confirming, setConfirming] = useState(null);
   const [responsable, setResponsable] = useState('');
@@ -284,6 +286,7 @@ export const ProduccionDetailModal = ({ preparacion, onClose, onUpdated }) => {
   const costosIndirectos = detalleFull?.costos_indirectos ?? [];
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-content-primary/60 backdrop-blur-sm">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
 
@@ -350,6 +353,34 @@ export const ProduccionDetailModal = ({ preparacion, onClose, onUpdated }) => {
               />
               <InfoRow icon={Calendar} label="Inicio" value={preparacion.fecha_inicio} />
               <InfoRow icon={Calendar} label="Fin estimado" value={preparacion.fecha_fin} />
+
+              {/* Versión de fórmula usada */}
+              {detalleFull?.formulacion_version_num && (
+                <button
+                  type="button"
+                  onClick={() => setVerHistorial(true)}
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 mt-2 rounded-lg border border-brand-primary/30 bg-brand-subtle/50 hover:bg-brand-subtle transition-colors text-left"
+                  title="Ver receta exacta usada"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <GitBranch size={12} className="text-brand-primary-active shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-brand-primary-active uppercase tracking-wider font-semibold">
+                        Fórmula usada
+                      </p>
+                      <p className="text-xs font-bold text-content-primary">
+                        Versión {detalleFull.formulacion_version_num}
+                        {detalleFull.formulacion_version_notas && (
+                          <span className="ml-1 font-normal text-content-tertiary text-[10px]">
+                            · {detalleFull.formulacion_version_notas}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <History size={12} className="text-content-muted shrink-0" />
+                </button>
+              )}
             </div>
 
             {/* Costos Indirectos */}
@@ -489,5 +520,15 @@ export const ProduccionDetailModal = ({ preparacion, onClose, onUpdated }) => {
 
       </div>
     </div>
+
+    {verHistorial && detalleFull?.formulacion_id && (
+      <FormulacionVersionesDrawer
+        formulacionId={detalleFull.formulacion_id}
+        formulacionNombre={preparacion.item_nombre}
+        initialVersionId={detalleFull.formulacion_version_id}
+        onClose={() => setVerHistorial(false)}
+      />
+    )}
+    </>
   );
 };

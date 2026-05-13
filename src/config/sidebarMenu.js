@@ -14,23 +14,30 @@ import {
 } from 'lucide-react';
 
 // `moduloKey` debe coincidir con los valores en MODULOS_SISTEMA y en la tabla permisos_rol_modulo.
+// `grupo` define la sección visual del sidebar. Items sin grupo aparecen al inicio sin header.
+// El orden del array define el orden visual: items del mismo grupo deben venir consecutivos.
 export const sidebarMenu = [
-  { link: '',                moduloKey: 'panel-principal',   label: 'Panel Principal',  icon: LayoutDashboard },
-  { link: 'catalogo',        moduloKey: 'catalogo',          label: 'Catálogo',         icon: BookOpen },
-  { link: 'inventario-global', moduloKey: 'inventario-global', label: 'Inventario',     icon: Boxes },
-  { link: 'formulaciones',   moduloKey: 'formulaciones',     label: 'Formulaciones',    icon: FlaskConical },
-  { link: 'produccion',      moduloKey: 'produccion',        label: 'Producción',       icon: Factory },
-  { link: 'rentabilidad',    moduloKey: 'rentabilidad',      label: 'Rentabilidad',     icon: TrendingUp },
+  // Sin grupo — siempre arriba
+  { link: '',                  moduloKey: 'panel-principal',   label: 'Panel Principal',  icon: LayoutDashboard, grupo: null },
 
-  { link: 'comercial',       moduloKey: 'comercial',         label: 'Comercial',        icon: Handbag },
-  { link: 'compras',         moduloKey: 'compras',           label: 'Compras',          icon: ShoppingBag },
-  { link: 'cartera',         moduloKey: 'cartera',           label: 'Cartera',          icon: Wallet },
+  // Inventario
+  { link: 'catalogo',          moduloKey: 'catalogo',          label: 'Catálogo',         icon: BookOpen,        grupo: 'Inventario' },
+  { link: 'inventario-global', moduloKey: 'inventario-global', label: 'Inventario',       icon: Boxes,           grupo: 'Inventario' },
+  { link: 'movimientos',       moduloKey: 'movimientos',       label: 'Movimientos',      icon: ArrowDownUp,     grupo: 'Inventario' },
 
-  { link: 'clientes',        moduloKey: 'clientes',          label: 'Clientes',         icon: Users },
-  { link: 'proveedores',     moduloKey: 'proveedores',       label: 'Proveedores',      icon: Truck },
-  { link: 'movimientos',     moduloKey: 'movimientos',       label: 'Movimientos',      icon: ArrowDownUp },
+  // Producción
+  { link: 'formulaciones',     moduloKey: 'formulaciones',     label: 'Formulaciones',    icon: FlaskConical,    grupo: 'Producción' },
+  { link: 'produccion',        moduloKey: 'produccion',        label: 'Producción',       icon: Factory,         grupo: 'Producción' },
 
-  // Costos y CostosIndirectos: implementados pero deshabilitados para MVP.
-  // Sus páginas existen en src/modules/Costos/ y src/modules/CostosIndirectos/.
-  // Habilitar en Post-producción junto con RBAC completo (Fase 8).
+  // Ventas
+  { link: 'comercial',         moduloKey: 'comercial',         label: 'Comercial',        icon: Handbag,         grupo: 'Ventas' },
+  { link: 'cartera',           moduloKey: 'cartera',           label: 'Cartera',          icon: Wallet,          grupo: 'Ventas' },
+  { link: 'clientes',          moduloKey: 'clientes',          label: 'Clientes',         icon: Users,           grupo: 'Ventas' },
+
+  // Compras
+  { link: 'compras',           moduloKey: 'compras',           label: 'Compras',          icon: ShoppingBag,     grupo: 'Compras' },
+  { link: 'proveedores',       moduloKey: 'proveedores',       label: 'Proveedores',      icon: Truck,           grupo: 'Compras' },
+
+  // Análisis
+  { link: 'rentabilidad',      moduloKey: 'rentabilidad',      label: 'Rentabilidad',     icon: TrendingUp,      grupo: 'Análisis' },
 ];

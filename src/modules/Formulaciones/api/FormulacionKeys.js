@@ -8,4 +8,6 @@ export const formulacionKeys = {
   proveedores:(itemId) => [...formulacionKeys.all, 'proveedores', itemId],
   costsByProveedor: (id, proveedorId) => [...formulacionKeys.all, 'costos-proveedor', id, proveedorId],
   opcionesIngredientes: (itemId) => [...formulacionKeys.all, 'opciones-ingredientes', itemId],
+  versiones:        (formId) => [...formulacionKeys.all, 'versiones', formId],
+  versionDetalle:   (verId)  => [...formulacionKeys.all, 'version-detalle', verId],
 };

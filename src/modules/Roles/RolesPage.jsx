@@ -41,7 +41,13 @@ const PermisosSection = () => {
   }, [permisos]);
 
   if (isLoading || !draft) {
-    return <div className="text-sm text-content-muted">Cargando permisos…</div>;
+    return (
+      <div className="space-y-2 p-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="h-9 bg-surface-muted rounded-md animate-pulse" />
+        ))}
+      </div>
+    );
   }
 
   const toggle = (rol, moduloKey) => {
@@ -134,7 +140,15 @@ const UsuariosSection = () => {
   const { data: usuarios, isLoading } = useUsuariosRoles();
   const { mutate: cambiarRol, isPending } = useCambiarRol();
 
-  if (isLoading) return <div className="text-sm text-content-muted">Cargando usuarios…</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-2 p-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-12 bg-surface-muted rounded-lg animate-pulse" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-border-subtle bg-white shadow-sm">
@@ -142,7 +156,8 @@ const UsuariosSection = () => {
         <thead>
           <tr className="border-b border-border-subtle bg-surface-subtle">
             <th className="px-4 py-3 text-left font-semibold text-content-secondary">ID</th>
-            <th className="px-4 py-3 text-left font-semibold text-content-secondary">Usuario</th>
+            <th className="px-4 py-3 text-left font-semibold text-content-secondary">Nombre</th>
+            <th className="px-4 py-3 text-left font-semibold text-content-secondary">Username</th>
             <th className="px-4 py-3 text-left font-semibold text-content-secondary">Rol actual</th>
             <th className="px-4 py-3 text-left font-semibold text-content-secondary">Cambiar rol</th>
           </tr>
@@ -151,7 +166,8 @@ const UsuariosSection = () => {
           {(usuarios ?? []).map(u => (
             <tr key={u.id_usuarios} className="border-t border-border-subtle hover:bg-surface-subtle/50">
               <td className="px-4 py-2.5 text-content-muted text-xs">{u.id_usuarios}</td>
-              <td className="px-4 py-2.5 font-medium text-content-secondary">{u.username}</td>
+              <td className="px-4 py-2.5 font-medium text-content-secondary">{u.nombre || <span className="text-content-muted italic">Sin nombre</span>}</td>
+              <td className="px-4 py-2.5 text-content-tertiary font-mono text-xs">{u.username}</td>
               <td className="px-4 py-2.5">
                 <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
                   u.rol === 'admin'    ? 'bg-brand-subtle text-brand-primary-active' :

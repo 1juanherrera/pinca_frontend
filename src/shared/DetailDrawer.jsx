@@ -7,10 +7,13 @@ import { X } from 'lucide-react';
 import cn from '../utils/cn';
 
 const WIDTH_MAP = {
-  sm: 'max-w-sm',
-  md: 'max-w-lg',
-  lg: 'max-w-2xl',
-  xl: 'max-w-3xl',
+  sm:    'max-w-sm',
+  md:    'max-w-lg',
+  lg:    'max-w-2xl',
+  xl:    'max-w-3xl',
+  '2xl': 'max-w-4xl',
+  '3xl': 'max-w-5xl',
+  '4xl': 'max-w-6xl',
 };
 
 const DetailDrawer = ({

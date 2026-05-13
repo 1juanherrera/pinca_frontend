@@ -9,7 +9,7 @@ const TamborForm = ({ onSubmit, isLoading, onCancel }) => {
     defaultValues: { numeros: '', item_general_id: '', bodegas_id: '', cantidad_inicial: 1, fecha_ingreso: new Date().toISOString().split('T')[0] },
   });
 
-  const { data: items = [] } = useQuery({
+  const { data: items = [], isLoading: loadingItems } = useQuery({
     queryKey: ['items-mp'],
     queryFn: async () => {
       const res = await apiClient.get(API_ROUTES.ITEMS.GENERAL);
@@ -19,7 +19,7 @@ const TamborForm = ({ onSubmit, isLoading, onCancel }) => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: bodegas = [] } = useQuery({
+  const { data: bodegas = [], isLoading: loadingBodegas } = useQuery({
     queryKey: ['bodegas-list'],
     queryFn: async () => {
       const res = await apiClient.get(API_ROUTES.BODEGAS.LIST);
@@ -49,10 +49,11 @@ const TamborForm = ({ onSubmit, isLoading, onCancel }) => {
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-semibold text-content-secondary uppercase">Materia Prima *</label>
         <select
-          className={`w-full px-3 py-2 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-semantic-info/30 ${errors.item_general_id ? 'border-semantic-danger/40' : 'border-border-base'}`}
+          disabled={loadingItems}
+          className={`w-full px-3 py-2 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-semantic-info/30 disabled:bg-surface-muted disabled:cursor-wait disabled:text-content-tertiary ${errors.item_general_id ? 'border-semantic-danger/40' : 'border-border-base'}`}
           {...register('item_general_id', { required: 'Selecciona una materia prima' })}
         >
-          <option value="">Seleccionar...</option>
+          <option value="">{loadingItems ? 'Cargando materias primas…' : 'Seleccionar...'}</option>
           {items.map(i => (
             <option key={i.id_item_general} value={i.id_item_general}>
               {i.nombre} {i.codigo ? `(${i.codigo})` : ''}
@@ -65,10 +66,11 @@ const TamborForm = ({ onSubmit, isLoading, onCancel }) => {
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-semibold text-content-secondary uppercase">Ubicación (Bodega) *</label>
         <select
-          className={`w-full px-3 py-2 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-semantic-info/30 ${errors.bodegas_id ? 'border-semantic-danger/40' : 'border-border-base'}`}
+          disabled={loadingBodegas}
+          className={`w-full px-3 py-2 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-semantic-info/30 disabled:bg-surface-muted disabled:cursor-wait disabled:text-content-tertiary ${errors.bodegas_id ? 'border-semantic-danger/40' : 'border-border-base'}`}
           {...register('bodegas_id', { required: 'Selecciona una bodega' })}
         >
-          <option value="">Seleccionar...</option>
+          <option value="">{loadingBodegas ? 'Cargando bodegas…' : 'Seleccionar...'}</option>
           {bodegas.map(b => (
             <option key={b.id_bodegas} value={b.id_bodegas}>{b.nombre}</option>
           ))}

@@ -84,6 +84,13 @@ const SIZE_CLASSES = {
 };
 
 const ICON_SIZE_BY_SIZE = { xs: 12, sm: 13, md: 15, lg: 16 };
+const ICON_SIZE_ALIAS  = { xs: 14, sm: 16, md: 20, lg: 24, xl: 28, '2xl': 32 };
+
+const resolveIconSize = (sizeIcon, size) => {
+  if (typeof sizeIcon === 'number') return sizeIcon;
+  if (typeof sizeIcon === 'string' && ICON_SIZE_ALIAS[sizeIcon] !== undefined) return ICON_SIZE_ALIAS[sizeIcon];
+  return ICON_SIZE_BY_SIZE[size] ?? 14;
+};
 
 const BASE =
   'inline-flex items-center justify-center font-medium border whitespace-nowrap ' +
@@ -109,7 +116,7 @@ export const Button = ({
   const variantCls = VARIANT_CLASSES[variant] ?? VARIANT_CLASSES.primary;
   const sizeCls = SIZE_CLASSES[size] ?? SIZE_CLASSES.md;
   const shapeCls = SHAPE[shape] ?? SHAPE.pill;
-  const iconSize = sizeIcon ?? ICON_SIZE_BY_SIZE[size] ?? 14;
+  const iconSize = resolveIconSize(sizeIcon, size);
 
   return (
     <button
@@ -152,7 +159,7 @@ export const ButtonSquare = ({
 }) => {
   const variantCls = VARIANT_CLASSES[variant] ?? VARIANT_CLASSES.secondary;
   const sizeCls = SQUARE_SIZES[size] ?? SQUARE_SIZES.md;
-  const iconSize = sizeIcon ?? ICON_SIZE_BY_SIZE[size] ?? 14;
+  const iconSize = resolveIconSize(sizeIcon, size);
 
   return (
     <button

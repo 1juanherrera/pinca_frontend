@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShoppingCart, Plus, ClipboardList, History } from 'lucide-react';
+import { ShoppingCart, Plus, ClipboardList, History, Sparkles } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import { Button }    from '../../shared/Button';
 import ConfirmModal  from '../../shared/ConfirmModal';
@@ -8,10 +8,13 @@ import HistorialTab  from './components/HistorialTab';
 import OrdenForm     from './components/OrdenForm';
 import OrdenDrawer   from './components/OrdenDrawer';
 import OrdenesTab from './components/OrdenesTab';
+import RequisicionesMrpTab from './components/RequisicionesMrpTab';
+import { useRequisiciones } from '../Produccion/api/useRequisiciones';
 
 const TABS = [
-  { id: 'ordenes',   label: 'Órdenes',   icon: ClipboardList },
-  { id: 'historial', label: 'Historial', icon: History       },
+  { id: 'ordenes',   label: 'Órdenes',         icon: ClipboardList },
+  { id: 'mrp',       label: 'Sugeridas (MRP)', icon: Sparkles      },
+  { id: 'historial', label: 'Historial',       icon: History       },
 ];
 
 const ComprasPage = () => {
@@ -19,6 +22,9 @@ const ComprasPage = () => {
   const [ordenSelected, setOrdenSelected] = useState(null);
 
   const { openDrawer } = useBoundStore();
+  // Contador para el badge del tab MRP (sin trigger refetch del listado completo del tab)
+  const { data: sugeridas = [] } = useRequisiciones('SUGERIDA');
+  const countMrp = sugeridas.length;
 
   return (
     <div className="flex flex-col w-full gap-4">
@@ -51,6 +57,7 @@ const ComprasPage = () => {
         {TABS.map((t) => {
           const Icon   = t.icon;
           const active = tab === t.id;
+          const showBadge = t.id === 'mrp' && countMrp > 0;
           return (
             <button
               key={t.id}
@@ -63,6 +70,11 @@ const ComprasPage = () => {
             >
               <Icon size={14} />
               {t.label}
+              {showBadge && (
+                <span className="px-1.5 py-0.5 rounded-full bg-semantic-danger text-white text-[10px] font-bold tabular-nums">
+                  {countMrp}
+                </span>
+              )}
             </button>
           );
         })}
@@ -71,6 +83,8 @@ const ComprasPage = () => {
       {tab === 'ordenes' && (
         <OrdenesTab onVerDetalle={(orden) => setOrdenSelected(orden)} />
       )}
+
+      {tab === 'mrp' && <RequisicionesMrpTab />}
 
       {tab === 'historial' && (
         <HistorialTab onVerDetalle={(orden) => setOrdenSelected(orden)} />

@@ -43,18 +43,27 @@ const ItemDetailModal = ({ itemId, itemPreview, onClose, onEdit }) => {
           <div className="flex items-center justify-center w-9 h-9 bg-content-primary text-content-inverse rounded-md shrink-0">
             <TipoIcon size={18} />
           </div>
-          <div className="min-w-0">
-            <h2 className="text-base font-semibold text-content-primary truncate">
-              {data.nombre || 'Cargando...'}
-            </h2>
-            <div className="flex items-center gap-2 mt-0.5">
-              {data.codigo && (
-                <span className="text-xs font-mono font-medium text-content-tertiary">
-                  {data.codigo}
-                </span>
-              )}
-              <StatusBadge tone={tipo.tone} label={tipo.label} dot={false} size="sm" />
-            </div>
+          <div className="min-w-0 flex-1">
+            {isLoading && !data.nombre ? (
+              <div className="space-y-1.5">
+                <div className="h-4 w-44 bg-surface-muted rounded animate-pulse" />
+                <div className="h-3 w-28 bg-surface-muted rounded animate-pulse" />
+              </div>
+            ) : (
+              <>
+                <h2 className="text-base font-semibold text-content-primary truncate">
+                  {data.nombre || 'Sin nombre'}
+                </h2>
+                <div className="flex items-center gap-2 mt-0.5">
+                  {data.codigo && (
+                    <span className="text-xs font-mono font-medium text-content-tertiary">
+                      {data.codigo}
+                    </span>
+                  )}
+                  <StatusBadge tone={tipo.tone} label={tipo.label} dot={false} size="sm" />
+                </div>
+              </>
+            )}
           </div>
         </div>
 

@@ -1,12 +1,15 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import {
-  Bell,
   Calculator,
   ChevronRight,
+  GitMerge,
   LayoutDashboard,
 } from 'lucide-react';
 import { useBoundStore } from '../store/useBoundStore';
 import { ROLES_LABELS } from '../config/modulos';
 import { useAvatarGradient } from '../utils/avatarTheme';
+import NotificacionesDropdown from '../modules/Notificaciones/components/NotificacionesDropdown';
 
 const getInitials = (username = '') => username.slice(0, 2).toUpperCase();
 
@@ -14,9 +17,22 @@ const Topbar = () => {
   const activeTitle = useBoundStore(s => s.activeTitle);
   const user        = useBoundStore(s => s.user);
   const openDrawer  = useBoundStore(s => s.openDrawer);
+  const navigate    = useNavigate();
 
   const rol      = user?.rol ?? 'visor';
   const gradient = useAvatarGradient(rol);
+
+  // Atajo de teclado: Ctrl+Shift+S navega a Sincronización
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
+        e.preventDefault();
+        navigate('/sincronizacion');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navigate]);
 
   return (
     <header className="h-14 px-5 bg-surface-sidebar border-b border-surface-sidebar-hover flex items-center justify-between text-content-muted shrink-0 w-full">
@@ -40,10 +56,15 @@ const Topbar = () => {
           <Calculator size={16} />
         </button>
 
-        <button className="relative p-2 hover:bg-surface-sidebar-hover rounded-full transition-colors text-content-muted hover:text-content-inverse">
-          <Bell size={16} />
-          <span className="absolute top-1.5 right-2 w-2 h-2 bg-brand-primary rounded-full border-2 border-surface-sidebar" />
+        <button
+          onClick={() => navigate('/sincronizacion')}
+          className="p-2 hover:bg-surface-sidebar-hover rounded-full transition-colors text-content-muted hover:text-content-inverse"
+          title="Sincronización (Ctrl+Shift+S)"
+        >
+          <GitMerge size={16} />
         </button>
+
+        <NotificacionesDropdown />
 
         <div className="h-5 w-px bg-surface-sidebar-hover mx-1" />
 
@@ -53,11 +74,11 @@ const Topbar = () => {
           className="flex items-center gap-2.5 hover:bg-surface-sidebar-hover/80 p-1 pr-3 rounded-full border border-surface-sidebar-hover/50 hover:border-surface-sidebar-hover transition-all text-left"
         >
           <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white text-[10px] font-bold shrink-0`}>
-            {getInitials(user?.username)}
+            {getInitials(user?.nombre || user?.username)}
           </div>
           <div className="hidden sm:block">
             <p className="text-xs font-medium text-content-inverse leading-none">
-              {user?.username ?? '—'}
+              {user?.nombre || user?.username || '—'}
             </p>
             <p className="text-[9px] text-content-muted font-bold uppercase tracking-wider leading-none mt-1">
               {ROLES_LABELS[rol] ?? rol}

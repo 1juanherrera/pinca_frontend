@@ -4,6 +4,8 @@ import HeaderSection from '../../shared/HeaderSection';
 import { useMovimientos } from './api/useMovimientos';
 import { MovimientosFilters } from './components/MovimientosFilters';
 import { MovimientosTable } from './components/MovimientosTable';
+import MovimientoDetailDrawer from './components/MovimientoDetailDrawer';
+import { TrazabilidadPorLoteDrawer } from '../Trazabilidad/components/TrazabilidadDrawer';
 
 const INITIAL_FILTERS = {
   search: '',
@@ -17,6 +19,8 @@ const INITIAL_FILTERS = {
 
 const MovimientosPage = () => {
   const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [selected, setSelected] = useState(null);
+  const [loteBuscado, setLoteBuscado] = useState(null);
 
   const { movimientos, meta, isLoading, isFetching } = useMovimientos(filters);
 
@@ -50,22 +54,38 @@ const MovimientosPage = () => {
 
       {/* ── Filtros ── */}
       <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
-        <MovimientosFilters 
-          filters={filters} 
-          onChange={handleFilterChange} 
+        <MovimientosFilters
+          filters={filters}
+          onChange={handleFilterChange}
           onClear={handleClearFilters}
+          onBuscarLote={(lote) => setLoteBuscado(lote)}
         />
       </div>
 
       {/* ── Tabla ── */}
       <div className="bg-white border border-border-subtle rounded-2xl shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
-        <MovimientosTable 
-          data={movimientos} 
+        <MovimientosTable
+          data={movimientos}
           meta={meta}
-          isLoading={isLoading || isFetching} 
+          isLoading={isLoading || isFetching}
           onPageChange={handlePageChange}
+          onRowClick={setSelected}
         />
       </div>
+
+      {selected && (
+        <MovimientoDetailDrawer
+          movimiento={selected}
+          onClose={() => setSelected(null)}
+        />
+      )}
+
+      {loteBuscado && (
+        <TrazabilidadPorLoteDrawer
+          lote={loteBuscado}
+          onClose={() => setLoteBuscado(null)}
+        />
+      )}
     </div>
   );
 };

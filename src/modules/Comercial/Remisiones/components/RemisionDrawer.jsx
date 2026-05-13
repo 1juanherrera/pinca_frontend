@@ -24,7 +24,9 @@ const InfoRow = ({ label, value }) => (
   </div>
 );
 
-const ESTADOS = ['Pendiente', 'Entregada', 'Anulada'];
+// 'Despachada' es el estado que dispara descuento real de stock (Hito 5).
+// 'Facturada' es post-despacho. 'Anulada' restaura las capas consumidas.
+const ESTADOS = ['Pendiente', 'Despachada', 'Facturada', 'Anulada'];
 
 const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConvertir }) => {
   const { remisionDetalle, items, isLoadingDetalle } = useRemisiones(remisionId);

@@ -6,7 +6,7 @@ import { useBoundStore } from './store/useBoundStore';
 import { ShieldOff } from 'lucide-react';
 
 // Rutas que no requieren un módulo específico (siempre accesibles al loguearse)
-const RUTAS_LIBRES = new Set(['', 'instalaciones', 'login']);
+const RUTAS_LIBRES = new Set(['', 'instalaciones', 'login', 'sedes']);
 
 // Rutas que mapean a un módulo distinto del segmento URL
 const RUTA_A_MODULO = {
@@ -20,12 +20,18 @@ const Layout = () => {
 
   if (!token) return <Navigate to="/login" replace />;
 
-  // Verificar acceso al módulo actual
-  const segmento = location.pathname.split('/')[1] || '';
+  // Verificar acceso al módulo actual.
+  // El rol admin tiene acceso irrestricto a toda la app — se evalúa antes
+  // de chequear la lista de módulos del usuario.
+  const segmento  = location.pathname.split('/')[1] || '';
   const moduloKey = RUTA_A_MODULO[segmento] ?? (segmento || 'panel-principal');
   const modulos   = user?.modulos ?? [];
+  const esAdmin   = user?.rol === 'admin';
 
-  const sinAcceso = !RUTAS_LIBRES.has(segmento) && modulos.length > 0 && !modulos.includes(moduloKey);
+  const sinAcceso = !esAdmin
+    && !RUTAS_LIBRES.has(segmento)
+    && modulos.length > 0
+    && !modulos.includes(moduloKey);
 
   return (
     <div className="flex h-screen w-full bg-surface-base overflow-hidden font-sans transition-colors duration-300">

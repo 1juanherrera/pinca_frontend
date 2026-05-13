@@ -17,6 +17,7 @@ export const MODULOS_SISTEMA = [
   { key: 'tambores',         label: 'Tambores',           grupo: 'Inventario' },
   { key: 'prorrateo',        label: 'Prorrateo',          grupo: 'Análisis' },
   { key: 'roles',            label: 'Gestión de Roles',   grupo: 'Sistema' },
+  { key: 'sincronizacion',   label: 'Sincronización',     grupo: 'Inventario' },
 ];
 
 export const ROLES_LABELS = {
