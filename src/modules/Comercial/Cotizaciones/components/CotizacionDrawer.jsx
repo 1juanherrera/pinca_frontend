@@ -65,7 +65,7 @@ const CotizacionDrawer = ({ cotizacionId, isOpen, onClose, onCambiarEstado, onCo
           <div className="px-5 py-4 bg-surface-subtle border-b border-border-subtle flex items-center justify-between">
             <div>
               <p className="text-[10px] text-content-tertiary mb-1 uppercase tracking-wide">Estado actual</p>
-              <StatusBadge estado={c.estado} />
+              <StatusBadge estado={c.estado} size="sm" dot={false} />
             </div>
             <div className="flex items-center gap-3">
               <Button
@@ -130,7 +130,7 @@ const CotizacionDrawer = ({ cotizacionId, isOpen, onClose, onCambiarEstado, onCo
                   tone="info"
                   label={`Factura: ${c.numero_factura || c.facturas_id}`}
                   dot={false}
-                  size="md"
+                  size="sm"
                 />
               )}
             </div>

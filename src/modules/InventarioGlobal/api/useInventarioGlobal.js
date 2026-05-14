@@ -2,9 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { API_ROUTES } from '../../../api/apiRoutes';
 import { inventarioGlobalKeys } from './inventarioGlobalKeys';
+import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 
 export const useInventarioGlobal = (tipo = null) => {
   const params = tipo !== null ? `?tipo=${tipo}` : '';
+  const stockCriticoDias = useConfigValue('stock_critico_dias', 7);
 
   const { data = [], isLoading, isError, refetch } = useQuery({
     queryKey: inventarioGlobalKeys.byTipo(tipo),
@@ -15,7 +17,7 @@ export const useInventarioGlobal = (tipo = null) => {
   const totalValor    = data.reduce((s, i) => s + i.valor_inventario, 0);
   const totalItems    = data.length;
   const sinStock      = data.filter((i) => i.stock_total === 0).length;
-  const stockCritico  = data.filter((i) => i.dias_restantes !== null && i.dias_restantes < 10).length;
+  const stockCritico  = data.filter((i) => i.dias_restantes !== null && i.dias_restantes < stockCriticoDias).length;
 
   return { items: data, isLoading, isError, refetch, totalValor, totalItems, sinStock, stockCritico };
 };

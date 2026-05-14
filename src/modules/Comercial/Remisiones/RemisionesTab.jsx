@@ -101,7 +101,7 @@ const RemisionesTab = () => {
       key:   'estado',
       label: 'Estado',
       align: 'center',
-      render: (v) => <StatusBadge estado={v} />,
+      render: (v) => <StatusBadge estado={v} size="sm" dot={false} fixedWidth />,
     },
     {
       key:      'acciones',

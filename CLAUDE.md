@@ -593,3 +593,92 @@ src/
 - **2026-04-21** — Proveedores rewrite, Tambores, modelo de unidades (KILO base).
 
 Si necesitás detalle histórico granular, revisa el git log o pregúntale al usuario.
+
+---
+
+## 15. Sesión 2026-05-14 — Configuración del Sistema + PDFs (snapshot)
+
+### Módulo nuevo: `Configuracion/` con 8 tabs
+
+Ruta `/configuracion` (en sidebar como **Sistema → Configuración**, ícono `Settings`). `ConfiguracionPage.jsx` con `PageTabs`. Solo admin puede mutar; otros roles ven en lectura con banner amarillo.
+
+| Tab | Componente | Backend |
+|---|---|---|
+| Empresa | `components/EmpresaTab.jsx` | `empresa` (extendida con direccion/email/celular/locale/moneda/logo_path) |
+| Tributaria | `components/TributariaTab.jsx` | `configuracion_sistema` grupo `tributaria` (5 claves) |
+| Financiero | `components/FinancieroTab.jsx` | grupos `financiero` + `comercial` + `notificaciones` |
+| Umbrales | `components/UmbralesTab.jsx` | grupo `umbrales` (6 claves, con validación cruzada) |
+| Numeración | `components/NumeracionTab.jsx` | tabla `numeracion_documentos` (no es K/V) |
+| Catálogos | `components/CatalogosTab.jsx` | sub-tabs Categorías / Unidades / Tipos de movimiento (read-only) |
+| Seguridad | `components/SeguridadTab.jsx` | grupo `seguridad` (JWT, intentos, password) |
+| Auditoría | `components/AuditoriaTab.jsx` | endpoints `/auditoria/login-attempts` y `/auditoria/movimientos` (admin only) |
+
+### Hooks nuevos
+
+`Configuracion/api/`:
+- `useConfiguracion.js` — `useConfiguracion()`, `useConfiguracionGrupo(g)`, `useConfigValue(clave, default)` (lectura desde cualquier componente), `useUpdateConfig`, `useBulkUpdateConfig`
+- `useNumeracion.js` — `useNumeraciones`, `useUpdateNumeracion`, `useCreateNumeracion`
+- `useCatalogosMaestros.js` — `useCategorias`, `useCategoriaCrud`, `useUnidades`, `useUnidadCrud`, `useTiposMovimiento`
+- `useAuditoria.js` — `useLoginAttempts(filters)`, `useMovimientosAudit(filters)` (con `keepPreviousData`)
+- `useEmpresa.js` — `useEmpresa()`, `useUpdateEmpresa()`, `useEmpresaFormatters()` (locale-aware), `useEmpresaLogoBase64()` (data URI), `useUploadLogo()`, `useDeleteLogo()`
+
+### Utils nuevos
+
+- `src/utils/empresaInfo.js` — `useEmpresaInfo()` devuelve shape compatible con exports legacy + `EMPRESA_FALLBACK` hardcoded; `useEmpresaLogoUrl()` con fallback al asset
+- `src/utils/pdfHeader.js` — paleta `PINCA_COLORS` + `drawPdfHeader(doc, opts)` + `drawPdfFooter(doc, opts)`. Reusables para mantener consistencia visual entre PDFs (banda negra + acento amarillo)
+
+### PDFs nuevos / rediseñados
+
+| Documento | Archivo | Estado |
+|---|---|---|
+| Cotización | `Comercial/Cotizaciones/components/ExportCotizacion.jsx` | Rediseñado (carta A4 con paleta Pinca + ticket POS B/N) |
+| Remisión | `Comercial/Remisiones/components/ExportRemision.jsx` | Rediseñado (idem) |
+| Producción | `Produccion/components/ExportProduccion.jsx` | Solo refactor de logo/empresa |
+| Inventario global | `InventarioGlobal/InventarioGlobalPage.jsx` | Refactor logo + locale |
+| **Factura** | `Comercial/Facturacion/components/ExportFactura.jsx` | Nuevo (montado en `ComercialPage`) |
+| **Orden de compra** | `Compras/components/ExportOrdenCompra.jsx` | Nuevo (montado en `ComprasPage`) |
+| **Recibo de pago** | `Pagos/components/ExportRecibo.jsx` | Nuevo (montado en `PagosPage`) |
+| **Nota crédito** | `Cartera/components/ExportNotaCredito.jsx` | Nuevo (montado en `CarteraPage`); marca de agua "ANULADA" si aplica |
+
+**Patrón de invocación de PDF**: usar `openDrawer('EXPORT_MODAL_X', payload)` desde la tabla. El componente `ExportX` se monta a nivel de page y se autoabre cuando `activeDrawer === 'EXPORT_MODAL_X'`.
+
+**Logo dinámico**: cada PDF llama `useEmpresaLogoBase64()` para obtener `data:image/png;base64,...`. Si no hay logo subido o falla el fetch, fallback al asset `pincaicono.png`. CRUD del logo en `EmpresaTab` con uploader (PNG/JPG/WEBP ≤2MB).
+
+**Toggle Tiquete (Cotización + Remisión)**: el formato "ticket" usa estilo POS genérico (Courier monoespaciado, B/N, líneas dotted). El formato "carta" usa el branding Pinca (banda negra + acento amarillo).
+
+### Toast limiter
+
+`main.jsx` — componente `ToastLimiter` con `useToasterStore()` que mantiene máximo `TOAST_LIMIT = 1` toast visible. Los toasts más viejos se descartan automáticamente al aparecer uno nuevo. **No requiere tocar callsites** — todo `toast.success(...)` existente funciona igual.
+
+### Defaults movidos a config (consumidos por hooks `useConfigValue` o backend `Cfg::n`)
+
+| Clave | Default | Consumidores frontend |
+|---|---|---|
+| `iva_default` | 19 | `ItemProveedorForm`, `CotizacionForm`, `FacturaForm` |
+| `aplicar_iva_por_default` | true | `CotizacionForm`, `FacturaForm` (toggle inicial) |
+| `stock_critico_dias` / `stock_warning_dias` | 7 / 30 | `PanelPrincipalPage`, `InventarioGlobalPage` (`DiasRestantes`), `useInventarioGlobal` |
+| `mora_critica_dias` / `mora_warning_dias` | 60 / 30 | `Cartera/DashboardCartera` (columna mora) |
+| `margen_minimo_pct` / `margen_objetivo_pct` | 10 / 20 | `PanelPrincipalPage` (badge rentabilidad) |
+| `dias_credito_default` | 30 | `ClienteForm` (default `plazo_pago`) |
+| `page_size_default` | 25 | `CatalogoTable`, `ProveedoresTable`, varios |
+| `avatar_palette` (json) | array de 8 gradientes | `useAvatarPalette()` en `avatarTheme.js` |
+
+### Nuevas rutas en sidebar
+
+- **Sedes y Bodegas** (`/sedes`) — agregada al grupo **Inventario** como primer item. Punto de entrada al flujo `Sedes → Bodegas → Inventario por bodega`.
+- **Configuración** (`/configuracion`) — accesible desde el botón ⚙️ del footer del sidebar.
+
+### Cleanup técnico relevante
+
+- **Soft-delete en `item_proveedor`** — el delete del controller ahora marca `deleted_at` en vez de eliminar (preserva FK con `historial_precios` y `ordenes_compra_detalle`). Migración `2026-05-14-000001`.
+- **Insumo tone neutral** — antes era `brand` (amarillo, igual que MP). Cambiado a `neutral` (gris contrastado). Afecta a Inventario, Catálogo, Sincronización, ItemGeneralSearch.
+- **`StatusBadge` neutral subtle** — más contraste (`surface-strong + content-primary` en vez de `surface-muted + content-secondary`).
+- **`StatusBadge` sm width** — subido de 70px a 115px para que `MATERIA PRIMA` no se trunque.
+- **`fixedWidth` agregado** en columnas Tipo/Estado de Catálogo, Movimientos, Inventario, Cotizaciones, Facturación, Remisiones, OCs — para alineación uniforme.
+- **VincularModal** (Proveedores) — z-index subido de `z-50` a `z-[110]` (estaba quedando bajo el drawer); sección "Ingresar al inventario" removida (mala práctica — stock solo entra por OC).
+- **Dashboard "Actividad de hoy"** — cards verticales más altas con % del total, llena el espacio disponible al lado de "Salud de cartera".
+
+### Backend bridge
+
+- `useEmpresaLogoBase64()` llama `GET /api/empresa/logo-base64` (devuelve data URI), evita problema de CORS al hacer fetch directo a `/uploads/`.
+- Mutaciones de configuración requieren `rol=admin` (validado backend, no solo UI).

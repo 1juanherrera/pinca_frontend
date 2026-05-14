@@ -6,8 +6,7 @@ import {
 import { fmt } from '../../../utils/formatters';
 import AmountDisplay from '../../../shared/AmountDisplay';
 import StatusBadge from '../../../shared/StatusBadge';
-
-const PAGE_SIZE = 20;
+import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 
 // Paletas para avatares (intencionalmente coloridas; identifican proveedores).
 const PALETTES = [
@@ -45,6 +44,7 @@ const ProveedoresTable = ({
   onDelete,
   onPortafolio,
 }) => {
+  const PAGE_SIZE = useConfigValue('page_size_default', 20);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 

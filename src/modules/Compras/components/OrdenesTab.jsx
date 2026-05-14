@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ShoppingCart, CheckCircle2, XCircle, Send, Pencil, Trash2, VariableIcon } from 'lucide-react';
+import { ShoppingCart, CheckCircle2, XCircle, Send, Pencil, Trash2, VariableIcon, Download } from 'lucide-react';
 import ERPTable        from '../../../shared/ERPTable';
 import StatusBadge     from '../../../shared/StatusBadge';
 import SummaryCard     from '../../../shared/SummaryCard';
@@ -100,7 +100,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
       label:     'Estado',
       align:     'center',
       className: 'w-28',
-      render: (v) => <StatusBadge estado={v} />,
+      render: (v) => <StatusBadge estado={v} size="sm" dot={false} fixedWidth />,
     },
     {
       key:      'acciones',
@@ -128,6 +128,15 @@ const OrdenesTab = ({ onVerDetalle }) => {
               <Send size={12} />
             </button>
           )}
+
+          {/* Exportar PDF */}
+          <button
+            onClick={(e) => { e.stopPropagation(); openDrawer('EXPORT_MODAL_OC', row); }}
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
+            title="Descargar PDF"
+          >
+            <Download size={12} />
+          </button>
 
           {/* Ver detalle */}
           <button

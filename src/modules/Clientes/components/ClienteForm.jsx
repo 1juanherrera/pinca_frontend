@@ -6,12 +6,14 @@ import { FormInput } from '../../../shared/Form/FormInput';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { useClientes } from '../api/useClientes';
+import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 
 const ClienteForm = () => {
 
   const activeDrawer = useBoundStore(state => state.activeDrawer);
   const payload     = useBoundStore(state => state.drawerPayload);
   const closeDrawer = useBoundStore(state => state.closeDrawer);
+  const plazoDefault = String(useConfigValue('dias_credito_default', 30));
 
   const isDrawerOpen = activeDrawer === 'CLIENTE_FORM';
 
@@ -35,7 +37,7 @@ const ClienteForm = () => {
           numero_documento: payload.numero_documento || '',
           direccion:        payload.direccion        || '',
           ciudad:           payload.ciudad           || '',
-          plazo_pago:       String(payload.plazo_pago ?? '30'),
+          plazo_pago:       String(payload.plazo_pago ?? plazoDefault),
           telefono:         payload.telefono         || '',
           email:            payload.email            || '',
           tipo:             String(payload.tipo)     || '2',
@@ -48,7 +50,7 @@ const ClienteForm = () => {
           numero_documento: '',
           direccion:        '',
           ciudad:           '',
-          plazo_pago:       '30',
+          plazo_pago:       plazoDefault,
           telefono:         '',
           email:            '',
           tipo:             '2',
@@ -56,7 +58,7 @@ const ClienteForm = () => {
         });
       }
     }
-  }, [isDrawerOpen, payload, reset]);
+  }, [isDrawerOpen, payload, reset, plazoDefault]);
 
   const onSubmit = (data) => {
     if (payload) {

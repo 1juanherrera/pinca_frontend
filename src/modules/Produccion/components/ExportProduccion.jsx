@@ -1,25 +1,17 @@
 import { useState, forwardRef, useRef } from 'react';
 import { X, Download, CheckCircle2, Loader2, ClipboardList, FlaskConical } from 'lucide-react';
 
-import logo from '../../../../src/assets/pincaicono.png';
+import logoFallback from '../../../../src/assets/pincaicono.png';
 import { usePreparaciones } from '../../Formulaciones/api/usePreparaciones';
 import { useBoundStore } from '../../../store/useBoundStore';
-
-const EMPRESA = {
-  nombre: 'PINTURAS INDUSTRIALES DEL CARIBE S.A.S',
-  nit: 'NIT 901.314.182-9',
-  direccion: 'Calle 99 # 6-59',
-  telefono: 'Tel: 3145973532',
-  ciudad: 'Barranquilla - Colombia',
-  email: 'pinca.sas@hotmail.com',
-  celular: '+57 3019794729',
-  web: 'www.pinca.com.co',
-};
+import { useEmpresaInfo, useEmpresaLogoUrl, EMPRESA_FALLBACK } from '../../../utils/empresaInfo';
+import { useEmpresaLogoBase64 } from '../../Configuracion/api/useEmpresa';
 
 const fmt = (v) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(v) || 0);
 
-const PdfTemplate = forwardRef(({ preparacion, items, modo }, ref) => {
+const PdfTemplate = forwardRef(({ preparacion, items, modo, empresa: EMPRESA = EMPRESA_FALLBACK, logoUrl = logoFallback }, ref) => {
+  const logo = logoUrl;
   const isMuestrario = modo === 'MUESTRARIO';
 
   return (
@@ -156,6 +148,10 @@ const PdfTemplate = forwardRef(({ preparacion, items, modo }, ref) => {
 });
 
 const ExportProduccionContent = ({ preparacion, closeModal }) => {
+  const EMPRESA = useEmpresaInfo();
+  const logoUrl = useEmpresaLogoUrl();
+  const { data: logoB64Data } = useEmpresaLogoBase64();
+  const logo    = logoUrl;
   const [isExporting, setIsExporting] = useState(false);
   const [done, setDone] = useState(false);
   const [modo, setModo] = useState('ESTANDAR'); // 'ESTANDAR' | 'MUESTRARIO'
@@ -174,8 +170,9 @@ const ExportProduccionContent = ({ preparacion, closeModal }) => {
       const doc = new jsPDF({ format: 'a4', unit: 'mm' });
       const pw = doc.internal.pageSize.getWidth();
 
-      // Convert logo to base64
-      const logoBase64 = await fetch(logo)
+      // Logo: prefiero el base64 del backend; fallback al asset estático
+      const logoBase64 = logoB64Data?.logo
+        ?? await fetch(logoFallback)
         .then(r => r.blob())
         .then(b => new Promise(res => {
           const reader = new FileReader();
@@ -477,7 +474,7 @@ const ExportProduccionContent = ({ preparacion, closeModal }) => {
               <div className="flex justify-center">
                 <div className="shadow-2xl rounded-sm bg-white" style={{ width: '635px' }}>
                   <div style={{ zoom: 0.8, width: '794px' }}>
-                    <PdfTemplate ref={printRef} preparacion={preparacion} items={items} modo={modo} />
+                    <PdfTemplate ref={printRef} preparacion={preparacion} items={items} modo={modo} empresa={EMPRESA} logoUrl={logoUrl} />
                   </div>
                 </div>
               </div>

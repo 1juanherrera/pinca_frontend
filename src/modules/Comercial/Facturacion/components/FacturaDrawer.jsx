@@ -76,7 +76,7 @@ const FacturaDrawer = ({ facturaId, isOpen, onClose }) => {
           <div className="px-5 py-4 bg-surface-subtle border-b border-border-subtle flex items-center justify-between">
             <div>
               <p className="text-xs text-content-tertiary">Estado de la factura</p>
-              <StatusBadge estado={f.estado} />
+              <StatusBadge estado={f.estado} size="sm" dot={false} />
             </div>
             <div className="text-right">
               <p className="text-xs text-content-tertiary">Total factura</p>
@@ -177,7 +177,7 @@ const FacturaDrawer = ({ facturaId, isOpen, onClose }) => {
                   <p className="text-xs font-semibold text-semantic-info-fg">{remision.numero}</p>
                   <p className="text-[10px] text-content-tertiary">{remision.fecha_remision} · {remision.direccion_entrega}</p>
                 </div>
-                <StatusBadge estado={remision.estado} size="sm" />
+                <StatusBadge estado={remision.estado} size="sm" dot={false} />
               </div>
             )}
           </Section>

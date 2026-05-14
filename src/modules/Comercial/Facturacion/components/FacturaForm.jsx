@@ -11,6 +11,7 @@ import { Button } from '../../../../shared/Button';
 import { FormInput } from '../../../../shared/Form/FormInput';
 import { FormTextarea } from '../../../../shared/Form/FormTexarea';
 import { LABEL_BASE } from '../../../../shared/Form/styles';
+import { useConfigValue } from '../../../Configuracion/api/useConfiguracion';
 import cn from '../../../../utils/cn';
 
 const EMPTY_ITEM = { descripcion: '', cantidad: 1, precio_unitario: 0 };
@@ -52,8 +53,12 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
   const [items, setItems] = useState(() =>
     editData?.items?.length ? editData.items : [{ ...EMPTY_ITEM }]
   );
-  const [ivaActivo, setIvaActivo] = useState(() => Number(editData?.impuestos ?? 0) > 0);
-  const [ivaPct,    setIvaPct]    = useState(19);
+  const ivaDefault       = useConfigValue('iva_default', 19);
+  const aplicarIvaDefault = useConfigValue('aplicar_iva_por_default', true);
+  const [ivaActivo, setIvaActivo] = useState(() =>
+    editData ? Number(editData?.impuestos ?? 0) > 0 : !!aplicarIvaDefault
+  );
+  const [ivaPct,    setIvaPct]    = useState(ivaDefault);
 
   const setField   = (k, v) => setForm((p) => ({ ...p, [k]: v }));
   const setItem    = (idx, k, v) =>

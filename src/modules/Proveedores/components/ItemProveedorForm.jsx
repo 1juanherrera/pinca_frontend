@@ -11,6 +11,7 @@ import { useUnidades } from '../../../api/useUnidades';
 import ItemGeneralSearch from '../../../shared/ItemGeneralSearch';
 import apiClient from '../../../api/apiClient';
 import { API_ROUTES } from '../../../api/apiRoutes';
+import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 
 // ── Colores por tipo ────────────────────────────────────────────────────────
 const TIPO_CONFIG = {
@@ -218,8 +219,12 @@ const ItemProveedorForm = () => {
 
   const isDrawerOpen = activeDrawer === 'ITEM_PROVEEDOR_FORM';
 
-  const [aplicarIva,     setAplicarIva]     = useState(true);
-  const [porcentajeIva,  setPorcentajeIva]  = useState(19);
+  // Defaults vienen de Configuración del Sistema (admin los puede ajustar).
+  const ivaDefault         = useConfigValue('iva_default', 19);
+  const aplicarIvaDefault  = useConfigValue('aplicar_iva_por_default', true);
+
+  const [aplicarIva,     setAplicarIva]     = useState(aplicarIvaDefault);
+  const [porcentajeIva,  setPorcentajeIva]  = useState(ivaDefault);
   const [itemGeneral,    setItemGeneral]    = useState(null);
   const [unidadCompraId, setUnidadCompraId] = useState('');
   const [nombreLocal,    setNombreLocal]    = useState('');
@@ -231,6 +236,9 @@ const ItemProveedorForm = () => {
 
   const precioUnitario = watch('precio_unitario') ?? 0;
   const proveedorIdWatch = watch('proveedor_id') ?? '';
+
+  // Guard contra loop entre forward (unitario→conIva) y reverse (conIva→unitario) sync.
+  const isAutoUpdateRef = useRef(false);
 
   // Detección de duplicado
   const duplicado = useMemo(() => {
@@ -257,11 +265,11 @@ const ItemProveedorForm = () => {
 
     const precioUnit = payload?.precio_unitario ?? 0;
     const precioIva  = payload?.precio_con_iva  ?? 0;
-    let ivaAct = true, ivaPct = 19;
+    let ivaAct = aplicarIvaDefault, ivaPct = ivaDefault;
 
     if (payload && precioUnit > 0 && precioIva > precioUnit) {
       const pctDetectado = Math.round((precioIva / precioUnit - 1) * 100);
-      ivaPct = pctDetectado > 0 ? pctDetectado : 19;
+      ivaPct = pctDetectado > 0 ? pctDetectado : ivaDefault;
     } else if (payload) {
       ivaAct = false;
     }
@@ -294,8 +302,14 @@ const ItemProveedorForm = () => {
     });
   }, [isDrawerOpen, payload, reset]);
 
+  // Forward sync: unitario → con_iva.  El reverse (en onChange del con_iva) marca
+  // isAutoUpdateRef antes de mutar unitario; este efecto lo respeta y no recalcula.
   useEffect(() => {
     if (!aplicarIva) return;
+    if (isAutoUpdateRef.current) {
+      isAutoUpdateRef.current = false;
+      return;
+    }
     const base = Number(precioUnitario) || 0;
     setValue('precio_con_iva', Math.round(base * (1 + porcentajeIva / 100)));
   }, [aplicarIva, precioUnitario, porcentajeIva, setValue]);
@@ -330,8 +344,8 @@ const ItemProveedorForm = () => {
 
   const handleClose = () => {
     reset();
-    setAplicarIva(true);
-    setPorcentajeIva(19);
+    setAplicarIva(aplicarIvaDefault);
+    setPorcentajeIva(ivaDefault);
     setItemGeneral(null);
     setNombreLocal('');
     setUnidadCompraId('');
@@ -535,11 +549,19 @@ const ItemProveedorForm = () => {
                 <InputMoneda
                   label="Precio con IVA"
                   value={field.value}
-                  onChange={(v) => { if (aplicarIva) setAplicarIva(false); field.onChange(v); }}
+                  onChange={(v) => {
+                    field.onChange(v);
+                    // Sync inverso: si IVA está activo, recalcular el precio unitario.
+                    if (aplicarIva) {
+                      isAutoUpdateRef.current = true;
+                      const unit = (Number(v) || 0) / (1 + porcentajeIva / 100);
+                      setValue('precio_unitario', Math.round(unit * 100) / 100);
+                    }
+                  }}
                   error={errors.precio_con_iva?.message}
                 />
                 {aplicarIva && (
-                  <span className="absolute right-3 top-1 text-[10px] font-bold text-semantic-success-fg uppercase tracking-wide">Auto</span>
+                  <span className="absolute right-3 top-1 text-[10px] font-bold text-semantic-success-fg uppercase tracking-wide">Sync</span>
                 )}
               </div>
             )}

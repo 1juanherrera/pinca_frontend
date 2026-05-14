@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import {
   Wallet, Plus, TrendingUp, CreditCard,
-  Banknote, Eye, Trash2,
+  Banknote, Eye, Trash2, Download,
 } from 'lucide-react';
 import { useBoundStore } from '../../store/useBoundStore';
 import HeaderSection from '../../shared/HeaderSection';
@@ -14,6 +14,7 @@ import SearchFilterBar from '../../shared/SearchFilterBar';
 import AmountDisplay from '../../shared/AmountDisplay';
 import PagoForm from './components/PagoForm';
 import PagoDrawer from './components/PagoDrawer';
+import ExportRecibo from './components/ExportRecibo';
 import { usePagos } from './api/usePago';
 import { fmt } from '../../utils/formatters';
 
@@ -114,6 +115,12 @@ const PagosPage = () => {
       render: (_, row) => (
         <div className="flex items-center justify-end gap-1.5">
           <Button
+            size="sm" variant="secondary" icon={Download}
+            className="!w-7 !px-0"
+            title="Descargar recibo"
+            onClick={(e) => { e.stopPropagation(); openDrawer('EXPORT_MODAL_RECIBO', row); }}
+          />
+          <Button
             size="sm" variant="secondary" icon={Eye}
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
           >
@@ -211,6 +218,7 @@ const PagosPage = () => {
         onClose={() => setSelected(null)}
       />
       <PagoForm />
+      <ExportRecibo />
       <ConfirmModal />
     </div>
   );

@@ -5,8 +5,9 @@ import StatusBadge from '../../../shared/StatusBadge';
 import FlowCard    from '../../../shared/FlowCard';
 import { fmt, formatLetterDate } from '../../../utils/formatters';
 import { useResumenCartera, useAgingCartera } from '../api/useCartera';
+import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 
-const columnsVencidas = [
+const buildColumns = (moraCriticaDias, moraWarningDias) => [
   {
     key: 'numero',
     label: 'Factura',
@@ -38,7 +39,7 @@ const columnsVencidas = [
     align: 'center',
     render: (v) => {
       const d = Number(v);
-      const tone = d > 60 ? 'danger' : d > 30 ? 'warning' : 'warning';
+      const tone = d > moraCriticaDias ? 'danger' : d > moraWarningDias ? 'warning' : 'warning';
       return <StatusBadge tone={tone} label={`${d}d`} dot={false} size="sm" />;
     },
   },
@@ -61,6 +62,13 @@ const columnsVencidas = [
 const DashboardCartera = () => {
   const { resumen, isLoadingResumen } = useResumenCartera();
   const { aging,   isLoadingAging   } = useAgingCartera();
+
+  const moraCriticaDias = useConfigValue('mora_critica_dias', 60);
+  const moraWarningDias = useConfigValue('mora_warning_dias', 30);
+  const columnsVencidas = useMemo(
+    () => buildColumns(moraCriticaDias, moraWarningDias),
+    [moraCriticaDias, moraWarningDias],
+  );
 
   const facturasVencidas = useMemo(() => {
     if (!aging) return [];

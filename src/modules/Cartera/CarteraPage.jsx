@@ -9,6 +9,7 @@ import HistorialPagos       from './components/HistorialPagos';
 import EstadoCuentaDrawer   from './components/EstadoCuentaDrawer';
 import GestionesCobroDrawer from './components/GestionesCobroDrawer';
 import NotasCreditoDrawer   from './components/NotasCreditoDrawer';
+import ExportNotaCredito    from './components/ExportNotaCredito';
 
 const TABS = [
   { key: 'dashboard', label: 'Dashboard', icon: ChartArea },
@@ -95,6 +96,7 @@ const CarteraPage = () => {
         isOpen={!!notasFactura}
         onClose={() => setNotasFactura(null)}
       />
+      <ExportNotaCredito />
     </div>
   );
 };

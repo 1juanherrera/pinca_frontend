@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { FileMinus, Plus, XCircle, AlertCircle } from 'lucide-react';
+import { FileMinus, Plus, XCircle, AlertCircle, Download } from 'lucide-react';
 import { useNotasCredito } from '../api/useCartera';
 import { useBoundStore }   from '../../../store/useBoundStore';
 import DetailDrawer  from '../../../shared/DetailDrawer';
@@ -16,8 +16,9 @@ import { Button }    from '../../../shared/Button';
 import { fmt }       from '../../../utils/formatters';
 
 // ── Fila de nota crédito ──────────────────────────────────────
-const NotaRow = ({ nota, onAnular }) => {
+const NotaRow = ({ nota, onAnular, numeroFactura }) => {
   const anulada = nota.estado === 'Anulada';
+  const openDrawer = useBoundStore((s) => s.openDrawer);
   return (
     <div className={`flex items-start gap-3 p-3 rounded-lg border ${anulada ? 'bg-surface-subtle border-border-subtle opacity-60' : 'bg-semantic-danger-subtle border-semantic-danger/15'}`}>
       <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${anulada ? 'bg-surface-strong' : 'bg-semantic-danger-subtle'}`}>
@@ -35,6 +36,13 @@ const NotaRow = ({ nota, onAnular }) => {
           </span>
         </div>
       </div>
+      <button
+        onClick={() => openDrawer('EXPORT_MODAL_NC', { ...nota, factura_numero: numeroFactura })}
+        title="Descargar PDF"
+        className="shrink-0 p-1 rounded text-content-muted hover:text-content-primary hover:bg-surface-muted transition-colors"
+      >
+        <Download className="w-3.5 h-3.5" />
+      </button>
       {!anulada && (
         <button
           onClick={() => onAnular(nota.id_nota_credito)}
@@ -191,7 +199,7 @@ const NotasCreditoDrawer = ({ facturaId, clienteId, numeroFactura, saldoPendient
           ))
         ) : notas.length > 0 ? (
           notas.map((n) => (
-            <NotaRow key={n.id_nota_credito} nota={n} onAnular={handleAnular} />
+            <NotaRow key={n.id_nota_credito} nota={n} onAnular={handleAnular} numeroFactura={numeroFactura} />
           ))
         ) : (
           <div className="flex flex-col items-center gap-2 py-10 text-content-muted">

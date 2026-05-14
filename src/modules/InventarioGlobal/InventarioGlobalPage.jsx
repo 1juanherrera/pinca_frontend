@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 import {
-  ChevronDown, ChevronRight, RefreshCw, AlertTriangle,
+  ChevronDown, ChevronRight, ChevronLeft, RefreshCw, AlertTriangle,
   Package, DollarSign, FileSpreadsheet, FileText, Boxes, Search,
 } from 'lucide-react';
 import { useInventarioGlobal } from './api/useInventarioGlobal';
@@ -11,7 +11,12 @@ import { FullPageLoader } from '../../shared/Loader';
 import SummaryCard from '../../shared/SummaryCard';
 import StatusBadge from '../../shared/StatusBadge';
 import { fmt } from '../../utils/formatters';
-import logo from '../../assets/pincaicono.png';
+import { getPaginationRange } from '../Inventario/services/pagination';
+import { useConfigValue } from '../Configuracion/api/useConfiguracion';
+import { useEmpresaInfo } from '../../utils/empresaInfo';
+import { useEmpresaLogoBase64 } from '../Configuracion/api/useEmpresa';
+import cn from '../../utils/cn';
+import logoFallback from '../../assets/pincaicono.png';
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
@@ -33,7 +38,7 @@ const TIPO_TABS = [
   { label: 'Insumos',         tipo: 2    },
 ];
 
-const TIPO_TONE  = { 0: 'info', 1: 'warning', 2: 'brand' };
+const TIPO_TONE  = { 0: 'info', 1: 'warning', 2: 'neutral' };
 const TIPO_LABEL = { 0: 'Producto', 1: 'Materia Prima', 2: 'Insumo' };
 
 const fmtNum = (n, dec = 2) =>
@@ -42,10 +47,13 @@ const fmtNum = (n, dec = 2) =>
 // ── Semáforo ──────────────────────────────────────────────────────────────────
 
 const DiasRestantes = ({ dias }) => {
-  if (dias === null) return <StatusBadge tone="neutral" label="Sin datos" dot={false} size="md" fixedWidth />;
-  if (dias < 10)     return <StatusBadge tone="danger"  label={`${dias}d crítico`} size="md" fixedWidth />;
-  if (dias < 30)     return <StatusBadge tone="warning" label={`${dias}d`}         size="md" fixedWidth />;
-  return                    <StatusBadge tone="success" label={`${dias}d`}         size="md" fixedWidth />;
+  const criticoDias = useConfigValue('stock_critico_dias', 10);
+  const warningDias = useConfigValue('stock_warning_dias', 30);
+
+  if (dias === null)      return <StatusBadge tone="neutral" label="Sin datos"          dot={false} size="sm" fixedWidth />;
+  if (dias < criticoDias) return <StatusBadge tone="danger"  label={`${dias}d crítico`} dot={false} size="sm" fixedWidth />;
+  if (dias < warningDias) return <StatusBadge tone="warning" label={`${dias}d`}         dot={false} size="sm" fixedWidth />;
+  return                         <StatusBadge tone="success" label={`${dias}d`}         dot={false} size="sm" fixedWidth />;
 };
 
 // ── Fila expandible ───────────────────────────────────────────────────────────
@@ -66,7 +74,7 @@ const ItemRow = ({ item, index }) => {
         `}
       >
         {/* Expand */}
-        <td className="pl-4 pr-2 py-3 w-8">
+        <td className="pl-4 pr-2 py-2 w-8">
           {hasBodegas
             ? (open
                 ? <ChevronDown size={14} className="text-brand-primary" />
@@ -75,29 +83,29 @@ const ItemRow = ({ item, index }) => {
         </td>
 
         {/* # */}
-        <td className="px-2 py-3 text-xs text-content-muted tabular-nums w-10 text-center">
+        <td className="px-2 py-2 text-xs text-content-muted tabular-nums w-10 text-center">
           {index + 1}
         </td>
 
         {/* Ítem */}
-        <td className="px-3 py-3 min-w-[200px]">
+        <td className="px-3 py-2 min-w-[200px]">
           <p className="font-semibold text-content-primary">{item.nombre}</p>
           <p className="text-content-tertiary text-xs mt-0.5 font-mono">{item.codigo}</p>
         </td>
 
         {/* Tipo */}
-        <td className="px-3 py-3">
+        <td className="px-3 py-2">
           <StatusBadge
             tone={TIPO_TONE[item.tipo] ?? 'neutral'}
             label={TIPO_LABEL[item.tipo] ?? '—'}
             dot={false}
-            size="md"
+            size="sm"
             fixedWidth
           />
         </td>
 
         {/* Stock */}
-        <td className="px-3 py-3 text-right tabular-nums">
+        <td className="px-3 py-2 text-right tabular-nums">
           {sinStock ? (
             <span className="text-content-muted text-xs italic">Sin stock</span>
           ) : (
@@ -109,13 +117,13 @@ const ItemRow = ({ item, index }) => {
         </td>
 
         {/* Bodegas */}
-        <td className="px-3 py-3 text-center">
+        <td className="px-3 py-2 text-center">
           {item.bodegas_con_stock > 0 ? (
             <StatusBadge
               tone="neutral"
               label={`${item.bodegas_con_stock} ${item.bodegas_con_stock === 1 ? 'bodega' : 'bodegas'}`}
               dot={false}
-              size="md"
+              size="sm"
               fixedWidth
             />
           ) : (
@@ -124,7 +132,7 @@ const ItemRow = ({ item, index }) => {
         </td>
 
         {/* Costo promedio */}
-        <td className="px-3 py-3 text-right tabular-nums">
+        <td className="px-3 py-2 text-right tabular-nums">
           {item.costo_promedio > 0 ? (
             <span>
               <span className="font-medium text-content-primary">{fmt(item.costo_promedio)}</span>
@@ -136,7 +144,7 @@ const ItemRow = ({ item, index }) => {
         </td>
 
         {/* Valor inventario */}
-        <td className="px-3 py-3 text-right tabular-nums">
+        <td className="px-3 py-2 text-right tabular-nums">
           {item.valor_inventario > 0 ? (
             <span className="font-bold text-content-primary">{fmt(item.valor_inventario)}</span>
           ) : (
@@ -145,14 +153,14 @@ const ItemRow = ({ item, index }) => {
         </td>
 
         {/* Consumo 30d */}
-        <td className="px-3 py-3 text-right tabular-nums text-content-secondary text-sm">
+        <td className="px-3 py-2 text-right tabular-nums text-content-secondary text-sm">
           {item.consumo_30_dias
             ? <span>{fmtNum(item.consumo_30_dias, 1)} <span className="text-content-tertiary text-xs">{item.unidad_base}</span></span>
             : <span className="text-content-muted text-xs">—</span>}
         </td>
 
         {/* Días restantes */}
-        <td className="px-3 py-3 text-center">
+        <td className="px-3 py-2 text-center">
           <DiasRestantes dias={item.dias_restantes} />
         </td>
       </tr>
@@ -222,13 +230,15 @@ const exportarExcel = (items, tipoLabel) => {
 
 // ── Exportar PDF ──────────────────────────────────────────────────────────────
 
-const exportarPdf = async (items, tipoLabel) => {
+const exportarPdf = async (items, tipoLabel, criticoDias = 10, empresa = EMPRESA, logoB64 = null) => {
+  const EMP = empresa;
   if (!items.length) { toast.error('No hay datos para exportar'); return; }
 
   try {
     const { jsPDF } = await import('jspdf');
     const autoTable = (await import('jspdf-autotable')).default;
-    const logoBase64 = await fetch(logo).then((r) => r.blob()).then(
+    const logoBase64 = logoB64
+      ?? await fetch(logoFallback).then((r) => r.blob()).then(
       (b) => new Promise((res) => {
         const reader = new FileReader();
         reader.onload = () => res(reader.result);
@@ -248,11 +258,11 @@ const exportarPdf = async (items, tipoLabel) => {
 
     // Datos empresa
     doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(17, 24, 39);
-    doc.text(EMPRESA.nombre, 37, 14);
+    doc.text(EMP.nombre, 37, 14);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(107, 114, 128);
-    doc.text(`${EMPRESA.nit} · ${EMPRESA.telefono}`, 37, 19);
-    doc.text(`${EMPRESA.direccion} · ${EMPRESA.ciudad}`, 37, 23.5);
-    doc.text(EMPRESA.web, 37, 28);
+    doc.text(`${EMP.nit} · ${EMP.telefono}`, 37, 19);
+    doc.text(`${EMP.direccion} · ${EMP.ciudad}`, 37, 23.5);
+    doc.text(EMP.web, 37, 28);
 
     // Título (derecha)
     const fecha = new Date().toLocaleDateString('es-CO');
@@ -272,7 +282,7 @@ const exportarPdf = async (items, tipoLabel) => {
     // Bloques resumen
     const totalValor = items.reduce((s, i) => s + (i.valor_inventario || 0), 0);
     const totalStock = items.reduce((s, i) => s + (i.stock_total     || 0), 0);
-    const criticos   = items.filter((i) => i.dias_restantes !== null && i.dias_restantes < 10).length;
+    const criticos   = items.filter((i) => i.dias_restantes !== null && i.dias_restantes < criticoDias).length;
 
     const bloques = [
       { label: 'Total Ítems',       value: items.length.toString() },
@@ -344,7 +354,7 @@ const exportarPdf = async (items, tipoLabel) => {
     doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(17, 24, 39);
     doc.text('Pinturas Industriales Del Caribe', M + 15, pageH - 10);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(107, 114, 128);
-    doc.text(`${EMPRESA.email} · ${EMPRESA.celular}`, M + 15, pageH - 6);
+    doc.text(`${EMP.email} · ${EMP.celular}`, M + 15, pageH - 6);
     doc.setTextColor(209, 213, 219);
     doc.text(`Generado el ${fecha}`, W - M, pageH - 10, { align: 'right' });
     doc.text('Barranquilla, Atlántico / Colombia', W - M, pageH - 6, { align: 'right' });
@@ -361,19 +371,33 @@ const exportarPdf = async (items, tipoLabel) => {
 // ── Página principal ──────────────────────────────────────────────────────────
 
 const InventarioGlobalPage = () => {
-  const [tipoActivo, setTipoActivo] = useState(null);
-  const [busqueda,   setBusqueda]   = useState('');
-  const [soloStock,  setSoloStock]  = useState(false);
+  const [tipoActivo,  setTipoActivo]  = useState(null);
+  const [busqueda,    setBusqueda]    = useState('');
+  const [soloStock,   setSoloStock]   = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage,     setPerPage]     = useState(20);
 
   const { items, isLoading, isError, refetch, totalValor, totalItems, sinStock, stockCritico } =
     useInventarioGlobal(tipoActivo);
+  const criticoDias = useConfigValue('stock_critico_dias', 10);
+  const empresaInfo = useEmpresaInfo();
+  const { data: logoB64Data } = useEmpresaLogoBase64();
 
-  const filtrados = items.filter((i) => {
+  const filtrados = useMemo(() => items.filter((i) => {
     if (soloStock && i.stock_total === 0) return false;
     if (!busqueda.trim()) return true;
     const q = busqueda.toLowerCase();
     return i.nombre.toLowerCase().includes(q) || (i.codigo ?? '').toLowerCase().includes(q);
-  });
+  }), [items, soloStock, busqueda]);
+
+  // Reset a página 1 cuando cambian filtros
+  useEffect(() => { setCurrentPage(1); }, [tipoActivo, busqueda, soloStock, perPage]);
+
+  const totalPages = Math.max(1, Math.ceil(filtrados.length / perPage));
+  const paginados  = useMemo(
+    () => filtrados.slice((currentPage - 1) * perPage, currentPage * perPage),
+    [filtrados, currentPage, perPage],
+  );
 
   const tipoLabel = TIPO_TABS.find((t) => t.tipo === tipoActivo)?.label ?? 'Todos';
 
@@ -400,7 +424,7 @@ const InventarioGlobalPage = () => {
               <FileSpreadsheet size={13} /> Excel
             </button>
             <button
-              onClick={() => exportarPdf(filtrados, tipoLabel)}
+              onClick={() => exportarPdf(filtrados, tipoLabel, criticoDias, empresaInfo, logoB64Data?.logo)}
               className="flex items-center gap-1.5 px-3 py-2 text-sm text-semantic-danger-fg border border-semantic-danger/20 bg-semantic-danger-subtle rounded-lg hover:bg-semantic-danger-subtle transition"
             >
               <FileText size={13} /> PDF
@@ -480,33 +504,98 @@ const InventarioGlobalPage = () => {
                 <tr className="border-b border-border-subtle text-xs text-content-muted uppercase tracking-wider">
                   <th className="pl-4 pr-2 py-3 w-8" />
                   <th className="px-2 py-3 w-10 text-center">#</th>
-                  <th className="px-3 py-3">Ítem</th>
-                  <th className="px-3 py-3">Tipo</th>
-                  <th className="px-3 py-3 text-right">Stock Total</th>
-                  <th className="px-3 py-3 text-center">Ubicación</th>
-                  <th className="px-3 py-3 text-right">Costo Prom.</th>
-                  <th className="px-3 py-3 text-right">Valor Inventario</th>
-                  <th className="px-3 py-3 text-right">Consumo 30d</th>
-                  <th className="px-3 py-3 text-center">Días Restantes</th>
+                  <th className="px-3 py-2">Ítem</th>
+                  <th className="px-3 py-2">Tipo</th>
+                  <th className="px-3 py-2 text-right">Stock Total</th>
+                  <th className="px-3 py-2 text-center">Ubicación</th>
+                  <th className="px-3 py-2 text-right">Costo Prom.</th>
+                  <th className="px-3 py-2 text-right">Valor Inventario</th>
+                  <th className="px-3 py-2 text-right">Consumo 30d</th>
+                  <th className="px-3 py-2 text-center">Días Restantes</th>
                 </tr>
               </thead>
               <tbody>
-                {filtrados.map((item, index) => (
-                  <ItemRow key={item.id_item_general} item={item} index={index} />
+                {paginados.map((item, index) => (
+                  <ItemRow
+                    key={item.id_item_general}
+                    item={item}
+                    index={(currentPage - 1) * perPage + index}
+                  />
                 ))}
               </tbody>
               <tfoot>
                 <tr className="border-t-2 border-border-base bg-surface-subtle text-sm font-semibold text-content-secondary">
-                  <td colSpan={7} className="px-3 py-3 text-right text-content-tertiary">
+                  <td colSpan={7} className="px-3 py-2 text-right text-content-tertiary">
                     Valor total ({filtrados.length} ítems):
                   </td>
-                  <td className="px-3 py-3 text-right text-content-primary">
+                  <td className="px-3 py-2 text-right text-content-primary">
                     {fmt(filtrados.reduce((s, i) => s + i.valor_inventario, 0))}
                   </td>
                   <td colSpan={2} />
                 </tr>
               </tfoot>
             </table>
+
+            {/* Paginación — mismo estilo que la tabla de inventario por bodega */}
+            <div className="px-3 py-2 bg-surface-subtle border-t border-border-base flex items-center justify-between">
+              <div className="hidden sm:flex items-center gap-4">
+                <div className="text-xs text-content-tertiary">
+                  Mostrando <span className="text-content-primary font-semibold tabular-nums">{paginados.length}</span>{' '}
+                  de <span className="text-content-primary font-semibold tabular-nums">{filtrados.length}</span> ítems
+                </div>
+                <div className="flex items-center gap-2 border-l border-border-base pl-4">
+                  <span className="text-xs text-content-tertiary">Filas:</span>
+                  <select
+                    value={perPage}
+                    onChange={(e) => setPerPage(Number(e.target.value))}
+                    className="bg-surface-base border border-border-base text-content-primary text-xs font-medium rounded-md focus:ring-2 focus:ring-border-focus/15 focus:border-border-focus block px-2 py-1 outline-none transition-colors"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="p-1.5 border border-border-base rounded-md bg-surface-base hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {getPaginationRange(currentPage, totalPages).map((page, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => typeof page === 'number' && setCurrentPage(page)}
+                      disabled={page === '...'}
+                      className={cn(
+                        'min-w-7 h-7 flex items-center justify-center rounded-md text-[11px] font-semibold transition-colors',
+                        page === currentPage
+                          ? 'bg-content-primary text-content-inverse'
+                          : page === '...'
+                            ? 'text-content-muted cursor-default'
+                            : 'bg-surface-base border border-border-base text-content-secondary hover:border-border-strong hover:text-content-primary',
+                      )}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={currentPage >= totalPages}
+                  className="p-1.5 border border-border-base rounded-md bg-surface-base hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import PageTabs from '../../shared/PageTabs';
+import TopProgressBar from '../../shared/TopProgressBar';
 import { useBoundStore } from '../../store/useBoundStore';
 import DashboardTab from './components/DashboardTab';
 import MaestroTab from './components/MaestroTab';
@@ -23,7 +24,7 @@ const TABS_BASE = [
 const SincronizacionPage = () => {
   const setActiveTitle = useBoundStore((s) => s.setActiveTitle);
   const [tab, setTab]  = useState('dashboard');
-  const { data: stats } = useSincStats();
+  const { data: stats, isLoading, isFetching } = useSincStats();
 
   useEffect(() => { setActiveTitle?.('Sincronización'); }, [setActiveTitle]);
 
@@ -37,7 +38,8 @@ const SincronizacionPage = () => {
   });
 
   return (
-    <div className="flex flex-col w-full gap-4">
+    <div className="relative flex flex-col w-full gap-4">
+      <TopProgressBar active={isLoading || isFetching} />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <HeaderSection
           title="Sincronización"

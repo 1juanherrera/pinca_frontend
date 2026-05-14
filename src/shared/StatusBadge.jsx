@@ -52,10 +52,10 @@ const TONE = {
     dot:     'bg-brand-primary',
   },
   neutral: {
-    subtle:  'bg-surface-muted text-content-secondary border-border-base',
+    subtle:  'bg-surface-strong text-content-primary border-border-strong',
     solid:   'bg-content-primary text-content-inverse border-content-primary',
     outline: 'bg-transparent text-content-tertiary border-border-base',
-    dot:     'bg-content-muted',
+    dot:     'bg-content-secondary',
   },
 };
 
@@ -90,8 +90,8 @@ const STATUS_TONE = {
   Producto:        'info',
   'Materia Prima': 'warning',
   'MATERIA PRIMA': 'warning',
-  Insumo:          'brand',
-  INSUMO:          'brand',
+  Insumo:          'neutral',
+  INSUMO:          'neutral',
   PRODUCTO:        'info',
   ENTRADA:         'success',
   SALIDA:          'danger',
@@ -102,8 +102,8 @@ const STATUS_TONE = {
 const SIZE = {
   sm: {
     cls:   'h-5 px-2 text-[10px] gap-1',
-    minW:  'min-w-[70px]',
-    fixW:  'w-[70px]',
+    minW:  'min-w-[115px]',
+    fixW:  'w-[115px]',
     icon:  10,
     dot:   'w-1.5 h-1.5',
   },

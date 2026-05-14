@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import {
-  CircleAlert, DollarSign, Clock, CheckCircle2, Eye, Trash2, Receipt,
+  CircleAlert, DollarSign, Clock, CheckCircle2, Eye, Trash2, Receipt, Download,
 } from 'lucide-react';
 import { useBoundStore }  from '../../../store/useBoundStore';
 import ERPTable           from '../../../shared/ERPTable';
@@ -22,7 +22,7 @@ const STATUS_OPTIONS = [
 
 const FacturacionTab = () => {
   const { facturas, isLoadingFacturas, removeAsync } = useFactura();
-  const { openConfirm } = useBoundStore();
+  const { openConfirm, openDrawer } = useBoundStore();
 
   const [search,   setSearch]   = useState('');
   const [filters,  setFilters]  = useState({ estado: '' });
@@ -118,7 +118,7 @@ const FacturacionTab = () => {
       label:     'Estado',
       align:     'center',
       className: 'w-32',
-      render: (v) => <StatusBadge estado={v} />,
+      render: (v) => <StatusBadge estado={v} size="sm" dot={false} fixedWidth />,
     },
     {
       key:       'acciones',
@@ -128,6 +128,13 @@ const FacturacionTab = () => {
       sortable:  false,
       render: (_, row) => (
         <div className="flex items-center justify-end gap-1.5">
+          <button
+            onClick={(e) => { e.stopPropagation(); openDrawer('EXPORT_MODAL_FACTURA', row); }}
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
+            title="Descargar PDF"
+          >
+            <Download size={12} />
+          </button>
           <button
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
@@ -152,7 +159,7 @@ const FacturacionTab = () => {
         </div>
       ),
     },
-  ], [openConfirm, removeAsync]);
+  ], [openConfirm, removeAsync, openDrawer]);
 
   return (
     <div className="flex flex-col gap-2">

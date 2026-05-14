@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { BookOpen, Plus, RefreshCw } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import { Button, ButtonSquare } from '../../shared/Button';
+import TopProgressBar from '../../shared/TopProgressBar';
 import { useBoundStore } from '../../store/useBoundStore';
 import { useCatalogoList, useCatalogoMutations } from './api/useCatalogo';
 import CatalogoTable from './components/CatalogoTable';
@@ -56,7 +57,8 @@ const CatalogoPage = () => {
   };
 
   return (
-    <div className="flex flex-col w-full gap-4">
+    <div className="relative flex flex-col w-full gap-4">
+      <TopProgressBar active={isLoading} />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection

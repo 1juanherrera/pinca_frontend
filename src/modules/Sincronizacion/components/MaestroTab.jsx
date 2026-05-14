@@ -9,8 +9,8 @@ import { fmt } from '../../../utils/formatters';
 import { useSincMaestro } from '../api/useSincronizacion';
 import MaestroDetailDrawer from './MaestroDetailDrawer';
 
-const TIPO_LABEL = { 1: 'MP', 2: 'INSUMO' };
-const TIPO_TONE  = { 1: 'warning', 2: 'brand' };
+const TIPO_LABEL = { 1: 'Materia Prima', 2: 'Insumo' };
+const TIPO_TONE  = { 1: 'warning', 2: 'neutral' };
 
 const fmtCOP = (v) => v == null ? '—' : fmt(v);
 const fmtNum = (v, dec = 2) =>
@@ -68,7 +68,7 @@ const MaestroTab = () => {
         <StatusBadge
           tone={TIPO_TONE[v] ?? 'neutral'}
           label={TIPO_LABEL[v] ?? '—'}
-          dot={false} size="sm"
+          dot={false} size="sm" fixedWidth
         />
       ),
     },

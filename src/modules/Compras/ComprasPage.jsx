@@ -8,6 +8,7 @@ import HistorialTab  from './components/HistorialTab';
 import OrdenForm     from './components/OrdenForm';
 import OrdenDrawer   from './components/OrdenDrawer';
 import OrdenesTab from './components/OrdenesTab';
+import ExportOrdenCompra from './components/ExportOrdenCompra';
 import RequisicionesMrpTab from './components/RequisicionesMrpTab';
 import { useRequisiciones } from '../Produccion/api/useRequisiciones';
 
@@ -91,6 +92,7 @@ const ComprasPage = () => {
       )}
 
       <OrdenForm />
+      <ExportOrdenCompra />
       <ConfirmModal />
 
       <OrdenDrawer

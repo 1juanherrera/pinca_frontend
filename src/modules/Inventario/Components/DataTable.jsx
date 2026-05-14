@@ -129,7 +129,7 @@ const DataTable = () => {
                         })()}
                       </td>
 
-                      <td className="px-3 py-1.5 text-center">
+                      <td className="px-3 py-1.5.5 text-center">
                         <StatusBadge
                           estado={getTipoLabel(item.tipo)}
                           dot={false}
@@ -138,7 +138,7 @@ const DataTable = () => {
                         />
                       </td>
 
-                      <td className="px-3 py-1.5 text-center">
+                      <td className="px-3 py-1.5.5 text-center">
                         {item.unidad ? (
                           <StatusBadge tone="neutral" label={item.unidad} dot={false} size="sm" />
                         ) : (
@@ -188,7 +188,7 @@ const DataTable = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="10" className="px-3 py-16 text-center">
+                    <td colSpan="10" className="px-3 py-1.56 text-center">
                       <div className="flex flex-col items-center justify-center text-content-tertiary h-40">
                         <span className="text-sm font-medium">No hay items para mostrar en este inventario.</span>
                         <span className="text-xs text-content-muted mt-1">

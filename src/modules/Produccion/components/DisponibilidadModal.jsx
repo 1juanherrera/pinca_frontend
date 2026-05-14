@@ -17,9 +17,9 @@ const fmtCOP = (v) =>
 // ── Badge de estado por material ──────────────────────────────────────────────
 const EstadoChip = ({ tieneDeficit, deficit }) => {
   if (!tieneDeficit) {
-    return <StatusBadge tone="success" label="Disponible" icon={CheckCircle2} dot={false} size="md" />;
+    return <StatusBadge tone="success" label="Disponible" icon={CheckCircle2} dot={false} size="sm" fixedWidth />;
   }
-  return <StatusBadge tone="danger" label={`Déficit ${fmtNum(deficit)}`} icon={XCircle} dot={false} size="md" />;
+  return <StatusBadge tone="danger" label={`Déficit ${fmtNum(deficit)}`} icon={XCircle} dot={false} size="sm" />;
 };
 
 // ── Selector de proveedor para un material con déficit ────────────────────────

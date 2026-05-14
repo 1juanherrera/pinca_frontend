@@ -17,6 +17,7 @@ import TopProgressBar from '../../shared/TopProgressBar';
 import { useBoundStore } from '../../store/useBoundStore';
 import { fmt, formatLetterDate } from '../../utils/formatters';
 import { useDashboard } from './api/useDashboard';
+import { useConfigValue } from '../Configuracion/api/useConfiguracion';
 
 const fmtNum = (v, dec = 0) =>
   Number(v ?? 0).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: dec });
@@ -93,6 +94,11 @@ const PanelPrincipalPage = () => {
   const setActiveTitle = useBoundStore((s) => s.setActiveTitle);
   const user = useBoundStore((s) => s.user);
   const { data, isLoading, isFetching, refetch, lastUpdated } = useDashboard();
+
+  // Umbrales configurables
+  const stockCriticoDias  = useConfigValue('stock_critico_dias',  7);
+  const margenObjetivoPct = useConfigValue('margen_objetivo_pct', 20);
+  const margenMinimoPct   = useConfigValue('margen_minimo_pct',   10);
 
   useEffect(() => { setActiveTitle?.('Panel Principal'); }, [setActiveTitle]);
 
@@ -179,7 +185,7 @@ const PanelPrincipalPage = () => {
           tone={(mp_criticas?.total ?? 0) > 0 ? 'danger' : 'success'}
           label="MP críticas"
           value={mp_criticas?.total ?? 0}
-          sub="stock < 7 días"
+          sub={`stock < ${stockCriticoDias} días`}
           onClick={() => navigate('/inventario-global')}
         />
       </div>
@@ -209,7 +215,7 @@ const PanelPrincipalPage = () => {
         />
         <FlowCard
           icon={TrendingUp}
-          tone={rentabilidad?.margen_pct >= 20 ? 'success' : rentabilidad?.margen_pct >= 10 ? 'warning' : 'danger'}
+          tone={rentabilidad?.margen_pct >= margenObjetivoPct ? 'success' : rentabilidad?.margen_pct >= margenMinimoPct ? 'warning' : 'danger'}
           label="Margen del mes"
           value={fmtPct(rentabilidad?.margen_pct)}
           sub={`Util. ${fmtCOPCompact(rentabilidad?.utilidad)}`}
@@ -218,47 +224,53 @@ const PanelPrincipalPage = () => {
 
       {/* ─── FILA 3 — Movimientos del día + Cobertura cartera ─────── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <Card className="p-4 md:col-span-2">
+        <Card className="p-4 md:col-span-2 h-full flex flex-col">
           <SectionTitle icon={Calendar}>
             Actividad de hoy
             <span className="ml-2 text-[10px] text-content-tertiary font-normal">
               {movimientos_hoy?.total ?? 0} movimientos
             </span>
           </SectionTitle>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-semantic-success-subtle/40 border border-semantic-success/15">
-              <IconBox icon={ArrowDownLeft} tone="success" variant="solid" size="sm" />
-              <div>
-                <p className="text-[10px] text-semantic-success-fg/80 uppercase tracking-wider font-semibold">Entradas</p>
-                <p className="text-sm font-bold text-semantic-success-fg tabular-nums">{movimientos_hoy?.entradas ?? 0}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-semantic-danger-subtle/40 border border-semantic-danger/15">
-              <IconBox icon={ArrowUpRight} tone="danger" variant="solid" size="sm" />
-              <div>
-                <p className="text-[10px] text-semantic-danger-fg/80 uppercase tracking-wider font-semibold">Salidas</p>
-                <p className="text-sm font-bold text-semantic-danger-fg tabular-nums">{movimientos_hoy?.salidas ?? 0}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-semantic-info-subtle/40 border border-semantic-info/15">
-              <IconBox icon={Shuffle} tone="info" variant="solid" size="sm" />
-              <div>
-                <p className="text-[10px] text-semantic-info-fg/80 uppercase tracking-wider font-semibold">Traspasos</p>
-                <p className="text-sm font-bold text-semantic-info-fg tabular-nums">{movimientos_hoy?.traspasos ?? 0}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-semantic-warning-subtle/40 border border-semantic-warning/15">
-              <IconBox icon={Settings2} tone="warning" variant="solid" size="sm" />
-              <div>
-                <p className="text-[10px] text-semantic-warning-fg/80 uppercase tracking-wider font-semibold">Ajustes</p>
-                <p className="text-sm font-bold text-semantic-warning-fg tabular-nums">{movimientos_hoy?.ajustes ?? 0}</p>
-              </div>
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1">
+            {[
+              { key: 'entradas',  label: 'Entradas',  icon: ArrowDownLeft, tone: 'success', value: movimientos_hoy?.entradas ?? 0,
+                bg: 'bg-semantic-success-subtle/40', border: 'border-semantic-success/15', text: 'text-semantic-success-fg' },
+              { key: 'salidas',   label: 'Salidas',   icon: ArrowUpRight,  tone: 'danger',  value: movimientos_hoy?.salidas ?? 0,
+                bg: 'bg-semantic-danger-subtle/40',  border: 'border-semantic-danger/15',  text: 'text-semantic-danger-fg' },
+              { key: 'traspasos', label: 'Traspasos', icon: Shuffle,       tone: 'info',    value: movimientos_hoy?.traspasos ?? 0,
+                bg: 'bg-semantic-info-subtle/40',    border: 'border-semantic-info/15',    text: 'text-semantic-info-fg' },
+              { key: 'ajustes',   label: 'Ajustes',   icon: Settings2,     tone: 'warning', value: movimientos_hoy?.ajustes ?? 0,
+                bg: 'bg-semantic-warning-subtle/40', border: 'border-semantic-warning/15', text: 'text-semantic-warning-fg' },
+            ].map(({ key, label, icon, tone, value, bg, border, text }) => {
+              const total = movimientos_hoy?.total ?? 0;
+              const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+              return (
+                <div
+                  key={key}
+                  className={`flex flex-col justify-between gap-3 p-4 rounded-xl ${bg} border ${border} transition-all hover:shadow-card`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <IconBox icon={icon} tone={tone} variant="solid" size="md" />
+                    <span className={`text-[10px] font-semibold tabular-nums ${text}/70`}>
+                      {pct}%
+                    </span>
+                  </div>
+                  <div>
+                    <p className={`text-[10px] ${text}/80 uppercase tracking-wider font-semibold`}>
+                      {label}
+                    </p>
+                    <p className={`text-3xl font-bold ${text} tabular-nums leading-none mt-1`}>
+                      {value}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
           <button
             type="button"
             onClick={() => navigate('/movimientos')}
-            className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-brand-primary-active hover:text-content-primary transition-colors"
+            className="mt-4 self-start inline-flex items-center gap-1 text-[11px] font-semibold text-brand-primary-active hover:text-content-primary transition-colors"
           >
             Ver kardex completo <ArrowRight size={11} />
           </button>

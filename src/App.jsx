@@ -24,6 +24,7 @@ import InventarioGlobalPage from "./modules/InventarioGlobal/InventarioGlobalPag
 import RolesPage from "./modules/Roles/RolesPage";
 import SincronizacionPage from "./modules/Sincronizacion/SincronizacionPage";
 import PanelPrincipalPage from "./modules/Dashboard/PanelPrincipalPage";
+import ConfiguracionPage from "./modules/Configuracion/ConfiguracionPage";
 
 const App = () => {
   return (
@@ -54,6 +55,7 @@ const App = () => {
           <Route path="/inventario-global" element={<InventarioGlobalPage />} />
           <Route path="/roles" element={<RolesPage />} />
           <Route path="/sincronizacion" element={<SincronizacionPage />} />
+          <Route path="/configuracion"  element={<ConfiguracionPage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -53,7 +53,7 @@ export const MovimientosTable = ({ data, meta, isLoading, onPageChange, onRowCli
       render: (tipo) => {
         const tipoUC = tipo?.toUpperCase();
         const Icon   = TIPO_ICON[tipoUC] ?? ArrowDownUp;
-        return <StatusBadge estado={tipoUC} icon={Icon} dot={false} size="sm" />;
+        return <StatusBadge estado={tipoUC} icon={Icon} dot={false} size="sm" fixedWidth />;
       },
     },
     {

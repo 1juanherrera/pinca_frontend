@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link2, Plus, X, ArrowRight, Info, AlertCircle } from 'lucide-react';
 import { useProveedores } from '../api/useProveedores';
 import { useUnidades } from '../../../api/useUnidades';
-import { useBodegas } from '../../Bodegas/api/useBodegas';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import ItemGeneralSearch from '../../../shared/ItemGeneralSearch';
 
@@ -11,14 +10,11 @@ const KILO_NOMBRE = 'KILO';
 const VincularModal = ({ item, onClose }) => {
   const { vincularAsync, isVinculando } = useProveedores();
   const { unidades } = useUnidades();
-  const { bodegas }  = useBodegas();
 
   const [modo,             setModo]            = useState('existente');
   const [selectedItem,     setSelectedItem]    = useState(null);
   const [unidadCompraId,   setUnidadCompraId]  = useState('');
   const [factorConversion, setFactorConversion]= useState(1);
-  const [bodegaId,         setBodegaId]        = useState('');
-  const [cantidad,         setCantidad]        = useState('');
 
   const [nuevoNombre, setNuevoNombre] = useState(item.nombre ?? '');
   const [nuevoCodigo, setNuevoCodigo] = useState(item.codigo ?? '');
@@ -54,17 +50,12 @@ const VincularModal = ({ item, onClose }) => {
       payload.factor_conversion  = Number(factorConversion) || 1;
     }
 
-    if (bodegaId && cantidad) {
-      payload.bodegas_id = bodegaId;
-      payload.cantidad   = parseFloat(cantidad);
-    }
-
     await vincularAsync({ id: item.id_item_proveedor, data: payload });
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[110]">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-border-subtle">
 
         {/* Header */}
@@ -84,7 +75,7 @@ const VincularModal = ({ item, onClose }) => {
           </button>
         </div>
 
-        <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+        <div className="p-5 space-y-4 min-h-[60vh] max-h-[85vh] overflow-y-auto">
 
           {/* Info del producto del proveedor */}
           <div className="flex items-start gap-3 bg-surface-subtle border border-border-base rounded-lg px-3 py-2.5">
@@ -210,33 +201,6 @@ const VincularModal = ({ item, onClose }) => {
             </div>
           )}
 
-          {/* Ingreso a inventario (opcional) */}
-          <div className="border-t border-border-subtle pt-4 space-y-3">
-            <p className="text-[10px] font-bold text-content-muted uppercase tracking-widest">
-              Ingresar al inventario <span className="font-normal normal-case">(opcional)</span>
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <FormSelect
-                label="Bodega destino"
-                placeholder="Selecciona bodega..."
-                options={(bodegas ?? []).map(b => ({ value: b.id_bodegas, label: b.nombre }))}
-                value={bodegaId}
-                onChange={setBodegaId}
-              />
-              <div>
-                <label className="block text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1.5">Cantidad</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={cantidad}
-                  onChange={(e) => setCantidad(e.target.value)}
-                  onFocus={(e) => e.target.select()}
-                  placeholder="0"
-                  className="w-full px-3 py-2 text-sm border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition text-content-secondary placeholder:text-content-muted"
-                />
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}

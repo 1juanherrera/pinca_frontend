@@ -3,17 +3,17 @@ import { Package, Layers, Beaker, ChevronLeft, ChevronRight, Search, X } from 'l
 import { fmt } from '../../../utils/formatters';
 import PageTabs from '../../../shared/PageTabs';
 import StatusBadge from '../../../shared/StatusBadge';
+import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 import cn from '../../../utils/cn';
 
 const TIPO_CONFIG = {
   0: { label: 'Producto',      tone: 'info',    icon: Package },
   1: { label: 'Materia Prima', tone: 'warning', icon: Layers  },
-  2: { label: 'Insumo',        tone: 'brand',   icon: Beaker  },
+  2: { label: 'Insumo',        tone: 'neutral', icon: Beaker  },
 };
 
-const PAGE_SIZE = 25;
-
 const CatalogoTable = ({ items = [], isLoading, onSelect }) => {
+  const PAGE_SIZE = useConfigValue('page_size_default', 25);
   const [search, setSearch]         = useState('');
   const [tipoFilter, setTipoFilter] = useState('all');
   const [page, setPage]             = useState(1);
@@ -132,7 +132,7 @@ const CatalogoTable = ({ items = [], isLoading, onSelect }) => {
                       </span>
                     </td>
                     <td className="px-3 py-2">
-                      <StatusBadge tone={tipo.tone} label={tipo.label} icon={Icon} dot={false} size="sm" />
+                      <StatusBadge tone={tipo.tone} label={tipo.label} icon={Icon} dot={false} size="sm" fixedWidth />
                     </td>
                     <td className="px-3 py-2 text-xs text-content-tertiary">
                       {item.categoria_nombre || '—'}

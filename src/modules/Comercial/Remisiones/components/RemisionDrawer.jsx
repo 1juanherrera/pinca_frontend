@@ -58,7 +58,7 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
           {/* Hero con estado, dirección y botón PDF */}
           <div className="px-5 py-5 bg-surface-subtle border-b border-border-subtle">
             <div className="flex items-center justify-between mb-3">
-              <StatusBadge estado={r.estado} />
+              <StatusBadge estado={r.estado} size="sm" dot={false} />
               <div className="flex items-center gap-2">
                 <span className="text-xs text-content-muted">{r.fecha_remision}</span>
                 {/* Botón descargar PDF */}

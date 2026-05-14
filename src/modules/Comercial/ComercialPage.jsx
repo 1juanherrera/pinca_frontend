@@ -15,6 +15,7 @@ import CotizacionForm from './Cotizaciones/components/CotizacionForm';
 import FacturaForm from './Facturacion/components/FacturaForm';
 import RemisionForm from './Remisiones/components/RemisionForm';
 import ExportRemision from './Remisiones/components/ExportRemision';
+import ExportFactura  from './Facturacion/components/ExportFactura';
 import { useFactura } from './Facturacion/api/useFactura';
 import { useRemisiones } from './Remisiones/api/useRemisiones';
 import { useCotizaciones } from './Cotizaciones/api/useCotizaciones';
@@ -76,6 +77,7 @@ const ComercialPage = () => {
       <RemisionForm   />
       <FacturaForm    />
       <ExportRemision />
+      <ExportFactura  />
       <ConfirmModal   />
     </div>
   );

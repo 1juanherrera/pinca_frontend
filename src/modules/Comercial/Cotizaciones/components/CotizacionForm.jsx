@@ -11,6 +11,7 @@ import { useCotizaciones } from '../api/useCotizaciones';
 import { useInventario }   from '../../../Inventario/api/useInventario'; // ajusta el path
 import { Button }          from '../../../../shared/Button';
 import apiClient           from '../../../../api/apiClient';
+import { useConfigValue }  from '../../../Configuracion/api/useConfiguracion';
 
 // ─── Hooks auxiliares ─────────────────────────────────────────────────────────
 const useClientes = () => useQuery({
@@ -110,8 +111,12 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
   const [bodegaSel,    setBodegaSel]    = useState(null);
   const [itemSearch,   setItemSearch]   = useState('');
   const [errors,       setErrors]       = useState({});
-  const [ivaActivo,    setIvaActivo]    = useState(() => Number(editData?.impuestos ?? 0) > 0);
-  const [ivaPct,       setIvaPct]       = useState(19);
+  const ivaDefault       = useConfigValue('iva_default', 19);
+  const aplicarIvaDefault = useConfigValue('aplicar_iva_por_default', true);
+  const [ivaActivo,    setIvaActivo]    = useState(() =>
+    editData ? Number(editData?.impuestos ?? 0) > 0 : !!aplicarIvaDefault
+  );
+  const [ivaPct,       setIvaPct]       = useState(ivaDefault);
 
   const [form, setForm] = useState({
     fecha_cotizacion:  editData?.fecha_cotizacion  ?? '',

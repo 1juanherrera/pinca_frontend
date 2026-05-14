@@ -1,10 +1,25 @@
+import { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, useToasterStore, toast } from 'react-hot-toast';
 import './index.css';
 import App from './App.jsx';
 import ErrorBoundary from './shared/ErrorBoundary.jsx';
+
+// ── Limita los toasts visibles a TOAST_LIMIT — el más viejo se descarta
+//    para que nunca se acumulen varios a la vez. No requiere tocar callsites.
+const TOAST_LIMIT = 1;
+function ToastLimiter() {
+  const { toasts } = useToasterStore();
+  useEffect(() => {
+    toasts
+      .filter((t) => t.visible)
+      .slice(TOAST_LIMIT)
+      .forEach((t) => toast.dismiss(t.id));
+  }, [toasts]);
+  return null;
+}
 
 // 3. Configuramos comportamientos globales
 const queryClient = new QueryClient({
@@ -20,6 +35,7 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')).render(
   <QueryClientProvider client={queryClient}>
+    <ToastLimiter />
     <Toaster
       position="bottom-right"
       toastOptions={{

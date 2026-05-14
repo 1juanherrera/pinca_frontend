@@ -11,6 +11,7 @@ import {
   TrendingUp,
   BookOpen,
   Boxes,
+  Building2,
 } from 'lucide-react';
 
 // `moduloKey` debe coincidir con los valores en MODULOS_SISTEMA y en la tabla permisos_rol_modulo.
@@ -21,6 +22,7 @@ export const sidebarMenu = [
   { link: '',                  moduloKey: 'panel-principal',   label: 'Panel Principal',  icon: LayoutDashboard, grupo: null },
 
   // Inventario
+  { link: 'sedes',             moduloKey: 'sedes',             label: 'Sedes y Bodegas',  icon: Building2,       grupo: 'Inventario' },
   { link: 'catalogo',          moduloKey: 'catalogo',          label: 'Catálogo',         icon: BookOpen,        grupo: 'Inventario' },
   { link: 'inventario-global', moduloKey: 'inventario-global', label: 'Inventario',       icon: Boxes,           grupo: 'Inventario' },
   { link: 'movimientos',       moduloKey: 'movimientos',       label: 'Movimientos',      icon: ArrowDownUp,     grupo: 'Inventario' },

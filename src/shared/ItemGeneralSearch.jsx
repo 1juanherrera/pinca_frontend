@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, X, CheckCircle2, Loader2, Link2, TrendingDown, TrendingUp, Minus, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import apiClient from '../api/apiClient';
 import { API_ROUTES } from '../api/apiRoutes';
+import StatusBadge from './StatusBadge';
 
 const TIPO_LABEL = { '0': 'Producto', '1': 'Materia Prima', '2': 'Insumo', '3': 'Otro' };
+const TIPO_TONE  = { '0': 'info',     '1': 'warning',       '2': 'neutral', '3': 'neutral' };
 
 const fmt = (n) => Number(n ?? 0).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
@@ -266,8 +268,14 @@ const ItemGeneralSearch = ({
                           )}
                         </div>
                       </div>
-                      <span className="w-20 text-center text-[9px] font-bold text-content-muted bg-surface-muted py-0.5 rounded-md shrink-0 ml-2">
-                        {TIPO_LABEL[item.tipo] ?? 'Item'}
+                      <span className="shrink-0 ml-2">
+                        <StatusBadge
+                          tone={TIPO_TONE[item.tipo] ?? 'neutral'}
+                          label={TIPO_LABEL[item.tipo] ?? 'Item'}
+                          dot={false}
+                          size="sm"
+                          fixedWidth
+                        />
                       </span>
                     </button>
                   );

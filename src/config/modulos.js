@@ -2,6 +2,7 @@
 // exactamente con los valores en la tabla `permisos_rol_modulo` del backend.
 export const MODULOS_SISTEMA = [
   { key: 'panel-principal',  label: 'Panel Principal',    grupo: 'Sistema' },
+  { key: 'sedes',            label: 'Sedes y Bodegas',    grupo: 'Inventario' },
   { key: 'catalogo',         label: 'Catálogo',           grupo: 'Inventario' },
   { key: 'inventario-global',label: 'Inventario',         grupo: 'Inventario' },
   { key: 'formulaciones',    label: 'Formulaciones',      grupo: 'Producción' },

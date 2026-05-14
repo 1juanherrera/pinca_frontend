@@ -9,7 +9,7 @@ import IconBox from '../../../shared/IconBox';
 import { fmt } from '../../../utils/formatters';
 
 const TIPO_LABEL = { 1: 'Materia Prima', 2: 'Insumo' };
-const TIPO_TONE  = { 1: 'warning', 2: 'brand' };
+const TIPO_TONE  = { 1: 'warning', 2: 'neutral' };
 
 const fmtCOP = (v) => v == null ? '—' : fmt(v);
 const fmtNum = (v, dec = 2) =>

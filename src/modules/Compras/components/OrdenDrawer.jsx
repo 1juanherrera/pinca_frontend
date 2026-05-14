@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PackageCheck, Building2, Calendar, Warehouse, Send, XCircle } from 'lucide-react';
+import { PackageCheck, Building2, Calendar, Warehouse, Send, XCircle, Download } from 'lucide-react';
 import { useCompras } from '../api/useCompras';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { fmt } from '../../../utils/formatters';
@@ -26,7 +26,7 @@ const fmtFecha = (d) => d
 const OrdenDrawer = ({ ordenId, isOpen, onClose }) => {
   const { detalle, isLoadingDetalle, cambiarEstadoAsync, recibirLineaAsync, isRecibiendo } =
     useCompras(ordenId?.toString());
-  const { openConfirm } = useBoundStore();
+  const { openConfirm, openDrawer } = useBoundStore();
   const [lineaRecibir, setLineaRecibir] = useState(null);
 
   if (!isOpen) return null;
@@ -71,9 +71,15 @@ const OrdenDrawer = ({ ordenId, isOpen, onClose }) => {
 
             {/* Estado + acciones */}
             <div className="flex items-center justify-between gap-3">
-              <StatusBadge estado={orden.estado} />
+              <StatusBadge estado={orden.estado} size="sm" dot={false} />
 
               <div className="flex items-center gap-2">
+                <Button
+                  size="sm" variant="secondary" icon={Download}
+                  onClick={() => openDrawer('EXPORT_MODAL_OC', orden)}
+                >
+                  Descargar PDF
+                </Button>
                 {orden.estado === 'Borrador' && (
                   <Button
                     size="sm" variant="info" icon={Send}
@@ -159,7 +165,7 @@ const OrdenDrawer = ({ ordenId, isOpen, onClose }) => {
                         )}
 
                         {recibida && (
-                          <StatusBadge tone="success" label="Recibido" dot size="sm" className="shrink-0" />
+                          <StatusBadge tone="success" label="Recibido" dot={false} size="sm" className="shrink-0" />
                         )}
                       </div>
                     </div>

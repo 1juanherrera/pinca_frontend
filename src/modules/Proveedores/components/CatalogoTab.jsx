@@ -3,6 +3,7 @@ import { Link2, Link, Trash2, Edit, Plus } from 'lucide-react';
 import ERPTable        from '../../../shared/ERPTable';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay   from '../../../shared/AmountDisplay';
+import StatusBadge     from '../../../shared/StatusBadge';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { useProveedores } from '../api/useProveedores';
 import useTableSort from '../../../hooks/useTableSorts';
@@ -12,6 +13,14 @@ const STATUS_OPTIONS = [
   { value: '1', label: 'Disponible',     dot: 'bg-semantic-success' },
   { value: '2', label: 'No disponible',  dot: 'bg-semantic-danger/80'     },
 ];
+
+// Tipos del catálogo del proveedor: los 3 estándar reciben tone semántico,
+// el resto (categorías libres del proveedor: "Fontanería", "Pinturas", etc.) van en neutral.
+const TIPO_TONE = {
+  'materia prima': 'warning',
+  'insumo':        'neutral',
+  'producto':      'info',
+};
 
 const CatalogoTab = () => {
   const { catalogo, isLoadingCatalogo, removeItemAsync } = useProveedores();
@@ -59,8 +68,16 @@ const CatalogoTab = () => {
       key:       'tipo',
       label:     'Tipo',
       className: 'w-32',
-      render: (v) => (
-        <span className="text-xs uppercase text-content-tertiary whitespace-nowrap">{v ?? '—'}</span>
+      render: (v) => v ? (
+        <StatusBadge
+          tone={TIPO_TONE[v.toLowerCase()] ?? 'neutral'}
+          label={v}
+          dot={false}
+          size="sm"
+          fixedWidth
+        />
+      ) : (
+        <span className="text-xs text-content-muted">—</span>
       ),
     },
     {

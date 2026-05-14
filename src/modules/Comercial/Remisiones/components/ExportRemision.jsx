@@ -2,24 +2,16 @@ import { useState } from 'react';
 import { X, Download, CheckCircle2, Loader2, Truck, FileText, Receipt } from 'lucide-react';
 import { useBoundStore } from '../../../../store/useBoundStore';
 import { useRemisiones } from '../api/useRemisiones';
-import logo from '../../../../assets/pincaicono.png';
-
-const EMPRESA = {
-  nombre:    'PINTURAS INDUSTRIALES DEL CARIBE S.A.S',
-  nit:       'NIT 901.314.182-9',
-  direccion: 'Calle 99 # 6-59',
-  telefono:  'Tel: 3145973532',
-  ciudad:    'Barranquilla - Colombia',
-  email:     'pinca.sas@hotmail.com',
-  celular:   '+57 3019794729',
-  web:       'www.pinca.com.co',
-};
+import logoFallback from '../../../../assets/pincaicono.png';
+import { useEmpresaInfo, useEmpresaLogoUrl, EMPRESA_FALLBACK } from '../../../../utils/empresaInfo';
+import { useEmpresaLogoBase64 } from '../../../Configuracion/api/useEmpresa';
 
 const fmt = (n) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(n) || 0);
 
 // ── Template carta A4 ─────────────────────────────────────────────────────────
-const PdfTemplate = ({ remision, items }) => {
+const PdfTemplate = ({ remision, items, empresa: EMPRESA = EMPRESA_FALLBACK, logoUrl = logoFallback }) => {
+  const logo = logoUrl;
   const subtotal = items.reduce((s, i) => s + (Number(i.subtotal) || 0), 0);
 
   return (
@@ -155,105 +147,113 @@ const PdfTemplate = ({ remision, items }) => {
   );
 };
 
-// ── Template tiquete 80 mm ────────────────────────────────────────────────────
-const PdfTemplateTicket = ({ remision, items }) => {
-  const subtotal = items.reduce((s, i) => s + (Number(i.subtotal) || 0), 0);
-  const sep      = { borderTop: '1px dashed #d1d5db', margin: '10px 0' };
+// ── Template tiquete 80 mm — estilo POS genérico (B/N, monoespaciado) ─────────
+const PdfTemplateTicket = ({ remision, items, empresa: EMPRESA = EMPRESA_FALLBACK }) => {
+  const subtotal  = items.reduce((s, i) => s + (Number(i.subtotal) || 0), 0);
+  const dashLine  = { borderTop: '1px dashed #000', margin: '6px 0' };
+  const solidLine = { borderTop: '1px solid #000',  margin: '4px 0' };
+
+  const Row = ({ label, value, bold = false }) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontWeight: bold ? 700 : 400, padding: '1px 0' }}>
+      <span>{label}</span>
+      <span style={{ whiteSpace: 'nowrap' }}>{value}</span>
+    </div>
+  );
 
   return (
-    <div style={{ fontFamily: '"Courier New", Courier, monospace', fontSize: '9px', color: '#111827', background: '#fff', width: '302px', padding: '16px 14px', boxSizing: 'border-box' }}>
-
-      {/* Barra superior */}
-      <div style={{ height: '4px', background: '#111827', borderRadius: '2px', marginBottom: '14px' }} />
-
-      {/* Logo + empresa */}
-      <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-        <img src={logo} alt="Pinca" style={{ height: '40px', objectFit: 'contain', marginBottom: '8px' }} />
-        <div style={{ fontWeight: '800', fontSize: '10px', lineHeight: '1.3', letterSpacing: '0.5px' }}>PINTURAS INDUSTRIALES<br />DEL CARIBE S.A.S</div>
-        <div style={{ color: '#6b7280', fontSize: '7.5px', marginTop: '5px', lineHeight: '1.7' }}>
+    <div style={{
+      fontFamily: '"Courier New", Courier, monospace',
+      fontSize: '10px',
+      color: '#000',
+      background: '#fff',
+      width: '302px',
+      padding: '14px 12px',
+      boxSizing: 'border-box',
+      lineHeight: 1.4,
+    }}>
+      {/* Encabezado empresa */}
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontWeight: 800, fontSize: '11px', textTransform: 'uppercase', lineHeight: 1.2 }}>
+          {EMPRESA.nombre}
+        </div>
+        <div style={{ marginTop: '4px', fontSize: '9px' }}>
           <div>{EMPRESA.nit}</div>
-          <div>{EMPRESA.telefono}</div>
+          <div>{EMPRESA.direccion}</div>
           <div>{EMPRESA.ciudad}</div>
+          <div>{EMPRESA.telefono}</div>
         </div>
       </div>
 
-      <div style={sep} />
+      <div style={dashLine} />
 
-      {/* Tipo + número */}
-      <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-        <div style={{ fontSize: '9px', color: '#6b7280', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '6px' }}>Remisión de Entrega</div>
-        <div style={{ background: '#111827', color: '#fff', display: 'inline-block', padding: '5px 18px', borderRadius: '5px', fontSize: '13px', fontWeight: '800', letterSpacing: '0.5px' }}>
-          {remision.numero}
-        </div>
+      {/* Tipo doc + número */}
+      <div style={{ textAlign: 'center', fontWeight: 800, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+        REMISION DE ENTREGA
+      </div>
+      <div style={{ textAlign: 'center', fontSize: '11px', fontWeight: 700, marginTop: '2px' }}>
+        N° {remision.numero}
       </div>
 
-      <div style={sep} />
+      <div style={dashLine} />
 
-      {/* Datos cliente */}
-      <div style={{ fontSize: '8.5px', marginBottom: '4px' }}>
-        <div style={{ fontSize: '7px', fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '5px' }}>Cliente</div>
-        <div style={{ fontWeight: '800', fontSize: '9.5px', marginBottom: '3px' }}>{remision.nombre_empresa || '—'}</div>
-        {remision.nit_cliente       && <div style={{ color: '#6b7280' }}>NIT: {remision.nit_cliente}</div>}
-        {remision.nombre_encargado  && <div style={{ color: '#6b7280' }}>{remision.nombre_encargado}</div>}
-        {remision.fecha_remision    && <div style={{ color: '#6b7280' }}>Fecha: {remision.fecha_remision}</div>}
-        {remision.direccion_entrega && <div style={{ color: '#6b7280', wordBreak: 'break-word', marginTop: '2px' }}>Dir: {remision.direccion_entrega}</div>}
-        {remision.numero_factura    && <div style={{ color: '#6b7280' }}>Factura: {remision.numero_factura}</div>}
+      {/* Datos doc */}
+      <div style={{ fontSize: '9.5px' }}>
+        {remision.fecha_remision && <Row label="Fecha:"   value={remision.fecha_remision} />}
+        {remision.numero_factura && <Row label="Factura:" value={remision.numero_factura} />}
       </div>
 
-      <div style={sep} />
+      <div style={dashLine} />
+
+      {/* Cliente */}
+      <div style={{ fontSize: '9.5px' }}>
+        <div style={{ fontWeight: 700, textTransform: 'uppercase' }}>CLIENTE</div>
+        <div>{remision.nombre_empresa || '-'}</div>
+        {remision.nit_cliente       && <div>NIT: {remision.nit_cliente}</div>}
+        {remision.nombre_encargado  && <div>{remision.nombre_encargado}</div>}
+        {remision.direccion_entrega && <div style={{ wordBreak: 'break-word' }}>Dir: {remision.direccion_entrega}</div>}
+      </div>
+
+      <div style={dashLine} />
 
       {/* Ítems */}
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px', marginBottom: '4px' }}>
-        <thead>
-          <tr style={{ borderBottom: '1.5px solid #111827' }}>
-            <th style={{ textAlign: 'left', padding: '3px 0', fontWeight: '700', fontSize: '7.5px', color: '#374151' }}>DESCRIPCIÓN</th>
-            <th style={{ textAlign: 'right', padding: '3px 4px', fontWeight: '700', fontSize: '7.5px', color: '#374151', whiteSpace: 'nowrap' }}>CANT.</th>
-            <th style={{ textAlign: 'right', padding: '3px 0', fontWeight: '700', fontSize: '7.5px', color: '#374151', width: '68px' }}>SUBTOTAL</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item, i) => (
-            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-              <td style={{ padding: '4px 4px 4px 0', verticalAlign: 'top' }}>
-                <div style={{ wordBreak: 'break-word', fontWeight: '600' }}>{item.descripcion}</div>
-                <div style={{ color: '#9ca3af', fontSize: '7.5px', marginTop: '1px' }}>{fmt(item.precio_unit)} c/u</div>
-              </td>
-              <td style={{ textAlign: 'right', verticalAlign: 'top', padding: '4px', whiteSpace: 'nowrap', color: '#374151' }}>
-                {Number(item.cantidad).toFixed(2)}
-              </td>
-              <td style={{ textAlign: 'right', verticalAlign: 'top', padding: '4px 0', fontWeight: '700', whiteSpace: 'nowrap', color: '#111827' }}>
-                {fmt(item.subtotal)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Total */}
-      <div style={{ background: '#111827', color: '#fff', borderRadius: '6px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', marginBottom: '10px' }}>
-        <span style={{ fontWeight: '700', fontSize: '10px', letterSpacing: '1px' }}>TOTAL</span>
-        <span style={{ fontWeight: '800', fontSize: '13px', fontFamily: 'monospace' }}>{fmt(subtotal)}</span>
+      <div style={{ fontSize: '9.5px' }}>
+        {items.map((item, i) => (
+          <div key={i} style={{ marginBottom: '6px' }}>
+            <div style={{ wordBreak: 'break-word' }}>{item.descripcion}</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', paddingLeft: '6px' }}>
+              <span>{Number(item.cantidad).toFixed(2)} x {fmt(item.precio_unit)}</span>
+              <span style={{ fontWeight: 700 }}>{fmt(item.subtotal)}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Observaciones */}
+      <div style={solidLine} />
+
+      <div style={{ fontSize: '9.5px' }}>
+        <Row label="TOTAL" value={fmt(subtotal)} bold />
+      </div>
+
       {remision.observaciones && (
         <>
-          <div style={sep} />
-          <div style={{ fontSize: '8px', marginBottom: '4px' }}>
-            <div style={{ fontSize: '7px', fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '4px' }}>Observaciones</div>
-            <div style={{ color: '#374151', lineHeight: '1.6', wordBreak: 'break-word' }}>{remision.observaciones}</div>
+          <div style={dashLine} />
+          <div style={{ fontSize: '9px' }}>
+            <div style={{ fontWeight: 700, textTransform: 'uppercase' }}>OBSERVACIONES</div>
+            <div style={{ wordBreak: 'break-word' }}>{remision.observaciones}</div>
           </div>
         </>
       )}
 
-      <div style={sep} />
+      <div style={dashLine} />
 
       {/* Pie */}
-      <div style={{ textAlign: 'center', fontSize: '7.5px', color: '#9ca3af', lineHeight: '1.8' }}>
-        <div style={{ color: '#6b7280', fontWeight: '600', marginBottom: '2px' }}>{EMPRESA.email}</div>
-        <div>{EMPRESA.celular}</div>
-        <div style={{ marginTop: '4px', color: '#d1d5db' }}>Generado: {new Date().toLocaleDateString('es-CO')}</div>
-        <div style={{ color: '#d1d5db' }}>Barranquilla, Atlántico / Colombia</div>
+      <div style={{ textAlign: 'center', fontSize: '8.5px', lineHeight: 1.6 }}>
+        <div style={{ fontWeight: 700 }}>RECIBIDO CONFORME</div>
+        <div style={{ marginTop: '14px', borderTop: '1px solid #000', width: '60%', margin: '14px auto 4px' }} />
+        <div style={{ fontSize: '8px' }}>Firma del cliente</div>
+        <div style={{ marginTop: '6px' }}>{EMPRESA.email}</div>
+        <div>{EMPRESA.web}</div>
+        <div style={{ marginTop: '4px' }}>{new Date().toLocaleString('es-CO')}</div>
       </div>
     </div>
   );
@@ -261,6 +261,10 @@ const PdfTemplateTicket = ({ remision, items }) => {
 
 // ── Modal Content ─────────────────────────────────────────────────────────────
 const ExportRemisionContent = ({ remision, closeModal }) => {
+  const EMPRESA = useEmpresaInfo();
+  const logoUrl = useEmpresaLogoUrl();
+  const { data: logoB64Data } = useEmpresaLogoBase64();
+  const logo    = logoUrl;
   const { items, isLoadingItems } = useRemisiones(remision.id_remisiones);
   const [isExporting, setIsExporting] = useState(false);
   const [done,        setDone]        = useState(false);
@@ -271,58 +275,62 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
   // ── Descarga carta (A4) ──
   const downloadCarta = async (doc, autoTable, logoBase64) => {
     const W = 210, M = 14;
+    // Paleta Pinca
+    const INK    = [24, 24, 27];
+    const MUTED  = [113, 113, 122];
+    const BORDER = [228, 228, 231];
+    const SUBTLE = [250, 250, 250];
+    const BRAND  = [251, 191, 36];
+    const BRAND_INK = [120, 53, 15];
 
-    // Barra de acento superior
-    doc.setFillColor(17, 24, 39);
-    doc.rect(0, 0, W, 4, 'F');
+    // ── HEADER ──
+    doc.setFillColor(...INK);
+    doc.rect(0, 0, W, 30, 'F');
+    doc.setFillColor(...BRAND);
+    doc.rect(0, 30, W, 1.5, 'F');
 
-    // Logo
-    doc.addImage(logoBase64, 'PNG', M, 10, 22, 22);
+    // Logo en tarjeta blanca
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(M, 6, 22, 22, 2, 2, 'F');
+    doc.addImage(logoBase64, 'PNG', M + 1, 7, 20, 20);
 
-    // Empresa
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(17, 24, 39);
-    doc.text(EMPRESA.nombre, 39, 16);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(107, 114, 128);
-    doc.text(`${EMPRESA.nit} · ${EMPRESA.telefono}`, 39, 21);
-    doc.text(`${EMPRESA.direccion} · ${EMPRESA.ciudad}`, 39, 25.5);
-    doc.text(EMPRESA.web, 39, 30);
+    // Empresa (sobre fondo negro)
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+    doc.text(EMPRESA.nombre, M + 26, 13);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(228, 228, 231);
+    doc.text(EMPRESA.nit, M + 26, 18);
+    doc.text(`${EMPRESA.direccion} · ${EMPRESA.ciudad}`, M + 26, 22);
+    doc.text(`${EMPRESA.telefono} · ${EMPRESA.web}`, M + 26, 26);
 
-    // Título documento
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(107, 114, 128);
-    doc.text('REMISIÓN DE ENTREGA', W - M, 14, { align: 'right' });
-    doc.setFillColor(17, 24, 39);
-    doc.roundedRect(W - M - 48, 17, 48, 9, 2, 2, 'F');
-    doc.setFontSize(10); doc.setTextColor(255);
-    doc.text(remision.numero, W - M - 24, 23, { align: 'center' });
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(156, 163, 175);
-    doc.text(remision.fecha_remision ?? '', W - M, 29, { align: 'right' });
+    // Box de número (amarillo)
+    doc.setFillColor(...BRAND);
+    doc.roundedRect(W - M - 56, 6, 56, 22, 2, 2, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(...BRAND_INK);
+    doc.text('REMISIÓN DE ENTREGA', W - M - 3, 11.5, { align: 'right' });
+    doc.setFontSize(13);
+    doc.text(remision.numero, W - M - 3, 19, { align: 'right' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+    doc.text(`Fecha: ${remision.fecha_remision ?? '—'}`, W - M - 3, 25, { align: 'right' });
 
-    // Separador
-    doc.setDrawColor(229, 231, 235); doc.setLineWidth(0.4);
-    doc.line(M, 37, W - M, 37);
-
-    // Bloques de info
-    doc.setFillColor(249, 250, 251); doc.setDrawColor(229, 231, 235); doc.setLineWidth(0.3);
-    doc.roundedRect(M,      41, 86, 30, 2, 2, 'FD');
-    doc.roundedRect(M + 90, 41, 86, 30, 2, 2, 'FD');
-
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(156, 163, 175);
-    doc.text('DATOS DEL CLIENTE',        M + 3, 46.5);
-    doc.text('INFORMACIÓN DEL DESPACHO', M + 93, 46.5);
-
-    doc.setDrawColor(229, 231, 235); doc.setLineWidth(0.2);
-    doc.line(M + 3, 48.5, M + 83, 48.5);
-    doc.line(M + 93, 48.5, M + 173, 48.5);
+    // ── INFO BLOCKS ──
+    let by = 41;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(...MUTED);
+    doc.text('CLIENTE', M, by);
+    doc.text('DESPACHO', M + 90, by);
+    doc.setFillColor(...BRAND);
+    doc.rect(M, by + 1, 14, 0.6, 'F');
+    doc.rect(M + 90, by + 1, 14, 0.6, 'F');
+    by += 6;
 
     [
-      ['Empresa',   remision.nombre_empresa   ?? '—'],
-      ['NIT',       remision.nit_cliente       ?? '—'],
-      ['Encargado', remision.nombre_encargado  ?? '—'],
+      ['Empresa',   remision.nombre_empresa  ?? '—'],
+      ['NIT',       remision.nit_cliente     ?? '—'],
+      ['Encargado', remision.nombre_encargado?? '—'],
     ].forEach(([k, v], i) => {
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(156, 163, 175);
-      doc.text(k, M + 3, 54 + i * 5.5);
-      doc.setFont('helvetica', 'bold'); doc.setTextColor(17, 24, 39);
-      doc.text(String(v), M + 22, 54 + i * 5.5);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...MUTED);
+      doc.text(k, M, by + i * 5.5);
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(...INK);
+      doc.text(doc.splitTextToSize(String(v), 65)[0], M + 22, by + i * 5.5);
     });
 
     [
@@ -330,16 +338,21 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
       ['Dirección', remision.direccion_entrega ?? '—'],
       ['Factura',   remision.numero_factura    ?? '—'],
     ].forEach(([k, v], i) => {
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(156, 163, 175);
-      doc.text(k, M + 93, 54 + i * 5.5);
-      doc.setFont('helvetica', 'bold'); doc.setTextColor(17, 24, 39);
-      doc.text(doc.splitTextToSize(String(v), 46)[0], M + 110, 54 + i * 5.5);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...MUTED);
+      doc.text(k, M + 90, by + i * 5.5);
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(...INK);
+      doc.text(doc.splitTextToSize(String(v), 65)[0], M + 110, by + i * 5.5);
     });
 
-    // Tabla ítems
+    by += 22;
+    doc.setDrawColor(...BORDER); doc.setLineWidth(0.4);
+    doc.line(M, by, W - M, by);
+    by += 4;
+
+    // ── TABLA ÍTEMS ──
     autoTable(doc, {
-      startY: 78,
-      head: [['#', 'Descripción del Producto', 'Cantidad', 'Vr. Unitario', 'Subtotal']],
+      startY: by,
+      head: [['#', 'Descripción del producto', 'Cantidad', 'Vr. unitario', 'Subtotal']],
       body: items.map((item, i) => [
         i + 1,
         item.descripcion,
@@ -347,14 +360,14 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
         fmt(item.precio_unit),
         fmt(item.subtotal),
       ]),
-      styles:     { fontSize: 8, cellPadding: 3, textColor: [55, 65, 81] },
-      headStyles: { fillColor: [17, 24, 39], textColor: 255, fontStyle: 'bold', fontSize: 7.5, cellPadding: 3.5 },
+      styles:     { fontSize: 8, cellPadding: 3.5, textColor: [55, 65, 81], lineColor: BORDER, lineWidth: 0.1 },
+      headStyles: { fillColor: INK, textColor: 255, fontStyle: 'bold', fontSize: 7.5, cellPadding: 4, lineWidth: 0 },
       columnStyles: {
         0: { halign: 'center', cellWidth: 11 },
         1: { halign: 'left' },
         2: { halign: 'right', cellWidth: 24 },
         3: { halign: 'right', cellWidth: 34 },
-        4: { halign: 'right', cellWidth: 32, fontStyle: 'bold', textColor: [17, 24, 39] },
+        4: { halign: 'right', cellWidth: 32, fontStyle: 'bold', textColor: INK },
       },
       didParseCell: (data) => {
         if (data.section === 'head') {
@@ -363,168 +376,182 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
         }
       },
       tableWidth:         W - M * 2,
-      alternateRowStyles: { fillColor: [249, 250, 251] },
+      alternateRowStyles: { fillColor: SUBTLE },
       margin:             { left: M, right: M },
     });
 
     let cy = doc.lastAutoTable.finalY + 6;
 
-    // Total
-    doc.setFillColor(17, 24, 39);
-    doc.roundedRect(W - M - 70, cy, 70, 11, 2, 2, 'F');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255);
-    doc.text('Total a Pagar', W - M - 38, cy + 6.5, { align: 'right' });
-    doc.text(fmt(subtotal), W - M - 2, cy + 6.5, { align: 'right' });
+    // ── TOTAL destacado con acento amarillo ──
+    const boxX = W - M - 78, boxW = 78;
+    doc.setFillColor(...INK);
+    doc.roundedRect(boxX, cy, boxW, 12, 2, 2, 'F');
+    doc.setFillColor(...BRAND);
+    doc.rect(boxX, cy, 2.5, 12, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(228, 228, 231);
+    doc.text('TOTAL A PAGAR', boxX + 6, cy + 7);
+    doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+    doc.text(fmt(subtotal), boxX + boxW - 4, cy + 7, { align: 'right' });
     cy += 18;
 
-    // Observaciones
+    // ── OBSERVACIONES ──
     if (remision.observaciones) {
-      doc.setFillColor(255, 251, 235); doc.setDrawColor(253, 230, 138); doc.setLineWidth(0.3);
-      const obsLines = doc.splitTextToSize(remision.observaciones, W - M * 2 - 8);
-      const obsH     = 13 + (obsLines.length - 1) * 4;
-      doc.roundedRect(M, cy, W - M * 2, obsH, 2, 2, 'FD');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(180, 83, 9);
-      doc.text('OBSERVACIONES', M + 4, cy + 5.5);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(146, 64, 14);
-      doc.text(obsLines, M + 4, cy + 10.5);
-      cy += obsH + 8;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(180, 83, 9);
+      doc.text('OBSERVACIONES', M, cy);
+      doc.setFillColor(...BRAND);
+      doc.rect(M, cy + 1, 14, 0.6, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...INK);
+      const obsLines = doc.splitTextToSize(remision.observaciones, W - M * 2);
+      doc.text(obsLines, M, cy + 6);
+      cy += 6 + obsLines.length * 4 + 4;
     }
 
-    // Nota legal
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(156, 163, 175);
-    const notaLines = doc.splitTextToSize('El presente documento certifica la entrega de los bienes descritos anteriormente. Por favor conserve esta remisión como soporte del despacho realizado.', W - M * 2);
-    doc.text(notaLines, M, cy);
+    // ── ESPACIO PARA FIRMAS ──
+    cy += 4;
+    const firmaY = cy + 18, firmaW = (W - M * 2 - 10) / 2;
+    doc.setDrawColor(...MUTED); doc.setLineWidth(0.3);
+    doc.line(M, firmaY, M + firmaW, firmaY);
+    doc.line(M + firmaW + 10, firmaY, W - M, firmaY);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(...MUTED);
+    doc.text('Despachado por', M, firmaY + 4);
+    doc.text('Recibido conforme', M + firmaW + 10, firmaY + 4);
 
-    // Footer
+    // Nota legal
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(...MUTED);
+    doc.text(
+      doc.splitTextToSize('Este documento certifica la entrega de los bienes descritos. Conserve esta remisión como soporte del despacho.', W - M * 2),
+      M, firmaY + 12
+    );
+
+    // ── FOOTER ──
     const pageH = doc.internal.pageSize.getHeight();
-    doc.setDrawColor(229, 231, 235); doc.setLineWidth(0.3);
-    doc.line(M, pageH - 22, W - M, pageH - 22);
-    doc.addImage(logoBase64, 'PNG', M, pageH - 20, 14, 14);
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(17, 24, 39);
-    doc.text('Pinturas Industriales Del Caribe', M + 17, pageH - 14);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(107, 114, 128);
-    doc.text(`${EMPRESA.email} · ${EMPRESA.celular}`, M + 17, pageH - 9.5);
-    doc.setTextColor(209, 213, 219);
+    doc.setFillColor(...BRAND);
+    doc.rect(0, pageH - 22, W, 0.8, 'F');
+    doc.setFillColor(...INK);
+    doc.rect(0, pageH - 21, W, 21, 'F');
+
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(255);
+    doc.text(EMPRESA.nombre, M, pageH - 13);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(...BORDER);
+    doc.text(`${EMPRESA.email} · ${EMPRESA.celular}`, M, pageH - 8.5);
+    doc.text(`${EMPRESA.direccion} · ${EMPRESA.ciudad}`, M, pageH - 4.5);
+
+    doc.setTextColor(...BORDER);
     doc.text(`Generado el ${new Date().toLocaleDateString('es-CO')}`, W - M, pageH - 13, { align: 'right' });
-    doc.text('Barranquilla, Atlántico / Colombia', W - M, pageH - 8.5, { align: 'right' });
+    doc.text(EMPRESA.web, W - M, pageH - 8.5, { align: 'right' });
+    doc.setFont('helvetica', 'bold'); doc.setTextColor(...BRAND);
+    doc.text(`REMISIÓN ${remision.numero}`, W - M, pageH - 4.5, { align: 'right' });
 
     doc.save(`${remision.numero}.pdf`);
   };
 
-  // ── Descarga tiquete 80 mm ──
+  // ── Descarga tiquete 80 mm — estilo POS genérico (B/N, monoespaciado) ──
   const downloadTicket = async (autoTable, logoBase64) => {
-    const { jsPDF }  = await import('jspdf');
-    const W = 80, M = 5;
-    const estimatedH = Math.max(170, 100 + (items ?? []).length * 15 + (remision.observaciones ? 20 : 0));
+    const { jsPDF } = await import('jspdf');
+    const W = 80, M = 4;
+    const estimatedH = Math.max(170, 110 + (items ?? []).length * 12 + (remision.observaciones ? 25 : 0));
     const ticketDoc  = new jsPDF({ unit: 'mm', format: [W, estimatedH] });
 
-    let y = 3;
+    const dashed = (yy) => {
+      ticketDoc.setDrawColor(0); ticketDoc.setLineWidth(0.2);
+      ticketDoc.setLineDash([1, 1]); ticketDoc.line(M, yy, W - M, yy);
+      ticketDoc.setLineDash([]);
+    };
+    const row = (yy, label, value, bold = false) => {
+      ticketDoc.setFont('courier', bold ? 'bold' : 'normal'); ticketDoc.setFontSize(8);
+      ticketDoc.setTextColor(0);
+      ticketDoc.text(label, M, yy);
+      ticketDoc.text(String(value), W - M, yy, { align: 'right' });
+    };
 
-    // Barra superior
-    ticketDoc.setFillColor(17, 24, 39);
-    ticketDoc.rect(0, 0, W, 3, 'F');
-    y = 8;
+    let y = 6;
 
-    // Logo centrado
-    ticketDoc.addImage(logoBase64, 'PNG', (W - 18) / 2, y, 18, 18); y += 21;
-
-    // Empresa
-    ticketDoc.setFont('helvetica', 'bold'); ticketDoc.setFontSize(7); ticketDoc.setTextColor(17, 24, 39);
-    ticketDoc.text('PINTURAS INDUSTRIALES', W / 2, y, { align: 'center' }); y += 3.5;
-    ticketDoc.text('DEL CARIBE S.A.S',      W / 2, y, { align: 'center' }); y += 4.5;
-    ticketDoc.setFont('helvetica', 'normal'); ticketDoc.setFontSize(6); ticketDoc.setTextColor(107, 114, 128);
-    ticketDoc.text(EMPRESA.nit,      W / 2, y, { align: 'center' }); y += 3.5;
-    ticketDoc.text(EMPRESA.telefono, W / 2, y, { align: 'center' }); y += 3.5;
-    ticketDoc.text(EMPRESA.ciudad,   W / 2, y, { align: 'center' }); y += 6;
-
-    // Separador
-    ticketDoc.setDrawColor(209, 213, 219); ticketDoc.setLineDash([1.5, 1.5]); ticketDoc.setLineWidth(0.3);
-    ticketDoc.line(M, y, W - M, y); ticketDoc.setLineDash([]); y += 7;
+    // Encabezado empresa
+    ticketDoc.setFont('courier', 'bold'); ticketDoc.setFontSize(9); ticketDoc.setTextColor(0);
+    const nombreLines = ticketDoc.splitTextToSize(EMPRESA.nombre.toUpperCase(), W - M * 2);
+    nombreLines.forEach(line => { ticketDoc.text(line, W / 2, y, { align: 'center' }); y += 3.5; });
+    y += 1;
+    ticketDoc.setFont('courier', 'normal'); ticketDoc.setFontSize(7.5);
+    ticketDoc.text(EMPRESA.nit, W / 2, y, { align: 'center' }); y += 3;
+    ticketDoc.text(EMPRESA.direccion, W / 2, y, { align: 'center' }); y += 3;
+    ticketDoc.text(EMPRESA.ciudad, W / 2, y, { align: 'center' }); y += 3;
+    ticketDoc.text(EMPRESA.telefono, W / 2, y, { align: 'center' }); y += 4;
+    dashed(y); y += 4;
 
     // Tipo + número
-    ticketDoc.setFont('helvetica', 'bold'); ticketDoc.setFontSize(7); ticketDoc.setTextColor(107, 114, 128);
-    ticketDoc.text('REMISIÓN DE ENTREGA', W / 2, y, { align: 'center' }); y += 5;
-    ticketDoc.setFillColor(17, 24, 39);
-    ticketDoc.roundedRect((W - 42) / 2, y, 42, 8, 2, 2, 'F');
-    ticketDoc.setFontSize(9); ticketDoc.setTextColor(255);
-    ticketDoc.text(remision.numero, W / 2, y + 5, { align: 'center' }); y += 14;
+    ticketDoc.setFont('courier', 'bold'); ticketDoc.setFontSize(9);
+    ticketDoc.text('REMISION DE ENTREGA', W / 2, y, { align: 'center' }); y += 4;
+    ticketDoc.text(`No. ${remision.numero}`, W / 2, y, { align: 'center' }); y += 4;
+    dashed(y); y += 4;
 
-    // Separador
-    ticketDoc.setDrawColor(209, 213, 219); ticketDoc.setLineDash([1.5, 1.5]);
-    ticketDoc.line(M, y, W - M, y); ticketDoc.setLineDash([]); y += 5;
+    // Datos doc
+    ticketDoc.setFont('courier', 'normal'); ticketDoc.setFontSize(8);
+    if (remision.fecha_remision)  { row(y, 'Fecha:',   remision.fecha_remision); y += 3.5; }
+    if (remision.numero_factura)  { row(y, 'Factura:', remision.numero_factura); y += 3.5; }
+    y += 1;
+    dashed(y); y += 4;
 
     // Cliente
-    ticketDoc.setFont('helvetica', 'bold'); ticketDoc.setFontSize(5.5); ticketDoc.setTextColor(156, 163, 175);
+    ticketDoc.setFont('courier', 'bold'); ticketDoc.setFontSize(8);
     ticketDoc.text('CLIENTE', M, y); y += 3.5;
-    const clientName  = remision.nombre_empresa || remision.nombre_encargado || '—';
-    ticketDoc.setFont('helvetica', 'bold'); ticketDoc.setFontSize(7.5); ticketDoc.setTextColor(17, 24, 39);
+    ticketDoc.setFont('courier', 'normal'); ticketDoc.setFontSize(8);
+    const clientName = remision.nombre_empresa || remision.nombre_encargado || '-';
     const clientLines = ticketDoc.splitTextToSize(clientName, W - M * 2);
-    ticketDoc.text(clientLines, M, y); y += clientLines.length * 3.5 + 2;
-    ticketDoc.setFont('helvetica', 'normal'); ticketDoc.setFontSize(6.5); ticketDoc.setTextColor(107, 114, 128);
-    if (remision.nit_cliente)       { ticketDoc.text(`NIT: ${remision.nit_cliente}`, M, y); y += 3.5; }
-    if (remision.fecha_remision)    { ticketDoc.text(`Fecha: ${remision.fecha_remision}`, M, y); y += 3.5; }
-    if (remision.numero_factura)    { ticketDoc.text(`Factura: ${remision.numero_factura}`, M, y); y += 3.5; }
+    clientLines.forEach(line => { ticketDoc.text(line, M, y); y += 3.5; });
+    if (remision.nit_cliente)      { ticketDoc.text(`NIT: ${remision.nit_cliente}`, M, y); y += 3.5; }
+    if (remision.nombre_encargado) { ticketDoc.text(remision.nombre_encargado, M, y); y += 3.5; }
     if (remision.direccion_entrega) {
       const dirLines = ticketDoc.splitTextToSize(`Dir: ${remision.direccion_entrega}`, W - M * 2);
-      ticketDoc.text(dirLines, M, y); y += dirLines.length * 3.5;
+      dirLines.forEach(line => { ticketDoc.text(line, M, y); y += 3.5; });
     }
-    y += 3;
+    y += 1;
+    dashed(y); y += 4;
 
-    // Separador
-    ticketDoc.setDrawColor(209, 213, 219); ticketDoc.setLineDash([1.5, 1.5]);
-    ticketDoc.line(M, y, W - M, y); ticketDoc.setLineDash([]); y += 2;
-
-    // Tabla ítems
-    autoTable(ticketDoc, {
-      startY: y,
-      head:   [['Descripción / Cant.', 'Subtotal']],
-      body:   (items ?? []).map(item => [
-        `${item.descripcion}\n${Number(item.cantidad).toFixed(2)} × ${fmt(item.precio_unit)}`,
-        fmt(item.subtotal),
-      ]),
-      styles:     { fontSize: 6.5, cellPadding: 1.8, overflow: 'linebreak', textColor: [55, 65, 81] },
-      headStyles: { fillColor: [17, 24, 39], textColor: 255, fontStyle: 'bold', fontSize: 6.5 },
-      columnStyles: {
-        0: { halign: 'left' },
-        1: { halign: 'right', cellWidth: 24, fontStyle: 'bold', textColor: [17, 24, 39] },
-      },
-      didParseCell: (data) => {
-        if (data.section === 'head') data.cell.styles.halign = data.column.index === 0 ? 'left' : 'right';
-      },
-      tableWidth:         W - M * 2,
-      alternateRowStyles: { fillColor: [249, 250, 251] },
-      margin:             { left: M, right: M },
+    // Ítems lista
+    ticketDoc.setFont('courier', 'normal'); ticketDoc.setFontSize(8);
+    (items ?? []).forEach((item) => {
+      const descLines = ticketDoc.splitTextToSize(item.descripcion, W - M * 2);
+      descLines.forEach(line => { ticketDoc.text(line, M, y); y += 3.3; });
+      ticketDoc.text(`${Number(item.cantidad).toFixed(2)} x ${fmt(item.precio_unit)}`, M + 2, y);
+      ticketDoc.setFont('courier', 'bold');
+      ticketDoc.text(fmt(item.subtotal), W - M, y, { align: 'right' });
+      ticketDoc.setFont('courier', 'normal');
+      y += 4.5;
     });
 
-    y = ticketDoc.lastAutoTable.finalY + 4;
-
     // Total
-    ticketDoc.setFillColor(17, 24, 39);
-    ticketDoc.roundedRect(M, y, W - M * 2, 10, 2, 2, 'F');
-    ticketDoc.setFont('helvetica', 'bold'); ticketDoc.setFontSize(9); ticketDoc.setTextColor(255);
-    ticketDoc.text('TOTAL', M + 4, y + 6.3);
-    ticketDoc.text(fmt(subtotal), W - M - 2, y + 6.3, { align: 'right' }); y += 16;
+    ticketDoc.setDrawColor(0); ticketDoc.setLineWidth(0.4);
+    ticketDoc.line(M, y, W - M, y); y += 4;
+    ticketDoc.setFont('courier', 'bold'); ticketDoc.setFontSize(11);
+    ticketDoc.text('TOTAL', M, y);
+    ticketDoc.text(fmt(subtotal), W - M, y, { align: 'right' });
+    y += 6;
 
     // Observaciones
     if (remision.observaciones) {
-      ticketDoc.setDrawColor(209, 213, 219); ticketDoc.setLineDash([1.5, 1.5]);
-      ticketDoc.line(M, y, W - M, y); ticketDoc.setLineDash([]); y += 5;
-      ticketDoc.setFont('helvetica', 'bold'); ticketDoc.setFontSize(5.5); ticketDoc.setTextColor(156, 163, 175);
+      dashed(y); y += 4;
+      ticketDoc.setFont('courier', 'bold'); ticketDoc.setFontSize(8);
       ticketDoc.text('OBSERVACIONES', M, y); y += 3.5;
-      ticketDoc.setFont('helvetica', 'normal'); ticketDoc.setFontSize(6.5); ticketDoc.setTextColor(55, 65, 81);
+      ticketDoc.setFont('courier', 'normal');
       const obsLines = ticketDoc.splitTextToSize(remision.observaciones, W - M * 2);
-      ticketDoc.text(obsLines, M, y); y += obsLines.length * 3.5 + 4;
+      obsLines.forEach(line => { ticketDoc.text(line, M, y); y += 3.5; });
+      y += 2;
     }
 
-    // Pie
-    ticketDoc.setDrawColor(209, 213, 219); ticketDoc.setLineDash([1.5, 1.5]);
-    ticketDoc.line(M, y, W - M, y); ticketDoc.setLineDash([]); y += 5;
-    ticketDoc.setFont('helvetica', 'normal'); ticketDoc.setFontSize(6.5); ticketDoc.setTextColor(107, 114, 128);
-    ticketDoc.text(EMPRESA.email,   W / 2, y, { align: 'center' }); y += 3.5;
-    ticketDoc.text(EMPRESA.celular, W / 2, y, { align: 'center' }); y += 5;
-    ticketDoc.setTextColor(209, 213, 219);
-    ticketDoc.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, W / 2, y, { align: 'center' }); y += 3.5;
-    ticketDoc.text('Barranquilla, Atlántico / Colombia', W / 2, y, { align: 'center' });
+    dashed(y); y += 4;
+
+    // Firma
+    ticketDoc.setFont('courier', 'bold'); ticketDoc.setFontSize(8);
+    ticketDoc.text('RECIBIDO CONFORME', W / 2, y, { align: 'center' });
+    y += 14;
+    ticketDoc.setDrawColor(0); ticketDoc.setLineWidth(0.3);
+    ticketDoc.line(M + 12, y, W - M - 12, y); y += 3;
+    ticketDoc.setFont('courier', 'normal'); ticketDoc.setFontSize(7.5);
+    ticketDoc.text('Firma del cliente', W / 2, y, { align: 'center' }); y += 5;
+
+    ticketDoc.text(EMPRESA.email, W / 2, y, { align: 'center' }); y += 3;
+    ticketDoc.text(EMPRESA.web,   W / 2, y, { align: 'center' }); y += 4;
+    ticketDoc.text(new Date().toLocaleString('es-CO'), W / 2, y, { align: 'center' });
 
     ticketDoc.save(`${remision.numero}-tiquete.pdf`);
   };
@@ -534,11 +561,12 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
     try {
       const { jsPDF }  = await import('jspdf');
       const autoTable  = (await import('jspdf-autotable')).default;
-      const logoBase64 = await fetch(logo).then(r => r.blob()).then(b => new Promise(res => {
-        const reader = new FileReader();
-        reader.onload = () => res(reader.result);
-        reader.readAsDataURL(b);
-      }));
+      const logoBase64 = logoB64Data?.logo
+        ?? await fetch(logoFallback).then(r => r.blob()).then(b => new Promise(res => {
+          const reader = new FileReader();
+          reader.onload = () => res(reader.result);
+          reader.readAsDataURL(b);
+        }));
 
       if (format === 'carta') {
         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -588,12 +616,12 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
                 {format === 'carta' ? (
                   <div className="shadow-2xl rounded-sm bg-white overflow-hidden" style={{ width: '635px' }}>
                     <div style={{ zoom: 0.8, width: '794px' }}>
-                      <PdfTemplate remision={remision} items={items ?? []} />
+                      <PdfTemplate remision={remision} items={items ?? []} empresa={EMPRESA} logoUrl={logoUrl} />
                     </div>
                   </div>
                 ) : (
                   <div className="shadow-2xl rounded overflow-hidden">
-                    <PdfTemplateTicket remision={remision} items={items ?? []} />
+                    <PdfTemplateTicket remision={remision} items={items ?? []} empresa={EMPRESA} logoUrl={logoUrl} />
                   </div>
                 )}
               </div>
