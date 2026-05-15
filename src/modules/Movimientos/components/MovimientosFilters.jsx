@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, X, Calendar, GitBranch } from 'lucide-react';
+import { Search, X, GitBranch } from 'lucide-react';
 import { FormSelect } from '../../../shared/Form/FormSelect';
+import DateRangePicker from '../../../shared/DateRangePicker';
 import { useUsuariosRoles } from '../../Roles/api/useRoles';
 
 const inputCls =
@@ -90,27 +91,13 @@ export const MovimientosFilters = ({ filters, onChange, onClear, onBuscarLote })
         </div>
 
         {/* Fechas */}
-        <div className="flex items-center gap-1.5">
-          <div className="relative">
-            <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-content-muted pointer-events-none" />
-            <input
-              type="date"
-              value={filters.fecha_inicio || ''}
-              onChange={(e) => onChange({ fecha_inicio: e.target.value })}
-              className={`pl-8 pr-2 ${inputCls} w-36`}
-            />
-          </div>
-          <span className="text-xs text-content-muted">–</span>
-          <div className="relative">
-            <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-content-muted pointer-events-none" />
-            <input
-              type="date"
-              value={filters.fecha_fin || ''}
-              onChange={(e) => onChange({ fecha_fin: e.target.value })}
-              className={`pl-8 pr-2 ${inputCls} w-36`}
-            />
-          </div>
-        </div>
+        <DateRangePicker
+          desde={filters.fecha_inicio || ''}
+          hasta={filters.fecha_fin || ''}
+          onChange={({ desde, hasta }) =>
+            onChange({ fecha_inicio: desde ?? '', fecha_fin: hasta ?? '' })
+          }
+        />
 
         {/* Limpiar */}
         <button

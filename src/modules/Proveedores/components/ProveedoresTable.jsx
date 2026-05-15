@@ -43,9 +43,10 @@ const ProveedoresTable = ({
   onEdit,
   onDelete,
   onPortafolio,
+  initialSearch = '',
 }) => {
   const PAGE_SIZE = useConfigValue('page_size_default', 20);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch);
   const [page, setPage] = useState(1);
 
   const [productoFilter, setProductoFilter] = useState(null);

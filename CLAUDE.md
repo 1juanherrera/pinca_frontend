@@ -682,3 +682,93 @@ Ruta `/configuracion` (en sidebar como **Sistema → Configuración**, ícono `S
 
 - `useEmpresaLogoBase64()` llama `GET /api/empresa/logo-base64` (devuelve data URI), evita problema de CORS al hacer fetch directo a `/uploads/`.
 - Mutaciones de configuración requieren `rol=admin` (validado backend, no solo UI).
+
+---
+
+## 16. Sesión 2026-05-15 — Cmd+K, Trazabilidad UI, AjusteModal, DateRangePicker
+
+### Trazabilidad — UI completa
+
+Nuevo módulo `src/modules/Trazabilidad/`:
+- **`TrazabilidadPage`** — buscador autocomplete de lotes + listado de últimos lotes recibidos. Sidebar grupo Inventario.
+- **`TrazabilidadDrawer`** — dos drawers (`TrazabilidadPorPreparacionDrawer`, `TrazabilidadPorLoteDrawer`) que muestran árbol de lotes/proveedores/OCs.
+- **`ExportTrazabilidad`** — PDF de hoja de auditoría carta A4 con dos modos (por preparación / por lote), declaración + firmas. Reusa `pdfHeader.js`.
+- Wireup: botón GitBranch en `ProduccionDetailModal` header, buscador "Rastrear lote" en `MovimientosFilters` (que ya existía), botón "Hoja PDF" en cada drawer.
+
+### Cmd+K — búsqueda global tipo Linear
+
+- **`shared/CommandPalette.jsx`** — modal centrado con keyboard nav (↑↓ Enter Esc), debounce 200ms, resultados agrupados por tipo + 16 atajos a páginas. `createPortal` a `body`, `z-[140]`.
+- Listener global Cmd+K / Ctrl+K en `Layout.jsx`.
+- **Topbar**: botón "Buscar… [Ctrl K]" en desktop, ícono lupa en móvil.
+- Backend: `SearchController` unifica búsqueda en 8 entidades.
+- **`useUrlSearch(paramName)`** — nuevo hook en `src/hooks/`. Las páginas destino lo usan para precargar el filtro desde `?q=` y limpiar la URL después. Aplicado en: `ClientePage`, `ProveedoresPage`, `CatalogoPage`, `ComercialPage` (lee `?tab=` también).
+
+### AjusteModal — descuento manual de stock
+
+- **`Inventario/Components/AjusteModal.jsx`** — motivo obligatorio (rotura/derrame/conteo/vencimiento/otro), preview de pérdida estimada en COP, validación de stock disponible. Backend: `POST /inventario/ajuste-manual`.
+- Wireado en `InventarioPage` (acción Wrench por fila) e `InventarioGlobalPage` (chip warning en cada bodega expandida).
+
+### DateRangePicker bonito
+
+- **`shared/DateRangePicker.jsx`** — usa `react-day-picker` + `date-fns` con locale `es`. Popover con 2 meses lado a lado, today con anillo amarillo, range edges en `bg-content-primary` con texto blanco, range middle en `bg-brand-subtle`.
+- Botón con dos chips bonitos: `[1 May 2026] → [15 May 2026]` (formato corto, mes capitalizado).
+- Exporta `fmtFechaChip` para usar en filtros que muestran fechas sin picker.
+- Aplicado en: `Costos/CostosFilters`, `Rentabilidad/RentabilidadFilters`, `Movimientos/MovimientosFilters`, `Produccion/ProduccionFilters`.
+
+### Costos consolidado
+
+- Eliminado el módulo standalone `CostosIndirectos/` (2 archivos). Ruta + sidebar removidos.
+- El tab "Indirectos" dentro de `/costos` ahora es **read-only de análisis** (CRUD vive inline en cada Producción).
+- Sidebar nuevo grupo "Análisis" expone `/costos`.
+
+### Clientes — ViewToggle tabla/cards
+
+- Nuevo `ClientesTable.jsx` análogo a `ProveedoresTable`. Default vista tabla con buscador integrado + paginación + acciones por fila.
+- `ClientePage.jsx` con `ViewToggle` igual que Proveedores.
+
+### Soft-deletes consistentes (backend, impacto frontend)
+
+Antes los modelos comerciales (OCs, Cotizaciones, Remisiones, Facturas, Clientes, Proveedores) NO usaban `useSoftDeletes` y las queries raw no filtraban `deleted_at` → los registros borrados aparecían igual en el frontend. Esta sesión: activado `useSoftDeletes` + ajustadas todas las queries raw. Resultado: si borrás algo desde el frontend, ahora SÍ desaparece de las listas.
+
+### Notificaciones automáticas
+
+`NotificacionesController::generarAutomaticas()` (backend) genera notifs de stock crítico, OCs retrasadas y facturas en mora. El bell-icon del Topbar ya estaba implementado, ahora la tabla `notificaciones` se llena automáticamente.
+
+### Filtro por responsable en Movimientos
+
+`MovimientosFilters` agrega `<FormSelect>` "Responsable" pre-poblado desde `useUsuariosRoles`. Backend acepta `?responsable=username`.
+
+### Clonar fórmula
+
+- `ClonarFormulacionModal.jsx` — buscador de producto destino + nombre custom. Botón Copy en header de `FormulacionesTable`.
+- Hook `clonarFormulacionAsync` en `useFormulaciones`. Endpoint `POST /formulaciones/clonar`.
+- Al clonar, navega automáticamente al producto destino.
+
+### Alertas proactivas en Dashboard
+
+- `PanelPrincipalPage` muestra widget cuando hay MP críticas (`mp_criticas.top` del backend).
+- Cards individuales con días restantes en chip color (rojo ≤2, amarillo ≤5, info <umbral).
+- Card con borde warning + gradient sutil para destacar como acción requerida sin gritar.
+
+### Costo real vs teórico en Producción
+
+- `ProduccionDetailModal` muestra nueva sección "Costo de producción" cuando estado = COMPLETADA.
+- Desglose por ingrediente: cantidad real consumida, costo congelado (real), costo teórico actual, variación % por ingrediente y total. Datos derivados del `consumo_capas` que ya devolvía el backend.
+
+### UX polish del flujo crítico
+
+- "capas" → "lotes"/"ingresos" en toda la UI visible (TrazabilidadPage, drawers, ExportTrazabilidad, CapasStockPanel) — el vocabulario contable se cambió por uno operacional.
+- `VincularModal` — tooltip rich con ejemplo "1 BULTO = 25 kg → Factor 25" + banner info de conversión.
+- `RecibirLineaModal` rediseñado: banner "10 BULTOS × 25 = 250 kg base" + costo/kg derivado + input de `lote_proveedor` (recomendado).
+- `ItemProveedorForm` — botón "Guardar y crear otro" mantiene proveedor seleccionado.
+- `InventarioGlobalPage` — fila expandida con `bg-surface-muted` + acento lateral amarillo (en lugar de invadir todo con `bg-brand-subtle`).
+
+### Fix de stacking context — overlays
+
+- `Drawer`, `DetailDrawer`, `ConfirmModal` ahora usan `createPortal(document.body)` — los modales abiertos desde dentro de drawers ya no quedan atrapados.
+- `ConfirmModal` subido a `z-[200]` (era `z-[110]`) para garantizar tope absoluto.
+
+### Dependencias nuevas
+
+- `react-day-picker@^10` + `date-fns@^4` (para DateRangePicker)
+

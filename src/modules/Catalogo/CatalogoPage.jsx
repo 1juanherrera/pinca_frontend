@@ -4,6 +4,7 @@ import HeaderSection from '../../shared/HeaderSection';
 import { Button, ButtonSquare } from '../../shared/Button';
 import TopProgressBar from '../../shared/TopProgressBar';
 import { useBoundStore } from '../../store/useBoundStore';
+import { useUrlSearch } from '../../hooks/useUrlSearch';
 import { useCatalogoList, useCatalogoMutations } from './api/useCatalogo';
 import CatalogoTable from './components/CatalogoTable';
 import ItemDetailModal from './components/ItemDetailModal';
@@ -13,6 +14,7 @@ const CatalogoPage = () => {
   const { setActiveTitle } = useBoundStore();
   const { items, isLoading, refetch } = useCatalogoList();
   const { crear, actualizar, isCreating, isUpdating } = useCatalogoMutations();
+  const initialQ = useUrlSearch('q');
 
   const [selectedId, setSelectedId] = useState(null);
   const [selectedPreview, setSelectedPreview] = useState(null);
@@ -89,6 +91,7 @@ const CatalogoPage = () => {
         items={items}
         isLoading={isLoading}
         onSelect={handleSelect}
+        initialSearch={initialQ}
       />
 
       {selectedId && (

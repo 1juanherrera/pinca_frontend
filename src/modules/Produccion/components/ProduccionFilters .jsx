@@ -1,4 +1,5 @@
 import { Search, SlidersHorizontal, X } from 'lucide-react';
+import DateRangePicker from '../../../shared/DateRangePicker';
 
 const ESTADOS = ['TODOS', 'PENDIENTE', 'EN_PROCESO', 'COMPLETADA', 'CANCELADA'];
 
@@ -54,22 +55,13 @@ export const ProduccionFilters = ({ filters, onChange, itemOptions = [] }) => {
         )}
 
         {/* Fechas */}
-        <div className="flex items-center gap-1.5">
-          <input
-            type="date"
-            value={filters.desde}
-            onChange={e => onChange({ ...filters, desde: e.target.value })}
-            className="px-3 py-2 text-sm border border-border-base rounded-lg bg-white text-content-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition"
-          />
-          <span className="text-content-muted text-xs font-medium">→</span>
-          <input
-            type="date"
-            value={filters.hasta}
-            min={filters.desde || undefined}
-            onChange={e => onChange({ ...filters, hasta: e.target.value })}
-            className="px-3 py-2 text-sm border border-border-base rounded-lg bg-white text-content-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition"
-          />
-        </div>
+        <DateRangePicker
+          desde={filters.desde}
+          hasta={filters.hasta}
+          onChange={({ desde, hasta }) =>
+            onChange({ ...filters, desde: desde ?? '', hasta: hasta ?? '' })
+          }
+        />
 
         {/* Limpiar */}
         {hasActiveFilters && (

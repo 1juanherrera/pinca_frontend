@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router';
 import {
   ClipboardList, Truck, Receipt,
   Plus, RefreshCw, Handbag,
 } from 'lucide-react';
 import { useBoundStore } from '../../store/useBoundStore';
+import { useUrlSearch } from '../../hooks/useUrlSearch';
 import { Button, ButtonSquare } from '../../shared/Button';
 import HeaderSection from '../../shared/HeaderSection';
 import PageTabs from '../../shared/PageTabs';
@@ -34,7 +36,15 @@ const ComercialPage = () => {
   const isFetching = isFetchingCotizaciones || isFetchingFacturas || isFetchingRemisiones;
   const refresh    = () => { refreshCotizaciones(); refreshFacturas(); refreshRemisiones(); };
 
-  const [activeTab, setActiveTab] = useState('cotizaciones');
+  // Lee ?tab= de la URL para activar la tab correcta al llegar desde Cmd+K
+  const location = useLocation();
+  const tabParam = new URLSearchParams(location.search).get('tab');
+  const initialTab = TABS.find((t) => t.key === tabParam) ? tabParam : 'cotizaciones';
+
+  const [activeTab, setActiveTab] = useState(initialTab);
+  // Capturamos el q inicial (limpia la URL después)
+  useUrlSearch('q');
+
   const { openDrawer } = useBoundStore();
   const tab = TABS.find((t) => t.key === activeTab);
 

@@ -12,9 +12,9 @@ const TIPO_CONFIG = {
   2: { label: 'Insumo',        tone: 'neutral', icon: Beaker  },
 };
 
-const CatalogoTable = ({ items = [], isLoading, onSelect }) => {
+const CatalogoTable = ({ items = [], isLoading, onSelect, initialSearch = '' }) => {
   const PAGE_SIZE = useConfigValue('page_size_default', 25);
-  const [search, setSearch]         = useState('');
+  const [search, setSearch]         = useState(initialSearch);
   const [tipoFilter, setTipoFilter] = useState('all');
   const [page, setPage]             = useState(1);
 

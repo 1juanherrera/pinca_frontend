@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Truck, Plus, Search, BarChart2, LayoutList, LayoutGrid, X } from 'lucide-react';
 import HeaderSection   from '../../shared/HeaderSection';
 import { Button }      from '../../shared/Button';
 import { SkeletonCard } from '../../shared/Skeletons';
 import ConfirmModal    from '../../shared/ConfirmModal';
 import { useBoundStore } from '../../store/useBoundStore';
+import { useUrlSearch } from '../../hooks/useUrlSearch';
 import { useProveedores } from './api/useProveedores';
 import ProveedoresTable        from './components/ProveedoresTable';
 import ProveedorCard           from './components/ProveedorCard';
@@ -48,10 +49,14 @@ const ViewToggle = ({ value, onChange }) => (
 );
 
 const ProveedoresPage = () => {
+  const initialQ = useUrlSearch('q');
   const [tab, setTab] = useState('proveedores');
   const [viewMode, setViewMode] = useState('tabla');
   const [portafolioProv, setPortafolioProv] = useState(null);
   const [cardSearch, setCardSearch] = useState('');
+
+  // Pre-llenar búsqueda al llegar desde Cmd+K
+  useEffect(() => { if (initialQ) setCardSearch(initialQ); }, [initialQ]);
 
   const { proveedores, isLoadingProveedores, catalogo, removeAsync } = useProveedores();
   const { openDrawer } = useBoundStore();
@@ -143,6 +148,7 @@ const ProveedoresPage = () => {
             onConfirm: async () => await removeAsync(prov.id_proveedor),
           })}
           onPortafolio={(prov) => setPortafolioProv(prov)}
+          initialSearch={initialQ}
         />
       )}
 

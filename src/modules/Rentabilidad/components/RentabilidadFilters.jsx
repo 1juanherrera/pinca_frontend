@@ -1,5 +1,5 @@
-import { Calendar } from 'lucide-react';
-import DateRangePicker from '../../../shared/DateRangePicker';
+import { Calendar, ArrowRight } from 'lucide-react';
+import DateRangePicker, { fmtFechaChip } from '../../../shared/DateRangePicker';
 
 const PERIODOS = [
   { id: 'dia',       label: 'Hoy'          },
@@ -77,9 +77,16 @@ const RentabilidadFilters = ({ periodo, desde, hasta, onPeriodo, onDesde, onHast
         }}
       />
     ) : (
-      <span className="text-xs text-content-muted ml-1 font-mono">
-        {desde} → {hasta}
-      </span>
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold bg-white border border-border-base rounded-lg">
+        <Calendar size={12} className="text-content-tertiary" />
+        <span className="px-2 py-0.5 rounded-md bg-surface-muted text-content-primary tabular-nums">
+          {fmtFechaChip(desde) ?? '—'}
+        </span>
+        <ArrowRight size={11} className="text-content-muted" />
+        <span className="px-2 py-0.5 rounded-md bg-surface-muted text-content-primary tabular-nums">
+          {fmtFechaChip(hasta) ?? '—'}
+        </span>
+      </div>
     )}
   </div>
 );

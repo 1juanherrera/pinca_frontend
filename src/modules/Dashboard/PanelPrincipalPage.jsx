@@ -223,7 +223,7 @@ const PanelPrincipalPage = () => {
 
       {/* ─── Alertas proactivas — Stock crítico ─────────────────────── */}
       {(mp_criticas?.top?.length ?? 0) > 0 && (
-        <Card className="p-4 border-semantic-warning/30 bg-gradient-to-br from-semantic-warning-subtle/30 via-surface-base to-surface-base">
+        <Card className="p-4 border-semantic-warning/30 bg-linear-to-br from-semantic-warning-subtle/30 via-surface-base to-surface-base">
           <SectionTitle
             icon={AlertTriangle}
             action={

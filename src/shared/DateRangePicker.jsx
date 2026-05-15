@@ -26,13 +26,17 @@ const isoToDate = (iso) => {
 
 const dateToIso = (d) => (d ? format(d, 'yyyy-MM-dd') : null);
 
-// "5 may 2026" — formato corto, legible, sin comilla rara
-const fmtChip = (d) => {
+// "5 May 2026" — formato corto, legible, sin comilla rara
+export const fmtFechaChip = (d) => {
   if (!d) return null;
-  const s = format(d, 'd MMM yyyy', { locale: es });
+  const date = typeof d === 'string' ? isoToDate(d) : d;
+  if (!date) return null;
+  const s = format(date, 'd MMM yyyy', { locale: es });
   // Capitalizar el mes (date-fns devuelve en minúsculas)
   return s.replace(/\s([a-z])/, (_, c) => ' ' + c.toUpperCase());
 };
+
+const fmtChip = fmtFechaChip;
 
 const DateRangePicker = ({ desde, hasta, onChange, align = 'left' }) => {
   const [open, setOpen] = useState(false);
