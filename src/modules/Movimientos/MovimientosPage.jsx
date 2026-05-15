@@ -13,6 +13,7 @@ const INITIAL_FILTERS = {
   search: '',
   tipo_movimiento: '',
   referencia_tipo: '',
+  responsable: '',
   fecha_inicio: '',
   fecha_fin: '',
   page: 1,

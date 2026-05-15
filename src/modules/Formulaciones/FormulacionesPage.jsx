@@ -9,6 +9,7 @@ import { useFormulaciones } from "./api/useFormulaciones";
 import FormCostProducts from "./components/FormCostProducts ";
 import { PreparationModal } from "./components/preparationModal";
 import FormulacionModal from "./components/FormulacionModal";
+import ClonarFormulacionModal from "./components/ClonarFormulacionModal";
 import VersionesByItemWrapper from "./components/VersionesByItemWrapper";
 import { FlaskConical, History, Plus } from "lucide-react";
 import { Button } from "../../shared/Button";
@@ -22,6 +23,7 @@ const FormulacionesPage = () => {
   const [editItemId,       setEditItemId]        = useState(null);
   const [selectedProveedorId, setSelectedProveedorId] = useState(null);
   const [historialItemId,  setHistorialItemId]  = useState(null);
+  const [clonarFrom,       setClonarFrom]       = useState(null);
 
   const [seleccionPorIngrediente, setSeleccionPorIngrediente] = useState({});
 
@@ -134,6 +136,7 @@ const FormulacionesPage = () => {
             seleccionPorIngrediente={seleccionPorIngrediente}
             onSeleccionIngrediente={setSeleccionPorIngrediente}
             onEdit={(itemId) => { setEditItemId(itemId); setModalFormulacion(true); }}
+            onClone={(prod) => setClonarFrom(prod)}
             isLoading={isCalculating}
           />
           <CostProductsTable
@@ -159,6 +162,14 @@ const FormulacionesPage = () => {
         <VersionesByItemWrapper
           itemGeneralId={historialItemId}
           onClose={() => setHistorialItemId(null)}
+        />
+      )}
+
+      {clonarFrom && (
+        <ClonarFormulacionModal
+          from={clonarFrom}
+          onClose={() => setClonarFrom(null)}
+          onCloned={(destino) => setSelectedId(String(destino.id_item_general))}
         />
       )}
 

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { FlaskConical, Beaker, Scale, DollarSign, Truck, ChevronDown, X, Pencil } from 'lucide-react';
+import { FlaskConical, Beaker, Scale, DollarSign, Truck, ChevronDown, X, Pencil, Copy } from 'lucide-react';
 
 const fmtCOP = (v) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(v) || 0);
@@ -126,6 +126,7 @@ export const FormulacionesTable = ({
     seleccionPorIngrediente = {},
     onSeleccionIngrediente,
     onEdit,
+    onClone,
     isLoading = false,
 }) => {
     if (!selectedProductData) {
@@ -242,6 +243,16 @@ export const FormulacionesTable = ({
                                 {productDetail?.formulaciones?.length || 0} componentes
                             </div>
                         </div>
+                        {onClone && (
+                            <button
+                                type="button"
+                                onClick={() => onClone(selectedProductData)}
+                                title="Clonar fórmula a otro producto"
+                                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/25 text-white transition-colors"
+                            >
+                                <Copy size={14} />
+                            </button>
+                        )}
                         {onEdit && (
                             <button
                                 type="button"

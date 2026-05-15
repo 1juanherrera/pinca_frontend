@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, X, Calendar, GitBranch } from 'lucide-react';
 import { FormSelect } from '../../../shared/Form/FormSelect';
+import { useUsuariosRoles } from '../../Roles/api/useRoles';
 
 const inputCls =
   'h-8 bg-surface-base border border-border-base rounded-md text-xs font-medium ' +
@@ -10,6 +11,15 @@ const inputCls =
 export const MovimientosFilters = ({ filters, onChange, onClear, onBuscarLote }) => {
   const [localSearch, setLocalSearch] = useState(filters.search || '');
   const [loteInput,   setLoteInput]   = useState('');
+
+  const { data: usuarios = [] } = useUsuariosRoles();
+  const responsableOptions = useMemo(() => ([
+    { value: '', label: 'Todos los responsables' },
+    ...usuarios.map((u) => ({
+      value: u.username,
+      label: u.nombre ? `${u.nombre} (${u.username})` : u.username,
+    })),
+  ]), [usuarios]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -67,6 +77,15 @@ export const MovimientosFilters = ({ filters, onChange, onClear, onBuscarLote })
               { value: 'AJUSTE_MANUAL',    label: 'Ajuste manual'        },
               { value: 'ANULACION',        label: 'Anulación / Reverso'  },
             ]}
+          />
+        </div>
+
+        {/* Responsable */}
+        <div className="w-44">
+          <FormSelect
+            value={filters.responsable || ''}
+            onChange={(val) => onChange({ responsable: val })}
+            options={responsableOptions}
           />
         </div>
 

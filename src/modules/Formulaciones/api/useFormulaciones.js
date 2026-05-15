@@ -113,6 +113,19 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
     queryFn:  () => apiClient.get('/item_general'),
   });
 
+  // ✅ Clonar fórmula a otro producto
+  const clonarMutation = useMutation({
+    mutationFn: ({ from_item_id, to_item_id, nombre }) =>
+      apiClient.post('/formulaciones/clonar', { from_item_id, to_item_id, nombre }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: formulacionKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: formulacionKeys.byItem(String(variables.to_item_id)) });
+      queryClient.invalidateQueries({ queryKey: itemKeys.lists() });
+      toast.success('Fórmula clonada correctamente');
+    },
+    onError: (err) => toast.error(err?.response?.data?.message || 'Error al clonar la fórmula'),
+  });
+
   // ✅ Vincular item_proveedor → item_general (auto-crea si es necesario)
   const vincularMutation = useMutation({
     mutationFn: ({ id, data }) => apiClient.patch(`/item_proveedores/${id}/vincular`, data),
@@ -170,6 +183,10 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
     updateFormulacionAsync: updateMutation.mutateAsync,
     updateFormulacion:      updateMutation.mutate,
     isUpdating:             updateMutation.isPending,
+
+    // ✅ Clonar fórmula
+    clonarFormulacionAsync: clonarMutation.mutateAsync,
+    isCloning:              clonarMutation.isPending,
 
     isSaving: createMutation.isPending || updateMutation.isPending,
   };
