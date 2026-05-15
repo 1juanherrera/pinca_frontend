@@ -1,4 +1,5 @@
 import { Calendar } from 'lucide-react';
+import DateRangePicker from '../../../shared/DateRangePicker';
 
 const PERIODOS = [
   { id: 'dia',       label: 'Hoy'          },
@@ -65,32 +66,18 @@ const RentabilidadFilters = ({ periodo, desde, hasta, onPeriodo, onDesde, onHast
       ))}
     </div>
 
-    {/* Inputs de fecha personalizados */}
-    {periodo === 'custom' && (
-      <div className="flex items-center gap-2 ml-1">
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-content-muted">Desde</span>
-          <input
-            type="date"
-            value={desde}
-            onChange={(e) => onDesde(e.target.value)}
-            className="text-xs border border-border-base rounded-lg px-2 py-1.5 text-content-secondary focus:outline-none focus:ring-1 focus:ring-border-strong"
-          />
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-content-muted">Hasta</span>
-          <input
-            type="date"
-            value={hasta}
-            onChange={(e) => onHasta(e.target.value)}
-            className="text-xs border border-border-base rounded-lg px-2 py-1.5 text-content-secondary focus:outline-none focus:ring-1 focus:ring-border-strong"
-          />
-        </div>
-      </div>
-    )}
-
-    {periodo !== 'custom' && (
-      <span className="text-xs text-content-muted ml-1">
+    {/* Date range picker — solo en modo personalizado */}
+    {periodo === 'custom' ? (
+      <DateRangePicker
+        desde={desde}
+        hasta={hasta}
+        onChange={({ desde: d, hasta: h }) => {
+          if (d !== undefined) onDesde(d ?? '');
+          if (h !== undefined) onHasta(h ?? '');
+        }}
+      />
+    ) : (
+      <span className="text-xs text-content-muted ml-1 font-mono">
         {desde} → {hasta}
       </span>
     )}

@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Info,
+  Wrench,
 } from 'lucide-react';
 import TamboresItemModal from './TamboresItemModal';
 import { useBoundStore } from '../../../store/useBoundStore';
@@ -17,6 +18,7 @@ import StatusBadge from '../../../shared/StatusBadge';
 import { getPaginationRange } from '../services/pagination';
 import { ExcelModal } from './ExcelModal';
 import { TraspasoModal } from './TraspasoModal';
+import AjusteModal from './AjusteModal';
 import { useBodegas } from '../../Bodegas/api/useBodegas';
 import cn from '../../../utils/cn';
 
@@ -33,12 +35,13 @@ const DataTable = () => {
   const [tipoFilter,  setTipoFilter]  = useState('');
   const [itemTraspaso, setItemTraspaso] = useState(null);
   const [itemDetalle,  setItemDetalle]  = useState(null);
+  const [itemAjuste,   setItemAjuste]   = useState(null);
 
   const id_bodega   = useBoundStore(state => state.activeBodegaId);
   const openConfirm = useBoundStore(state => state.openConfirm);
 
   const { isLoadingItems, items, isFetching, traspasoAsync, isTrashing,
-          removeFromBodegaAsync } = useInventario(
+          removeFromBodegaAsync, ajusteManualAsync, isAjustando } = useInventario(
     id_bodega, currentPage, perPage, searchTerm, tipoFilter,
   );
   const { bodegas } = useBodegas();
@@ -176,9 +179,16 @@ const DataTable = () => {
                             <ArrowRightLeft size={12} />
                           </button>
                           <button
+                            onClick={() => setItemAjuste(item)}
+                            title="Ajuste manual (rotura, derrame, conteo)"
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-warning hover:text-white hover:border-semantic-warning transition-colors"
+                          >
+                            <Wrench size={12} />
+                          </button>
+                          <button
                             onClick={() => setItemDetalle(item)}
                             title="Ver tambores"
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-warning hover:text-white hover:border-semantic-warning transition-colors"
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-colors"
                           >
                             <Info size={12} />
                           </button>
@@ -301,6 +311,19 @@ const DataTable = () => {
             setItemTraspaso(null);
           }}
           isSubmitting={isTrashing}
+        />
+      )}
+
+      {itemAjuste && (
+        <AjusteModal
+          item={itemAjuste}
+          bodegaId={id_bodega}
+          onClose={() => setItemAjuste(null)}
+          onConfirm={async (payload) => {
+            await ajusteManualAsync(payload);
+            setItemAjuste(null);
+          }}
+          isSubmitting={isAjustando}
         />
       )}
     </>

@@ -12,6 +12,8 @@ import {
   BookOpen,
   Boxes,
   Building2,
+  GitBranch,
+  Coins,
 } from 'lucide-react';
 
 // `moduloKey` debe coincidir con los valores en MODULOS_SISTEMA y en la tabla permisos_rol_modulo.
@@ -26,6 +28,7 @@ export const sidebarMenu = [
   { link: 'catalogo',          moduloKey: 'catalogo',          label: 'Catálogo',         icon: BookOpen,        grupo: 'Inventario' },
   { link: 'inventario-global', moduloKey: 'inventario-global', label: 'Inventario',       icon: Boxes,           grupo: 'Inventario' },
   { link: 'movimientos',       moduloKey: 'movimientos',       label: 'Movimientos',      icon: ArrowDownUp,     grupo: 'Inventario' },
+  { link: 'trazabilidad',      moduloKey: 'trazabilidad',      label: 'Trazabilidad',     icon: GitBranch,       grupo: 'Inventario' },
 
   // Producción
   { link: 'formulaciones',     moduloKey: 'formulaciones',     label: 'Formulaciones',    icon: FlaskConical,    grupo: 'Producción' },
@@ -42,4 +45,5 @@ export const sidebarMenu = [
 
   // Análisis
   { link: 'rentabilidad',      moduloKey: 'rentabilidad',      label: 'Rentabilidad',     icon: TrendingUp,      grupo: 'Análisis' },
+  { link: 'costos',            moduloKey: 'costos',            label: 'Costos',           icon: Coins,           grupo: 'Análisis' },
 ];

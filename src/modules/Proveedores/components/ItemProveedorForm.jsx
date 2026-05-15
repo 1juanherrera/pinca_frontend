@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Save, Percent, AlertTriangle, Search, X, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { Save, Percent, AlertTriangle, Search, X, Loader2, PlusCircle } from 'lucide-react';
 import Drawer from '../../../shared/Drawer';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { FormSelect } from '../../../shared/Form/FormSelect';
@@ -322,7 +323,33 @@ const ItemProveedorForm = () => {
     setItemGeneral(item);
   };
 
+  // Flag para distinguir "Guardar y cerrar" vs "Guardar y crear otro"
+  const keepOpenRef = useRef(false);
+
+  const handleResetKeepProvider = () => {
+    const proveedorId = String(payload?.proveedor_id ?? '');
+    reset({
+      nombre:          '',
+      codigo:          '',
+      tipo:            'Materia Prima',
+      disponible:      '1',
+      precio_unitario: 0,
+      precio_con_iva:  0,
+      descripcion:     '',
+      proveedor_id:    proveedorId,
+    });
+    setAplicarIva(aplicarIvaDefault);
+    setPorcentajeIva(ivaDefault);
+    setItemGeneral(null);
+    setNombreLocal('');
+    setUnidadCompraId('');
+    toast.success('Guardado. Listo para el siguiente.');
+  };
+
   const onSubmit = (data) => {
+    const wasKeepOpen = keepOpenRef.current;
+    keepOpenRef.current = false;
+
     const body = {
       ...data,
       nombre:            nombreLocal || data.nombre,
@@ -334,10 +361,12 @@ const ItemProveedorForm = () => {
       unidad_compra_id:  unidadCompraId ? parseInt(unidadCompraId, 10) : null,
     };
 
+    const cb = wasKeepOpen ? handleResetKeepProvider : handleClose;
+
     if (payload) {
-      updateItem({ id: payload.id_item_proveedor, data: body }, { onSuccess: handleClose });
+      updateItem({ id: payload.id_item_proveedor, data: body }, { onSuccess: cb });
     } else {
-      createItem(body, { onSuccess: handleClose });
+      createItem(body, { onSuccess: cb });
     }
     // Nota: el backend crea o vincula item_general automáticamente si falta.
   };
@@ -371,6 +400,19 @@ const ItemProveedorForm = () => {
             className="px-5 py-2.5 text-sm font-semibold text-content-secondary bg-white border border-border-base/80 rounded-xl hover:bg-surface-subtle transition-all">
             Cancelar
           </button>
+          {/* Solo en modo creación: Guardar y crear otro */}
+          {!payload && (
+            <button
+              type="submit"
+              form="item-proveedor-form"
+              disabled={isSaving}
+              onClick={() => { keepOpenRef.current = true; }}
+              title="Guarda y deja el form abierto para cargar otro producto del mismo proveedor"
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-content-secondary bg-white border border-border-base rounded-xl hover:bg-surface-subtle disabled:opacity-70 transition-all"
+            >
+              <PlusCircle size={16} /> Guardar y crear otro
+            </button>
+          )}
           <button type="submit" form="item-proveedor-form" disabled={isSaving}
             className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-semantic-success rounded-xl hover:bg-semantic-success disabled:opacity-70 transition-all shadow-md shadow-sm">
             {isSaving ? (

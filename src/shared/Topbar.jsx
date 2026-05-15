@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import {
-  Calculator,
+  Search,
   ChevronRight,
   GitMerge,
   LayoutDashboard,
@@ -13,7 +13,7 @@ import NotificacionesDropdown from '../modules/Notificaciones/components/Notific
 
 const getInitials = (username = '') => username.slice(0, 2).toUpperCase();
 
-const Topbar = () => {
+const Topbar = ({ onOpenPalette }) => {
   const activeTitle = useBoundStore(s => s.activeTitle);
   const user        = useBoundStore(s => s.user);
   const openDrawer  = useBoundStore(s => s.openDrawer);
@@ -52,8 +52,24 @@ const Topbar = () => {
 
       {/* Acciones */}
       <div className="flex items-center gap-1 sm:gap-2">
-        <button className="p-2 hover:bg-surface-sidebar-hover rounded-full transition-colors text-content-muted hover:text-content-inverse">
-          <Calculator size={16} />
+        {/* Búsqueda global Cmd+K */}
+        <button
+          onClick={(e) => { e.currentTarget.blur(); onOpenPalette?.(); }}
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs text-content-tertiary bg-surface-sidebar-hover/80 hover:bg-surface-sidebar-hover hover:text-content-inverse rounded-full border border-surface-sidebar-hover transition-colors focus:outline-none focus-visible:outline-none"
+          title="Buscar (Ctrl+K)"
+        >
+          <Search size={13} />
+          <span className="font-medium">Buscar…</span>
+          <kbd className="ml-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-bold text-content-muted bg-surface-sidebar/80 border border-surface-sidebar-hover rounded">
+            Ctrl K
+          </kbd>
+        </button>
+        <button
+          onClick={(e) => { e.currentTarget.blur(); onOpenPalette?.(); }}
+          className="md:hidden p-2 hover:bg-surface-sidebar-hover rounded-full transition-colors text-content-muted hover:text-content-inverse focus:outline-none focus-visible:outline-none"
+          title="Buscar (Ctrl+K)"
+        >
+          <Search size={16} />
         </button>
 
         <button

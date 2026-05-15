@@ -8,6 +8,8 @@ import { ProduccionTable } from './components/ProduccionTable ';
 import HeaderSection from '../../shared/HeaderSection';
 import { ButtonSquare } from '../../shared/Button';
 import ExportProduccion from './components/ExportProduccion';
+import { TrazabilidadPorPreparacionDrawer } from '../Trazabilidad/components/TrazabilidadDrawer';
+import ExportTrazabilidad from '../Trazabilidad/components/ExportTrazabilidad';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const applyFilters = (data, filters) => {
@@ -69,6 +71,7 @@ const ProduccionPage = () => {
   const [sortBy,          setSortBy]          = useState('id_preparaciones');
   const [sortDir,         setSortDir]         = useState('desc');
   const [selectedRow,     setSelectedRow]     = useState(null);
+  const [trazaPrepId,     setTrazaPrepId]     = useState(null);
 
   // ── Datos ─────────────────────────────────────────────────────────────────
   // fetchList: true → activa la query GET /preparaciones (lista global)
@@ -181,11 +184,21 @@ const ProduccionPage = () => {
           preparacion={selectedRow}
           onClose={() => setSelectedRow(null)}
           onUpdated={handleUpdated}
+          onVerTrazabilidad={(id) => setTrazaPrepId(id)}
+        />
+      )}
+
+      {/* ── Drawer de trazabilidad por preparación ── */}
+      {trazaPrepId && (
+        <TrazabilidadPorPreparacionDrawer
+          preparacionId={trazaPrepId}
+          onClose={() => setTrazaPrepId(null)}
         />
       )}
 
       {/* ── Modal de exportación ── */}
       <ExportProduccion />
+      <ExportTrazabilidad />
     </div>
   );
 };

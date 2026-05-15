@@ -7,6 +7,7 @@ import { MovimientosFilters } from './components/MovimientosFilters';
 import { MovimientosTable } from './components/MovimientosTable';
 import MovimientoDetailDrawer from './components/MovimientoDetailDrawer';
 import { TrazabilidadPorLoteDrawer } from '../Trazabilidad/components/TrazabilidadDrawer';
+import ExportTrazabilidad from '../Trazabilidad/components/ExportTrazabilidad';
 
 const INITIAL_FILTERS = {
   search: '',
@@ -88,6 +89,8 @@ const MovimientosPage = () => {
           onClose={() => setLoteBuscado(null)}
         />
       )}
+
+      <ExportTrazabilidad />
     </div>
   );
 };

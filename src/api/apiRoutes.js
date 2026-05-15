@@ -106,6 +106,7 @@ export const API_ROUTES = {
     POR_LOTE:        (lote) => `/trazabilidad/lote/${encodeURIComponent(lote)}`,
     LOTES_SEARCH:    (q)    => `/trazabilidad/lotes${q ? `?q=${encodeURIComponent(q)}` : ''}`,
   },
+  SEARCH: (q, limit = 5) => `/search?q=${encodeURIComponent(q)}&limit=${limit}`,
   SINCRONIZACION: {
     STATS:      '/sincronizacion/stats',
     MAESTRO:    '/sincronizacion/maestro',

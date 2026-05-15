@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
 import Sidebar from './Shared/Sidebar';
 import Topbar from './Shared/Topbar';
 import UserPanel from './Shared/UserPanel';
+import CommandPalette from './shared/CommandPalette';
 import { useBoundStore } from './store/useBoundStore';
 import { ShieldOff } from 'lucide-react';
 
@@ -17,6 +19,19 @@ const Layout = () => {
   const token   = useBoundStore((s) => s.token);
   const user    = useBoundStore((s) => s.user);
   const location = useLocation();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Atajo global Cmd+K / Ctrl+K
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   if (!token) return <Navigate to="/login" replace />;
 
@@ -38,7 +53,7 @@ const Layout = () => {
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <Topbar />
+        <Topbar onOpenPalette={() => setPaletteOpen(true)} />
 
         <main className="p-2 bg-surface-main h-full overflow-auto">
           {sinAcceso ? (
@@ -54,6 +69,7 @@ const Layout = () => {
       </div>
 
       <UserPanel />
+      <CommandPalette isOpen={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   );
 };

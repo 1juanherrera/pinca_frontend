@@ -1,10 +1,25 @@
-import { GitBranch, Beaker, Package, Building2, Calendar, Hash, Truck, ChevronRight, AlertTriangle } from 'lucide-react';
+import { GitBranch, Beaker, Package, Building2, Calendar, Hash, Truck, ChevronRight, AlertTriangle, Download } from 'lucide-react';
 import DetailDrawer from '../../../shared/DetailDrawer';
 import StatusBadge from '../../../shared/StatusBadge';
 import IconBox from '../../../shared/IconBox';
 import EmptyState from '../../../shared/EmptyState';
 import { fmt, formatLetterDate } from '../../../utils/formatters';
 import { useTrazabilidadPreparacion, useTrazabilidadLote } from '../api/useTrazabilidad';
+import { useBoundStore } from '../../../store/useBoundStore';
+
+const DescargarPDFButton = ({ payload }) => {
+  const openDrawer = useBoundStore((s) => s.openDrawer);
+  return (
+    <button
+      type="button"
+      onClick={() => openDrawer('EXPORT_MODAL_TRAZ', payload)}
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-white bg-content-primary hover:bg-content-secondary rounded-lg transition-all active:scale-95"
+      title="Descargar hoja de trazabilidad (PDF)"
+    >
+      <Download size={12} /> Hoja PDF
+    </button>
+  );
+};
 
 const fmtNum = (v, dec = 2) =>
   Number(v ?? 0).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: dec });
@@ -69,13 +84,14 @@ const PreparacionTree = ({ data }) => {
             </span>
           </div>
         </div>
+        <DescargarPDFButton payload={{ mode: 'preparacion', preparacionId: preparacion?.id_preparaciones }} />
       </div>
 
       {sinDatos ? (
         <EmptyState
           icon={AlertTriangle}
           title="Sin datos de trazabilidad"
-          description="Esta preparación no tiene capas registradas en preparacion_consumo_capas. Probablemente fue creada antes del sistema de capas o cancelada."
+          description="Esta preparación no tiene lotes registrados. Probablemente fue creada antes del sistema de trazabilidad por lotes, o fue cancelada."
         />
       ) : (
         <>
@@ -86,7 +102,7 @@ const PreparacionTree = ({ data }) => {
               <p className="text-base font-bold text-content-primary tabular-nums">{totales?.ingredientes_count ?? 0}</p>
             </div>
             <div className="px-3 py-2 rounded-lg bg-surface-base border border-border-base text-center">
-              <p className="text-[9px] text-content-tertiary uppercase tracking-wider">Capas / lotes</p>
+              <p className="text-[9px] text-content-tertiary uppercase tracking-wider">Lotes consumidos</p>
               <p className="text-base font-bold text-content-primary tabular-nums">{totales?.capas_count ?? 0}</p>
             </div>
             <div className="px-3 py-2 rounded-lg bg-surface-base border border-border-base text-center">
@@ -161,7 +177,7 @@ const IngredienteCard = ({ ing }) => (
                     <Calendar size={10} /> Ingresó {fmtDate(capa.fecha_ingreso)}
                   </span>
                 )}
-                <span className="font-mono">capa #{capa.capa_id}</span>
+                <span className="font-mono">lote #{capa.capa_id}</span>
               </div>
             </div>
             <div className="text-right shrink-0">
@@ -222,6 +238,15 @@ const LoteTree = ({ data, lote }) => {
 
   return (
     <div className="p-5 space-y-5">
+      {/* Acción global de descarga */}
+      <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-surface-subtle border border-border-subtle">
+        <div className="min-w-0">
+          <p className="text-[10px] uppercase tracking-wider text-content-tertiary font-semibold">Lote</p>
+          <p className="text-sm font-bold text-content-primary font-mono truncate">{lote}</p>
+        </div>
+        <DescargarPDFButton payload={{ mode: 'lote', lote }} />
+      </div>
+
       {/* Capas que matchearon */}
       <div>
         <h3 className="text-xs font-semibold text-content-primary mb-2 uppercase tracking-wider">
@@ -269,7 +294,7 @@ const LoteTree = ({ data, lote }) => {
             icon={Beaker}
             size="sm"
             title="Aún no consumido"
-            description="Este lote sigue intacto en inventario o sus capas son del nuevo sistema sin consumos registrados."
+            description="Este lote sigue intacto en inventario o sus ingresos son del nuevo sistema sin consumos registrados."
           />
         ) : (
           <ul className="space-y-2">

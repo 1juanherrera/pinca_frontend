@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import cn from '../utils/cn';
 
@@ -41,7 +42,7 @@ const Drawer = ({
 
   const sizeClass = SIZE_CLASSES[size] ?? SIZE_CLASSES.md;
 
-  return (
+  return createPortal(
     <>
       <div
         className="fixed inset-0 z-[100] animate-in fade-in"
@@ -101,7 +102,8 @@ const Drawer = ({
           </div>
         )}
       </div>
-    </>
+    </>,
+    document.body,
   );
 };
 

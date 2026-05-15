@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, CheckCircle, Info, AlertCircle } from 'lucide-react';
 import { useBoundStore } from '../store/useBoundStore';
 import { Button } from './Button';
@@ -57,9 +58,9 @@ const ConfirmModal = () => {
     }
   };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-in fade-in"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in"
       style={{ background: 'var(--surface-overlay)' }}
       role="dialog"
       aria-modal="true"
@@ -88,7 +89,8 @@ const ConfirmModal = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

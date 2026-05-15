@@ -54,8 +54,11 @@ export const useCompras = (id = null) => {
 
   // ── RECIBIR LÍNEA ─────────────────────────────────────────────────────
   const recibirLineaMutation = useMutation({
-    mutationFn: ({ idOrden, idDetalle, cantidad_recibida }) =>
-      apiClient.post(`/ordenes_compra/${idOrden}/recibir/${idDetalle}`, { cantidad_recibida }),
+    mutationFn: ({ idOrden, idDetalle, cantidad_recibida, lote_proveedor }) =>
+      apiClient.post(`/ordenes_compra/${idOrden}/recibir/${idDetalle}`, {
+        cantidad_recibida,
+        lote_proveedor: lote_proveedor ?? null,
+      }),
     onSuccess: (_, { idOrden }) => {
       queryClient.invalidateQueries({ queryKey: comprasKeys.detail(idOrden?.toString()) });
       queryClient.invalidateQueries({ queryKey: comprasKeys.lists() });

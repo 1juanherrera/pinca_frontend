@@ -15,7 +15,7 @@ import { Button } from '../../shared/Button';
 import EmptyState from '../../shared/EmptyState';
 import TopProgressBar from '../../shared/TopProgressBar';
 import { useBoundStore } from '../../store/useBoundStore';
-import { fmt, formatLetterDate } from '../../utils/formatters';
+import { fmt } from '../../utils/formatters';
 import { useDashboard } from './api/useDashboard';
 import { useConfigValue } from '../Configuracion/api/useConfiguracion';
 
@@ -119,8 +119,7 @@ const PanelPrincipalPage = () => {
   const {
     cartera, aging_resumen, top_deudores, sincronizacion,
     ventas_mes, cotizaciones, ocs_pendientes, mp_criticas,
-    produccion_curso, movimientos_hoy, top_descripciones, rentabilidad,
-    generated_at,
+    produccion_curso, movimientos_hoy, top_descripciones, rentabilidad
   } = data;
 
   // Cobertura cartera para ProgressPill
@@ -405,14 +404,6 @@ const PanelPrincipalPage = () => {
           )}
         </Card>
       </div>
-
-      {/* Footer info */}
-      {generated_at && (
-        <p className="text-[10px] text-content-muted text-center pt-2">
-          Generado el {formatLetterDate(generated_at.split(' ')[0])} ·{' '}
-          {generated_at.split(' ')[1]?.slice(0, 5)}
-        </p>
-      )}
     </div>
   );
 };

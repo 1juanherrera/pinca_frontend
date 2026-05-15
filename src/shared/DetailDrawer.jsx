@@ -3,6 +3,7 @@
  * Para forms con footer, usar <Drawer> con prop `footer`.
  */
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import cn from '../utils/cn';
 
@@ -40,7 +41,7 @@ const DetailDrawer = ({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <>
       <div
         className="fixed inset-0 z-[100] animate-in fade-in"
@@ -92,7 +93,8 @@ const DetailDrawer = ({
           {children}
         </div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 };
 

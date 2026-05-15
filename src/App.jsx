@@ -25,6 +25,8 @@ import RolesPage from "./modules/Roles/RolesPage";
 import SincronizacionPage from "./modules/Sincronizacion/SincronizacionPage";
 import PanelPrincipalPage from "./modules/Dashboard/PanelPrincipalPage";
 import ConfiguracionPage from "./modules/Configuracion/ConfiguracionPage";
+import TrazabilidadPage from "./modules/Trazabilidad/TrazabilidadPage";
+import CostosPage from "./modules/Costos/CostosPage";
 
 const App = () => {
   return (
@@ -56,6 +58,8 @@ const App = () => {
           <Route path="/roles" element={<RolesPage />} />
           <Route path="/sincronizacion" element={<SincronizacionPage />} />
           <Route path="/configuracion"  element={<ConfiguracionPage />} />
+          <Route path="/trazabilidad"   element={<TrazabilidadPage />} />
+          <Route path="/costos"             element={<CostosPage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

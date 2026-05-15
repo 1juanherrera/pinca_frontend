@@ -3,9 +3,11 @@ import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 import {
   ChevronDown, ChevronRight, ChevronLeft, RefreshCw, AlertTriangle,
-  Package, DollarSign, FileSpreadsheet, FileText, Boxes, Search,
+  Package, DollarSign, FileSpreadsheet, FileText, Boxes, Search, Wrench,
 } from 'lucide-react';
 import { useInventarioGlobal } from './api/useInventarioGlobal';
+import { useInventario } from '../Inventario/api/useInventario';
+import AjusteModal from '../Inventario/Components/AjusteModal';
 import HeaderSection from '../../shared/HeaderSection';
 import { FullPageLoader } from '../../shared/Loader';
 import SummaryCard from '../../shared/SummaryCard';
@@ -58,7 +60,7 @@ const DiasRestantes = ({ dias }) => {
 
 // ── Fila expandible ───────────────────────────────────────────────────────────
 
-const ItemRow = ({ item, index }) => {
+const ItemRow = ({ item, index, onAjustar }) => {
   const [open, setOpen] = useState(false);
   const hasBodegas = item.stock_por_bodega.length > 0;
   const sinStock   = item.stock_total === 0;
@@ -69,8 +71,8 @@ const ItemRow = ({ item, index }) => {
         onClick={() => hasBodegas && setOpen((o) => !o)}
         className={`
           border-b border-border-subtle text-sm transition-colors
-          ${open ? 'bg-brand-subtle' : index % 2 === 0 ? 'bg-white' : 'bg-surface-subtle'}
-          ${hasBodegas ? 'cursor-pointer hover:bg-brand-subtle' : 'hover:bg-surface-subtle'}
+          ${open ? 'bg-surface-muted' : index % 2 === 0 ? 'bg-white' : 'bg-surface-subtle'}
+          ${hasBodegas ? 'cursor-pointer hover:bg-surface-muted' : 'hover:bg-surface-subtle'}
         `}
       >
         {/* Expand */}
@@ -167,7 +169,7 @@ const ItemRow = ({ item, index }) => {
 
       {/* Desglose bodegas */}
       {open && (
-        <tr className="border-b border-brand-primary/15 bg-brand-subtle/60">
+        <tr className="border-b border-border-subtle bg-surface-subtle border-l-4 border-l-brand-primary">
           <td colSpan={10} className="px-10 py-4">
             <p className="text-xs font-bold text-content-secondary uppercase tracking-wider mb-3">
               Stock por bodega
@@ -176,9 +178,9 @@ const ItemRow = ({ item, index }) => {
               {item.stock_por_bodega.map((b) => (
                 <div
                   key={b.bodega_id}
-                  className="bg-white border border-brand-primary/15 rounded-xl px-4 py-3 min-w-40 shadow-sm"
+                  className="group relative bg-white border border-brand-primary/15 rounded-xl px-4 py-3 min-w-40 shadow-sm"
                 >
-                  <p className="font-semibold text-content-primary text-sm">{b.bodega}</p>
+                  <p className="font-semibold text-content-primary text-sm pr-7">{b.bodega}</p>
                   {b.instalacion && (
                     <p className="text-content-tertiary text-xs mt-0.5">{b.instalacion}</p>
                   )}
@@ -186,6 +188,16 @@ const ItemRow = ({ item, index }) => {
                     {fmtNum(b.cantidad)}{' '}
                     <span className="font-normal text-content-tertiary text-sm">{item.unidad_base}</span>
                   </p>
+                  {b.cantidad > 0 && onAjustar && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); onAjustar(item, b); }}
+                      title="Ajuste manual (rotura, derrame, conteo)"
+                      className="absolute top-2 right-2 inline-flex items-center justify-center w-6 h-6 rounded-md bg-semantic-warning-subtle border border-semantic-warning/30 text-semantic-warning-fg hover:bg-semantic-warning hover:text-white hover:border-semantic-warning transition-all"
+                    >
+                      <Wrench size={11} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -376,9 +388,11 @@ const InventarioGlobalPage = () => {
   const [soloStock,   setSoloStock]   = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage,     setPerPage]     = useState(20);
+  const [ajusteData,  setAjusteData]  = useState(null); // { item, bodega }
 
   const { items, isLoading, isError, refetch, totalValor, totalItems, sinStock, stockCritico } =
     useInventarioGlobal(tipoActivo);
+  const { ajusteManualAsync, isAjustando } = useInventario();
   const criticoDias = useConfigValue('stock_critico_dias', 10);
   const empresaInfo = useEmpresaInfo();
   const { data: logoB64Data } = useEmpresaLogoBase64();
@@ -520,6 +534,7 @@ const InventarioGlobalPage = () => {
                     key={item.id_item_general}
                     item={item}
                     index={(currentPage - 1) * perPage + index}
+                    onAjustar={(it, bodega) => setAjusteData({ item: it, bodega })}
                   />
                 ))}
               </tbody>
@@ -603,6 +618,26 @@ const InventarioGlobalPage = () => {
       <p className="text-xs text-content-muted text-right pb-2">
         Stock en unidad base · Días restantes calculados sobre consumo promedio de los últimos 30 días de producción
       </p>
+
+      {ajusteData && (
+        <AjusteModal
+          item={{
+            id_item_general: ajusteData.item.id_item_general,
+            nombre:          ajusteData.item.nombre,
+            codigo:          ajusteData.item.codigo,
+            cantidad:        ajusteData.bodega.cantidad,
+            costo_unitario:  ajusteData.item.costo_promedio,
+          }}
+          bodegaId={ajusteData.bodega.bodega_id}
+          onClose={() => setAjusteData(null)}
+          onConfirm={async (payload) => {
+            await ajusteManualAsync(payload);
+            setAjusteData(null);
+            refetch();
+          }}
+          isSubmitting={isAjustando}
+        />
+      )}
     </div>
   );
 };

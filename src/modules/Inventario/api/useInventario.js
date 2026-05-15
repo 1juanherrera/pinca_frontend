@@ -47,6 +47,17 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
     },
   });
 
+  const ajusteManualMutation = useMutation({
+    mutationFn: (data) => apiClient.post('/inventario/ajuste-manual', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: inventarioKeys.all });
+      toast.success('Ajuste registrado');
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || 'Error al registrar el ajuste');
+    },
+  });
+
   return {
     // ── Data ──
     items:          queryInventory.data || { inventario: [], pagination: {} },
@@ -57,6 +68,9 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
     removeFromBodega:      removeFromBodegaMutation.mutate,
     removeFromBodegaAsync: removeFromBodegaMutation.mutateAsync,
     isRemoving:            removeFromBodegaMutation.isPending,
+
+    ajusteManualAsync: ajusteManualMutation.mutateAsync,
+    isAjustando:       ajusteManualMutation.isPending,
 
     traspasoAsync:  traspasoMutation.mutateAsync,
     isTrashing:     traspasoMutation.isPending,

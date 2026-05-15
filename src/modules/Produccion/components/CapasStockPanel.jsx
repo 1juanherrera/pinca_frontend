@@ -279,7 +279,7 @@ const CapasStockPanel = ({
               {proveedorId && (
                 <span className="text-content-muted"> (proveedor)</span>
               )}
-              {capas.length > 0 && <> · <span className="font-bold text-content-tertiary">{capas.length} capa{capas.length !== 1 ? 's' : ''}</span></>}
+              {capas.length > 0 && <> · <span className="font-bold text-content-tertiary">{capas.length} lote{capas.length !== 1 ? 's' : ''}</span></>}
             </p>
           </div>
         </div>
@@ -316,7 +316,7 @@ const CapasStockPanel = ({
         <div className="border-t border-border-base px-3 py-3 space-y-3">
           {isLoading ? (
             <div className="flex items-center justify-center py-6 gap-2 text-content-muted">
-              <Loader2 size={16} className="animate-spin" /> Cargando capas...
+              <Loader2 size={16} className="animate-spin" /> Cargando lotes...
             </div>
           ) : (
             <>
@@ -425,7 +425,7 @@ const CapasStockPanel = ({
               {capas.length === 0 ? (
                 <div className="flex flex-col items-center py-6 gap-1 text-content-muted">
                   <Layers size={20} />
-                  <p className="text-xs">Sin capas de stock disponibles</p>
+                  <p className="text-xs">Sin lotes de stock disponibles</p>
                 </div>
               ) : (
                 <div className="space-y-1.5">

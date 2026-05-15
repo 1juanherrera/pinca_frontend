@@ -173,9 +173,10 @@ const VincularModal = ({ item, onClose }) => {
                   onChange={setUnidadCompraId}
                   placeholder="Selecciona unidad..."
                 />
-                <div>
-                  <label className="block text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1.5">
+                <div className="relative group">
+                  <label className="flex items-center gap-1 text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1.5">
                     Factor → KG
+                    <Info size={10} className="text-content-muted group-hover:text-content-secondary cursor-help" />
                   </label>
                   <input
                     type="number"
@@ -184,15 +185,24 @@ const VincularModal = ({ item, onClose }) => {
                     value={factorConversion}
                     onChange={e => setFactorConversion(e.target.value)}
                     disabled={esKilo}
+                    placeholder={esKilo ? '1' : (unidadSeleccionada ? `Ej: 25 si 1 ${unidadSeleccionada.nombre} = 25 kg` : 'Ej: 25')}
                     className="w-full px-3 py-2 text-sm font-mono border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 bg-white disabled:opacity-40 disabled:cursor-not-allowed"
                   />
+                  {/* Tooltip al hacer hover en el label */}
+                  <div className="hidden group-hover:block absolute left-0 top-full mt-1 z-50 w-56 p-2.5 bg-content-primary text-white text-[10px] rounded-lg shadow-xl">
+                    <p className="font-bold mb-1">Factor de conversión</p>
+                    <p className="text-white/80 mb-1.5 leading-snug">Cuántos kg hay en 1 unidad de compra del proveedor.</p>
+                    <div className="bg-white/10 rounded px-2 py-1 font-mono">
+                      1 BULTO = 25 kg → Factor = <strong>25</strong>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {unidadSeleccionada && !esKilo && (
-                <div className="flex items-center gap-1.5 text-[10px] text-semantic-warning-fg">
+                <div className="flex items-center gap-1.5 text-[10px] text-semantic-info-fg bg-semantic-info-subtle border border-semantic-info/15 rounded-lg px-2.5 py-1.5">
                   <AlertCircle size={11} />
-                  1 {unidadSeleccionada.nombre} = {factorConversion} {item.unidad_almacenaje_nombre ?? 'unidades base'} en inventario
+                  Conversión: 1 {unidadSeleccionada.nombre} = <strong>{factorConversion} {item.unidad_almacenaje_nombre ?? 'kg'}</strong> en inventario
                 </div>
               )}
               {esKilo && (
