@@ -76,7 +76,7 @@ const ComercialPage = () => {
         </div>
       </div>
 
-      <PageTabs tabs={TABS} value={activeTab} onChange={setActiveTab} />
+      <PageTabs tabs={TABS} value={activeTab} onChange={setActiveTab} size="lg" />
 
       {activeTab === 'cotizaciones' && <CotizacionesTab />}
       {activeTab === 'remisiones'   && <RemisionesTab />}

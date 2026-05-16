@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ShoppingCart, Plus, ClipboardList, History, Sparkles } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import { Button }    from '../../shared/Button';
+import PageTabs      from '../../shared/PageTabs';
 import ConfirmModal  from '../../shared/ConfirmModal';
 import { useBoundStore } from '../../store/useBoundStore';
 import HistorialTab  from './components/HistorialTab';
@@ -12,12 +13,6 @@ import ExportOrdenCompra from './components/ExportOrdenCompra';
 import RequisicionesMrpTab from './components/RequisicionesMrpTab';
 import { useRequisiciones } from '../Produccion/api/useRequisiciones';
 
-const TABS = [
-  { id: 'ordenes',   label: 'Órdenes',         icon: ClipboardList },
-  { id: 'mrp',       label: 'Sugeridas (MRP)', icon: Sparkles      },
-  { id: 'historial', label: 'Historial',       icon: History       },
-];
-
 const ComprasPage = () => {
   const [tab,          setTab]          = useState('ordenes');
   const [ordenSelected, setOrdenSelected] = useState(null);
@@ -26,6 +21,12 @@ const ComprasPage = () => {
   // Contador para el badge del tab MRP (sin trigger refetch del listado completo del tab)
   const { data: sugeridas = [] } = useRequisiciones('SUGERIDA');
   const countMrp = sugeridas.length;
+
+  const tabs = useMemo(() => ([
+    { key: 'ordenes',   label: 'Órdenes',         icon: ClipboardList },
+    { key: 'mrp',       label: 'Sugeridas (MRP)', icon: Sparkles, count: countMrp > 0 ? countMrp : null },
+    { key: 'historial', label: 'Historial',       icon: History       },
+  ]), [countMrp]);
 
   return (
     <div className="flex flex-col w-full gap-4">
@@ -53,33 +54,7 @@ const ComprasPage = () => {
         )}
       </div>
 
-      {/* Navegación por tabs */}
-      <div className="flex items-center border-b border-border-base">
-        {TABS.map((t) => {
-          const Icon   = t.icon;
-          const active = tab === t.id;
-          const showBadge = t.id === 'mrp' && countMrp > 0;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 pb-3 pt-1 text-sm font-semibold border-b-2 transition-all -mb-px whitespace-nowrap ${
-                active
-                  ? 'border-content-primary text-content-primary'
-                  : 'border-transparent text-content-muted hover:text-content-secondary hover:border-border-strong'
-              }`}
-            >
-              <Icon size={14} />
-              {t.label}
-              {showBadge && (
-                <span className="px-1.5 py-0.5 rounded-full bg-semantic-danger text-white text-[10px] font-bold tabular-nums">
-                  {countMrp}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <PageTabs tabs={tabs} value={tab} onChange={setTab} size="lg" />
 
       {tab === 'ordenes' && (
         <OrdenesTab onVerDetalle={(orden) => setOrdenSelected(orden)} />
