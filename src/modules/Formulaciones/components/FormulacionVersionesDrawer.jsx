@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
 import {
   History, FileClock, User, Calendar, FileText,
-  Plus, Minus, ArrowRight, Check, Beaker,
+  Plus, Minus, ArrowRight, Check, Beaker, RotateCcw,
 } from 'lucide-react';
 import DetailDrawer from '../../../shared/DetailDrawer';
 import StatusBadge from '../../../shared/StatusBadge';
 import IconBox from '../../../shared/IconBox';
 import EmptyState from '../../../shared/EmptyState';
+import { Button } from '../../../shared/Button';
+import { useBoundStore } from '../../../store/useBoundStore';
 import { formatLetterDate } from '../../../utils/formatters';
 import {
   useFormulacionVersiones,
   useFormulacionVersionDetalle,
+  useRestaurarVersion,
 } from '../api/useFormulacionVersiones';
 
 const fmtNum = (v, dec = 4) =>
@@ -97,7 +100,7 @@ const DiffSection = ({ diff }) => {
 };
 
 // ─── Snapshot completo de una versión ───────────────────────────────────────
-const VersionSnapshot = ({ versionId }) => {
+const VersionSnapshot = ({ versionId, esActual = false, onRestore, isRestoring = false }) => {
   const { data, isLoading } = useFormulacionVersionDetalle(versionId);
 
   if (isLoading) {
@@ -120,9 +123,12 @@ const VersionSnapshot = ({ versionId }) => {
       <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-subtle border border-border-subtle">
         <IconBox icon={Beaker} tone="brand" variant="subtle" size="md" />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h3 className="text-sm font-bold text-content-primary truncate">{data.nombre}</h3>
             <StatusBadge tone="brand" label={`v${data.version_num}`} dot={false} size="sm" />
+            {esActual && (
+              <StatusBadge tone="success" label="Versión actual" icon={Check} dot={false} size="sm" />
+            )}
           </div>
           {data.descripcion && (
             <p className="text-xs text-content-tertiary mt-1 line-clamp-2">{data.descripcion}</p>
@@ -135,6 +141,18 @@ const VersionSnapshot = ({ versionId }) => {
             )}
           </div>
         </div>
+        {!esActual && onRestore && (
+          <Button
+            variant="primary"
+            size="sm"
+            icon={RotateCcw}
+            loading={isRestoring}
+            onClick={() => onRestore(data)}
+            title="Restaurar como receta activa"
+          >
+            Usar esta versión
+          </Button>
+        )}
       </div>
 
       {/* Diff vs versión anterior */}
@@ -200,6 +218,9 @@ const FormulacionVersionesDrawer = ({
   const isLoading = isLoadingExterno || isLoadingInterno;
   const [selectedId, setSelectedId] = useState(initialVersionId);
 
+  const openConfirm = useBoundStore((s) => s.openConfirm);
+  const { mutate: restaurar, isPending: isRestoring } = useRestaurarVersion();
+
   // Auto-seleccionar la versión actual o la primera al cargar
   useEffect(() => {
     if (!selectedId && versiones?.length) {
@@ -207,6 +228,29 @@ const FormulacionVersionesDrawer = ({
       setSelectedId(actual.id);
     }
   }, [versiones, selectedId]);
+
+  const selectedEsActual = (() => {
+    if (!versiones || !selectedId) return false;
+    const sel = versiones.find((v) => v.id === selectedId);
+    return sel ? Number(sel.es_actual) === 1 : false;
+  })();
+
+  const handleRestore = (data) => {
+    openConfirm({
+      title: `Restaurar versión ${data.version_num}`,
+      message: (
+        <div className="space-y-2 text-sm">
+          <p>Vas a reemplazar la receta activa de <strong>{formulacionNombre ?? `Formulación #${formulacionId}`}</strong> con los ingredientes de la <strong>versión {data.version_num}</strong>.</p>
+          <p className="text-content-tertiary">
+            Se crea una nueva versión (no se reescribe la histórica). El nombre quedará marcado como "Restaurado desde v.{data.version_num}".
+          </p>
+        </div>
+      ),
+      variant: 'warning',
+      confirmText: 'Sí, restaurar',
+      onConfirm: () => restaurar({ versionId: data.id }),
+    });
+  };
 
   return (
     <DetailDrawer
@@ -252,7 +296,12 @@ const FormulacionVersionesDrawer = ({
           {/* Snapshot del seleccionado */}
           <main className="p-5 overflow-y-auto max-h-[calc(100vh-100px)]">
             {selectedId ? (
-              <VersionSnapshot versionId={selectedId} />
+              <VersionSnapshot
+                versionId={selectedId}
+                esActual={selectedEsActual}
+                onRestore={handleRestore}
+                isRestoring={isRestoring}
+              />
             ) : (
               <EmptyState size="sm" icon={History} title="Seleccioná una versión" description="Hacé click en una entrada del timeline." />
             )}

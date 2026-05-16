@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
 import apiClient from '../../../api/apiClient';
 import { formulacionKeys } from './FormulacionKeys';
 
@@ -24,3 +25,19 @@ export const useFormulacionVersionDetalle = (versionId) =>
     enabled:  !!versionId,
     staleTime: 5 * 60 * 1000,
   });
+
+/**
+ * Restaura una versión histórica como receta activa.
+ * Crea una nueva versión cuyo snapshot es el de la versión vieja.
+ */
+export const useRestaurarVersion = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ versionId, notas }) =>
+      apiClient.post(`/formulaciones/versiones/${versionId}/restaurar`, { notas }),
+    onSuccess: (res) => {
+      toast.success(res?.message || 'Versión restaurada');
+      qc.invalidateQueries({ queryKey: formulacionKeys.all });
+    },
+  });
+};
