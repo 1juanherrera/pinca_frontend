@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Truck, Plus, Search, BarChart2, LayoutList, LayoutGrid, X } from 'lucide-react';
 import HeaderSection   from '../../shared/HeaderSection';
 import { Button }      from '../../shared/Button';
+import PageTabs        from '../../shared/PageTabs';
 import { SkeletonCard } from '../../shared/Skeletons';
 import ConfirmModal    from '../../shared/ConfirmModal';
 import { useBoundStore } from '../../store/useBoundStore';
@@ -16,9 +17,9 @@ import CatalogoTab             from './components/CatalogoTab';
 import ComparadorTab           from './components/ComparadorTab';
 
 const TABS = [
-  { id: 'proveedores', label: 'Proveedores', icon: Truck     },
-  { id: 'catalogo',    label: 'Catálogo',    icon: Search    },
-  { id: 'comparador',  label: 'Comparador',  icon: BarChart2 },
+  { key: 'proveedores', label: 'Proveedores', icon: Truck     },
+  { key: 'catalogo',    label: 'Catálogo',    icon: Search    },
+  { key: 'comparador',  label: 'Comparador',  icon: BarChart2 },
 ];
 
 const ViewToggle = ({ value, onChange }) => (
@@ -112,27 +113,7 @@ const ProveedoresPage = () => {
         </div>
       </div>
 
-      {/* Navegación por tabs */}
-      <div className="flex items-center border-b border-border-base">
-        {TABS.map((t) => {
-          const Icon   = t.icon;
-          const active = tab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 pb-3 pt-1 text-sm font-semibold border-b-2 transition-all -mb-px whitespace-nowrap ${
-                active
-                  ? 'border-content-primary text-content-primary'
-                  : 'border-transparent text-content-muted hover:text-content-secondary hover:border-border-strong'
-              }`}
-            >
-              <Icon size={14} />
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+      <PageTabs tabs={TABS} value={tab} onChange={setTab} size="lg" />
 
       {/* ── Tab Proveedores: vista tabla ── */}
       {tab === 'proveedores' && viewMode === 'tabla' && (

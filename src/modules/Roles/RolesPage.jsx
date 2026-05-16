@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ShieldCheck, Save, Users, RefreshCw } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
+import PageTabs from '../../shared/PageTabs';
 import { MODULOS_SISTEMA, ROLES_LABELS } from '../../config/modulos';
 import { usePermisos, useUpdatePermisos, useUsuariosRoles, useCambiarRol } from './api/useRoles';
 
@@ -210,30 +211,15 @@ const RolesPage = () => {
         breadcrumbs={[{ label: 'Administración' }, { label: 'Roles y Permisos' }]}
       />
 
-      <div className="flex gap-1 border-b border-border-subtle">
-        <button
-          onClick={() => setTab('permisos')}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-            tab === 'permisos'
-              ? 'border-content-primary text-content-primary'
-              : 'border-transparent text-content-muted hover:text-content-secondary'
-          }`}
-        >
-          <ShieldCheck size={15} />
-          Módulos por rol
-        </button>
-        <button
-          onClick={() => setTab('usuarios')}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-            tab === 'usuarios'
-              ? 'border-content-primary text-content-primary'
-              : 'border-transparent text-content-muted hover:text-content-secondary'
-          }`}
-        >
-          <Users size={15} />
-          Usuarios
-        </button>
-      </div>
+      <PageTabs
+        tabs={[
+          { key: 'permisos', label: 'Módulos por rol', icon: ShieldCheck },
+          { key: 'usuarios', label: 'Usuarios',        icon: Users },
+        ]}
+        value={tab}
+        onChange={setTab}
+        size="lg"
+      />
 
       {tab === 'permisos' && <PermisosSection />}
       {tab === 'usuarios' && <UsuariosSection />}

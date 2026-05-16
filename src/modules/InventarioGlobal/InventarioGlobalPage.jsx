@@ -9,6 +9,7 @@ import { useInventarioGlobal } from './api/useInventarioGlobal';
 import { useInventario } from '../Inventario/api/useInventario';
 import AjusteModal from '../Inventario/Components/AjusteModal';
 import HeaderSection from '../../shared/HeaderSection';
+import PageTabs from '../../shared/PageTabs';
 import { FullPageLoader } from '../../shared/Loader';
 import SummaryCard from '../../shared/SummaryCard';
 import StatusBadge from '../../shared/StatusBadge';
@@ -459,20 +460,13 @@ const InventarioGlobalPage = () => {
       <div className="bg-white rounded-2xl border border-border-subtle shadow-sm">
 
         {/* Tabs tipo */}
-        <div className="flex items-center border-b border-border-subtle px-4">
-          {TIPO_TABS.map((tab) => (
-            <button
-              key={String(tab.tipo)}
-              onClick={() => setTipoActivo(tab.tipo)}
-              className={`px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tipoActivo === tab.tipo
-                  ? 'border-content-primary text-content-primary'
-                  : 'border-transparent text-content-tertiary hover:text-content-secondary'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="px-4 pt-2">
+          <PageTabs
+            tabs={TIPO_TABS.map((t) => ({ key: String(t.tipo), label: t.label }))}
+            value={String(tipoActivo)}
+            onChange={(k) => setTipoActivo(k === 'null' ? null : Number(k))}
+            size="lg"
+          />
         </div>
 
         {/* Barra de búsqueda + toggles */}

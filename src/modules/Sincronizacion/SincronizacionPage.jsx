@@ -49,7 +49,7 @@ const SincronizacionPage = () => {
         />
       </div>
 
-      <PageTabs tabs={tabs} value={tab} onChange={setTab} />
+      <PageTabs tabs={tabs} value={tab} onChange={setTab} size="lg" />
 
       <div className="pt-1">
         {tab === 'dashboard'  && <DashboardTab />}

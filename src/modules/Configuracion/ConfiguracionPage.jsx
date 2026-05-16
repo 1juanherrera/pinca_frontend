@@ -58,7 +58,7 @@ const ConfiguracionPage = () => {
         </div>
       )}
 
-      <PageTabs tabs={TABS} value={tab} onChange={setTab} />
+      <PageTabs tabs={TABS} value={tab} onChange={setTab} size="lg" />
 
       <div className="pt-1">
         {tab === 'empresa'    && <EmpresaTab />}

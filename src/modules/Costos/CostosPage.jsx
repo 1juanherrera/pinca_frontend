@@ -3,6 +3,7 @@ import { Factory, ShoppingCart, Wrench, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import HeaderSection from '../../shared/HeaderSection';
 import { Button } from '../../shared/Button';
+import PageTabs from '../../shared/PageTabs';
 
 import { useCostosProduccion }  from './api/useCostosProduccion';
 import { useCostosCompras }     from './api/useCostosCompras';
@@ -18,9 +19,9 @@ import CostosIndirectosPanel from './components/CostosIndirectosPanel';
 import CostosDetalleProd     from './components/CostosDetalleProd';
 
 const TABS = [
-  { id: 'produccion', label: 'Producción',       icon: Factory      },
-  { id: 'compras',    label: 'Compras',           icon: ShoppingCart },
-  { id: 'indirectos', label: 'Costos Indirectos', icon: Wrench       },
+  { key: 'produccion', label: 'Producción',       icon: Factory      },
+  { key: 'compras',    label: 'Compras',           icon: ShoppingCart },
+  { key: 'indirectos', label: 'Costos Indirectos', icon: Wrench       },
 ];
 
 const CostosPage = () => {
@@ -141,21 +142,8 @@ const CostosPage = () => {
 
       {/* ── Tabs ────────────────────────────────────────────────────────────── */}
       <div className="bg-white border border-border-subtle rounded-2xl shadow-sm overflow-hidden">
-        <div className="flex items-center gap-1 px-4 pt-3 border-b border-border-subtle">
-          {TABS.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setTab(id)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all -mb-px ${
-                tab === id
-                  ? 'border-content-primary text-content-primary'
-                  : 'border-transparent text-content-muted hover:text-content-secondary'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              {label}
-            </button>
-          ))}
+        <div className="px-4 pt-2">
+          <PageTabs tabs={TABS} value={tab} onChange={setTab} size="lg" />
         </div>
 
         <div className="p-4">

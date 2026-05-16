@@ -51,7 +51,7 @@ const CarteraPage = () => {
         />
       </div>
 
-      <PageTabs tabs={TABS} value={tab} onChange={setTab} />
+      <PageTabs tabs={TABS} value={tab} onChange={setTab} size="lg" />
 
       {tab === 'dashboard' && <DashboardCartera />}
 

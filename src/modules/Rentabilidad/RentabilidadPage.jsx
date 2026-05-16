@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Factory, ShoppingCart, Wrench, Download, TrendingUp, DollarSign } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import { Button } from '../../shared/Button';
+import PageTabs from '../../shared/PageTabs';
 import * as XLSX from 'xlsx';
 
 import { useCostosProduccion }  from './api/useCostosProduccion';
@@ -21,11 +22,11 @@ import RentabilidadResumen     from './components/RentabilidadResumen'; // Nuevo
 import RentabilidadDetalleProd from './components/RentabilidadDetalleProd';
 
 const TABS = [
-  { id: 'resumen',    label: 'Resumen Rentabilidad', icon: TrendingUp    },
-  { id: 'ganancias',  label: 'Ganancias',            icon: DollarSign   },
-  { id: 'produccion', label: 'Costos Producción',    icon: Factory      },
-  { id: 'compras',    label: 'Costos Compras',       icon: ShoppingCart },
-  { id: 'indirectos', label: 'Costos Indirectos',    icon: Wrench       },
+  { key: 'resumen',    label: 'Resumen Rentabilidad', icon: TrendingUp    },
+  { key: 'ganancias',  label: 'Ganancias',            icon: DollarSign   },
+  { key: 'produccion', label: 'Costos Producción',    icon: Factory      },
+  { key: 'compras',    label: 'Costos Compras',       icon: ShoppingCart },
+  { key: 'indirectos', label: 'Costos Indirectos',    icon: Wrench       },
 ];
 
 const RentabilidadPage = () => {
@@ -183,21 +184,8 @@ const RentabilidadPage = () => {
 
       {/* ── Tabs ────────────────────────────────────────────────────────────── */}
       <div className="bg-white border border-border-subtle rounded-2xl shadow-sm overflow-hidden">
-        <div className="flex items-center gap-1 px-4 pt-3 border-b border-border-subtle">
-          {TABS.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setTab(id)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all -mb-px ${
-                tab === id
-                  ? 'border-content-primary text-content-primary'
-                  : 'border-transparent text-content-muted hover:text-content-secondary'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              {label}
-            </button>
-          ))}
+        <div className="px-4 pt-2">
+          <PageTabs tabs={TABS} value={tab} onChange={setTab} size="lg" />
         </div>
 
         <div className="p-4">
