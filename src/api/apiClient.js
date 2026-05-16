@@ -19,13 +19,23 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response.data, // Retornamos directamente el body
   (error) => {
-    const message = error.response?.data?.message || 'Error en el servidor';
-    toast.error(message); // Notificación automática al usuario
-    
+    const backendMsg = error.response?.data?.message
+      || error.response?.data?.messages?.error
+      || error.response?.data?.msg;
+
+    if (backendMsg) {
+      // Diferimos para que aparezca DESPUÉS de cualquier toast genérico
+      // que dispare el onError del hook (toast-limiter mantiene el último).
+      setTimeout(() => toast.error(backendMsg), 50);
+    } else if (!error.response) {
+      toast.error('Error de red. Verificá tu conexión.');
+    } else if (error.response.status >= 500) {
+      toast.error('Error en el servidor');
+    }
+
     if (error.response?.status === 401) {
-      // Lógica de logout si el token expira
       localStorage.removeItem('token');
-      window.location.href = '/login'; // Redirigir al login
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
