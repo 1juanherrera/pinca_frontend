@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { Save, Percent, AlertTriangle, Search, X, Loader2, PlusCircle } from 'lucide-react';
+import { Save, Percent, AlertTriangle, Search, X, Loader2, PlusCircle, PackagePlus, ChevronDown } from 'lucide-react';
 import Drawer from '../../../shared/Drawer';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { FormSelect } from '../../../shared/Form/FormSelect';
@@ -26,6 +26,14 @@ const TIPO_CONFIG = {
 const DISPONIBLE_OPTIONS = [
   { value: '1', label: 'Disponible'    },
   { value: '2', label: 'No disponible' },
+];
+
+const SUBCATEGORIA_OPTIONS = [
+  { value: '',  label: 'Sin subcategoría' },
+  { value: '1', label: 'Esmalte'         },
+  { value: '2', label: 'Pasta'           },
+  { value: '3', label: 'Anticorrosivo'   },
+  { value: '4', label: 'Barniz'          },
 ];
 
 const TIPO_OPTIONS = [
@@ -230,6 +238,12 @@ const ItemProveedorForm = () => {
   const [unidadCompraId, setUnidadCompraId] = useState('');
   const [nombreLocal,    setNombreLocal]    = useState('');
 
+  const [crearEnCatalogo,    setCrearEnCatalogo]    = useState(false);
+  const [catalogoCodigo,     setCatalogoCodigo]     = useState('');
+  const [catalogoCategoria,  setCatalogoCategoria]  = useState('');
+  const [catalogoUnidadVenta, setCatalogoUnidadVenta] = useState('');
+  const [catalogoUnidadAlm,  setCatalogoUnidadAlm]  = useState('');
+
   const { register, handleSubmit, reset, control, watch, setValue, formState: { errors } } = useForm();
   const { proveedores, catalogo, createItem, updateItem, isCreatingItem, isUpdatingItem } = useProveedores();
   const { unidades } = useUnidades();
@@ -290,6 +304,11 @@ const ItemProveedorForm = () => {
     }
 
     setUnidadCompraId(payload?.unidad_compra_id ? String(payload.unidad_compra_id) : '');
+    setCrearEnCatalogo(false);
+    setCatalogoCodigo('');
+    setCatalogoCategoria('');
+    setCatalogoUnidadVenta('');
+    setCatalogoUnidadAlm('');
 
     reset({
       nombre:          payload?.nombre          ?? '',
@@ -343,6 +362,11 @@ const ItemProveedorForm = () => {
     setItemGeneral(null);
     setNombreLocal('');
     setUnidadCompraId('');
+    setCrearEnCatalogo(false);
+    setCatalogoCodigo('');
+    setCatalogoCategoria('');
+    setCatalogoUnidadVenta('');
+    setCatalogoUnidadAlm('');
     toast.success('Guardado. Listo para el siguiente.');
   };
 
@@ -361,6 +385,13 @@ const ItemProveedorForm = () => {
       unidad_compra_id:  unidadCompraId ? parseInt(unidadCompraId, 10) : null,
     };
 
+    if (crearEnCatalogo && !body.item_general_id) {
+      body.catalogo_codigo              = catalogoCodigo || null;
+      body.catalogo_categoria_id        = catalogoCategoria ? parseInt(catalogoCategoria, 10) : null;
+      body.catalogo_unidad_id           = catalogoUnidadVenta ? parseInt(catalogoUnidadVenta, 10) : null;
+      body.catalogo_unidad_almacenaje_id = catalogoUnidadAlm ? parseInt(catalogoUnidadAlm, 10) : null;
+    }
+
     const cb = wasKeepOpen ? handleResetKeepProvider : handleClose;
 
     if (payload) {
@@ -378,6 +409,11 @@ const ItemProveedorForm = () => {
     setItemGeneral(null);
     setNombreLocal('');
     setUnidadCompraId('');
+    setCrearEnCatalogo(false);
+    setCatalogoCodigo('');
+    setCatalogoCategoria('');
+    setCatalogoUnidadVenta('');
+    setCatalogoUnidadAlm('');
     closeDrawer();
   };
 
@@ -521,16 +557,81 @@ const ItemProveedorForm = () => {
         <div className="border-t border-border-subtle pt-4">
           <ItemGeneralSearch
             value={itemGeneral}
-            onChange={setItemGeneral}
+            onChange={(v) => { setItemGeneral(v); if (v) setCrearEnCatalogo(false); }}
             label="Materia prima interna vinculada"
             precioActual={Number(precioUnitario) || 0}
           />
-          {/* Cuando viene de "sin inventario": el backend creará el ítem al guardar */}
           {itemGeneral?._pendiente && (
             <p className="mt-1.5 text-[10px] text-content-muted flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-semantic-warning inline-block" />
               Se creará automáticamente en el catálogo interno al guardar
             </p>
+          )}
+
+          {/* Sección inline para crear ítem en catálogo si no hay vínculo */}
+          {!itemGeneral && (
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => setCrearEnCatalogo(v => !v)}
+                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all text-left ${
+                  crearEnCatalogo
+                    ? 'border-brand-primary bg-brand-subtle'
+                    : 'border-border-base bg-surface-subtle hover:bg-surface-muted'
+                }`}
+              >
+                <PackagePlus size={16} className={crearEnCatalogo ? 'text-brand-primary-active' : 'text-content-tertiary'} />
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs font-semibold ${crearEnCatalogo ? 'text-brand-primary-active' : 'text-content-secondary'}`}>
+                    Crear nuevo ítem en catálogo
+                  </p>
+                  <p className="text-[10px] text-content-muted">
+                    {crearEnCatalogo ? 'Se creará junto con el producto del proveedor' : 'No existe en el catálogo interno? Créalo aquí mismo'}
+                  </p>
+                </div>
+                <ChevronDown size={14} className={`text-content-muted transition-transform ${crearEnCatalogo ? 'rotate-180' : ''}`} />
+              </button>
+
+              {crearEnCatalogo && (
+                <div className="mt-3 p-4 rounded-xl border border-brand-primary/20 bg-brand-subtle/30 space-y-3 animate-in slide-in-from-top-2 duration-200">
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormInput
+                      label="Código SKU (catálogo)"
+                      placeholder="Ej. REF-001"
+                      value={catalogoCodigo}
+                      onChange={(e) => setCatalogoCodigo(e.target.value)}
+                    />
+                    <FormSelect
+                      label="Subcategoría"
+                      options={SUBCATEGORIA_OPTIONS}
+                      value={catalogoCategoria}
+                      onChange={setCatalogoCategoria}
+                      placeholder="Opcional..."
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormSelect
+                      label="Unidad de venta"
+                      options={unidadOptions}
+                      value={catalogoUnidadVenta}
+                      onChange={setCatalogoUnidadVenta}
+                      placeholder="Opcional..."
+                    />
+                    <FormSelect
+                      label="Unidad de almacenaje"
+                      options={unidadOptions}
+                      value={catalogoUnidadAlm}
+                      onChange={setCatalogoUnidadAlm}
+                      placeholder="KILO (por defecto)"
+                    />
+                  </div>
+                  <p className="text-[10px] text-content-muted flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-primary inline-block" />
+                    El nombre y tipo se toman del formulario. Al guardar se crea el ítem en catálogo y se vincula automáticamente.
+                  </p>
+                </div>
+              )}
+            </div>
           )}
         </div>
 

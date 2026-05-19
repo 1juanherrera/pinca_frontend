@@ -107,12 +107,18 @@ export const FormSelect = ({
                 type="button"
                 onClick={() => { onChange(option.value); setIsOpen(false); }}
                 className={cn(
-                  'flex items-center justify-between w-full px-3 py-1.5 text-sm transition-colors',
+                  'flex items-center justify-between w-full px-3 text-sm transition-colors',
                   'hover:bg-surface-muted',
+                  option.sublabel ? 'py-2' : 'py-1.5',
                   active ? 'text-content-primary font-medium bg-surface-muted' : 'text-content-secondary',
                 )}
               >
-                <span className="truncate">{option.label}</span>
+                <div className="min-w-0 truncate">
+                  <span className="truncate">{option.label}</span>
+                  {option.sublabel && (
+                    <p className="text-[10px] text-content-muted font-normal truncate">{option.sublabel}</p>
+                  )}
+                </div>
                 {active && <Check size={14} className="text-content-primary shrink-0" />}
               </button>
             );

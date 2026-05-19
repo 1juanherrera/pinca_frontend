@@ -5,10 +5,12 @@ import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay   from '../../../shared/AmountDisplay';
 import { useCompras }  from '../api/useCompras';
 import useTableSort    from '../../../hooks/useTableSorts';
+import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 
 const HistorialTab = ({ onVerDetalle }) => {
   const { ordenes, isLoadingOrdenes } = useCompras();
   const [search, setSearch] = useState('');
+  const ivaPct = useConfigValue('iva_default', 19);
 
   const recibidas = useMemo(() => {
     const list = Array.isArray(ordenes) ? ordenes : [];
@@ -58,10 +60,21 @@ const HistorialTab = ({ onVerDetalle }) => {
     },
     {
       key:       'total',
-      label:     'Total',
+      label:     'Subtotal',
       align:     'right',
       className: 'w-32',
       render: (v) => <AmountDisplay value={v} />,
+    },
+    {
+      key:       'total_iva',
+      label:     'Total + IVA',
+      align:     'right',
+      className: 'w-32',
+      render: (_, row) => {
+        const sub = Number(row.total ?? 0);
+        const totalConIva = Math.round(sub * (1 + ivaPct / 100));
+        return <AmountDisplay value={totalConIva} />;
+      },
     },
     {
       key:      'acciones',
@@ -78,7 +91,7 @@ const HistorialTab = ({ onVerDetalle }) => {
         </button>
       ),
     },
-  ], [onVerDetalle]);
+  ], [onVerDetalle, ivaPct]);
 
   return (
     <div className="flex flex-col gap-2">

@@ -185,7 +185,7 @@ const PanelPrincipalPage = () => {
           label="MP críticas"
           value={mp_criticas?.total ?? 0}
           sub={`stock < ${stockCriticoDias} días`}
-          onClick={() => navigate('/inventario-global')}
+          onClick={() => navigate('/catalogo?tab=stock')}
         />
       </div>
 
@@ -232,7 +232,7 @@ const PanelPrincipalPage = () => {
                 size="xs"
                 icon={ArrowRight}
                 iconRight
-                onClick={() => navigate('/inventario-global')}
+                onClick={() => navigate('/catalogo?tab=stock')}
               >
                 Ver inventario
               </Button>
@@ -256,7 +256,7 @@ const PanelPrincipalPage = () => {
                 <button
                   key={mp.id_item_general}
                   type="button"
-                  onClick={() => navigate('/inventario-global')}
+                  onClick={() => navigate('/catalogo?tab=stock')}
                   className={`group flex items-start gap-3 p-3 rounded-xl border bg-surface-base hover:shadow-card hover:border-content-primary transition text-left`}
                 >
                   <div className={`shrink-0 w-10 h-10 rounded-lg flex flex-col items-center justify-center border ${toneCls}`}>
@@ -280,7 +280,7 @@ const PanelPrincipalPage = () => {
           {mp_criticas.total > 6 && (
             <button
               type="button"
-              onClick={() => navigate('/inventario-global')}
+              onClick={() => navigate('/catalogo?tab=stock')}
               className="mt-3 w-full text-center text-[11px] font-semibold text-content-tertiary hover:text-content-primary transition"
             >
               Ver {mp_criticas.total - 6} {mp_criticas.total - 6 === 1 ? 'item más' : 'items más'} →
@@ -416,7 +416,7 @@ const PanelPrincipalPage = () => {
           <SectionTitle
             icon={Boxes}
             action={
-              <button onClick={() => navigate('/inventario-global')} className="text-[11px] text-brand-primary-active hover:text-content-primary inline-flex items-center gap-1">
+              <button onClick={() => navigate('/catalogo?tab=stock')} className="text-[11px] text-brand-primary-active hover:text-content-primary inline-flex items-center gap-1">
                 Ver todo <ArrowRight size={10} />
               </button>
             }

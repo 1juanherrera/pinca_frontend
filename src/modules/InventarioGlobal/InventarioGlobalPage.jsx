@@ -383,7 +383,7 @@ const exportarPdf = async (items, tipoLabel, criticoDias = 10, empresa = EMPRESA
 
 // ── Página principal ──────────────────────────────────────────────────────────
 
-const InventarioGlobalPage = () => {
+const InventarioGlobalPage = ({ embedded = false }) => {
   const [tipoActivo,  setTipoActivo]  = useState(null);
   const [busqueda,    setBusqueda]    = useState('');
   const [soloStock,   setSoloStock]   = useState(false);
@@ -419,34 +419,59 @@ const InventarioGlobalPage = () => {
   return (
     <div className="flex flex-col w-full gap-5">
 
-      {/* Header */}
-      <HeaderSection
-        title="Inventario"
-        subtitle="Stock consolidado de toda la empresa"
-        icon={Boxes}
-        actions={
-          <div className="flex items-center gap-2">
-            <button
-              onClick={refetch}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm text-content-secondary border border-border-base rounded-lg hover:bg-surface-subtle transition"
-            >
-              <RefreshCw size={13} /> Actualizar
-            </button>
-            <button
-              onClick={() => exportarExcel(filtrados, tipoLabel)}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm text-semantic-success-fg border border-semantic-success/20 bg-semantic-success-subtle rounded-lg hover:bg-semantic-success-subtle transition"
-            >
-              <FileSpreadsheet size={13} /> Excel
-            </button>
-            <button
-              onClick={() => exportarPdf(filtrados, tipoLabel, criticoDias, empresaInfo, logoB64Data?.logo)}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm text-semantic-danger-fg border border-semantic-danger/20 bg-semantic-danger-subtle rounded-lg hover:bg-semantic-danger-subtle transition"
-            >
-              <FileText size={13} /> PDF
-            </button>
-          </div>
-        }
-      />
+      {/* Header — oculto en modo embebido */}
+      {!embedded && (
+        <HeaderSection
+          title="Inventario"
+          subtitle="Stock consolidado de toda la empresa"
+          icon={Boxes}
+          actions={
+            <div className="flex items-center gap-2">
+              <button
+                onClick={refetch}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm text-content-secondary border border-border-base rounded-lg hover:bg-surface-subtle transition"
+              >
+                <RefreshCw size={13} /> Actualizar
+              </button>
+              <button
+                onClick={() => exportarExcel(filtrados, tipoLabel)}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm text-semantic-success-fg border border-semantic-success/20 bg-semantic-success-subtle rounded-lg hover:bg-semantic-success-subtle transition"
+              >
+                <FileSpreadsheet size={13} /> Excel
+              </button>
+              <button
+                onClick={() => exportarPdf(filtrados, tipoLabel, criticoDias, empresaInfo, logoB64Data?.logo)}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm text-semantic-danger-fg border border-semantic-danger/20 bg-semantic-danger-subtle rounded-lg hover:bg-semantic-danger-subtle transition"
+              >
+                <FileText size={13} /> PDF
+              </button>
+            </div>
+          }
+        />
+      )}
+
+      {embedded && (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={refetch}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-content-secondary border border-border-base rounded-lg hover:bg-surface-subtle transition"
+          >
+            <RefreshCw size={13} /> Actualizar
+          </button>
+          <button
+            onClick={() => exportarExcel(filtrados, tipoLabel)}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-semantic-success-fg border border-semantic-success/20 bg-semantic-success-subtle rounded-lg hover:bg-semantic-success-subtle transition"
+          >
+            <FileSpreadsheet size={13} /> Excel
+          </button>
+          <button
+            onClick={() => exportarPdf(filtrados, tipoLabel, criticoDias, empresaInfo, logoB64Data?.logo)}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-semantic-danger-fg border border-semantic-danger/20 bg-semantic-danger-subtle rounded-lg hover:bg-semantic-danger-subtle transition"
+          >
+            <FileText size={13} /> PDF
+          </button>
+        </div>
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

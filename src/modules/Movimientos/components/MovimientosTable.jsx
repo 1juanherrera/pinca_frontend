@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ArrowDownUp, PackageOpen, ArrowUpRight, ArrowDownLeft, Shuffle, Settings2 } from 'lucide-react';
+import { ArrowDownUp, PackageOpen, ArrowDownLeft } from 'lucide-react';
 import { fmt } from '../../../utils/formatters';
 import ErpTable from '../../../shared/ErpTable';
 import StatusBadge from '../../../shared/StatusBadge';
@@ -8,16 +8,10 @@ import cn from '../../../utils/cn';
 
 const TIPO_ICON = {
   ENTRADA:  ArrowDownLeft,
-  SALIDA:   ArrowUpRight,
-  TRASPASO: Shuffle,
-  AJUSTE:   Settings2,
 };
 
 const TIPO_CANT_COLOR = {
   ENTRADA:  'text-semantic-success-fg',
-  SALIDA:   'text-semantic-danger-fg',
-  TRASPASO: 'text-semantic-info-fg',
-  AJUSTE:   'text-semantic-warning-fg',
 };
 
 const fmtFecha = (d) => new Date(d).toLocaleDateString('es-CO');

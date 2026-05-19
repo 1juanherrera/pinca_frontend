@@ -8,6 +8,7 @@ import { useBoundStore } from '../../../store/useBoundStore';
 import { useCompras } from '../api/useCompras';
 import { useProveedores } from '../../Proveedores/api/useProveedores';
 import { useBodegas } from '../../Bodegas/api/useBodegas';
+import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 import { fmt } from '../../../utils/formatters';
 
 const OrdenForm = () => {
@@ -25,12 +26,13 @@ const OrdenForm = () => {
   const [lineas, setLineas] = useState([]);
   const [searchItem, setSearchItem] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [conIva, setConIva] = useState(false);
 
+  const ivaPct = useConfigValue('iva_default', 19);
   const isSaving = isCreating || isUpdating;
 
   const proveedorSeleccionado = watch('proveedor_id');
 
-  // Items del proveedor seleccionado para agregar líneas
   const itemsProveedor = useMemo(() => {
     if (!proveedorSeleccionado) return [];
     return catalogo.filter(
@@ -46,9 +48,12 @@ const OrdenForm = () => {
     );
   }, [itemsProveedor, searchItem]);
 
-  const total = useMemo(() =>
+  const subtotal = useMemo(() =>
     lineas.reduce((acc, l) => acc + (Number(l.cantidad) * Number(l.precio_unit)), 0),
   [lineas]);
+
+  const ivaAmount = Math.round(subtotal * (ivaPct / 100));
+  const total = conIva ? subtotal + ivaAmount : subtotal;
 
   useEffect(() => {
     if (isDrawerOpen) {
@@ -80,6 +85,7 @@ const OrdenForm = () => {
         });
         setLineas([]);
       }
+      setConIva(false);
     }
   }, [isDrawerOpen, payload, reset]);
 
@@ -126,7 +132,7 @@ const OrdenForm = () => {
     handleClose();
   };
 
-  const handleClose = () => { reset(); setLineas([]); closeDrawer(); };
+  const handleClose = () => { reset(); setLineas([]); setConIva(false); closeDrawer(); };
 
   const proveedorOpciones = proveedores.map((p) => ({
     value: p.id_proveedor,
@@ -136,12 +142,14 @@ const OrdenForm = () => {
   const bodegaOpciones = (bodegas ?? []).map((b) => ({
     value: b.id_bodegas,
     label: b.nombre,
+    sublabel: b.sede_nombre ? `Sede: ${b.sede_nombre}` : undefined,
   }));
 
   return (
     <Drawer
       isOpen={isDrawerOpen}
       onClose={handleClose}
+      size="2xl"
       title={payload ? 'Editar Orden de Compra' : 'Nueva Orden de Compra'}
       description="Selecciona el proveedor, bodega destino y agrega los productos."
       footer={
@@ -271,7 +279,7 @@ const OrdenForm = () => {
                     >
                       <div>
                         <p className="text-xs font-semibold text-content-primary">{item.nombre}</p>
-                        <p className="text-[10px] text-content-muted ">{item.codigo} · {fmt(item.precio_unitario)}</p>
+                        <p className="text-[10px] text-content-muted">{item.codigo} · {fmt(item.precio_unitario)}</p>
                       </div>
                       <Plus size={12} className="text-content-muted shrink-0" />
                     </button>
@@ -292,12 +300,29 @@ const OrdenForm = () => {
             </div>
           ) : (
             <div className="border border-border-subtle rounded-lg overflow-hidden">
+              {/* Header de la tabla con toggle IVA */}
+              <div className="px-3 py-2 bg-surface-subtle border-b border-border-subtle flex items-center justify-between">
+                <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">Detalle</span>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">
+                    {conIva ? 'Con IVA' : 'Sin IVA'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setConIva(v => !v)}
+                    className={`relative w-8 h-4 rounded-full transition-colors duration-200 focus:outline-none ${conIva ? 'bg-content-primary' : 'bg-surface-strong'}`}
+                  >
+                    <span className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform duration-200 ${conIva ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </button>
+                </label>
+              </div>
+
               <div className="divide-y divide-border-subtle">
                 {lineas.map((linea, idx) => (
                   <div key={idx} className="px-3 py-2.5 flex items-center gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-content-primary truncate">{linea.item_nombre}</p>
-                      <p className="text-[10px] text-content-muted ">{linea.item_codigo}</p>
+                      <p className="text-[10px] text-content-muted">{linea.item_codigo}</p>
                     </div>
                     <input
                       type="number"
@@ -308,16 +333,10 @@ const OrdenForm = () => {
                       className="w-20 px-2 py-1 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 text-center tabular-nums"
                       placeholder="Cant."
                     />
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={linea.precio_unit}
-                      onChange={(e) => actualizarLinea(idx, 'precio_unit', e.target.value)}
-                      className="w-28 px-2 py-1 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 text-right tabular-nums"
-                      placeholder="Precio"
-                    />
-                    <span className="text-xs font-bold text-content-secondary tabular-nums w-24 text-right shrink-0">
+                    <span className="text-[10px] text-content-muted w-24 text-right tabular-nums shrink-0">
+                      {fmt(Number(linea.precio_unit))} c/u
+                    </span>
+                    <span className="text-xs font-bold text-content-secondary tabular-nums w-28 text-right shrink-0">
                       {fmt(Number(linea.cantidad) * Number(linea.precio_unit))}
                     </span>
                     <button
@@ -330,9 +349,23 @@ const OrdenForm = () => {
                   </div>
                 ))}
               </div>
-              <div className="px-3 py-2.5 bg-surface-subtle border-t border-border-subtle flex items-center justify-between">
-                <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">Total</span>
-                <span className="text-sm font-bold text-content-primary tabular-nums">{fmt(total)}</span>
+              <div className="bg-surface-subtle border-t border-border-subtle">
+                <div className="px-3 py-1.5 flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">Subtotal</span>
+                  <span className="text-xs font-semibold text-content-secondary tabular-nums">{fmt(subtotal)}</span>
+                </div>
+                {conIva && (
+                  <div className="px-3 py-1.5 flex items-center justify-between border-t border-border-subtle/50">
+                    <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">IVA ({ivaPct}%)</span>
+                    <span className="text-xs font-semibold text-content-secondary tabular-nums">{fmt(ivaAmount)}</span>
+                  </div>
+                )}
+                <div className="px-3 py-2 flex items-center justify-between border-t border-border-subtle">
+                  <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">
+                    Total {conIva ? '(IVA incluido)' : ''}
+                  </span>
+                  <span className="text-sm font-bold text-content-primary tabular-nums">{fmt(total)}</span>
+                </div>
               </div>
             </div>
           )}

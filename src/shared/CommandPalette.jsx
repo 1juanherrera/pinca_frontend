@@ -37,7 +37,7 @@ const PAGINAS = [
   { tipo: 'pagina', id: 'p-panel',     label: 'Panel principal',    sublabel: 'Dashboard',           path: '/',                  icon: LayoutDashboard },
   { tipo: 'pagina', id: 'p-sedes',     label: 'Sedes y bodegas',    sublabel: 'Inventario',          path: '/sedes',             icon: Building2 },
   { tipo: 'pagina', id: 'p-catalogo',  label: 'Catálogo',           sublabel: 'Inventario',          path: '/catalogo',          icon: BookOpen },
-  { tipo: 'pagina', id: 'p-inv',       label: 'Inventario global',  sublabel: 'Inventario',          path: '/inventario-global', icon: Boxes },
+  { tipo: 'pagina', id: 'p-inv',       label: 'Stock',              sublabel: 'Catálogo → Stock',    path: '/catalogo?tab=stock', icon: Boxes },
   { tipo: 'pagina', id: 'p-mov',       label: 'Movimientos',        sublabel: 'Inventario',          path: '/movimientos',       icon: ArrowDownUp },
   { tipo: 'pagina', id: 'p-traz',      label: 'Trazabilidad',       sublabel: 'Inventario',          path: '/trazabilidad',      icon: GitBranch },
   { tipo: 'pagina', id: 'p-form',      label: 'Formulaciones',      sublabel: 'Producción',          path: '/formulaciones',     icon: FlaskConical },

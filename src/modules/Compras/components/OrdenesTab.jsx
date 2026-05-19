@@ -8,6 +8,7 @@ import AmountDisplay   from '../../../shared/AmountDisplay';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { useCompras }    from '../api/useCompras';
 import useTableSort      from '../../../hooks/useTableSorts';
+import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 
 const STATUS_OPTIONS = [
   { value: 'Borrador',  label: 'Borrador',  dot: 'bg-content-muted'    },
@@ -19,6 +20,7 @@ const STATUS_OPTIONS = [
 const OrdenesTab = ({ onVerDetalle }) => {
   const { ordenes, isLoadingOrdenes, removeAsync, cambiarEstadoAsync } = useCompras();
   const { openDrawer, openConfirm } = useBoundStore();
+  const ivaPct = useConfigValue('iva_default', 19);
 
   const [search,  setSearch]  = useState('');
   const [filters, setFilters] = useState({ estado: '' });
@@ -90,10 +92,21 @@ const OrdenesTab = ({ onVerDetalle }) => {
     },
     {
       key:       'total',
-      label:     'Total',
+      label:     'Subtotal',
       align:     'right',
       className: 'w-32',
       render: (v) => <AmountDisplay value={v} />,
+    },
+    {
+      key:       'total_iva',
+      label:     'Total + IVA',
+      align:     'right',
+      className: 'w-32',
+      render: (_, row) => {
+        const sub = Number(row.total ?? 0);
+        const totalConIva = Math.round(sub * (1 + ivaPct / 100));
+        return <AmountDisplay value={totalConIva} />;
+      },
     },
     {
       key:       'estado',
@@ -177,7 +190,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
         </div>
       ),
     },
-  ], [openConfirm, openDrawer, removeAsync, cambiarEstadoAsync, onVerDetalle]);
+  ], [openConfirm, openDrawer, removeAsync, cambiarEstadoAsync, onVerDetalle, ivaPct]);
 
   return (
     <div className="flex flex-col gap-2">

@@ -50,36 +50,6 @@ export const MovimientosFilters = ({ filters, onChange, onClear, onBuscarLote })
           />
         </div>
 
-        {/* Tipo de Movimiento */}
-        <div className="w-44">
-          <FormSelect
-            value={filters.tipo_movimiento || ''}
-            onChange={(val) => onChange({ tipo_movimiento: val })}
-            options={[
-              { value: '',         label: 'Todos los tipos' },
-              { value: 'ENTRADA',  label: 'Entradas'        },
-              { value: 'SALIDA',   label: 'Salidas'         },
-              { value: 'TRASPASO', label: 'Traspasos'       },
-              { value: 'AJUSTE',   label: 'Ajustes'         },
-            ]}
-          />
-        </div>
-
-        {/* Origen */}
-        <div className="w-52">
-          <FormSelect
-            value={filters.referencia_tipo || ''}
-            onChange={(val) => onChange({ referencia_tipo: val })}
-            options={[
-              { value: '',                 label: 'Todas las fuentes'   },
-              { value: 'ORDEN_COMPRA',     label: 'Recepción de OC'      },
-              { value: 'ORDEN_PRODUCCION', label: 'Orden de producción' },
-              { value: 'TRASPASO_BODEGA',  label: 'Traspaso de bodega'   },
-              { value: 'AJUSTE_MANUAL',    label: 'Ajuste manual'        },
-              { value: 'ANULACION',        label: 'Anulación / Reverso'  },
-            ]}
-          />
-        </div>
 
         {/* Responsable */}
         <div className="w-44">

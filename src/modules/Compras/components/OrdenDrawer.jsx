@@ -8,6 +8,7 @@ import { Button } from '../../../shared/Button';
 import StatusBadge from '../../../shared/StatusBadge';
 import cn from '../../../utils/cn';
 import RecibirLineaModal from './RecibirLineaModal';
+import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 
 const InfoRow = ({ icon: Icon, label, value }) => (
   <div className="flex items-center gap-2 min-w-0">
@@ -28,6 +29,7 @@ const OrdenDrawer = ({ ordenId, isOpen, onClose }) => {
     useCompras(ordenId?.toString());
   const { openConfirm, openDrawer } = useBoundStore();
   const [lineaRecibir, setLineaRecibir] = useState(null);
+  const ivaPct = useConfigValue('iva_default', 19);
 
   if (!isOpen) return null;
   const orden = detalle;
@@ -173,9 +175,19 @@ const OrdenDrawer = ({ ordenId, isOpen, onClose }) => {
                 })}
               </div>
 
-              <div className="px-4 py-3 bg-surface-muted border-t border-border-base flex items-center justify-between">
-                <span className="text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Total</span>
-                <span className="text-sm font-semibold text-content-primary tabular-nums">{fmt(orden.total)}</span>
+              <div className="bg-surface-muted border-t border-border-base">
+                <div className="px-4 py-2 flex items-center justify-between">
+                  <span className="text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Subtotal</span>
+                  <span className="text-xs font-semibold text-content-secondary tabular-nums">{fmt(orden.total)}</span>
+                </div>
+                <div className="px-4 py-2 flex items-center justify-between border-t border-border-subtle">
+                  <span className="text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">IVA ({ivaPct}%)</span>
+                  <span className="text-xs font-semibold text-content-secondary tabular-nums">{fmt(Math.round(Number(orden.total ?? 0) * (ivaPct / 100)))}</span>
+                </div>
+                <div className="px-4 py-3 flex items-center justify-between border-t border-border-base">
+                  <span className="text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Total (IVA incluido)</span>
+                  <span className="text-sm font-bold text-content-primary tabular-nums">{fmt(Math.round(Number(orden.total ?? 0) * (1 + ivaPct / 100)))}</span>
+                </div>
               </div>
             </div>
 

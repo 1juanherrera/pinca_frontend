@@ -17,7 +17,6 @@ const ROUTE_TITLES = {
   '/rentabilidad':   'Rentabilidad',
   '/tambores':          'Tambores',
   '/prorrateo':         'Prorrateo',
-  '/inventario-global': 'Inventario',
 };
 
 const PREFIX_TITLES = [

@@ -20,7 +20,6 @@ import CatalogoPage from "./modules/Catalogo/CatalogoPage";
 import TamboresPage from "./modules/Tambores/TamboresPage";
 import NotFound from "./shared/NotFound";
 import PageTitle from "./shared/PageTitle";
-import InventarioGlobalPage from "./modules/InventarioGlobal/InventarioGlobalPage";
 import RolesPage from "./modules/Roles/RolesPage";
 import SincronizacionPage from "./modules/Sincronizacion/SincronizacionPage";
 import PanelPrincipalPage from "./modules/Dashboard/PanelPrincipalPage";
@@ -54,7 +53,6 @@ const App = () => {
           <Route path="/movimientos" element={<MovimientosPage />} />
           <Route path="/rentabilidad" element={<RentabilidadPage />} />
           <Route path="/tambores" element={<TamboresPage />} />
-          <Route path="/inventario-global" element={<InventarioGlobalPage />} />
           <Route path="/roles" element={<RolesPage />} />
           <Route path="/sincronizacion" element={<SincronizacionPage />} />
           <Route path="/configuracion"  element={<ConfiguracionPage />} />

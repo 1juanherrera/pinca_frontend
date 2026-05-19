@@ -12,7 +12,10 @@ const rolesKeys = {
 export const usePermisos = () =>
   useQuery({
     queryKey: rolesKeys.permisos(),
-    queryFn:  () => apiClient.get(API_ROUTES.ROLES.PERMISOS),
+    queryFn:  async () => {
+      const res = await apiClient.get(API_ROUTES.ROLES.PERMISOS);
+      return res.data ?? res;
+    },
   });
 
 export const useUpdatePermisos = () => {
@@ -31,7 +34,10 @@ export const useUpdatePermisos = () => {
 export const useUsuariosRoles = () =>
   useQuery({
     queryKey: rolesKeys.usuarios(),
-    queryFn:  () => apiClient.get(API_ROUTES.ROLES.USUARIOS),
+    queryFn:  async () => {
+      const res = await apiClient.get(API_ROUTES.ROLES.USUARIOS);
+      return res.data ?? res;
+    },
   });
 
 export const useCambiarRol = () => {

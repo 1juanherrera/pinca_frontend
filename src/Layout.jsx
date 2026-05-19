@@ -11,9 +11,7 @@ import { ShieldOff } from 'lucide-react';
 const RUTAS_LIBRES = new Set(['', 'instalaciones', 'login', 'sedes']);
 
 // Rutas que mapean a un módulo distinto del segmento URL
-const RUTA_A_MODULO = {
-  'inventario': 'inventario-global',
-};
+const RUTA_A_MODULO = {};
 
 const Layout = () => {
   const token   = useBoundStore((s) => s.token);

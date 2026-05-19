@@ -10,7 +10,6 @@ import {
   ArrowDownUp,
   TrendingUp,
   BookOpen,
-  Boxes,
   Building2,
   GitBranch,
   Coins,
@@ -26,7 +25,6 @@ export const sidebarMenu = [
   // Inventario
   { link: 'sedes',             moduloKey: 'sedes',             label: 'Sedes y Bodegas',  icon: Building2,       grupo: 'Inventario' },
   { link: 'catalogo',          moduloKey: 'catalogo',          label: 'Catálogo',         icon: BookOpen,        grupo: 'Inventario' },
-  { link: 'inventario-global', moduloKey: 'inventario-global', label: 'Inventario',       icon: Boxes,           grupo: 'Inventario' },
   { link: 'movimientos',       moduloKey: 'movimientos',       label: 'Movimientos',      icon: ArrowDownUp,     grupo: 'Inventario' },
   { link: 'trazabilidad',      moduloKey: 'trazabilidad',      label: 'Trazabilidad',     icon: GitBranch,       grupo: 'Inventario' },
 

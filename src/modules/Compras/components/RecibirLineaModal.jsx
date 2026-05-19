@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { PackageCheck, X, ArrowRight, Hash, Repeat } from 'lucide-react';
 import { fmt } from '../../../utils/formatters';
 
@@ -34,8 +35,8 @@ const RecibirLineaModal = ({ linea, onClose, onConfirm, isSubmitting }) => {
     });
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-50">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[200]">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-border-subtle">
 
         {/* Header */}
@@ -164,7 +165,8 @@ const RecibirLineaModal = ({ linea, onClose, onConfirm, isSubmitting }) => {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

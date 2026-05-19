@@ -1,31 +1,19 @@
-import { useState } from 'react';
 import {
-  ArrowDownUp, ArrowDownLeft, ArrowUpRight, Shuffle, Settings2,
+  ArrowDownLeft, ArrowUpRight,
   Calendar, User, Building2, Package, Hash, FileText, DollarSign,
-  TrendingUp, TrendingDown, Tag, ExternalLink, GitBranch,
+  TrendingUp, TrendingDown, Tag,
 } from 'lucide-react';
 import DetailDrawer from '../../../shared/DetailDrawer';
 import StatusBadge from '../../../shared/StatusBadge';
 import IconBox from '../../../shared/IconBox';
-import { Button } from '../../../shared/Button';
 import { fmt, formatLetterDate } from '../../../utils/formatters';
-import { TrazabilidadPorPreparacionDrawer } from '../../Trazabilidad/components/TrazabilidadDrawer';
 
 const TIPO_CONFIG = {
   ENTRADA:  { icon: ArrowDownLeft,  tone: 'success', label: 'Entrada',   sign: '+' },
-  SALIDA:   { icon: ArrowUpRight,   tone: 'danger',  label: 'Salida',    sign: '-' },
-  TRASPASO: { icon: Shuffle,        tone: 'info',    label: 'Traspaso',  sign: ''  },
-  AJUSTE:   { icon: Settings2,      tone: 'warning', label: 'Ajuste',    sign: ''  },
 };
 
 const REF_LABELS = {
   ORDEN_COMPRA:     'Recepción de Orden de Compra',
-  ORDEN_PRODUCCION: 'Orden de Producción',
-  TRASPASO_BODEGA:  'Traspaso entre Bodegas',
-  AJUSTE_MANUAL:    'Ajuste Manual de Inventario',
-  ANULACION:        'Anulación / Reverso',
-  FACTURA_VENTA:    'Factura de Venta',
-  REMISION:         'Remisión',
 };
 
 const fmtNum = (v, dec = 2) =>
@@ -81,24 +69,17 @@ const SaldoCard = ({ label, value, tone = 'neutral', sub }) => {
 };
 
 const MovimientoDetailDrawer = ({ movimiento, onClose }) => {
-  const [trazaPrepId, setTrazaPrepId] = useState(null);
-
   if (!movimiento) return null;
 
   const tipoUC  = movimiento.tipo_movimiento?.toUpperCase();
-  const config  = TIPO_CONFIG[tipoUC] ?? { icon: ArrowDownUp, tone: 'neutral', label: tipoUC, sign: '' };
+  const config  = TIPO_CONFIG[tipoUC] ?? { icon: ArrowDownLeft, tone: 'success', label: 'Entrada', sign: '+' };
   const Icon    = config.icon;
   const refLbl  = REF_LABELS[movimiento.referencia_tipo] ?? movimiento.referencia_tipo;
   const meta    = movimiento.metadata ?? {};
 
   const delta = (movimiento.saldo_nuevo ?? 0) - (movimiento.saldo_anterior ?? 0);
 
-  // Si el movimiento viene de producción, podemos linkear a trazabilidad
-  const esDeProduccion = movimiento.referencia_tipo === 'ORDEN_PRODUCCION'
-    && movimiento.referencia_id;
-
   return (
-    <>
     <DetailDrawer
       isOpen
       onClose={onClose}
@@ -127,11 +108,7 @@ const MovimientoDetailDrawer = ({ movimiento, onClose }) => {
         </div>
         <div className="text-right shrink-0">
           <p className="text-[10px] font-semibold text-content-tertiary uppercase">Cantidad</p>
-          <p className={`text-xl font-bold tabular-nums ${
-            tipoUC === 'ENTRADA' ? 'text-semantic-success-fg' :
-            tipoUC === 'SALIDA'  ? 'text-semantic-danger-fg'  :
-                                   'text-content-primary'
-          }`}>
+          <p className="text-xl font-bold tabular-nums text-semantic-success-fg">
             {config.sign}{fmtNum(movimiento.cantidad)}
           </p>
           <p className="text-[10px] text-content-muted">kg</p>
@@ -233,21 +210,6 @@ const MovimientoDetailDrawer = ({ movimiento, onClose }) => {
         </div>
       )}
 
-      {/* Acciones: link a trazabilidad si aplica */}
-      {esDeProduccion && (
-        <div className="pt-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={GitBranch}
-            onClick={() => setTrazaPrepId(movimiento.referencia_id)}
-            className="w-full"
-          >
-            Ver trazabilidad de la preparación
-          </Button>
-        </div>
-      )}
-
       {/* Footer con ID técnico */}
       <div className="flex items-center justify-between pt-2 text-[10px] text-content-muted">
         <span className="flex items-center gap-1">
@@ -258,14 +220,6 @@ const MovimientoDetailDrawer = ({ movimiento, onClose }) => {
         )}
       </div>
     </DetailDrawer>
-
-    {trazaPrepId && (
-      <TrazabilidadPorPreparacionDrawer
-        preparacionId={trazaPrepId}
-        onClose={() => setTrazaPrepId(null)}
-      />
-    )}
-    </>
   );
 };
 

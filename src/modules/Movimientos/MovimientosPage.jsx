@@ -11,7 +11,7 @@ import ExportTrazabilidad from '../Trazabilidad/components/ExportTrazabilidad';
 
 const INITIAL_FILTERS = {
   search: '',
-  tipo_movimiento: '',
+  tipo_movimiento: 'ENTRADA',
   referencia_tipo: '',
   responsable: '',
   fecha_inicio: '',
@@ -45,13 +45,13 @@ const MovimientosPage = () => {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection
-          title="Movimientos de Inventario"
+          title="Entradas de Inventario"
           subtitle="Kardex"
-          description="Trazabilidad y auditoría de todas las entradas y salidas de bodega"
+          description="Registro de todas las entradas de mercancía a bodega"
           icon={ArrowDownUp}
           breadcrumbs={[
             { label: 'Inventario' },
-            { label: 'Movimientos', path: '/movimientos' },
+            { label: 'Entradas', path: '/movimientos' },
           ]}
         />
       </div>
