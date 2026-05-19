@@ -772,3 +772,49 @@ Antes los modelos comerciales (OCs, Cotizaciones, Remisiones, Facturas, Clientes
 
 - `react-day-picker@^10` + `date-fns@^4` (para DateRangePicker)
 
+---
+
+## 17. Sesión 2026-05-18 — Auto-selección proveedor más barato en Formulaciones
+
+### Problema resuelto
+
+Antes, la tabla de formulaciones mostraba el costo estándar (`costos_item.costo_unitario`, promedio ponderado de capas) para cada ingrediente. El usuario tenía que seleccionar manualmente un proveedor por ingrediente para ver el costo real de compra. Además, al seleccionar proveedores, el footer mostraba **dos totales separados**: "Total Costo MP" (estándar) y "Selección" (con proveedores) — confuso e inútil.
+
+### Cambios realizados
+
+#### `FormulacionesPage.jsx`
+
+- Importa `useEffect` de React.
+- **Auto-selección de proveedor más barato** (nuevo `useEffect`, líneas 44-58): cuando `opcionesIngredientes` cambia (se selecciona un producto), itera `opcionesIngredientes.materias` y popula `seleccionPorIngrediente` con `opciones[0].id_item_proveedor` (el más barato — ya viene ordenado por `precio_por_kg ASC` del backend `get_opciones_proveedor_formulacion`).
+- El reset a `{}` al cambiar de producto (en `onProductSelect` y `onClearSelection`) sigue funcionando — el `useEffect` re-pobla cuando llegan las nuevas opciones.
+- El dropdown `IngredienteProveedorSelect` por fila sigue disponible para override manual.
+
+#### `FormulacionesTable.jsx`
+
+- **Total unificado**: se eliminaron las variables `hasAnyOverride` y `totalCostoOverride`. Reemplazadas por un único `useMemo` que devuelve `{ totalUnificado, sinProveedor }`:
+  - `totalUnificado`: suma costo de proveedor (donde hay selección) + costo estándar (donde no hay). Es **EL** total real.
+  - `sinProveedor`: conteo de ingredientes sin proveedor seleccionado.
+- **Footer simplificado**: un solo "Total Costo MP" con `totalUnificado`. Si hay ingredientes sin proveedor, muestra alerta `"X sin proveedor"` con ícono `AlertTriangle` amarillo.
+- **Alerta por fila**: ingredientes sin proveedor muestran:
+  - Ícono circular cambia de `Beaker` (azul) a `AlertTriangle` (amarillo) con borde warning.
+  - Badge rojo `"Sin proveedor"` donde iría el dropdown, para visibilidad inmediata de qué ingredientes necesitan vinculación.
+- Importa `AlertTriangle` de lucide-react.
+
+### Flujo de costos en Formulaciones (estado actual)
+
+```
+Seleccionar producto
+  → useFormulaciones fetches GET /formulaciones/{id}/opciones-ingredientes
+  → opcionesIngredientes.materias = { [mpId]: { opciones: [...sorted by precio_por_kg ASC] } }
+  → useEffect auto-popula seleccionPorIngrediente = { [mpId]: cheapest id_item_proveedor }
+  → FormulacionesTable:
+      - getCostoOverride(f) usa precio_por_kg del proveedor seleccionado
+      - Si no hay proveedor → usa costo estándar de costos_item + muestra alerta
+      - totalUnificado = Σ(override donde hay proveedor) + Σ(estándar donde no hay)
+  → Usuario puede cambiar proveedor manualmente por ingrediente via dropdown
+```
+
+### Defecto conocido en backend (NO corregido aún)
+
+`FormulacionesModel::crearFormulacion()` (líneas 996-1001) y `actualizarFormulacion()` (líneas 1070-1075) sobrescriben `costos_item.costo_unitario` si el payload incluye `costo_unitario` por ingrediente. Este campo debería ser de solo lectura (calculado por `recalcularPromedioPonderado`). El frontend actualmente NO envía `costo_unitario` en el payload de formulaciones, así que no causa problema, pero el backend debería protegerlo. Ver `pinca_backend/MEJORAS.md` para detalles.
+

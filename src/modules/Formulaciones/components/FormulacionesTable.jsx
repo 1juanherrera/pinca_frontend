@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { FlaskConical, Beaker, Scale, DollarSign, Truck, ChevronDown, X, Pencil, Copy } from 'lucide-react';
+import { FlaskConical, Beaker, Scale, DollarSign, Truck, ChevronDown, X, Pencil, Copy, AlertTriangle } from 'lucide-react';
 
 const fmtCOP = (v) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(v) || 0);
@@ -190,16 +190,16 @@ export const FormulacionesTable = ({
         };
     };
 
-    const hasAnyOverride = Object.keys(seleccionPorIngrediente).length > 0;
-
-    const totalCostoOverride = useMemo(() => {
-        if (!hasAnyOverride || !dataToShow?.formulaciones) return null;
+    const { totalUnificado, sinProveedor } = useMemo(() => {
+        if (!dataToShow?.formulaciones) return { totalUnificado: null, sinProveedor: 0 };
         let total = 0;
+        let sinProv = 0;
         for (const f of dataToShow.formulaciones) {
             const override = getCostoOverride(f);
             if (override) {
                 total += Number(override.costo_total);
             } else {
+                sinProv++;
                 total += Number(
                   recalculatedData
                     ? (f.costo_total_materia_recalculado ?? f.costo_total_materia)
@@ -207,7 +207,7 @@ export const FormulacionesTable = ({
                 ) || 0;
             }
         }
-        return total.toFixed(2);
+        return { totalUnificado: total.toFixed(2), sinProveedor: sinProv };
     }, [seleccionPorIngrediente, dataToShow, materiasOpciones, recalculatedData]);
 
     return (
@@ -329,6 +329,7 @@ export const FormulacionesTable = ({
                             const costoOverride = getCostoOverride(formulacion);
                             const mpId = formulacion.item_general_id;
                             const opciones = materiasOpciones[mpId]?.opciones ?? [];
+                            const tieneProveedor = !!seleccionPorIngrediente[mpId];
 
                             return (
                             <tr key={`formulacion-row-${index}`} className={`transition-colors ${costoOverride ? 'bg-semantic-warning-subtle/40 hover:bg-semantic-warning-subtle/70' : 'hover:bg-surface-subtle'}`}>
@@ -339,8 +340,11 @@ export const FormulacionesTable = ({
                                 {/* MATERIA PRIMA + SELECTOR PROVEEDOR */}
                                 <td className="px-3 py-2">
                                 <div className="flex items-center">
-                                    <div className="shrink-0 h-7 w-7 rounded-full bg-white flex items-center justify-center border border-semantic-info/20 shadow-inner">
-                                    <Beaker className="h-4 w-4 text-semantic-info-fg" />
+                                    <div className={`shrink-0 h-7 w-7 rounded-full bg-white flex items-center justify-center shadow-inner ${tieneProveedor ? 'border border-semantic-info/20' : 'border border-semantic-warning/40'}`}>
+                                    {tieneProveedor
+                                        ? <Beaker className="h-4 w-4 text-semantic-info-fg" />
+                                        : <AlertTriangle className="h-3.5 w-3.5 text-semantic-warning-fg" />
+                                    }
                                     </div>
                                     <div className="ml-3 min-w-0">
                                     <div className="text-xs font-semibold text-content-primary uppercase tracking-tight">
@@ -350,12 +354,16 @@ export const FormulacionesTable = ({
                                         <span className="text-xs text-semantic-info-fg font-medium">
                                             {formulacion.materia_prima_codigo || 'Sin código'}
                                         </span>
-                                        {opciones.length > 0 && onSeleccionIngrediente && (
+                                        {opciones.length > 0 && onSeleccionIngrediente ? (
                                             <IngredienteProveedorSelect
                                                 opciones={opciones}
                                                 selectedId={seleccionPorIngrediente[mpId] ?? null}
                                                 onSelect={(ipId) => handleSelectProveedor(mpId, ipId)}
                                             />
+                                        ) : onSeleccionIngrediente && (
+                                            <span className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-semantic-danger-subtle text-semantic-danger-fg border border-semantic-danger/20">
+                                                <AlertTriangle size={9} /> Sin proveedor
+                                            </span>
                                         )}
                                     </div>
                                     </div>
@@ -480,6 +488,7 @@ export const FormulacionesTable = ({
                                     );
                                 })()}
                                 </td>
+
                             </tr>
                             );
                             })
@@ -512,28 +521,16 @@ export const FormulacionesTable = ({
                             <span className="text-content-secondary font-medium">Total Costo MP: </span>
                             {isLoading
                                 ? <div className="h-3 w-20 bg-surface-strong rounded animate-pulse inline-block" />
-                                : <span className={`font-bold ${recalculatedData ? 'text-semantic-success-fg' : 'text-semantic-success-fg'}`}>
-                                    $ {!recalculatedData ? productDetail?.costos?.total_costo_materia_prima : recalculatedData?.recalculados?.total_costo_materia_prima}
+                                : <span className="font-bold text-content-primary">
+                                    {fmtCOP(totalUnificado ?? (!recalculatedData ? productDetail?.costos?.total_costo_materia_prima : recalculatedData?.recalculados?.total_costo_materia_prima))}
                                   </span>
                             }
                         </div>
-                        {hasAnyOverride && totalCostoOverride && (
-                            <div className="text-sm border-l border-border-base pl-6">
-                                <span className="text-semantic-warning-fg font-medium flex items-center gap-1 inline-flex">
-                                    <Truck size={12} /> Selección:
-                                </span>{' '}
-                                <span className="font-bold text-semantic-warning-fg">
-                                    {fmtCOP(totalCostoOverride)}
-                                </span>
-                            </div>
-                        )}
-                        {costosProveedor && (
-                            <div className="text-sm border-l border-border-base pl-6">
-                                <span className="text-semantic-warning-fg font-medium flex items-center gap-1 inline-flex">
-                                    <Truck size={12} /> Proveedor:
-                                </span>{' '}
-                                <span className="font-bold text-semantic-warning-fg">
-                                    $ {costosProveedor.costos_proveedor?.total_costo_materia_prima}
+                        {sinProveedor > 0 && !isLoading && (
+                            <div className="text-sm border-l border-border-base pl-6 flex items-center gap-1.5">
+                                <AlertTriangle size={13} className="text-semantic-warning-fg" />
+                                <span className="text-[11px] text-semantic-warning-fg font-medium">
+                                    {sinProveedor} sin proveedor
                                 </span>
                             </div>
                         )}

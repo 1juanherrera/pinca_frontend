@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import KpiCard from "./components/KpiCard";
 import { ProductSelect } from "./components/ProductSelect";
 import { CostCalculator } from "./components/CostCalculator";
@@ -40,6 +40,22 @@ const FormulacionesPage = () => {
     isLoadingCostosProveedor,
     opcionesIngredientes,
   } = useFormulaciones(selectedId, nuevoVolumen, null, selectedProveedorId);
+
+  useEffect(() => {
+    const materias = opcionesIngredientes?.materias;
+    if (!materias || Object.keys(materias).length === 0) return;
+
+    const auto = {};
+    for (const [mpId, data] of Object.entries(materias)) {
+      if (data.opciones?.length > 0) {
+        auto[mpId] = data.opciones[0].id_item_proveedor;
+      }
+    }
+
+    if (Object.keys(auto).length > 0) {
+      setSeleccionPorIngrediente(auto);
+    }
+  }, [opcionesIngredientes]);
 
   const selectedProductData = formulaciones.find(
     (f) => String(f.id_item_general) === String(selectedId)
