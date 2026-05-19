@@ -10,6 +10,7 @@ import Drawer from '../../../../shared/Drawer';
 import { Button } from '../../../../shared/Button';
 import { FormInput } from '../../../../shared/Form/FormInput';
 import { FormTextarea } from '../../../../shared/Form/FormTexarea';
+import FormDate from '../../../../shared/Form/FormDate';
 import { LABEL_BASE } from '../../../../shared/Form/styles';
 import { useConfigValue } from '../../../Configuracion/api/useConfiguracion';
 import cn from '../../../../utils/cn';
@@ -117,18 +118,17 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
               value={form.cliente_id}
               onChange={(e) => setField('cliente_id', e.target.value)}
             />
-            <FormInput
+            <FormDate
               label="Fecha emisión"
               required
-              type="date"
               value={form.fecha_emision}
-              onChange={(e) => setField('fecha_emision', e.target.value)}
+              onChange={(iso) => setField('fecha_emision', iso)}
             />
-            <FormInput
+            <FormDate
               label="Fecha vencimiento"
-              type="date"
               value={form.fecha_vencimiento}
-              onChange={(e) => setField('fecha_vencimiento', e.target.value)}
+              minDate={form.fecha_emision || undefined}
+              onChange={(iso) => setField('fecha_vencimiento', iso)}
             />
           </div>
           <FormTextarea

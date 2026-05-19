@@ -8,6 +8,7 @@ import { useBoundStore } from '../../../store/useBoundStore';
 import Drawer from '../../../shared/Drawer';
 import { Button } from '../../../shared/Button';
 import { FormInput } from '../../../shared/Form/FormInput';
+import FormDate from '../../../shared/Form/FormDate';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import { FormTextarea } from '../../../shared/Form/FormTexarea';
 import { usePagos } from '../api/usePago';
@@ -90,11 +91,11 @@ const PagoFormContent = ({ editData, closeDrawer }) => {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <FormInput
-            label="Fecha de pago" required
-            type="date"
+          <FormDate
+            label="Fecha de pago"
+            required
             value={form.fecha_pago}
-            onChange={(e) => setField('fecha_pago', e.target.value)}
+            onChange={(iso) => setField('fecha_pago', iso)}
           />
           <FormInput
             label="Monto" required

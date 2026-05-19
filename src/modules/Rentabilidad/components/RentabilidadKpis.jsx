@@ -22,36 +22,64 @@ const THEME = {
   zinc:    { iconBg: 'bg-surface-muted',   iconText: 'text-content-secondary',    value: 'text-content-primary',    bar: 'bg-content-secondary'    },
 };
 
+/** Escala tipográfica del valor según su largo, para que números grandes
+ *  quepan en cards angostas sin ellipsis. */
+const valueFontClass = (raw) => {
+  const len = String(raw ?? '').length;
+  if (len >= 15) return 'text-xs';
+  if (len >= 13) return 'text-sm';
+  if (len >= 11) return 'text-base';
+  return 'text-lg';
+};
+
 const KpiCard = ({ label, icon: Icon, value, sub, theme }) => {
   const t = THEME[theme];
   return (
-    <div className="bg-white border border-border-base/70 rounded-xl shadow-sm px-4 py-3 flex items-center justify-between gap-3 hover:shadow-md transition-shadow">
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-content-tertiary mb-0.5">{label}</p>
-        <p className={`text-lg font-bold ${t.value} truncate`}>{value}</p>
-        {sub && <p className="text-[10px] text-content-muted mt-0.5">{sub}</p>}
+    <div className="bg-white border border-border-base/70 rounded-xl shadow-sm px-3 py-3 hover:shadow-md transition-shadow overflow-hidden">
+      <div className="flex items-start justify-between gap-2 mb-1.5">
+        <p className="text-[11px] font-medium text-content-tertiary leading-tight truncate min-w-0 pt-1">{label}</p>
+        <div className={`w-8 h-8 ${t.iconBg} rounded-full flex items-center justify-center shrink-0`}>
+          <Icon className={`w-4 h-4 ${t.iconText}`} />
+        </div>
       </div>
-      <div className={`w-10 h-10 ${t.iconBg} rounded-full flex items-center justify-center shrink-0`}>
-        <Icon className={`w-5 h-5 ${t.iconText}`} />
-      </div>
+      <p
+        title={String(value)}
+        className={`${valueFontClass(value)} font-bold ${t.value} tabular-nums whitespace-nowrap`}
+      >
+        {value}
+      </p>
+      {sub && (
+        <p title={sub} className="text-[10px] text-content-muted mt-0.5 truncate">
+          {sub}
+        </p>
+      )}
     </div>
   );
 };
 
-const RentabilidadKpis = ({ 
-  totalProduccion, 
-  totalCompras, 
-  totalIndirectos, 
-  totalVentas = 0, 
-  isLoading 
+const RentabilidadKpis = ({
+  totalProduccion,
+  totalCompras,
+  totalComprasConIva,
+  totalIndirectos,
+  totalVentas = 0,
+  showIva = true,
+  isLoading
 }) => {
-  const granTotalCostos = totalProduccion + totalCompras + totalIndirectos;
+  // Toggle del header decide qué versión de compras se suma.
+  const comprasMostrar = showIva
+    ? Number(totalComprasConIva || totalCompras || 0)
+    : Number(totalCompras || 0);
+  const comprasAlterna = showIva
+    ? Number(totalCompras || 0)
+    : Number(totalComprasConIva || totalCompras || 0);
+  const granTotalCostos = totalProduccion + comprasMostrar + totalIndirectos;
   const utilidadBruta = totalVentas - granTotalCostos;
   const margenBruto = totalVentas > 0 ? ((utilidadBruta / totalVentas) * 100) : 0;
 
   const values = {
     produccion:    fmt(totalProduccion),
-    compras:       fmt(totalCompras),
+    compras:       fmt(comprasMostrar),
     indirectos:    fmt(totalIndirectos),
     totalCostos:   fmt(granTotalCostos),
     ventas:        fmt(totalVentas),
@@ -61,7 +89,9 @@ const RentabilidadKpis = ({
 
   const subs = {
     produccion:    `${granTotalCostos > 0 ? ((totalProduccion / granTotalCostos) * 100).toFixed(1) : 0}% de costos`,
-    compras:       `${granTotalCostos > 0 ? ((totalCompras / granTotalCostos) * 100).toFixed(1) : 0}% de costos`,
+    compras:       showIva
+      ? `Con IVA · base ${fmt(comprasAlterna)}`
+      : `Base imponible · con IVA ${fmt(comprasAlterna)}`,
     indirectos:    `${granTotalCostos > 0 ? ((totalIndirectos / granTotalCostos) * 100).toFixed(1) : 0}% de costos`,
     totalCostos:   'Todos los costos del período',
     ventas:        'Ingresos totales del período',
@@ -71,9 +101,9 @@ const RentabilidadKpis = ({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         {CARDS.map((c) => (
-          <div key={c.key} className="bg-white border border-border-base/70 rounded-xl h-20 animate-pulse" />
+          <div key={c.key} className="bg-white border border-border-base/70 rounded-xl h-24 animate-pulse" />
         ))}
       </div>
     );

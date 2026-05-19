@@ -5,6 +5,7 @@ import { useBoundStore }       from '../../../../store/useBoundStore';
 import { useRemisiones }       from '../api/useRemisiones';
 import { useInventario } from '../../../Inventario/api/useInventario'; // ajusta el path si es necesario
 import { Button }              from '../../../../shared/Button';
+import FormDate                from '../../../../shared/Form/FormDate';
 import apiClient               from '../../../../api/apiClient';
 
 // ─── Hooks auxiliares ─────────────────────────────────────────────────────────
@@ -279,13 +280,13 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
             <fieldset className="space-y-2">
               <legend className="text-xs font-semibold text-content-tertiary uppercase tracking-wider pb-1">Despacho</legend>
 
-              <div>
-                <label className="block text-xs text-content-tertiary mb-1">Fecha *</label>
-                <input type="date" value={form.fecha_remision}
-                  onChange={(e) => { setField('fecha_remision', e.target.value); setErrors(p => ({...p, fecha_remision: null})); }}
-                  className={`w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 ${errors.fecha_remision ? 'border-semantic-danger/40' : 'border-border-base'}`} />
-                {errors.fecha_remision && <p className="text-[10px] text-semantic-danger mt-1">{errors.fecha_remision}</p>}
-              </div>
+              <FormDate
+                label="Fecha"
+                required
+                value={form.fecha_remision}
+                onChange={(iso) => { setField('fecha_remision', iso); setErrors(p => ({...p, fecha_remision: null})); }}
+                error={errors.fecha_remision}
+              />
 
               <div>
                 <label className="block text-xs text-content-tertiary mb-1">Dirección de entrega *</label>

@@ -129,11 +129,18 @@ const DateRangePicker = ({ desde, hasta, onChange, align = 'left' }) => {
             selected={range}
             onSelect={handleSelect}
             weekStartsOn={1}
+            captionLayout="dropdown"
+            startMonth={new Date(new Date().getFullYear() - 3, 0)}
+            endMonth={new Date(new Date().getFullYear() + 2, 11)}
             classNames={{
               root:        'pinca-rdp text-xs',
               months:      'flex gap-4',
               month:       'flex flex-col gap-2',
-              caption_label:'text-xs font-bold text-content-primary uppercase tracking-wider',
+              month_caption:'flex items-center justify-center',
+              dropdowns:   'flex items-center gap-1.5',
+              dropdown_root:'relative inline-flex items-center',
+              dropdown:    'pinca-rdp-dropdown',
+              caption_label:'sr-only',
               nav:         'flex items-center gap-1',
               button_previous:'w-7 h-7 inline-flex items-center justify-center rounded-md text-content-tertiary hover:bg-surface-muted hover:text-content-primary transition',
               button_next:'w-7 h-7 inline-flex items-center justify-center rounded-md text-content-tertiary hover:bg-surface-muted hover:text-content-primary transition',
@@ -188,6 +195,36 @@ const DateRangePicker = ({ desde, hasta, onChange, align = 'left' }) => {
               background: var(--content-primary) !important;
               color: #fff !important;
               border: 2px solid var(--brand-primary) !important;
+            }
+            /* Dropdowns de mes / año */
+            .pinca-rdp .pinca-rdp-dropdown {
+              appearance: none;
+              -webkit-appearance: none;
+              -moz-appearance: none;
+              background: var(--surface-muted);
+              color: var(--content-primary);
+              border: 1px solid var(--border-base);
+              border-radius: 6px;
+              padding: 1px 20px 1px 7px;
+              line-height: 1.4;
+              font-size: 11px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.03em;
+              cursor: pointer;
+              outline: none;
+              background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2371717A' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+              background-repeat: no-repeat;
+              background-position: right 6px center;
+              transition: border-color .15s, background-color .15s;
+            }
+            .pinca-rdp .pinca-rdp-dropdown:hover {
+              border-color: var(--border-strong);
+              background-color: var(--surface-strong);
+            }
+            .pinca-rdp .pinca-rdp-dropdown:focus-visible {
+              border-color: var(--content-primary);
+              box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 25%, transparent);
             }
           `}</style>
 

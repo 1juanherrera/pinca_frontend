@@ -310,9 +310,11 @@ const Sidebar = () => {
         <nav className="flex-1 p-1 overflow-x-hidden no-scrollbar overflow-y-auto">
           {isExpanded ? (
             // ── Modo expandido: items con headers de sección colapsables ──
+            // Si un grupo tiene un solo item, ocultamos el header — el header
+            // colapsable no aporta cuando solo hay un destino debajo.
             groups.map((group, idx) => {
               const isCollapsed = group.grupo ? collapsedGroups.has(group.grupo) : false;
-              const showHeader  = !!group.grupo;
+              const showHeader  = !!group.grupo && group.items.length > 1;
 
               return (
                 <div key={group.grupo ?? '__root__'} className={cn('flex flex-col', idx > 0 && 'mt-3')}>
@@ -351,15 +353,17 @@ const Sidebar = () => {
             })
           ) : (
             // ── Modo plegado: 1 icono por grupo + items sin grupo ──
+            // Grupos con un solo item se renderizan como item directo
+            // (sin flyout): el hover no aporta valor cuando hay un solo destino.
             <div className="flex flex-col items-center gap-1">
               {groups.map((group, idx) => (
                 <div key={group.grupo ?? '__root__'} className="contents">
                   {idx > 0 && (
                     <div className="my-1 w-8 border-t border-surface-sidebar-hover/60" aria-hidden />
                   )}
-                  {group.grupo
-                    ? renderCollapsedGroup(group)
-                    : group.items.map(renderCollapsedSingle)}
+                  {!group.grupo || group.items.length === 1
+                    ? group.items.map(renderCollapsedSingle)
+                    : renderCollapsedGroup(group)}
                 </div>
               ))}
             </div>

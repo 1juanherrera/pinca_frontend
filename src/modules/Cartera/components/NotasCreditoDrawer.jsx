@@ -13,6 +13,7 @@ import DetailDrawer  from '../../../shared/DetailDrawer';
 import StatusBadge   from '../../../shared/StatusBadge';
 import AmountDisplay from '../../../shared/AmountDisplay';
 import { Button }    from '../../../shared/Button';
+import FormDate      from '../../../shared/Form/FormDate';
 import { fmt }       from '../../../utils/formatters';
 
 // ── Fila de nota crédito ──────────────────────────────────────
@@ -99,15 +100,12 @@ const NuevaNotaForm = ({ facturaId, clienteId, saldoPendiente, onCreada }) => {
             />
           </div>
         </div>
-        <div>
-          <label className="block text-xs text-content-tertiary mb-1">Fecha *</label>
-          <input
-            type="date"
-            value={form.fecha}
-            onChange={(e) => set('fecha', e.target.value)}
-            className="w-full text-sm border border-border-base rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
-          />
-        </div>
+        <FormDate
+          label="Fecha"
+          required
+          value={form.fecha}
+          onChange={(iso) => set('fecha', iso)}
+        />
       </div>
 
       <div>

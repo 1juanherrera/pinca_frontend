@@ -3,6 +3,7 @@ import { Factory, ShoppingCart, Wrench, Download, TrendingUp, DollarSign } from 
 import HeaderSection from '../../shared/HeaderSection';
 import { Button } from '../../shared/Button';
 import PageTabs from '../../shared/PageTabs';
+import IvaToggle, { useIvaToggle } from '../../shared/IvaToggle';
 import * as XLSX from 'xlsx';
 
 import { useCostosProduccion }  from './api/useCostosProduccion';
@@ -32,6 +33,7 @@ const TABS = [
 const RentabilidadPage = () => {
   const [tab,            setTab]           = useState('resumen');
   const [periodo,        setPeriodo]       = useState('mes');
+  const [showIva, setShowIva] = useIvaToggle();
   const [desde,          setDesde]         = useState(() => getDateRange('mes').desde);
   const [hasta,          setHasta]         = useState(() => getDateRange('mes').hasta);
   const [selectedOrden,  setSelectedOrden] = useState(null); // orden de producción seleccionada para ver detalle
@@ -49,7 +51,7 @@ const RentabilidadPage = () => {
   const { ordenes: ordenesProd, resumen: resumenProd, isLoading: loadProd } =
     useCostosProduccion({ desde, hasta });
 
-  const { ordenes: ordenesCompras, totalCompras, isLoading: loadCompras } =
+  const { ordenes: ordenesCompras, totalCompras, totalComprasConIva, isLoading: loadCompras } =
     useCostosCompras({ desde, hasta });
 
   const { lista: listaInd, porCategoria, totalMensual, isLoading: loadInd } =
@@ -61,7 +63,13 @@ const RentabilidadPage = () => {
   const isLoading = loadProd || loadCompras || loadInd || loadGanancias;
 
   // ── Cálculos de rentabilidad ────────────────────────────────────────────────
-  const totalCostos = (resumenProd.gran_total || 0) + (totalCompras || 0) + (totalMensual || 0);
+  // El toggle del header decide qué versión se usa.
+  // "Con IVA": comparación cash-flow (ventas con IVA en facturas.total).
+  // "Sin IVA": comparación base imponible (más limpia contablemente).
+  const comprasParaRentabilidad = showIva
+    ? (totalComprasConIva || totalCompras || 0)
+    : (totalCompras || 0);
+  const totalCostos = (resumenProd.gran_total || 0) + comprasParaRentabilidad + (totalMensual || 0);
   const rentabilidadNeta = (totalGanancias || 0) - totalCostos;
   const margenRentabilidad = totalGanancias > 0 ? (rentabilidadNeta / totalGanancias) * 100 : 0;
 
@@ -144,14 +152,17 @@ const RentabilidadPage = () => {
             { label: 'Rentabilidad', path: '/rentabilidad' },
           ]}
         />
-        <Button
-          variant="black"
-          onClick={handleExport}
-          disabled={isLoading}
-          icon={Download}
-        >
-          Exportar Excel
-        </Button>
+        <div className="flex items-center gap-2">
+          <IvaToggle value={showIva} onChange={setShowIva} />
+          <Button
+            variant="black"
+            onClick={handleExport}
+            disabled={isLoading}
+            icon={Download}
+          >
+            Exportar Excel
+          </Button>
+        </div>
       </div>
 
       {/* ── Filtros ─────────────────────────────────────────────────────────── */}
@@ -168,8 +179,10 @@ const RentabilidadPage = () => {
       <RentabilidadKpis
         totalProduccion={resumenProd.gran_total}
         totalCompras={totalCompras}
+        totalComprasConIva={totalComprasConIva}
         totalIndirectos={totalMensual}
         totalVentas={totalGanancias}
+        showIva={showIva}
         isLoading={isLoading}
       />
 
@@ -192,7 +205,7 @@ const RentabilidadPage = () => {
           {tab === 'resumen' && (
             <RentabilidadResumen
               totalProduccion={resumenProd.gran_total}
-              totalCompras={totalCompras}
+              totalCompras={comprasParaRentabilidad}
               totalIndirectos={totalMensual}
               totalVentas={totalGanancias}
               ventasData={ventas}

@@ -25,11 +25,13 @@ export const useCostosCompras = ({ desde, hasta } = {}) => {
     return (!d || fecha >= d) && (!h || fecha <= h);
   });
 
-  const totalCompras = ordenes.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const totalCompras        = ordenes.reduce((s, o) => s + (Number(o.total)         || 0), 0);
+  const totalComprasConIva  = ordenes.reduce((s, o) => s + (Number(o.total_con_iva) || 0), 0);
 
   return {
     ordenes,
-    totalCompras,
+    totalCompras,        // suma sin IVA (base imponible)
+    totalComprasConIva,  // suma con IVA aplicado por OC (cash flow real)
     isLoading: query.isLoading,
     isError:   query.isError,
   };

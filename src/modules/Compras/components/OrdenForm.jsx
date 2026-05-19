@@ -4,6 +4,7 @@ import { Save, Plus, Trash2, Search } from 'lucide-react';
 import Drawer from '../../../shared/Drawer';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { FormSelect } from '../../../shared/Form/FormSelect';
+import FormDate from '../../../shared/Form/FormDate';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { useCompras } from '../api/useCompras';
 import { useProveedores } from '../../Proveedores/api/useProveedores';
@@ -217,18 +218,31 @@ const OrdenForm = () => {
 
         {/* Fechas */}
         <div className="grid grid-cols-2 gap-4">
-          <FormInput
-            label="Fecha"
-            type="date"
-            required
-            error={errors.fecha?.message}
-            registration={register('fecha', { required: 'Requerido' })}
+          <Controller
+            name="fecha"
+            control={control}
+            rules={{ required: 'Requerido' }}
+            render={({ field, fieldState }) => (
+              <FormDate
+                label="Fecha"
+                required
+                value={field.value}
+                onChange={field.onChange}
+                error={fieldState.error?.message}
+              />
+            )}
           />
-          <FormInput
-            label="Fecha esperada"
-            type="date"
-            error={errors.fecha_esperada?.message}
-            registration={register('fecha_esperada')}
+          <Controller
+            name="fecha_esperada"
+            control={control}
+            render={({ field, fieldState }) => (
+              <FormDate
+                label="Fecha esperada"
+                value={field.value}
+                onChange={field.onChange}
+                error={fieldState.error?.message}
+              />
+            )}
           />
         </div>
 

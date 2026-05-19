@@ -9,6 +9,7 @@ import Drawer from '../../../shared/Drawer';
 import { Button } from '../../../shared/Button';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { FormTextarea } from '../../../shared/Form/FormTexarea';
+import FormDate from '../../../shared/Form/FormDate';
 import { LABEL_BASE, LABEL_REQUIRED_MARK, FIELD_ERROR } from '../../../shared/Form/styles';
 import { fmt } from '../../../utils/formatters';
 import {
@@ -207,11 +208,11 @@ const RegistrarPagoContent = ({ factura, onClose }) => {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <FormInput
-              label="Fecha del pago" required
-              type="date"
+            <FormDate
+              label="Fecha del pago"
+              required
               value={form.fecha_pago}
-              onChange={(e) => set('fecha_pago', e.target.value)}
+              onChange={(iso) => set('fecha_pago', iso)}
               error={errors.fecha_pago}
             />
             <FormInput

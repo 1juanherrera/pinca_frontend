@@ -11,6 +11,7 @@ import { useGestionesCobro } from '../api/useCartera';
 import { useBoundStore }     from '../../../store/useBoundStore';
 import DetailDrawer from '../../../shared/DetailDrawer';
 import { Button }   from '../../../shared/Button';
+import FormDate     from '../../../shared/Form/FormDate';
 
 // ── Ícono por tipo ────────────────────────────────────────────
 const ICONO_TIPO = {
@@ -115,12 +116,10 @@ const NuevaGestionForm = ({ facturaId, clienteId, onCreado }) => {
 
       {/* Próxima gestión */}
       <div>
-        <label className="block text-xs text-content-tertiary mb-1">Próximo seguimiento</label>
-        <input
-          type="date"
+        <FormDate
+          label="Próximo seguimiento"
           value={form.proxima_gestion}
-          onChange={(e) => set('proxima_gestion', e.target.value)}
-          className="w-full text-sm border border-border-base rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-border-focus/15"
+          onChange={(iso) => set('proxima_gestion', iso)}
         />
       </div>
 

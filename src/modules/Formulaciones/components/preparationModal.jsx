@@ -8,6 +8,7 @@ import {
 import { useBoundStore } from '../../../store/useBoundStore';
 import { formatCOP, parseCOP } from '../utils/handlers';
 import { Button } from '../../../shared/Button';
+import FormDate from '../../../shared/Form/FormDate';
 import { usePreparaciones } from '../api/usePreparaciones';
 import DisponibilidadModal from '../../Produccion/components/DisponibilidadModal';
 import { useCrearRequisiciones } from '../../Produccion/api/useRequisiciones';
@@ -110,21 +111,17 @@ const OrdenCard = ({ orden, index, volumenBase }) => {
 const MetaForm = ({ fechaInicio, setFechaInicio, fechaFin, setFechaFin, observaciones, setObservaciones, error }) => (
   <div className="flex flex-col gap-3">
     <div className="grid grid-cols-2 gap-2">
-      {[
-        { label: 'Inicio',       value: fechaInicio, set: setFechaInicio, min: undefined          },
-        { label: 'Fin estimado', value: fechaFin,    set: setFechaFin,    min: fechaInicio || undefined },
-      ].map(({ label, value, set, min }) => (
-        <div key={label} className="flex flex-col gap-1">
-          <label className="flex items-center gap-1 text-[10px] font-bold text-content-muted uppercase tracking-widest">
-            <CalendarDays size={9} /> {label}
-          </label>
-          <input
-            type="date" value={value} min={min}
-            onChange={e => set(e.target.value)}
-            className="w-full border border-border-base rounded-lg px-3 py-2 text-xs text-content-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition"
-          />
-        </div>
-      ))}
+      <FormDate
+        label="Inicio"
+        value={fechaInicio}
+        onChange={setFechaInicio}
+      />
+      <FormDate
+        label="Fin estimado"
+        value={fechaFin}
+        minDate={fechaInicio || undefined}
+        onChange={setFechaFin}
+      />
     </div>
     <div className="flex flex-col gap-1">
       <label className="flex items-center gap-1 text-[10px] font-bold text-content-muted uppercase tracking-widest">

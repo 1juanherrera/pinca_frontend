@@ -12,7 +12,6 @@ import {
   BookOpen,
   Building2,
   GitBranch,
-  Coins,
 } from 'lucide-react';
 
 // `moduloKey` debe coincidir con los valores en MODULOS_SISTEMA y en la tabla permisos_rol_modulo.
@@ -43,5 +42,4 @@ export const sidebarMenu = [
 
   // Análisis
   { link: 'rentabilidad',      moduloKey: 'rentabilidad',      label: 'Rentabilidad',     icon: TrendingUp,      grupo: 'Análisis' },
-  { link: 'costos',            moduloKey: 'costos',            label: 'Costos',           icon: Coins,           grupo: 'Análisis' },
 ];

@@ -5,6 +5,7 @@ import StatusBadge from '../../../shared/StatusBadge';
 import IconBox from '../../../shared/IconBox';
 import EmptyState from '../../../shared/EmptyState';
 import Modal from '../../../shared/Modal';
+import FormDate from '../../../shared/Form/FormDate';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { useNumeraciones, useUpdateNumeracion, useCreateNumeracion } from '../api/useNumeracion';
 
@@ -167,12 +168,10 @@ const SerieModal = ({ serie, tipoFijo = null, onClose }) => {
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-content-secondary mb-1.5">Fecha resolución</label>
-              <input
-                type="date"
+              <FormDate
+                label="Fecha resolución"
                 value={form.fecha_resolucion}
-                onChange={(e) => setField('fecha_resolucion', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+                onChange={(iso) => setField('fecha_resolucion', iso)}
               />
             </div>
           </div>
@@ -196,15 +195,11 @@ const SerieModal = ({ serie, tipoFijo = null, onClose }) => {
                 className="w-full px-3 py-2 text-sm border border-border-base rounded-lg tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
               />
             </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-content-secondary mb-1.5">Vigencia hasta</label>
-              <input
-                type="date"
-                value={form.fecha_vigencia_hasta}
-                onChange={(e) => setField('fecha_vigencia_hasta', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
-              />
-            </div>
+            <FormDate
+              label="Vigencia hasta"
+              value={form.fecha_vigencia_hasta}
+              onChange={(iso) => setField('fecha_vigencia_hasta', iso)}
+            />
           </div>
         </div>
 

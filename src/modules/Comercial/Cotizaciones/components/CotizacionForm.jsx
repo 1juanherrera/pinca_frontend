@@ -10,6 +10,7 @@ import { useBoundStore }   from '../../../../store/useBoundStore';
 import { useCotizaciones } from '../api/useCotizaciones';
 import { useInventario }   from '../../../Inventario/api/useInventario'; // ajusta el path
 import { Button }          from '../../../../shared/Button';
+import FormDate            from '../../../../shared/Form/FormDate';
 import apiClient           from '../../../../api/apiClient';
 import { useConfigValue }  from '../../../Configuracion/api/useConfiguracion';
 
@@ -311,23 +312,21 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
             <fieldset className="space-y-2">
               <legend className="text-xs font-semibold text-content-tertiary uppercase tracking-wider pb-1">Datos Generales</legend>
               <div>
-                <label className="block text-xs text-content-tertiary mb-1">Fecha *</label>
-                <input
-                  type="date"
+                <FormDate
+                  label="Fecha"
+                  required
                   value={form.fecha_cotizacion}
-                  onChange={(e) => { setField('fecha_cotizacion', e.target.value); setErrors((p) => ({ ...p, fecha_cotizacion: null })); }}
-                  className={`w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 ${errors.fecha_cotizacion ? 'border-semantic-danger/40' : 'border-border-base'}`}
+                  onChange={(iso) => { setField('fecha_cotizacion', iso); setErrors((p) => ({ ...p, fecha_cotizacion: null })); }}
+                  error={errors.fecha_cotizacion}
                 />
                 {errors.fecha_cotizacion && <p className="text-[10px] text-semantic-danger mt-1">{errors.fecha_cotizacion}</p>}
               </div>
               <div>
-                <label className="block text-xs text-content-tertiary mb-1">Vencimiento</label>
-                <input
-                  type="date"
+                <FormDate
+                  label="Vencimiento"
                   value={form.fecha_vencimiento}
-                  min={form.fecha_cotizacion || undefined}
-                  onChange={(e) => setField('fecha_vencimiento', e.target.value)}
-                  className="w-full text-sm border border-border-base rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+                  minDate={form.fecha_cotizacion || undefined}
+                  onChange={(iso) => setField('fecha_vencimiento', iso)}
                 />
               </div>
               <div>

@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import InventarioPage from "./modules/Inventario/InventarioPage";
 import Layout from "./Layout";
 import FormulacionesPage from "./modules/Formulaciones/FormulacionesPage";
@@ -25,7 +25,6 @@ import SincronizacionPage from "./modules/Sincronizacion/SincronizacionPage";
 import PanelPrincipalPage from "./modules/Dashboard/PanelPrincipalPage";
 import ConfiguracionPage from "./modules/Configuracion/ConfiguracionPage";
 import TrazabilidadPage from "./modules/Trazabilidad/TrazabilidadPage";
-import CostosPage from "./modules/Costos/CostosPage";
 
 const App = () => {
   return (
@@ -57,7 +56,8 @@ const App = () => {
           <Route path="/sincronizacion" element={<SincronizacionPage />} />
           <Route path="/configuracion"  element={<ConfiguracionPage />} />
           <Route path="/trazabilidad"   element={<TrazabilidadPage />} />
-          <Route path="/costos"             element={<CostosPage />} />
+          {/* /costos fue absorbido por /rentabilidad — redirect preserva bookmarks viejos */}
+          <Route path="/costos" element={<Navigate to="/rentabilidad" replace />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -1,11 +1,12 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { API_ROUTES } from '../../../api/apiRoutes';
 import { Button } from '../../../shared/Button';
+import FormDate from '../../../shared/Form/FormDate';
 
 const TamborForm = ({ onSubmit, isLoading, onCancel }) => {
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, control, formState: { errors } } = useForm({
     defaultValues: { numeros: '', item_general_id: '', bodegas_id: '', cantidad_inicial: 1, fecha_ingreso: new Date().toISOString().split('T')[0] },
   });
 
@@ -91,14 +92,17 @@ const TamborForm = ({ onSubmit, isLoading, onCancel }) => {
           {errors.cantidad_inicial && <p className="text-xs text-semantic-danger">{errors.cantidad_inicial.message}</p>}
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-content-secondary uppercase">Fecha de Ingreso</label>
-          <input
-            type="date"
-            className="w-full px-3 py-2 rounded-lg border border-border-base text-sm bg-white focus:outline-none focus:ring-2 focus:ring-semantic-info/30"
-            {...register('fecha_ingreso')}
-          />
-        </div>
+        <Controller
+          name="fecha_ingreso"
+          control={control}
+          render={({ field }) => (
+            <FormDate
+              label="Fecha de Ingreso"
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
       </div>
 
       <div className="flex gap-3 pt-2">
