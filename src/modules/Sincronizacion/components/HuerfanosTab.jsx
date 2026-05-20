@@ -2,6 +2,7 @@ import { Ban, Calendar, Boxes } from 'lucide-react';
 import StatusBadge from '../../../shared/StatusBadge';
 import ErpTable from '../../../shared/ErpTable';
 import EmptyState from '../../../shared/EmptyState';
+import TableShell, { useClientPagination } from '../../../shared/TableShell';
 import { formatLetterDate } from '../../../utils/formatters';
 
 const fmtNum = (v, dec = 2) =>
@@ -15,6 +16,7 @@ const formatDate = (d) => {
 
 const HuerfanosTab = () => {
   const { data: items = [], isLoading } = useSincHuerfanos();
+  const pagination = useClientPagination(items, 20);
 
   if (!isLoading && !items.length) {
     return (
@@ -76,14 +78,18 @@ const HuerfanosTab = () => {
       <p className="text-xs text-content-tertiary">
         {items.length} MP sin proveedores activos
       </p>
-      <ErpTable
-        columns={columns}
-        data={items.map((r) => ({ ...r, id: r.id_item_general }))}
-        isLoading={isLoading}
-        variant="cards"
-        EmptyIcon={Ban}
-        emptyMessage="Sin huérfanos"
-      />
+
+      <TableShell pagination={pagination} isLoading={isLoading}>
+        <ErpTable
+          columns={columns}
+          data={pagination.paginated.map((r) => ({ ...r, id: r.id_item_general }))}
+          isLoading={isLoading}
+          variant="default"
+          borderless
+          EmptyIcon={Ban}
+          emptyMessage="Sin huérfanos"
+        />
+      </TableShell>
     </div>
   );
 };

@@ -11,7 +11,23 @@ import { ROLES_LABELS } from '../config/modulos';
 import { useAvatarGradient } from '../utils/avatarTheme';
 import NotificacionesDropdown from '../modules/Notificaciones/components/NotificacionesDropdown';
 
-const getInitials = (username = '') => username.slice(0, 2).toUpperCase();
+/**
+ * Iniciales: primera letra de los 2 primeros tokens del nombre completo.
+ *   "Juan Pérez"        → JP
+ *   "María de la Cruz"  → MD
+ *   "Juan"              → J
+ *   sin nombre          → primeras 2 letras del username
+ */
+const getInitials = (nombreCompleto = '', username = '') => {
+  const tokens = String(nombreCompleto).trim().split(/\s+/).filter(Boolean);
+  if (tokens.length >= 2) {
+    return (tokens[0][0] + tokens[1][0]).toUpperCase();
+  }
+  if (tokens.length === 1) {
+    return tokens[0][0].toUpperCase();
+  }
+  return String(username).slice(0, 2).toUpperCase();
+};
 
 const Topbar = ({ onOpenPalette }) => {
   const activeTitle = useBoundStore(s => s.activeTitle);
@@ -90,7 +106,7 @@ const Topbar = ({ onOpenPalette }) => {
           className="flex items-center gap-2.5 hover:bg-surface-sidebar-hover/80 p-1 pr-3 rounded-full border border-surface-sidebar-hover/50 hover:border-surface-sidebar-hover transition-all text-left"
         >
           <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white text-[10px] font-bold shrink-0`}>
-            {getInitials(user?.nombre || user?.username)}
+            {getInitials(user?.nombre, user?.username)}
           </div>
           <div className="hidden sm:block">
             <p className="text-xs font-medium text-content-inverse leading-none">

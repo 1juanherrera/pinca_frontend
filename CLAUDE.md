@@ -2,7 +2,13 @@
 
 > Este archivo es la **fuente de verdad** para cualquier Claude que retome este proyecto. Está organizado para leerse en orden de necesidad: contexto rápido arriba, detalles técnicos abajo.
 
-## 1. Estado actual (snapshot 2026-05-12)
+## 1. Estado actual (snapshot 2026-05-20)
+
+> **Última sesión grande**: 2026-05-20 — Módulo Costos de Producción (con gráfico de evolución de costos por snapshot), módulo Salud del Sistema embebido como tab del UserPanel, rol superadmin, tablas unificadas con TableShell (search+filters+pagination embebidos), ForceChangePasswordModal en primer login, iniciales basadas en nombre + apellido. Ver §19 al final.
+
+> **Sesión 2026-05-19**: IVA toggle global, FormDate component (reemplaza inputs nativos en 11 archivos), módulo Costos eliminado y unificado en Rentabilidad, sidebar singleton sin flyout, Salud de cartera rediseñada. Ver §18.
+
+### Snapshot anterior (2026-05-12)
 
 **Proyecto**: PINCA (Pinturas Industriales del Caribe S.A.S) — Sistema ERP web.
 **Stack**: React 19, Vite 7, TailwindCSS 4, React Router 7, TanStack Query 5, Zustand 5, Axios, react-hook-form, lucide-react, recharts, jsPDF, xlsx.
@@ -817,4 +823,306 @@ Seleccionar producto
 ### Defecto conocido en backend (NO corregido aún)
 
 `FormulacionesModel::crearFormulacion()` (líneas 996-1001) y `actualizarFormulacion()` (líneas 1070-1075) sobrescriben `costos_item.costo_unitario` si el payload incluye `costo_unitario` por ingrediente. Este campo debería ser de solo lectura (calculado por `recalcularPromedioPonderado`). El frontend actualmente NO envía `costo_unitario` en el payload de formulaciones, así que no causa problema, pero el backend debería protegerlo. Ver `pinca_backend/MEJORAS.md` para detalles.
+
+**Resuelto 2026-05-19** — backend ya eliminó esos bloques. Ver §18.
+
+---
+
+## 18. Sesión 2026-05-19 — IVA toggle, FormDate, unify módulos, polish
+
+Sesión grande. **Módulo Costos eliminado**, **toggle IVA global**, **`FormDate` reemplaza inputs nativos en 11 archivos**, **sidebar singleton sin flyout**, **Salud de cartera rediseñada**, **KPI cards adaptativas**.
+
+### Módulo Costos absorbido por Rentabilidad
+
+Costos era subset puro de Rentabilidad (mismos tabs: Producción, Compras, Indirectos). Rentabilidad añade Resumen + Ganancias. Decisión: conservar Rentabilidad como módulo único.
+
+**Cambios**:
+- Carpeta `src/modules/Costos/` **borrada completa** (8 archivos: page + 6 components + 3 hooks api).
+- `App.jsx`: removido import de `CostosPage`, ruta `/costos` ahora hace `<Navigate to="/rentabilidad" replace />` (preserva bookmarks).
+- `sidebarMenu.js`: removida entrada "Costos" y el ícono `Coins` huérfano.
+- `modulos.js`: removida key `costos` del array `MODULOS_SISTEMA`.
+- Backend: migración `MergeCostosIntoRentabilidad` mueve permisos `costos → rentabilidad` (admin + visor sin pérdida de acceso).
+
+### Toggle IVA global (Con IVA / Sin IVA)
+
+Nuevo componente y hook compartidos en **`src/shared/IvaToggle.jsx`**:
+- `IvaToggle` — pill de dos segmentos (Receipt / FileText icons) con estilo Pinca.
+- `useIvaToggle()` — hook que persiste preferencia en `localStorage` key `pinca:showIva` (default `true`).
+
+**Aplicado en**:
+- `Costos/CostosPage` (ahora redirigido a Rentabilidad — usa toggle también si se renderiza directo)
+- `Rentabilidad/RentabilidadPage` — header al lado del botón "Exportar Excel"
+- Cards de KPIs respetan el toggle: cuando `showIva=true`, suman `totalComprasConIva` para Compras; cuando `false`, suman `totalCompras`. La otra versión aparece como sub-texto: "Con IVA · base $X" / "Base imponible · con IVA $X".
+- Cálculo de `totalCostos` y `utilidadBruta` en Rentabilidad usa la versión seleccionada (coherente con `facturas.total` que ya viene con IVA).
+
+**Backend lo soporta**: `useCostosCompras.js` (en ambos módulos — duplicado intencional) ahora devuelve `totalCompras` + `totalComprasConIva` leyendo `total_con_iva` que el backend agrega a cada OC.
+
+### `FormDate` — selector de fecha único (reemplaza `<input type="date">`)
+
+Archivo nuevo: **`src/shared/Form/FormDate.jsx`**. Análogo al `DateRangePicker` existente pero para una sola fecha.
+
+**API**:
+```jsx
+<FormDate
+  label="Fecha"
+  value={form.fecha}              // ISO 'yyyy-MM-dd' o null
+  onChange={(iso) => set(iso)}    // recibe ISO
+  required
+  error={errors.fecha}
+  minDate={form.otraFecha}
+  maxDate="2026-12-31"
+  placeholder="Seleccionar fecha"
+/>
+```
+
+**Con react-hook-form** (`Controller` explícito):
+```jsx
+<Controller
+  name="fecha"
+  control={control}
+  rules={{ required: 'Requerido' }}
+  render={({ field, fieldState }) => (
+    <FormDate label="Fecha" required
+      value={field.value} onChange={field.onChange}
+      error={fieldState.error?.message} />
+  )}
+/>
+```
+
+**Implementación**:
+- `DayPicker` (`react-day-picker` v10) con `mode="single"`, `locale: es`, `weekStartsOn: 1`.
+- Popover renderizado vía `createPortal(document.body)` con `z-[130]` — no queda atrapado en `overflow:hidden` de drawers/modales.
+- **`popoverRef` además del `wrapperRef`** en el listener de click-outside: chequea ambos contenedores antes de cerrar, porque el portal saca al popover del tree del wrapper.
+- **`captionLayout="dropdown"`** con `startMonth` (3 años atrás) y `endMonth` (2 adelante) — 6 años seleccionables vía dropdown de año + dropdown de mes (no chevron por chevron).
+- Styling Pinca: caret SVG inline, padding 1px vertical (`line-height: 1.4`) para dropdowns compactos.
+- Botón "Hoy" + "Listo" en el footer del popover.
+
+**Aplicado en 11 archivos** (16 inputs `type="date"` → 0):
+- `Compras/components/OrdenForm.jsx` (RHF + Controller, 2 inputs)
+- `Pagos/components/PagoForm.jsx`
+- `Cartera/components/GestionesCobroDrawer.jsx`
+- `Cartera/components/ModalRegistrarPago.jsx`
+- `Cartera/components/NotasCreditoDrawer.jsx`
+- `Comercial/Cotizaciones/components/CotizacionForm.jsx` (2)
+- `Comercial/Facturacion/components/FacturaForm.jsx` (2)
+- `Comercial/Remisiones/components/RemisionForm.jsx`
+- `Configuracion/components/NumeracionTab.jsx` (2)
+- `Formulaciones/components/preparationModal.jsx` (2, dentro de MetaForm)
+- `Tambores/components/TamborForm.jsx` (RHF + Controller)
+
+**`DateRangePicker.jsx`** también ganó los mismos dropdowns de mes/año por coherencia.
+
+### Sidebar — grupos singleton como item directo
+
+Cuando un grupo del sidebar tiene **un solo item**, se renderiza como item directo en lugar de un icono de grupo con flyout/header.
+
+**Modo plegado** (default): la regla en el render es:
+```jsx
+{!group.grupo || group.items.length === 1
+  ? group.items.map(renderCollapsedSingle)
+  : renderCollapsedGroup(group)}
+```
+
+**Modo expandido** (pinned): `showHeader = !!group.grupo && group.items.length > 1` → no aparece el header colapsable de la sección si hay solo 1 item.
+
+Esto se generaliza: si en el futuro hay más items en "Análisis" (ej: Proyecciones, Presupuesto), automáticamente vuelve a comportarse como grupo con header + flyout. Cero mantenimiento.
+
+### Salud de cartera rediseñada
+
+Antes: card chica con `ProgressPill` (Corriente) + 3 líneas de aging + factura más vieja → quedaba mucho espacio vacío al fondo (la card vecina "Actividad de hoy" era más alta y el grid stretching dejaba un hueco).
+
+Ahora (`PanelPrincipalPage.jsx:346-410` aprox):
+- **Hero arriba**: total de cartera grande + label de estado en lenguaje natural (`Cartera saludable` / `Atención: mora creciente` / `Riesgo: alta concentración vencida`) según `carteraCorrientePct`.
+- **4 buckets con barras horizontales proporcionales**: Corriente (verde) / 1–30 (azul/neutral) / 31–60 (amarillo) / +60 (rojo). Cada barra es `pct%` del total. Label + monto + porcentaje en una sola línea, barra de 1.5px abajo.
+- **Footer sticky** (vía `flex-col` + `mt-auto`): "Factura más vieja FAC-XXX Yd" en una línea compacta.
+- `Card` con `h-full flex flex-col` + buckets envueltos en `flex-1` → distribuye el espacio uniformemente, sin huecos.
+
+Eliminado el import huérfano de `ProgressPill` que ya no se usaba en el archivo.
+
+### KPI cards (Costos + Rentabilidad) — sin truncado
+
+Bug reportado: valores grandes mostraban `$ 13.808....` con ellipsis. Causa: layout horizontal (`flex items-center justify-between`) con icono de 40×40 al costado + `truncate` en el valor. Con 7 cards en `lg:grid-cols-7` no había espacio.
+
+**Nuevo `KpiCard`** (mismo patrón en `CostosKpis.jsx` y `RentabilidadKpis.jsx`):
+
+```jsx
+<div className="bg-white border ... rounded-xl shadow-sm px-3 py-3 overflow-hidden">
+  <div className="flex items-start justify-between gap-2 mb-1.5">
+    <p className="text-[11px] font-medium text-content-tertiary ... truncate ...">{label}</p>
+    <div className="w-8 h-8 ... rounded-full ...">{icon de 16px}</div>
+  </div>
+  <p className={`${valueFontClass(value)} font-bold tabular-nums whitespace-nowrap`} title={value}>
+    {value}
+  </p>
+  {sub && <p className="text-[10px] truncate" title={sub}>{sub}</p>}
+</div>
+```
+
+**`valueFontClass`** mapea largo del valor → clase de tipografía:
+- ≤ 10 chars (`$1.500.000`): `text-xl` (Costos) / `text-lg` (Rentabilidad)
+- 11–12: `text-lg` / `text-base`
+- 13–14: `text-base` / `text-sm`
+- ≥ 15: `text-sm` / `text-xs`
+
+`tabular-nums` activado para alineación numérica. `title` en value y sub → tooltip nativo con el valor completo.
+
+**Grid responsive más razonable** en Rentabilidad: `grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7`. En `lg` (1024–1280) los 7 cards van en 2 filas (4 + 3), evitando que se compriman. Solo en `xl` aplica 7 columnas.
+
+Skeleton de loading subido a `h-24` (antes `h-20`) para coincidir con la altura del nuevo layout vertical.
+
+### Componentes shared nuevos en esta sesión
+
+| Componente | Path | Resumen |
+|---|---|---|
+| `IvaToggle` + `useIvaToggle` | `src/shared/IvaToggle.jsx` | Pill segmentado Con IVA / Sin IVA + hook con persistencia localStorage |
+| `FormDate` | `src/shared/Form/FormDate.jsx` | Selector de fecha único con DayPicker. Reemplazo del `<input type="date">` nativo |
+
+### Patrones nuevos consolidados
+
+1. **Cualquier input de fecha**: usar `FormDate` con `value` + `onChange(iso)`. Si estás en RHF, envolver en `<Controller>`. Nunca más `<input type="date">` o `<FormInput type="date">`.
+
+2. **Dashboard / módulo con KPIs de costos vs ventas**: leer el toggle global con `useIvaToggle()` y pasarlo como prop `showIva` a las KPI cards. Las cards muestran un valor + su contraparte en sub-texto.
+
+3. **Sidebar items**: usar la propiedad `grupo` libremente. Si terminás con un grupo de 1 item, el sidebar se autoadapta y lo renderiza como item directo.
+
+4. **Card que vive en grid con cards más altas**: usar `h-full flex flex-col` + `flex-1` en el contenido principal + `mt-auto` en footers para distribuir altura sin huecos.
+
+5. **Valores monetarios en KPIs**: nunca `truncate` en el value. Usar `valueFontClass(value)` para adaptar tipo + `whitespace-nowrap` + `tabular-nums` + `title={value}` para tooltip.
+
+### Pendientes y refinamientos opcionales
+
+- **Tablas detalladas de OCs** (`CostosComprasTable`, `RentabilidadComprasTable`, `OrdenesTab`, `HistorialTab`): siguen calculando "Total + IVA" client-side multiplicando por `ivaPct` que viene de `useConfigValue`. Funciona pero podrían leer `total_con_iva` del backend directamente (más consistente). Bajo impacto — funciona.
+- **`useCostosCompras.js` duplicado** en `Costos/api/` (que ya no existe) y `Rentabilidad/api/`. Tras el merge solo queda el de Rentabilidad. Si se reintroduce Costos como módulo independiente, no replicar — extraer a `shared/api/`.
+
+### Backend coupling (saber para no romper)
+
+El frontend depende de que el backend entregue en `GET /api/ordenes_compra` y `GET /api/ordenes_compra/:id/detalle`:
+- `total` (sin IVA, siempre)
+- `iva_pct` (% aplicado a la OC al crearla)
+- `iva_monto` (calculado: `total * iva_pct/100`)
+- `total_con_iva` (calculado: `total + iva_monto`)
+
+Si el backend rompe ese contrato, los hooks `useCostosCompras` muestran 0 en la versión "con IVA". Las KPIs degradan a la versión sin IVA gracias al `|| 0`.
+
+---
+
+> **Snapshot al cierre 2026-05-19**: Frontend con módulos unificados, IVA presente en todos los KPIs con toggle, selector de fechas Pinca en todos los formularios, sidebar adaptativo. Build limpio. Listo para seguir construyendo encima.
+
+---
+
+## 19. Sesión 2026-05-20 — Costos de Producción, Salud, Superadmin, TableShell
+
+### Módulo nuevo: Costos de Producción
+
+Ruta `/costos-produccion`, sidebar grupo **Análisis** (junto a Rentabilidad), ícono `Calculator`.
+
+`src/modules/CostosProduccion/`:
+- `CostosProduccionPage.jsx` — header + tabla
+- `components/CostosProduccionTable.jsx` — tabla densa con columnas: Producto, Estado, Rinde, MPs (cubiertas/total), **Stock para** (tandas + gal), Costo MP, %Util, Precio sugerido. Sortable. Tone-shift color en columna "Stock para" (verde ≥3, amarillo ≥1, rojo 0).
+- `components/CostoDetalleDrawer.jsx` — drawer con secciones: hero, descomposición, margen real (si aplica), barra apilada de composición %, **stock para producir (cuello de botella)**, lote completo, ingredientes, MPs sin proveedor, proveedores en costeo, **evolución del costo** (chart), desglose empaque + MO
+- `components/EvolucionCostoChart.jsx` — Recharts LineChart con `costo_total` (negro) y `precio_venta_calc` (verde punteado). Tooltip custom + variación entre primer/último snapshot. Empty states para 0 o 1 snapshot ("Necesitamos al menos 2 fechas distintas").
+- `api/useCostosProduccion.js` — hooks `useCostosProduccion()` y `useCostoHistoria(id)` (hasta 36 snapshots).
+
+### Módulo nuevo: Salud del Sistema (embebido en UserPanel)
+
+Nació como página standalone `/salud-sistema` pero **se movió como tab del UserPanel** porque el dashboard cabe mejor en el panel lateral del super-admin. La ruta y el sidebar item se eliminaron — solo accesible para `admin`+`superadmin` desde el UserPanel.
+
+`src/modules/SaludSistema/`:
+- `SaludSistemaPage.jsx` — componente único con dos modos: `embedded` (drawer del UserPanel, layout lista vertical) y standalone (página completa, sin uso actual pero conservado).
+- En modo embedded usa `ScoreDial` (SVG circular progress 16×16), `ProgressRow` (barra horizontal fina con label arriba + % + acción inline), y `IssueList` (sección con título + count badge + link "Ir a..." + lista plana de items). Layout vertical separado por `divide-y` — sin cards anidadas.
+- `api/useSaludSistema.js` — `useSaludSistema()` hook.
+
+**Iteración de diseño**: la primera versión metía las 5 cards del dashboard standalone dentro del drawer → feedback del usuario "se ve forzado". El rediseño cambia a layout "lista de progreso" con dividers, mucho más natural para un panel lateral angosto.
+
+### Rol `superadmin` + ForceChangePasswordModal
+
+Nuevo rol `superadmin` por encima de admin. Es el único que ve la gestión de roles. Backend hace el check (admin recibe 403 si intenta mutar permisos).
+
+**Cambios**:
+- `config/modulos.js`: `ROLES_LABELS.superadmin = 'Super Administrador'`. Removida la entrada `roles` de `MODULOS_SISTEMA` (ya no es un módulo del sidebar).
+- `config/sidebarMenu.js`: removida la entrada `roles` (y la de `salud-sistema`).
+- `App.jsx`: removidas rutas `/roles` y `/salud-sistema`. La gestión vive en el UserPanel.
+- `UserPanel.jsx`:
+  - Renombró `isAdmin` → `isSuperadmin` + `isAdminAccess` (admin O superadmin)
+  - Tabs **Empresa** y **Salud** visibles para `isAdminAccess`
+  - Tab **Roles** visible solo para `isSuperadmin`
+  - Tab **Salud** renderiza `<SaludSistemaPage embedded onNavigate={closeDrawer} />` para cerrar el drawer al navegar a otro módulo
+
+**Iniciales basadas en nombre + apellido** (`Topbar.jsx` + `UserPanel.jsx`):
+```js
+// Antes: getInitials(u) = u.slice(0,2).toUpperCase()  → "JU" para "Juan Pérez"
+// Ahora: toma primera letra de los 2 primeros tokens   → "JP" para "Juan Pérez"
+```
+Casos: `Juan Pérez`→JP, `María Fernanda Rodríguez`→MF, `Juan`→J, vacío + username `jperez`→JP.
+
+**`ForceChangePasswordModal`** (`src/shared/ForceChangePasswordModal.jsx`):
+- Overlay bloqueante `z-[200]` con `createPortal(document.body)`.
+- Se monta en `Layout.jsx` a nivel raíz.
+- Se muestra si `user?.password_must_change === 1`.
+- Validaciones: mín 8 caracteres, nueva ≠ actual, confirmación coincide.
+- Único exit: cambiar contraseña o **Cerrar Sesión**.
+- Llama `apiClient.patch(API_ROUTES.AUTH.CAMBIAR_PASSWORD, ...)` (importante: PATCH no PUT — la ruta backend es `PATCH /usuarios/mi-password`).
+- Al éxito: `setAuth(token, { ...user, password_must_change: 0 })` para limpiar el flag en el store sin re-login.
+
+### TableShell — patrón de tabla unificada
+
+`src/shared/TableShell.jsx` (nuevo) — wrapper que provee header con búsqueda + filtros + tabs internos + footer con paginación, todo dentro de un único contenedor blanco con border. Resuelve el feedback del usuario: "no quiero que el buscador y la paginación parezcan fuera de la tabla".
+
+**API**:
+```jsx
+<TableShell
+  search={search}
+  onSearch={setSearch}
+  searchPlaceholder="Buscar…"
+  filters={[<FormSelect ...>]}              // filtros React renderizables
+  tabs={tabs}                                // [{key, label, count}]
+  activeTab={tab}
+  onTabChange={setTab}
+  page={page}
+  totalPages={total}
+  onPageChange={setPage}
+>
+  <ErpTable borderless ... />
+</TableShell>
+```
+
+**`ErpTable` ganó prop `borderless`** — cuando va dentro de TableShell no debe duplicar el border externo.
+
+**Hook compañero `useClientPagination`** — paginación client-side con `{ items, page, totalPages, setPage, pageSize }`.
+
+**Aplicado en** (siempre con `variant="default"` — el formato cards-style queda fuera de moda):
+- `Sincronizacion/MaestroTab` + `HuerfanosTab`
+- `Comercial/Cotizaciones/CotizacionesTab` + `Facturacion/FacturacionTab` + `Remisiones/RemisionesTab`
+- `Compras/OrdenesTab` + `HistorialTab`
+- `Cartera/FacturasTable` + `DashboardCartera`
+
+### Scripts backup en `pinca_backend/backups/`
+
+Lado backend pero relevante saber desde el frontend: existe `backup-auto.sh` + `backup-auto.bat` que generan dumps SQL del esquema completo + datos. **No requiere acceso desde la UI** — corre desde Task Scheduler / terminal.
+
+### Patrones nuevos consolidados
+
+1. **Tablas con búsqueda + filtros + paginación**: SIEMPRE `<TableShell>`. No volver a meter `<SearchFilterBar>` arriba de un `<ErpTable>` suelto.
+2. **Acceso administrativo en tabs del UserPanel**:
+   - admin + superadmin → tabs Empresa, Salud
+   - solo superadmin → tab Roles
+   - Si vas a agregar una tab admin-only nueva, usar `isAdminAccess`. Si requiere gestión de permisos, usar `isSuperadmin`.
+3. **Modal forzado al login**: el patrón `ForceChangePasswordModal` (overlay `z-[200]` + portal + único exit por logout) sirve como template si en el futuro hay que forzar TOS, captcha, etc.
+4. **Dashboards en panel lateral**: cuando un dashboard pase de standalone a embedded, NO uses el grid de cards. Usa layout vertical con `divide-y` + ScoreDial + ProgressRow + IssueList. El usuario rechazó el primer intento de "cards apretadas" — el formato lista funciona mejor en drawers.
+
+### Backend coupling (saber para no romper)
+
+- `POST /login` ahora devuelve `usuario.password_must_change` (entero 0|1). Si el backend lo omite, el modal forzado nunca aparece — chequear ese campo en el response.
+- `PATCH /usuarios/mi-password` limpia `password_must_change` al éxito. Si se cambia a otro verbo o ruta, actualizar `ForceChangePasswordModal`.
+- `GET /salud-sistema` devuelve shape estable (ver `pinca_backend/CLAUDE.md` § 2026-05-20). Si cambia, ajustar `SaludSistemaPage`.
+- `GET /costos-produccion` debe traer `stock_para_producir: {tandas_posibles, galones_posibles, cuello_botella}` por producto. La tabla y el drawer dependen de eso.
+
+### Pendientes opcionales
+
+- **Snapshot mensual de costos** se ejecuta manualmente con `php spark snapshot:costos`. Idealmente correr 1×/mes desde cron para que el gráfico de evolución se llene solo. Por ahora hay 1 snapshot — el gráfico mostrará "Necesitamos al menos 2 fechas distintas" hasta el próximo run.
+- Cobertura real de proveedores está en 14.6% (51 productos con fórmula activa, mayoría marcados "incompleto"). Cliente tiene Excel `mps-sin-vincular-2026-05-20.xlsx` para llenar. Una vez vinculados, el módulo Costos de Producción mostrará costos completos en lugar de banners de "Materias primas sin proveedor".
+
+---
+
+> **Snapshot al cierre 2026-05-20**: Frontend con módulo Costos de Producción funcional (con gráfico Recharts de evolución de costos), Salud del Sistema embebida como tab del UserPanel solo visible para admin/superadmin, rol superadmin para gestión exclusiva de permisos, modal forzado de cambio de password al primer login, iniciales basadas en nombre + apellido, y patrón `TableShell` aplicado a 9 tablas (búsqueda + filtros + paginación embebidos). Build limpio. UserPanel ahora tiene 6 tabs: Mi Cuenta, Seguridad, Ajustes, Empresa (admin+), Salud (admin+), Roles (solo superadmin).
 

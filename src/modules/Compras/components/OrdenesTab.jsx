@@ -5,6 +5,7 @@ import StatusBadge     from '../../../shared/StatusBadge';
 import SummaryCard     from '../../../shared/SummaryCard';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay   from '../../../shared/AmountDisplay';
+import TableShell, { useClientPagination } from '../../../shared/TableShell';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { useCompras }    from '../api/useCompras';
 import useTableSort      from '../../../hooks/useTableSorts';
@@ -49,6 +50,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
   }, [ordenes, search, filters]);
 
   const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
+  const pagination = useClientPagination(sorted, 20);
 
   const columns = useMemo(() => [
     {
@@ -201,28 +203,34 @@ const OrdenesTab = ({ onVerDetalle }) => {
         <SummaryCard label="Canceladas"     value={metrics.canceladas} icon={XCircle}      color="red"   />
       </div>
 
-    <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
-      <SearchFilterBar
-        search={search}
-        onSearch={setSearch}
-        placeholder="Buscar por número o proveedor..."
-        values={filters}
-        onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
-        statusOptions={STATUS_OPTIONS}
-      />
-      </div>
-
-      <ERPTable
-        columns={columns}
-        data={sorted}
+      <TableShell
+        header={
+          <SearchFilterBar
+            search={search}
+            onSearch={setSearch}
+            placeholder="Buscar por número o proveedor..."
+            values={filters}
+            onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+            statusOptions={STATUS_OPTIONS}
+          />
+        }
+        pagination={pagination}
         isLoading={isLoadingOrdenes}
-        emptyMessage="No hay órdenes de compra"
-        emptySubMessage="Crea una orden desde el botón superior"
-        onRowClick={(row) => onVerDetalle(row)}
-        sortBy={sortBy}
-        sortDir={sortDir}
-        onSort={handleSort}
-      />
+      >
+        <ERPTable
+          columns={columns}
+          data={pagination.paginated}
+          isLoading={isLoadingOrdenes}
+          variant="default"
+          borderless
+          emptyMessage="No hay órdenes de compra"
+          emptySubMessage="Crea una orden desde el botón superior"
+          onRowClick={(row) => onVerDetalle(row)}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSort={handleSort}
+        />
+      </TableShell>
     </div>
   );
 };

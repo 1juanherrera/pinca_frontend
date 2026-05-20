@@ -3,6 +3,7 @@ import { CheckCircle2 } from 'lucide-react';
 import ERPTable        from '../../../shared/ERPTable';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay   from '../../../shared/AmountDisplay';
+import TableShell, { useClientPagination } from '../../../shared/TableShell';
 import { useCompras }  from '../api/useCompras';
 import useTableSort    from '../../../hooks/useTableSorts';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
@@ -28,6 +29,7 @@ const HistorialTab = ({ onVerDetalle }) => {
   }, [recibidas, search]);
 
   const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
+  const pagination = useClientPagination(sorted, 20);
 
   const columns = useMemo(() => [
     {
@@ -95,28 +97,34 @@ const HistorialTab = ({ onVerDetalle }) => {
 
   return (
     <div className="flex flex-col gap-2">
-        <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
-            <SearchFilterBar
-                search={search}
-                onSearch={setSearch}
-                placeholder="Buscar por número o proveedor..."
-                values={{}}
-                onChange={() => {}}
-            />
-        </div>
-
-      <ERPTable
-        columns={columns}
-        data={sorted}
+      <TableShell
+        header={
+          <SearchFilterBar
+            search={search}
+            onSearch={setSearch}
+            placeholder="Buscar por número o proveedor..."
+            values={{}}
+            onChange={() => {}}
+          />
+        }
+        pagination={pagination}
         isLoading={isLoadingOrdenes}
-        emptyMessage="No hay órdenes recibidas"
-        emptySubMessage="Las órdenes completamente recibidas aparecerán aquí"
-        EmptyIcon={CheckCircle2}
-        onRowClick={(row) => onVerDetalle(row)}
-        sortBy={sortBy}
-        sortDir={sortDir}
-        onSort={handleSort}
-      />
+      >
+        <ERPTable
+          columns={columns}
+          data={pagination.paginated}
+          isLoading={isLoadingOrdenes}
+          variant="default"
+          borderless
+          emptyMessage="No hay órdenes recibidas"
+          emptySubMessage="Las órdenes completamente recibidas aparecerán aquí"
+          EmptyIcon={CheckCircle2}
+          onRowClick={(row) => onVerDetalle(row)}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSort={handleSort}
+        />
+      </TableShell>
     </div>
   );
 };

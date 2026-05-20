@@ -148,7 +148,7 @@ const CommandPalette = ({ isOpen, onClose }) => {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[140] flex items-start justify-center pt-[12vh] px-4 animate-in fade-in"
+      className="fixed inset-0 z-140 flex items-start justify-center pt-[12vh] px-4 animate-in fade-in"
       style={{ background: 'var(--surface-overlay)' }}
       onClick={onClose}
       role="dialog"
@@ -252,7 +252,7 @@ const CommandPalette = ({ isOpen, onClose }) => {
             </span>
           </div>
           <span className="inline-flex items-center gap-1">
-            <Command size={10} /> + K para reabrir
+            <kbd className="px-1 py-px font-bold bg-surface-base border border-border-base rounded">ctrl</kbd> + <kbd className="px-1 py-px font-bold bg-surface-base border border-border-base rounded">K</kbd> para reabrir
           </span>
         </div>
       </div>

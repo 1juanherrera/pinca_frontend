@@ -20,11 +20,11 @@ import CatalogoPage from "./modules/Catalogo/CatalogoPage";
 import TamboresPage from "./modules/Tambores/TamboresPage";
 import NotFound from "./shared/NotFound";
 import PageTitle from "./shared/PageTitle";
-import RolesPage from "./modules/Roles/RolesPage";
 import SincronizacionPage from "./modules/Sincronizacion/SincronizacionPage";
 import PanelPrincipalPage from "./modules/Dashboard/PanelPrincipalPage";
 import ConfiguracionPage from "./modules/Configuracion/ConfiguracionPage";
 import TrazabilidadPage from "./modules/Trazabilidad/TrazabilidadPage";
+import CostosProduccionPage from "./modules/CostosProduccion/CostosProduccionPage";
 
 const App = () => {
   return (
@@ -52,10 +52,10 @@ const App = () => {
           <Route path="/movimientos" element={<MovimientosPage />} />
           <Route path="/rentabilidad" element={<RentabilidadPage />} />
           <Route path="/tambores" element={<TamboresPage />} />
-          <Route path="/roles" element={<RolesPage />} />
           <Route path="/sincronizacion" element={<SincronizacionPage />} />
           <Route path="/configuracion"  element={<ConfiguracionPage />} />
           <Route path="/trazabilidad"   element={<TrazabilidadPage />} />
+          <Route path="/costos-produccion" element={<CostosProduccionPage />} />
           {/* /costos fue absorbido por /rentabilidad — redirect preserva bookmarks viejos */}
           <Route path="/costos" element={<Navigate to="/rentabilidad" replace />} />
         </Route>

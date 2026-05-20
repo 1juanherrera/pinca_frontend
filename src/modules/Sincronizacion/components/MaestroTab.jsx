@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import StatusBadge from '../../../shared/StatusBadge';
 import ErpTable from '../../../shared/ErpTable';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
+import TableShell, { useClientPagination } from '../../../shared/TableShell';
 import { Button } from '../../../shared/Button';
 import { fmt } from '../../../utils/formatters';
 import { useSincMaestro } from '../api/useSincronizacion';
@@ -26,6 +27,7 @@ const MaestroTab = () => {
     [search, cobertura],
   );
   const { data: items = [], isLoading } = useSincMaestro(filters);
+  const pagination = useClientPagination(items, 20);
 
   const exportExcel = () => {
     const rows = items.map((it) => ({
@@ -122,6 +124,7 @@ const MaestroTab = () => {
   return (
     <>
       <div className="flex flex-col gap-3">
+        {/* Header de la tab: contador + acción */}
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs text-content-tertiary">
             {items.length} ítem{items.length === 1 ? '' : 's'}
@@ -134,30 +137,37 @@ const MaestroTab = () => {
           </Button>
         </div>
 
-        <SearchFilterBar
-          search={search}
-          onSearch={setSearch}
-          placeholder="Buscar MP por código o nombre..."
-          statusKey="cobertura"
-          statusOptions={[
-            { value: 'sin',     label: 'Sin proveedor', dot: 'bg-semantic-danger' },
-            { value: 'uno',     label: '1 proveedor',   dot: 'bg-semantic-warning' },
-            { value: 'dos_mas', label: '2+ proveedores', dot: 'bg-semantic-success' },
-          ]}
-          values={{ cobertura }}
-          onChange={(_, v) => setCobertura(v)}
-        />
-
-        <ErpTable
-          columns={columns}
-          data={items.map((r) => ({ ...r, id: r.id_item_general }))}
+        <TableShell
+          header={
+            <SearchFilterBar
+              search={search}
+              onSearch={setSearch}
+              placeholder="Buscar MP por código o nombre..."
+              statusKey="cobertura"
+              statusOptions={[
+                { value: 'sin',     label: 'Sin proveedor', dot: 'bg-semantic-danger' },
+                { value: 'uno',     label: '1 proveedor',   dot: 'bg-semantic-warning' },
+                { value: 'dos_mas', label: '2+ proveedores', dot: 'bg-semantic-success' },
+              ]}
+              values={{ cobertura }}
+              onChange={(_, v) => setCobertura(v)}
+            />
+          }
+          pagination={pagination}
           isLoading={isLoading}
-          variant="cards"
-          onRowClick={(row) => setSelected(row)}
-          EmptyIcon={Package}
-          emptyMessage="No hay materias primas que coincidan"
-          emptySubMessage="Probá ajustar la búsqueda o el filtro de cobertura."
-        />
+        >
+          <ErpTable
+            columns={columns}
+            data={pagination.paginated.map((r) => ({ ...r, id: r.id_item_general }))}
+            isLoading={isLoading}
+            variant="default"
+            borderless
+            onRowClick={(row) => setSelected(row)}
+            EmptyIcon={Package}
+            emptyMessage="No hay materias primas que coincidan"
+            emptySubMessage="Probá ajustar la búsqueda o el filtro de cobertura."
+          />
+        </TableShell>
       </div>
 
       {selected && (

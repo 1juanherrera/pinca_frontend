@@ -131,7 +131,7 @@ const DashboardCartera = () => {
           columns={columnsVencidas}
           data={facturasVencidas}
           isLoading={isLoadingAging}
-          variant="cards"
+          variant="default"
           emptyMessage="No hay facturas vencidas"
           emptySubMessage="Excelente trabajo manteniendo la cartera al día."
         />

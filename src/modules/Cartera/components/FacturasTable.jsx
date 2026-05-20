@@ -12,6 +12,7 @@ import { fmt } from '../../../utils/formatters';
 import { calcularDiasMora, getEstadoEfectivo } from '../services/carteraService';
 import { useFactura } from '../../Comercial/Facturacion/api/useFactura';
 import useTableSort from '../../../hooks/useTableSorts';
+import TableShell, { useClientPagination } from '../../../shared/TableShell';
 
 const STATUS_OPTIONS = [
   { value: 'Pendiente', label: 'Pendiente', dot: 'bg-semantic-warning' },
@@ -65,6 +66,7 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
   }, [facturas, search, filters]);
 
   const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
+  const pagination = useClientPagination(sorted, 20);
 
   const columns = useMemo(() => [
     {
@@ -214,46 +216,54 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
         />
       </div>
 
-      <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm flex flex-wrap items-end gap-3">
-        <div className="flex-1 min-w-48">
-          <SearchFilterBar
-            search={search}
-            onSearch={setSearch}
-            placeholder="Buscar por número, cliente o ciudad..."
-            values={filters}
-            onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
-            statusOptions={STATUS_OPTIONS}
-          />
-        </div>
-        {/* Filtro de sector */}
-        <div className="flex items-center gap-2 shrink-0">
-          {SECTOR_OPTIONS.map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() => setFilters((p) => ({ ...p, sector: value }))}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                filters.sector === value
-                  ? 'bg-content-primary text-content-inverse border-content-primary'
-                  : 'bg-white text-content-tertiary border-border-base hover:border-border-strong'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <ERPTable
-        columns={columns}
-        data={sorted}
+      <TableShell
+        header={
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex-1 min-w-48">
+              <SearchFilterBar
+                search={search}
+                onSearch={setSearch}
+                placeholder="Buscar por número, cliente o ciudad..."
+                values={filters}
+                onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+                statusOptions={STATUS_OPTIONS}
+              />
+            </div>
+            {/* Filtro de sector */}
+            <div className="flex items-center gap-2 shrink-0">
+              {SECTOR_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setFilters((p) => ({ ...p, sector: value }))}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                    filters.sector === value
+                      ? 'bg-content-primary text-content-inverse border-content-primary'
+                      : 'bg-white text-content-tertiary border-border-base hover:border-border-strong'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        }
+        pagination={pagination}
         isLoading={isLoadingFacturas}
-        emptyMessage="No se encontraron facturas"
-        emptySubMessage="Las facturas generadas aparecerán aquí"
-        onRowClick={(row) => onVerDetalle?.(row)}
-        sortBy={sortBy}
-        sortDir={sortDir}
-        onSort={handleSort}
-      />
+      >
+        <ERPTable
+          columns={columns}
+          data={pagination.paginated}
+          isLoading={isLoadingFacturas}
+          variant="default"
+          borderless
+          emptyMessage="No se encontraron facturas"
+          emptySubMessage="Las facturas generadas aparecerán aquí"
+          onRowClick={(row) => onVerDetalle?.(row)}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSort={handleSort}
+        />
+      </TableShell>
     </div>
   );
 };

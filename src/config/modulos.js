@@ -17,13 +17,14 @@ export const MODULOS_SISTEMA = [
   { key: 'pagos',            label: 'Pagos',              grupo: 'Finanzas' },
   { key: 'tambores',         label: 'Tambores',           grupo: 'Inventario' },
   { key: 'prorrateo',        label: 'Prorrateo',          grupo: 'Análisis' },
-  { key: 'roles',            label: 'Gestión de Roles',   grupo: 'Sistema' },
   { key: 'sincronizacion',   label: 'Sincronización',     grupo: 'Inventario' },
   { key: 'trazabilidad',     label: 'Trazabilidad',       grupo: 'Inventario' },
+  { key: 'costos-produccion', label: 'Costos de Producción', grupo: 'Análisis' },
 ];
 
 export const ROLES_LABELS = {
-  admin:    'Administrador',
-  operador: 'Operador',
-  visor:    'Visor',
+  superadmin: 'Super Administrador',
+  admin:      'Administrador',
+  operador:   'Operador',
+  visor:      'Visor',
 };

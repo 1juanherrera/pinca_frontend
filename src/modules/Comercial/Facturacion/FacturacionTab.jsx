@@ -12,6 +12,7 @@ import FacturaDrawer      from './components/FacturaDrawer';
 import { fmt }            from '../../../utils/formatters';
 import { useFactura }     from './api/useFactura';
 import useTableSort       from '../../../hooks/useTableSorts';
+import TableShell, { useClientPagination } from '../../../shared/TableShell';
 
 const STATUS_OPTIONS = [
   { value: 'Pendiente', label: 'Pendiente', dot: 'bg-semantic-warning'   },
@@ -55,6 +56,7 @@ const FacturacionTab = () => {
   }, [facturas, search, filters]);
 
   const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
+  const pagination = useClientPagination(sorted, 20);
 
   const columns = useMemo(() => [
     {
@@ -176,21 +178,26 @@ const FacturacionTab = () => {
         />
       </div>
 
-    <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
-      <SearchFilterBar
-        search={search}
-        onSearch={setSearch}
-        placeholder="Buscar por número o cliente..."
-        values={filters}
-        onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
-        statusOptions={STATUS_OPTIONS}
-      />
-    </div>
-
+      <TableShell
+        header={
+          <SearchFilterBar
+            search={search}
+            onSearch={setSearch}
+            placeholder="Buscar por número o cliente..."
+            values={filters}
+            onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+            statusOptions={STATUS_OPTIONS}
+          />
+        }
+        pagination={pagination}
+        isLoading={isLoadingFacturas}
+      >
       <ERPTable
         columns={columns}
-        data={sorted}
+        data={pagination.paginated}
         isLoading={isLoadingFacturas}
+        variant="default"
+        borderless
         emptyMessage="No se encontraron facturas"
         emptySubMessage="Las facturas generadas aparecerán aquí"
         onRowClick={(row) => setSelected(row)}
@@ -198,6 +205,7 @@ const FacturacionTab = () => {
         sortDir={sortDir}
         onSort={handleSort}
       />
+      </TableShell>
 
       <FacturaDrawer
         facturaId={selected?.id_facturas}

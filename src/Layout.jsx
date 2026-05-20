@@ -4,6 +4,7 @@ import Sidebar from './Shared/Sidebar';
 import Topbar from './Shared/Topbar';
 import UserPanel from './Shared/UserPanel';
 import CommandPalette from './shared/CommandPalette';
+import ForceChangePasswordModal from './shared/ForceChangePasswordModal';
 import { useBoundStore } from './store/useBoundStore';
 import { ShieldOff } from 'lucide-react';
 
@@ -68,6 +69,7 @@ const Layout = () => {
 
       <UserPanel />
       <CommandPalette isOpen={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <ForceChangePasswordModal />
     </div>
   );
 };

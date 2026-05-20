@@ -10,6 +10,7 @@ import SearchFilterBar     from '../../../shared/SearchFilterBar';
 import RemisionDrawer      from './components/RemisionDrawer';
 import { useRemisiones }   from './api/useRemisiones';
 import useTableSort        from '../../../hooks/useTableSorts';
+import TableShell, { useClientPagination } from '../../../shared/TableShell';
 
 const STATUS_OPTIONS = [
   { value: 'Pendiente', label: 'Pendiente', dot: 'bg-semantic-warning'   },
@@ -51,6 +52,7 @@ const RemisionesTab = () => {
   }, [remisiones, search, filters]);
 
   const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
+  const pagination = useClientPagination(sorted, 20);
 
   const columns = useMemo(() => [
     {
@@ -181,28 +183,34 @@ const RemisionesTab = () => {
         <SummaryCard label="Facturadas" value={metrics.conFactura} icon={Truck}        color="blue"  />
       </div>
 
-      <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
-        <SearchFilterBar
-          search={search}
-          onSearch={setSearch}
-          placeholder="Buscar por número, cliente o dirección..."
-          values={filters}
-          onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
-          statusOptions={STATUS_OPTIONS}
-        />
-      </div>
-
-      <ERPTable
-        columns={columns}
-        data={sorted}
+      <TableShell
+        header={
+          <SearchFilterBar
+            search={search}
+            onSearch={setSearch}
+            placeholder="Buscar por número, cliente o dirección..."
+            values={filters}
+            onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+            statusOptions={STATUS_OPTIONS}
+          />
+        }
+        pagination={pagination}
         isLoading={isLoadingRemisiones}
-        emptyMessage="No se encontraron remisiones"
-        emptySubMessage="Las remisiones generadas aparecerán aquí"
-        onRowClick={(row) => setSelected(row)}
-        sortBy={sortBy}
-        sortDir={sortDir}
-        onSort={handleSort}
-      />
+      >
+        <ERPTable
+          columns={columns}
+          data={pagination.paginated}
+          isLoading={isLoadingRemisiones}
+          variant="default"
+          borderless
+          emptyMessage="No se encontraron remisiones"
+          emptySubMessage="Las remisiones generadas aparecerán aquí"
+          onRowClick={(row) => setSelected(row)}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSort={handleSort}
+        />
+      </TableShell>
 
       <RemisionDrawer
         remisionId={selected?.id_remisiones}

@@ -45,6 +45,7 @@ const ERPTable = ({
   density = 'normal',          // 'compact' | 'normal'
   variant = 'default',         // 'default' | 'cards'
   stickyHeader = false,
+  borderless = false,          // si true: sin wrapper border/shadow (para embeber)
 }) => {
   if (!isLoading && data.length === 0) {
     return (
@@ -155,7 +156,12 @@ const ERPTable = ({
 
   // ── DEFAULT variant ─────────────────────────────────────────────────────
   return (
-    <div className="w-full overflow-x-auto rounded-xl border border-border-base bg-surface-base shadow-card">
+    <div className={cn(
+      'w-full overflow-x-auto',
+      borderless
+        ? 'bg-transparent'
+        : 'rounded-xl border border-border-base bg-surface-base shadow-card',
+    )}>
       <table className="w-full">
         <thead className={cn(
           'bg-surface-muted border-b border-border-base',

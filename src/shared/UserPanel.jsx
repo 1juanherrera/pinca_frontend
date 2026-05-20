@@ -3,8 +3,9 @@ import {
   X, KeyRound, Eye, EyeOff, LogOut, ShieldCheck, UserCircle,
   CheckCircle2, Clock, History, Settings2, Building2, Save,
   Globe, Phone, MapPin, FileText, Hash, AlertCircle, Bell,
-  BellOff, Rows3, Maximize2, Palette, Check, User as UserIcon,
+  BellOff, Rows3, Maximize2, Palette, Check, User as UserIcon, HeartPulse,
 } from 'lucide-react';
+import SaludSistemaPage from '../modules/SaludSistema/SaludSistemaPage';
 import { useBoundStore }  from '../store/useBoundStore';
 import { useNavigate }    from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -21,7 +22,19 @@ import {
 // ─── Constantes ───────────────────────────────────────────────────────────────
 const ROLES = ['admin', 'operador', 'visor'];
 
-const getInitials  = (u = '') => u.slice(0, 2).toUpperCase();
+/**
+ * Iniciales: primera letra de los 2 primeros tokens del nombre completo.
+ *   "Juan Pérez"        → JP
+ *   "María de la Cruz"  → MD
+ *   "Juan"              → J
+ *   sin nombre          → primeras 2 letras del username
+ */
+const getInitials  = (nombre = '', username = '') => {
+  const tokens = String(nombre).trim().split(/\s+/).filter(Boolean);
+  if (tokens.length >= 2) return (tokens[0][0] + tokens[1][0]).toUpperCase();
+  if (tokens.length === 1) return tokens[0][0].toUpperCase();
+  return String(username).slice(0, 2).toUpperCase();
+};
 const maskIp       = (ip = '') => ip.replace(/(\d+)\.(\d+)\.(\d+)\.(\d+)/, '$1.$2.*.*');
 const fmtDate      = (str)    => new Date(str).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
 const decodeJwt    = (tok)    => { try { return JSON.parse(atob(tok.split('.')[1])); } catch { return null; } };
@@ -44,7 +57,7 @@ const Toggle = ({ checked, onChange, disabled }) => (
     }`}
   >
     <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
-      checked ? 'translate-x-[18px]' : 'translate-x-[3px]'
+      checked ? 'translate-x-4.5' : 'translate-x-0.75'
     }`} />
   </button>
 );
@@ -141,8 +154,8 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
 
       {/* Avatar + info */}
       <div className="flex items-center gap-4">
-        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${avatarGrad} flex items-center justify-center text-white text-2xl font-bold shadow-lg shrink-0`}>
-          {getInitials(user?.nombre || user?.username)}
+        <div className={`w-16 h-16 rounded-2xl bg-linear-to-br ${avatarGrad} flex items-center justify-center text-white text-2xl font-bold shadow-lg shrink-0`}>
+          {getInitials(user?.nombre, user?.username)}
         </div>
         <div className="min-w-0">
           <p className="text-xl font-bold text-content-primary truncate">{user?.nombre || user?.username}</p>
@@ -260,7 +273,7 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
 
       {/* Logout */}
       <button onClick={onLogout}
-        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-semantic-danger/20 text-semantic-danger hover:bg-semantic-danger-subtle transition-colors text-sm font-medium">
+        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-semantic-danger/20 text-white hover:bg-semantic-danger/80 bg-semantic-danger transition-colors text-sm font-medium">
         <LogOut size={15} /> Cerrar sesión
       </button>
     </div>
@@ -432,7 +445,7 @@ const PreferenciasTab = () => {
                   className={`group relative flex flex-col items-center gap-1.5 rounded-xl p-2 transition-all ${
                     active ? 'bg-surface-muted ring-2 ring-content-primary' : 'hover:bg-surface-subtle ring-1 ring-transparent'
                   }`}>
-                  <span className={`w-10 h-10 rounded-xl bg-gradient-to-br ${p.preview} shadow-sm flex items-center justify-center text-white`}>
+                  <span className={`w-10 h-10 rounded-xl bg-linear-to-br ${p.preview} shadow-sm flex items-center justify-center text-white`}>
                     {active && <Check size={16} strokeWidth={3} />}
                   </span>
                   <span className={`text-[10px] font-medium ${active ? 'text-content-primary' : 'text-content-tertiary'}`}>
@@ -615,8 +628,8 @@ const UsuariosRoles = () => {
           <div key={u.id_usuarios}
             className={`flex items-center justify-between px-3 py-2.5 ${i < arr.length-1 ? 'border-b border-border-subtle':''} hover:bg-surface-subtle`}>
             <div className="flex items-center gap-2 min-w-0">
-              <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${(ROL_STYLES[u.rol]??ROL_STYLES.visor).grad} flex items-center justify-center text-white text-[10px] font-bold shrink-0`}>
-                {getInitials(u.nombre || u.username)}
+              <div className={`w-7 h-7 rounded-full bg-linear-to-br ${(ROL_STYLES[u.rol]??ROL_STYLES.visor).grad} flex items-center justify-center text-white text-[10px] font-bold shrink-0`}>
+                {getInitials(u.nombre, u.username)}
               </div>
               <div className="min-w-0">
                 <span className="block text-sm font-medium text-content-secondary truncate">
@@ -648,8 +661,9 @@ const UserPanel = () => {
   const token        = useBoundStore(s => s.token);
   const navigate     = useNavigate();
 
-  const isOpen  = activeDrawer === 'USER_PANEL';
-  const isAdmin = user?.rol === 'admin';
+  const isOpen        = activeDrawer === 'USER_PANEL';
+  const isSuperadmin  = user?.rol === 'superadmin';
+  const isAdminAccess = isSuperadmin || user?.rol === 'admin'; // admin + superadmin
   const [tab, setTab] = useState('cuenta');
   const headerGrad = useAvatarGradient(user?.rol);
 
@@ -669,8 +683,13 @@ const UserPanel = () => {
     { key: 'cuenta',      label: 'Mi Cuenta',  icon: UserCircle },
     { key: 'seguridad',   label: 'Seguridad',  icon: History    },
     { key: 'prefs',       label: 'Ajustes',    icon: Settings2  },
-    ...(isAdmin ? [
+    // Tabs admin (admin + superadmin)
+    ...(isAdminAccess ? [
       { key: 'empresa',   label: 'Empresa',    icon: Building2  },
+      { key: 'salud',     label: 'Salud',      icon: HeartPulse },
+    ] : []),
+    // Tab exclusiva de superadmin: gestión de roles
+    ...(isSuperadmin ? [
       { key: 'roles',     label: 'Roles',      icon: ShieldCheck },
     ] : []),
   ];
@@ -679,20 +698,20 @@ const UserPanel = () => {
     <>
       {/* Overlay */}
       <div onClick={closeDrawer}
-        className={`fixed inset-0 bg-black/40 z-[100] transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/40 z-100 transition-opacity duration-300 ${
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`} />
 
       {/* Panel */}
-      <div className={`fixed right-0 top-0 h-full z-[101] flex flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out w-full sm:w-[50vw] sm:min-w-[500px] sm:max-w-[900px] ${
+      <div className={`fixed right-0 top-0 h-full z-101 flex flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out w-full sm:w-[50vw] sm:min-w-125 sm:max-w-225 ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-border-subtle shrink-0">
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${headerGrad} flex items-center justify-center text-white text-xs font-bold`}>
-              {getInitials(user?.nombre || user?.username)}
+            <div className={`w-8 h-8 rounded-xl bg-linear-to-br ${headerGrad} flex items-center justify-center text-white text-xs font-bold`}>
+              {getInitials(user?.nombre, user?.username)}
             </div>
             <div>
               <p className="text-sm font-semibold text-content-primary leading-none">{user?.nombre || user?.username}</p>
@@ -729,6 +748,11 @@ const UserPanel = () => {
           {tab === 'prefs'     && <PreferenciasTab />}
           {tab === 'empresa'   && <EmpresaTab />}
           {tab === 'roles'     && <RolesTab />}
+          {tab === 'salud'     && (
+            <div className="p-5">
+              <SaludSistemaPage embedded onNavigate={closeDrawer} />
+            </div>
+          )}
         </div>
       </div>
     </>

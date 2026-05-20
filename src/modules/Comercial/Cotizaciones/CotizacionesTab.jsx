@@ -13,6 +13,7 @@ import ExportCotizacion     from './components/ExportCotizacion';
 import { fmt }              from '../../../utils/formatters';
 import { useCotizaciones }  from './api/useCotizaciones';
 import useTableSort         from '../../../hooks/useTableSorts';
+import TableShell, { useClientPagination } from '../../../shared/TableShell';
 
 const STATUS_OPTIONS = [
   { value: 'Borrador',  label: 'Borrador',  dot: 'bg-content-muted'    },
@@ -57,6 +58,7 @@ const CotizacionesTab = () => {
   }, [cotizaciones, search, filters]);
 
   const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
+  const pagination = useClientPagination(sorted, 20);
 
 const columns = useMemo(() => [
     {
@@ -188,27 +190,34 @@ const columns = useMemo(() => [
         <SummaryCard label="Monto Aprobado" value={fmt(metrics.montoAprobado)} icon={CheckCircle2}  color="green" />
       </div>
 
-      <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
-        <SearchFilterBar
-          search={search}
-          onSearch={setSearch}
-          placeholder="Buscar por número, empresa o encargado..."
-          values={filters}
-          onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
-          statusOptions={STATUS_OPTIONS}
-        />
-      </div>
-      <ERPTable
-        columns={columns}
-        data={sorted}
+      <TableShell
+        header={
+          <SearchFilterBar
+            search={search}
+            onSearch={setSearch}
+            placeholder="Buscar por número, empresa o encargado..."
+            values={filters}
+            onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+            statusOptions={STATUS_OPTIONS}
+          />
+        }
+        pagination={pagination}
         isLoading={isLoadingCotizaciones}
-        emptyMessage="No se encontraron cotizaciones"
-        emptySubMessage="Crea una cotización desde el módulo de Ventas"
-        onRowClick={(row) => setSelected(row)}
-        sortBy={sortBy}
-        sortDir={sortDir}
-        onSort={handleSort}
-      />
+      >
+        <ERPTable
+          columns={columns}
+          data={pagination.paginated}
+          isLoading={isLoadingCotizaciones}
+          variant="default"
+          borderless
+          emptyMessage="No se encontraron cotizaciones"
+          emptySubMessage="Crea una cotización desde el módulo de Ventas"
+          onRowClick={(row) => setSelected(row)}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSort={handleSort}
+        />
+      </TableShell>
 
       <CotizacionDrawer
         cotizacionId={selected?.id_cotizaciones}
