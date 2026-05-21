@@ -69,7 +69,7 @@ const ConteoRapidoModal = ({ onClose }) => {
               <p className="text-sm font-bold text-content-primary">Conteo rápido</p>
               <p className="text-[11px] text-content-muted">
                 {total > 0
-                  ? `${pendientesFiltrados.length} item${pendientesFiltrados.length !== 1 ? 's' : ''} sin cantidad — ingresa los tambores contados`
+                  ? `${pendientesFiltrados.length} item${pendientesFiltrados.length !== 1 ? 's' : ''} sin cantidad — ingresa los conteos`
                   : 'Cargando pendientes…'}
               </p>
             </div>

@@ -125,6 +125,7 @@ export const FormulacionesTable = ({
     opcionesIngredientes = null,
     seleccionPorIngrediente = {},
     onSeleccionIngrediente,
+    costMode = 'real',
     onEdit,
     onClone,
     isLoading = false,
@@ -168,15 +169,26 @@ export const FormulacionesTable = ({
         });
     };
 
-    const getCostoOverride = (formulacion) => {
-        const mpId = formulacion.item_general_id;
-        const selectedIpId = seleccionPorIngrediente[mpId];
-        if (!selectedIpId) return null;
-
+    // Resuelve qué proveedor "efectivo" mostrar por ingrediente:
+    //   1. Override manual del usuario (selección explícita en el dropdown).
+    //   2. Sino, si costMode === 'lista': el más barato (opciones[0]).
+    //   3. Sino (costMode === 'real'): null → la tabla cae al costo estándar
+    //      (promedio ponderado de capas vía costos_item.costo_unitario).
+    const getOpcionEfectiva = (mpId) => {
         const matInfo = materiasOpciones[mpId];
-        if (!matInfo) return null;
+        if (!matInfo?.opciones?.length) return null;
+        const selectedIpId = seleccionPorIngrediente[mpId];
+        if (selectedIpId) {
+            return matInfo.opciones.find((o) => o.id_item_proveedor === selectedIpId) ?? null;
+        }
+        if (costMode === 'lista') {
+            return matInfo.opciones[0]; // backend ya las ordena por precio_por_kg ASC
+        }
+        return null;
+    };
 
-        const opcion = matInfo.opciones?.find((o) => o.id_item_proveedor === selectedIpId);
+    const getCostoOverride = (formulacion) => {
+        const opcion = getOpcionEfectiva(formulacion.item_general_id);
         if (!opcion) return null;
 
         const cantidad = recalculatedData
@@ -208,7 +220,7 @@ export const FormulacionesTable = ({
             }
         }
         return { totalUnificado: total.toFixed(2), sinProveedor: sinProv };
-    }, [seleccionPorIngrediente, dataToShow, materiasOpciones, recalculatedData]);
+    }, [seleccionPorIngrediente, dataToShow, materiasOpciones, recalculatedData, costMode]);
 
     return (
         <div className="bg-white rounded-lg shadow-sm overflow-visible border border-border-base/60">

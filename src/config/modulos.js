@@ -15,15 +15,13 @@ export const MODULOS_SISTEMA = [
   { key: 'proveedores',      label: 'Proveedores',        grupo: 'Relaciones' },
   { key: 'movimientos',      label: 'Movimientos',        grupo: 'Inventario' },
   { key: 'pagos',            label: 'Pagos',              grupo: 'Finanzas' },
-  { key: 'tambores',         label: 'Tambores',           grupo: 'Inventario' },
-  { key: 'prorrateo',        label: 'Prorrateo',          grupo: 'Análisis' },
   { key: 'sincronizacion',   label: 'Sincronización',     grupo: 'Inventario' },
   { key: 'trazabilidad',     label: 'Trazabilidad',       grupo: 'Inventario' },
   { key: 'costos-produccion', label: 'Costos de Producción', grupo: 'Análisis' },
 ];
 
 export const ROLES_LABELS = {
-  superadmin: 'Super Administrador',
+  superadmin: 'Superadmin',
   admin:      'Administrador',
   operador:   'Operador',
   visor:      'Visor',

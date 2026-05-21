@@ -23,10 +23,12 @@ apiClient.interceptors.response.use(
       || error.response?.data?.messages?.error
       || error.response?.data?.msg;
 
+    // Limpiar cualquier toast genérico que un hook hubiera disparado antes
+    // (onError genérico). Garantiza que el mensaje del backend siempre gane,
+    // sin depender de timing/setTimeout.
     if (backendMsg) {
-      // Diferimos para que aparezca DESPUÉS de cualquier toast genérico
-      // que dispare el onError del hook (toast-limiter mantiene el último).
-      setTimeout(() => toast.error(backendMsg), 50);
+      toast.dismiss();
+      toast.error(backendMsg);
     } else if (!error.response) {
       toast.error('Error de red. Verificá tu conexión.');
     } else if (error.response.status >= 500) {
@@ -34,8 +36,13 @@ apiClient.interceptors.response.use(
     }
 
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      // Limpiar el store y dejar que Layout redirija via React Router.
+      // Antes hacíamos window.location.href = '/login' (hard reload), que
+      // causaba flash del panel principal antes del redirect.
+      // Import dinámico para evitar dependencia circular con el store.
+      import('../store/useBoundStore').then(({ useBoundStore }) => {
+        useBoundStore.getState().logout();
+      });
     }
     return Promise.reject(error);
   }

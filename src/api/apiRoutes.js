@@ -2,6 +2,7 @@ export const API_ROUTES = {
   AUTH: {
     LOGIN:             '/login',
     REGISTER:          '/crear',
+    ME:                '/auth/me',
     CAMBIAR_PASSWORD:  '/usuarios/mi-password',
     ACTUALIZAR_PERFIL: '/usuarios/mi-perfil',
     MI_ACTIVIDAD:      '/usuarios/mi-actividad',
@@ -47,12 +48,6 @@ export const API_ROUTES = {
     LIST: '/notas_credito',
     CREATE: '/notas_credito',
     ANULAR: (id) => `/notas_credito/${id}/anular`,
-  },
-  TAMBORES: {
-    LIST: '/tambores',
-    DETAIL: (id) => `/tambores/${id}`,
-    DISPONIBLES: '/tambores/disponibles',
-    CONSUMIR: (id) => `/tambores/${id}/consumir`,
   },
   CATALOGO: {
     LIST:        '/catalogo',

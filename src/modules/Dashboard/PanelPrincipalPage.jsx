@@ -12,7 +12,6 @@ import IconBox from '../../shared/IconBox';
 import StatusBadge from '../../shared/StatusBadge';
 import { Button } from '../../shared/Button';
 import EmptyState from '../../shared/EmptyState';
-import TopProgressBar from '../../shared/TopProgressBar';
 import { useBoundStore } from '../../store/useBoundStore';
 import { fmt } from '../../utils/formatters';
 import { useDashboard } from './api/useDashboard';
@@ -104,7 +103,6 @@ const PanelPrincipalPage = () => {
   if (isLoading || !data) {
     return (
       <div className="relative flex flex-col w-full gap-4">
-        <TopProgressBar active />
         <HeaderSection
           title={`Hola${(user?.nombre || user?.username) ? `, ${user.nombre || user.username}` : ''}`}
           subtitle="Panel principal"
@@ -129,7 +127,6 @@ const PanelPrincipalPage = () => {
 
   return (
     <div className="relative flex flex-col w-full gap-5">
-      <TopProgressBar active={isFetching} />
       {/* Header con saludo y refresh */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <HeaderSection

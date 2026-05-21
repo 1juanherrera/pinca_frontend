@@ -63,9 +63,33 @@ export const useCompras = (id = null) => {
       queryClient.invalidateQueries({ queryKey: comprasKeys.detail(idOrden?.toString()) });
       queryClient.invalidateQueries({ queryKey: comprasKeys.lists() });
       queryClient.invalidateQueries({ queryKey: inventarioKeys.all });
+      // Refrescar el lote sugerido — la próxima recepción ya tendrá capas con
+      // este código, así que el endpoint lo reusará.
+      queryClient.invalidateQueries({ queryKey: ['ordenes_compra', idOrden, 'lote-sugerido'] });
       toast.success('Producto recibido correctamente');
     },
     onError: () => toast.error('Error al recibir el producto'),
+  });
+
+  // ── RECIBIR LOTE PRORRATEADO ──────────────────────────────────────────
+  // Recibe varias líneas con un precio total negociado (descuento por volumen).
+  // El backend reparte el descuento proporcional al valor de cada línea y crea
+  // las capas con el costo prorrateado.
+  const recibirProrrateadoMutation = useMutation({
+    mutationFn: ({ idOrden, precio_total_pagado, lote_proveedor, lineas }) =>
+      apiClient.post(`/ordenes_compra/${idOrden}/recibir-prorrateado`, {
+        precio_total_pagado,
+        lote_proveedor: lote_proveedor ?? null,
+        lineas,
+      }),
+    onSuccess: (_, { idOrden }) => {
+      queryClient.invalidateQueries({ queryKey: comprasKeys.detail(idOrden?.toString()) });
+      queryClient.invalidateQueries({ queryKey: comprasKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: inventarioKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['ordenes_compra', idOrden, 'lote-sugerido'] });
+      toast.success('Lote recibido con costo prorrateado');
+    },
+    onError: () => toast.error('Error al recibir el lote prorrateado'),
   });
 
   // ── DELETE ────────────────────────────────────────────────────────────
@@ -99,6 +123,9 @@ export const useCompras = (id = null) => {
 
     recibirLineaAsync: recibirLineaMutation.mutateAsync,
     isRecibiendo:      recibirLineaMutation.isPending,
+
+    recibirProrrateadoAsync: recibirProrrateadoMutation.mutateAsync,
+    isRecibiendoProrrateado: recibirProrrateadoMutation.isPending,
 
     removeAsync:      deleteMutation.mutateAsync,
     isDeleting:       deleteMutation.isPending,

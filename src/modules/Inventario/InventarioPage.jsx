@@ -7,13 +7,12 @@ import { ButtonSquare } from '../../shared/Button';
 import { useParams } from 'react-router';
 import { useBoundStore } from '../../store/useBoundStore';
 import HeaderSection from '../../shared/HeaderSection';
-import TopProgressBar from '../../shared/TopProgressBar';
 import { useInventario } from './api/useInventario';
 
 const InventarioPage = () => {
   const { id_bodega } = useParams();
   const { setBodega, clearBodega, sedeName } = useBoundStore();
-  const { isLoadingItems, isFetching, items, refresh } = useInventario(id_bodega);
+  const { isLoadingItems, items, refresh } = useInventario(id_bodega);
   const openModal = useBoundStore(state => state.openModal);
 
   useEffect(() => {
@@ -23,7 +22,6 @@ const InventarioPage = () => {
 
   return (
     <div className="relative flex flex-col w-full gap-4">
-      <TopProgressBar active={isLoadingItems || isFetching} />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <HeaderSection
           title={`Existencias y Lotes${items?.nombre ? ` — ${items.nombre}` : ''}`}

@@ -21,14 +21,31 @@ function ToastLimiter() {
   return null;
 }
 
+// Política central de reintentos: NO reintentamos errores del cliente (4xx)
+// porque son determinísticos — pegarle 3 veces al mismo 422 no va a cambiar
+// nada y solo confunde con toasts duplicados. Sí reintentamos red caída
+// (sin response) y 5xx (servidor saturado/transitorio).
+const shouldRetry = (failureCount, error) => {
+  const status = error?.response?.status;
+  if (status && status >= 400 && status < 500) return false; // 4xx → no retry
+  return failureCount < 2; // 5xx o sin response → hasta 2 reintentos
+};
+
 // 3. Configuramos comportamientos globales
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // Los datos se consideran "frescos" por 5 minutos
-      gcTime: 1000 * 60 * 30,    // Los datos inactivos se borran del caché a los 30 min
-      retry: 1,                 // Si falla, solo reintenta una vez
-      refetchOnWindowFocus: false, // Evita peticiones extra al cambiar de pestaña (opcional)
+      staleTime: 1000 * 60 * 5,    // Datos "frescos" por 5 minutos
+      gcTime: 1000 * 60 * 30,      // Cache inactivo se borra a los 30 min
+      retry: shouldRetry,
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000), // backoff exponencial cap 8s
+      refetchOnWindowFocus: false, // Evita refetch al cambiar de pestaña
+    },
+    mutations: {
+      // Mutaciones NO se reintentan por default: un POST a medio camino podría
+      // duplicar un registro. Cada mutación que sea idempotente puede pedir
+      // retry explícitamente.
+      retry: 0,
     },
   },
 });

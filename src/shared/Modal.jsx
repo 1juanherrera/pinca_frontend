@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import cn from '../utils/cn';
+import { useBoundStore } from '../store/useBoundStore';
 
 const SIZE_CLASSES = {
   sm:   'max-w-sm',
@@ -40,10 +41,24 @@ export const Modal = ({
   children,
   bodyClassName = '',
   className = '',
+  isDirty = false,
+  dirtyMessage = 'Tenés cambios sin guardar. ¿Cerrar igual?',
 }) => {
+  const openConfirm = useBoundStore((s) => s.openConfirm);
+
+  const requestClose = () => {
+    if (!isDirty) { onClose?.(); return; }
+    openConfirm({
+      title:   'Cerrar sin guardar',
+      message: dirtyMessage,
+      variant: 'warning',
+      onConfirm: () => onClose?.(),
+    });
+  };
+
   useEffect(() => {
     if (!isOpen) return;
-    const onKey = (e) => { if (closeOnEsc && e.key === 'Escape') onClose?.(); };
+    const onKey = (e) => { if (closeOnEsc && e.key === 'Escape') requestClose(); };
     document.addEventListener('keydown', onKey);
     // Lock body scroll while open
     const prev = document.body.style.overflow;
@@ -52,7 +67,8 @@ export const Modal = ({
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
     };
-  }, [isOpen, closeOnEsc, onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, closeOnEsc, onClose, isDirty]);
 
   if (!isOpen) return null;
 
@@ -62,7 +78,7 @@ export const Modal = ({
     <div
       className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-in fade-in"
       style={{ background: 'var(--surface-overlay)' }}
-      onClick={closeOnBackdrop ? onClose : undefined}
+      onClick={closeOnBackdrop ? requestClose : undefined}
       role="dialog"
       aria-modal="true"
     >
@@ -103,7 +119,7 @@ export const Modal = ({
             {showClose && (
               <button
                 type="button"
-                onClick={onClose}
+                onClick={requestClose}
                 className="p-1 -mr-1 rounded-md text-content-muted hover:text-content-primary hover:bg-surface-muted transition-colors shrink-0"
                 aria-label="Cerrar"
               >

@@ -6,7 +6,6 @@ import FormulacionesPage from "./modules/Formulaciones/FormulacionesPage";
 import SedePage from "./modules/sedes/sedePage";
 import BodegaPage from "./modules/Bodegas/BodegaPage";
 import ProduccionPage from "./modules/Produccion/ProduccionPage";
-import Prorrateo from "./modules/Prorrateo/Prorrateo";
 import ClientePage from "./modules/Clientes/ClientePage";
 import PagosPage from "./modules/Pagos/PagosPage";
 import ComercialPage from "./modules/Comercial/ComercialPage";
@@ -17,7 +16,6 @@ import { Login } from "./modules/Login/Login";
 import MovimientosPage from "./modules/Movimientos/MovimientosPage";
 import RentabilidadPage from "./modules/Rentabilidad/RentabilidadPage";
 import CatalogoPage from "./modules/Catalogo/CatalogoPage";
-import TamboresPage from "./modules/Tambores/TamboresPage";
 import NotFound from "./shared/NotFound";
 import PageTitle from "./shared/PageTitle";
 import SincronizacionPage from "./modules/Sincronizacion/SincronizacionPage";
@@ -40,7 +38,6 @@ const App = () => {
           <Route path="/instalaciones/bodegas/:id" element={<BodegaPage />} />
           <Route path="/produccion" element={<ProduccionPage />} />
           <Route path="/clientes" element={<ClientePage />} />
-          <Route path="/prorrateo" element={<Prorrateo />} />
           <Route path="/catalogo" element={<CatalogoPage />} />
 
           {/* Nuevas Rutas */}
@@ -51,7 +48,6 @@ const App = () => {
           <Route path="/proveedores" element={<ProveedoresPage />} />
           <Route path="/movimientos" element={<MovimientosPage />} />
           <Route path="/rentabilidad" element={<RentabilidadPage />} />
-          <Route path="/tambores" element={<TamboresPage />} />
           <Route path="/sincronizacion" element={<SincronizacionPage />} />
           <Route path="/configuracion"  element={<ConfiguracionPage />} />
           <Route path="/trazabilidad"   element={<TrazabilidadPage />} />

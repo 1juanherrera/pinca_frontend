@@ -7,7 +7,7 @@ import {
   TrendingUp, TrendingDown, DollarSign,
 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { EstadoBadge } from './ProduccionTable ';
+import { EstadoBadge } from './ProduccionTable';
 import { usePreparaciones } from '../../Formulaciones/api/usePreparaciones';
 import FormulacionVersionesDrawer from '../../Formulaciones/components/FormulacionVersionesDrawer';
 import apiClient from '../../../api/apiClient';

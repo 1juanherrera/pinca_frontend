@@ -1126,3 +1126,121 @@ Lado backend pero relevante saber desde el frontend: existe `backup-auto.sh` + `
 
 > **Snapshot al cierre 2026-05-20**: Frontend con módulo Costos de Producción funcional (con gráfico Recharts de evolución de costos), Salud del Sistema embebida como tab del UserPanel solo visible para admin/superadmin, rol superadmin para gestión exclusiva de permisos, modal forzado de cambio de password al primer login, iniciales basadas en nombre + apellido, y patrón `TableShell` aplicado a 9 tablas (búsqueda + filtros + paginación embebidos). Build limpio. UserPanel ahora tiene 6 tabs: Mi Cuenta, Seguridad, Ajustes, Empresa (admin+), Salud (admin+), Roles (solo superadmin).
 
+---
+
+## 20. Sesión 2026-05-21 — Hardening profundo + Prorrateo OC + Refactors UX
+
+Sesión muy grande. Auditoría profunda con 5 agentes, plan en 3 fases ejecutado completo, prorrateo integrado al flujo de OC, toggle costo real vs lista en formulaciones, eliminación de módulos huérfanos. Ver §"Pendientes" al final del archivo `PENDIENTES.md` en la raíz del backend para el backlog.
+
+### Resumen ejecutivo
+
+| Bloque | Items |
+|---|---|
+| **Fase 1 (datos críticos)** | recalcularSaldo en anulación, revertir pagos/NC, validar FK cliente, cambiarEstado con FOR UPDATE, race condition consumo capas, renombrar 3 archivos con typo |
+| **Fase 2 (UX + autz)** | DELETEs con guard admin, validateJson en Formulaciones e ItemProveedor, setActiveTitle centralizado en Layout, 401 sin flash (Opción B), filtros URL en Tambores, cambio de rol invalida JWT (token_version) |
+| **Fase 3 (consistencia)** | apiClient sin setTimeout, paginación capped vía Cfg, confirm al borrar línea inline, Modal/Drawer respetan `isDirty`, useFieldErrors para mapear errores backend a campos, ApiResponse trait (pilot), useFormValidation hook (validación blur) |
+| **Refactors UX** | Tambores eliminado completo, Roles polish con superadmin column, password_must_change fix (allowedFields), GlobalTopProgressBar centralizado, toggle Costo real vs Lista en Formulaciones |
+| **Prorrateo OC** | Backend recibirLoteProrrateado con FOR UPDATE y atomicidad, modal RecibirProrrateoModal en OrdenDrawer, auto-generar código de lote LOT-OC{id}-{Ymd}, endpoint /lote-sugerido para pre-llenar input, formato peso COP en input precio |
+
+### 20.1 Auth y sesión — endpoint `/auth/me` + token_version
+
+- Nuevo hook en `Layout.jsx`: `useQuery(['auth-me'])` que llama `GET /auth/me` antes de renderizar el `<Outlet />`. Si el backend rechaza el token (401), `logout()` + `<Navigate to="/login">`. Mientras pendiente, muestra `<FullPageLoader>`. **Esto resuelve el flash del panel** cuando hay token expirado en localStorage.
+- `apiClient.js` ya no hace `window.location.href = '/login'` en 401. Ahora hace `useBoundStore.getState().logout()` (import dinámico para evitar dep circular) → Layout redirige vía React Router sin hard reload.
+- `setAuth` se llama con los datos frescos de `meData.usuario` cada vez que llega la respuesta → si un admin cambia tu rol mientras estás logueado, el cambio se refleja en la próxima request (combinado con `token_version` del backend).
+- `setActiveTitle` centralizado: mapa `TITULO_POR_RUTA` en `Layout.jsx`. Páginas individuales pueden sobreescribir si quieren título más específico.
+- `ForceChangePasswordModal` y `UserPanel.cambiarPwd`: usan el `res.token` que devuelve el endpoint de cambio de password para mantener viva la sesión tras el bump de `token_version`.
+
+### 20.2 Forms — errores backend + validación blur + dirty guard
+
+**Hook nuevo `src/hooks/useFieldErrors.js`** — mini-store de errores por campo. Lee `err.response.data.errors` del backend (formato ValidatesJson 422) y los mapea a `<FormInput error={...} />`. Aplicado en FacturaForm como pilot (campo `cliente_id`).
+
+**Hook nuevo `src/hooks/useFormValidation.js`** — validación frontend con touched por campo. API:
+```js
+const v = useFormValidation({ cliente_id: { required: 'msg' } });
+<FormInput onBlur={() => v.blur('cliente_id', form.cliente_id)} error={v.fieldError('cliente_id')} />
+if (!v.validateAll(form)) return;
+```
+Solo muestra error si el campo fue touched o se llamó validateAll. Aplicado completo en FacturaForm; aplicación parcial (onBlur al input cliente libre) en CotizacionForm y RemisionForm.
+
+**`<Drawer>` y `<Modal>` shared** ahora aceptan props `isDirty` y `dirtyMessage`. Si `isDirty=true`, X / ESC / backdrop pasan por `openConfirm({variant: 'warning'})`. FacturaForm usa esta nueva API; los 3 forms comerciales con drawer inline implementan el mismo patrón inline (no usan el `<Drawer>` shared).
+
+**Confirm al borrar línea inline** en CotizacionForm / FacturaForm / RemisionForm: si la línea está vacía borra directo, si tiene contenido pide confirmación.
+
+### 20.3 OrdenDrawer + Prorrateo integrado
+
+**Backend** (`OrdenesCompraController`):
+- Nuevo método **`recibirLoteProrrateado($idOrden)`**: acepta `{precio_total_pagado, lote_proveedor?, lineas: [{id_detalle, cantidad_recibida}]}`. Calcula `factor = precio_pagado / Σ(cantidad × precio_unit_oc)`, aplica a cada línea, crea capas con costo prorrateado en una sola transacción con lock por línea (`FOR UPDATE`). Si pendientes=0 marca OC `Recibida`.
+- Nuevo método **`loteSugerido($idOrden)`** → `GET /ordenes_compra/:id/lote-sugerido`. Devuelve `{lote: "LOT-OC{id}-{Ymd}"}`. Reusa código existente si ya hay capas con lote para esa OC.
+- Helper privado `resolverLoteProveedor()` centraliza la lógica de generación/reuso de código de lote. Llamado por `recibirLinea` y `recibirLoteProrrateado`.
+
+**Frontend** (`Compras/`):
+- **`RecibirProrrateoModal.jsx`** — modal grande (max-w-4xl) que se abre desde OrdenDrawer cuando estado=Enviada y ≥2 líneas pendientes. Tabla con cantidades editables + input precio total negociado (formato peso COP con `formatThousands`) + lote pre-rellenado vía `useLoteSugerido`. Live calc de factor, ahorro/sobrecargo. Lock visual con tabla `tabular-nums` y badge color-coded según factor.
+- **`RecibirLineaModal.jsx`** — ahora también recibe `ordenId` prop, usa `useLoteSugerido` para pre-rellenar el input del lote.
+- **`useLoteSugerido.js`** — query con `staleTime: 60s`. Las mutations `recibirLinea` y `recibirProrrateado` invalidan esta key para que la próxima recepción vea el código actualizado.
+- **OrdenDrawer**: `size="3xl"` (antes 4xl), botón "Recibir lote prorrateado" condicional a estado Enviada + ≥2 pendientes.
+
+### 20.4 Formulaciones — toggle Costo real vs Costo lista
+
+Antes: la tabla auto-seleccionaba el proveedor más barato → mostraba `item_proveedor.precio_unitario` (precio de lista). Esto **no reflejaba prorrateo** — un descuento por volumen en una recepción nunca aparecía en la fórmula.
+
+Ahora:
+- **Estado nuevo `costMode` en `FormulacionesPage`**: `'real'` (default) o `'lista'`.
+- **Toggle UI** arriba de la tabla con dos botones (📦 Costo real / 🏷 Costo lista) y descripción contextual de qué representa cada modo.
+- **`FormulacionesTable.getOpcionEfectiva(mpId)`** decide por ingrediente:
+  1. Si hay override manual del usuario → ese gana.
+  2. Si `costMode === 'lista'` → cheapest provider (opciones[0]).
+  3. Si `costMode === 'real'` → null → cae al costo estándar `costos_item.costo_unitario` (promedio ponderado de capas — refleja prorrateo).
+- **Eliminado el `useEffect` que auto-poblaba `seleccionPorIngrediente`** — la lógica vive ahora en tiempo de render (más limpia, sin warnings de lint `set-state-in-effect`).
+- Modo real es el default porque el costo histórico (capas) coincide con tu inventario y márgenes reales. Modo lista para cotizar reposición.
+
+### 20.5 Módulos / rutas eliminados
+
+- **Tambores**: borrado completo (frontend modules/Tambores/, backend TamborController + TamborModel, rutas, permisos DB, "Ver tambores" en Inventario DataTable). La migración que creó la tabla `tambores` queda en historial (no se rolea).
+- **Prorrateo standalone** (`/prorrateo`): borrado. El modal `RecibirProrrateoModal` dentro de OrdenDrawer queda como única forma de prorratear. La conclusión fue que la calculator standalone confundía vs el modal contextual.
+- **AnalisisAhorroOC**: borrado. Era una sección que comparaba OC vs precio de lista en el drawer. Se removió por simplicidad. El JOIN extra de `precio_lista_actual` en `OrdenesCompraModel::detalle` también se revirtió.
+
+### 20.6 Roles polish (superadmin)
+
+- `RolesTab` en UserPanel: agregada columna "Superadmin" en la matriz módulo×rol (locked, siempre acceso total).
+- Dropdown de usuarios incluye `superadmin` en opciones.
+- Promociones a admin/superadmin piden confirmación con `openConfirm({variant: 'warning'})`.
+- No podés cambiar tu propio rol (select disabled + chip "(vos)").
+- Texto actualizado: "Cambios se aplican inmediatamente" (porque ahora `token_version` invalida JWT al cambiar rol).
+- `password_must_change` fix: `UsuarioModel.allowedFields` ahora incluye este campo (sin esto, CI4 silently stripeaba el flag y el modal forzado aparecía en cada login).
+
+### 20.7 Otros refactors visuales
+
+- **`GlobalTopProgressBar`** en Layout entre Topbar y main. Usa `useIsFetching()` de React Query. Las 7 páginas que tenían su propio `<TopProgressBar>` lo perdieron (eliminado import + uso, destructure de isLoading/isFetching limpiado cuando ya no se usaba). Antes la barra colisionaba con el icono del header de cada página.
+- **3 archivos renombrados** sacando espacio antes de `.jsx`: `FormCostProducts.jsx`, `ProduccionFilters.jsx`, `ProduccionTable.jsx`. Los imports en `index.js`, `FormulacionesPage.jsx`, `ProduccionPage.jsx`, `ProduccionDetailModal.jsx` actualizados. Esto rompía deploy en Linux/CI.
+- **React Query retry policy central** en `main.jsx`: queries no reintentan en 4xx, hasta 2 reintentos con backoff exponencial en 5xx/red. Mutations no reintentan por default.
+
+### Frontend coupling con backend (cosas para no romper)
+
+- `GET /auth/me` debe devolver `{ok, usuario: {id, username, nombre, rol, modulos, password_must_change}}`. Si cambia el shape, Layout deja de funcionar.
+- `PATCH /usuarios/mi-password` debe devolver `{ok, token}` con el nuevo JWT (`token_version` incrementado). Si no devuelve token, la sesión cae al próximo request.
+- `POST /login` debe incluir `token_version` en el JWT payload + `password_must_change` en el `usuario` del response.
+- `GET /ordenes_compra/:id/detalle` debe traer en cada línea: `factor_conversion`, `unidad_compra_nombre`, `precio_unit` — el modal `RecibirProrrateoModal` y `RecibirLineaModal` dependen de esto.
+- Detalle de OC ya NO trae `precio_lista_actual` (revertido al borrar AnalisisAhorroOC).
+
+### Archivos nuevos en esta sesión
+
+```
+src/hooks/useFieldErrors.js
+src/hooks/useFormValidation.js
+src/modules/Compras/api/useLoteSugerido.js
+src/modules/Compras/components/RecibirProrrateoModal.jsx
+```
+
+### Archivos eliminados
+
+```
+src/modules/Tambores/ (folder completo)
+src/modules/Inventario/Components/TamboresItemModal.jsx
+src/modules/Prorrateo/ (folder completo)
+src/modules/Compras/components/AnalisisAhorroOC.jsx
+```
+
+---
+
+> **Snapshot al cierre 2026-05-21**: Frontend con auditoría profunda completa (3 fases ejecutadas), prorrateo integrado al flujo de OC con auto-generación de código de lote y formato peso COP, toggle costo real/lista en Formulaciones que cierra la inconsistencia entre prorrateo de capas y costo mostrado. Módulos huérfanos (Tambores, Prorrateo standalone, AnalisisAhorroOC) eliminados. Build limpio en ~13-16s. Backlog completo en `PENDIENTES.md` (raíz). Tareas mayores pendientes: tests automatizados, OpenAPI/Swagger, refresh token, deploy hardening (HTTPS/security headers/CORS prod).
+

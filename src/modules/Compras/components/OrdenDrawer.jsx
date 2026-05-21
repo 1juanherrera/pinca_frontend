@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { PackageCheck, Building2, Calendar, Warehouse, Send, XCircle, Download } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { PackageCheck, Building2, Calendar, Warehouse, Send, XCircle, Download, Scale } from 'lucide-react';
 import { useCompras } from '../api/useCompras';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { fmt } from '../../../utils/formatters';
@@ -8,6 +8,7 @@ import { Button } from '../../../shared/Button';
 import StatusBadge from '../../../shared/StatusBadge';
 import cn from '../../../utils/cn';
 import RecibirLineaModal from './RecibirLineaModal';
+import RecibirProrrateoModal from './RecibirProrrateoModal';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 
 const InfoRow = ({ icon: Icon, label, value }) => (
@@ -25,11 +26,24 @@ const fmtFecha = (d) => d
   : '—';
 
 const OrdenDrawer = ({ ordenId, isOpen, onClose }) => {
-  const { detalle, isLoadingDetalle, cambiarEstadoAsync, recibirLineaAsync, isRecibiendo } =
-    useCompras(ordenId?.toString());
+  const {
+    detalle, isLoadingDetalle,
+    cambiarEstadoAsync,
+    recibirLineaAsync, isRecibiendo,
+    recibirProrrateadoAsync, isRecibiendoProrrateado,
+  } = useCompras(ordenId?.toString());
   const { openConfirm, openDrawer } = useBoundStore();
   const [lineaRecibir, setLineaRecibir] = useState(null);
+  const [prorrateoAbierto, setProrrateoAbierto] = useState(false);
   const ivaPct = useConfigValue('iva_default', 19);
+
+  // El botón "Recibir lote prorrateado" solo tiene sentido si la OC está Enviada
+  // y quedan al menos 2 líneas pendientes (con 1 sola línea, no hay nada que prorratear).
+  const lineasPendientes = useMemo(
+    () => (detalle?.lineas ?? []).filter((l) => !l.recibido_en),
+    [detalle]
+  );
+  const puedeProrratearse = detalle?.estado === 'Enviada' && lineasPendientes.length >= 2;
 
   if (!isOpen) return null;
   const orden = detalle;
@@ -51,7 +65,7 @@ const OrdenDrawer = ({ ordenId, isOpen, onClose }) => {
         icon={PackageCheck}
         title={isLoadingDetalle ? 'Cargando...' : (orden?.numero ?? 'Orden')}
         description="Detalle de orden de compra"
-        size="4xl"
+        size="3xl"
       >
         {isLoadingDetalle ? (
           <div className="space-y-3">
@@ -88,6 +102,15 @@ const OrdenDrawer = ({ ordenId, isOpen, onClose }) => {
                     onClick={() => handleCambiarEstado('Enviada')}
                   >
                     Marcar como enviada
+                  </Button>
+                )}
+                {puedeProrratearse && (
+                  <Button
+                    size="sm" variant="secondary" icon={Scale}
+                    onClick={() => setProrrateoAbierto(true)}
+                    title="Recibir varias líneas con un precio total negociado (descuento por volumen)"
+                  >
+                    Recibir lote prorrateado
                   </Button>
                 )}
                 {(orden.estado === 'Borrador' || orden.estado === 'Enviada') && (
@@ -204,6 +227,7 @@ const OrdenDrawer = ({ ordenId, isOpen, onClose }) => {
       {lineaRecibir && (
         <RecibirLineaModal
           linea={lineaRecibir}
+          ordenId={ordenId}
           isSubmitting={isRecibiendo}
           onClose={() => setLineaRecibir(null)}
           onConfirm={async (payload) => {
@@ -213,6 +237,21 @@ const OrdenDrawer = ({ ordenId, isOpen, onClose }) => {
               ...payload,
             });
             setLineaRecibir(null);
+          }}
+        />
+      )}
+
+      {prorrateoAbierto && orden && (
+        <RecibirProrrateoModal
+          orden={orden}
+          isSubmitting={isRecibiendoProrrateado}
+          onClose={() => setProrrateoAbierto(false)}
+          onConfirm={async (payload) => {
+            await recibirProrrateadoAsync({
+              idOrden: ordenId,
+              ...payload,
+            });
+            setProrrateoAbierto(false);
           }}
         />
       )}

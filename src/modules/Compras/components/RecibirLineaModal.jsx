@@ -1,14 +1,23 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { PackageCheck, X, ArrowRight, Hash, Repeat } from 'lucide-react';
 import { fmt } from '../../../utils/formatters';
+import { useLoteSugerido } from '../api/useLoteSugerido';
 
 const fmtNum = (v, dec = 2) =>
   Number(v ?? 0).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: dec });
 
-const RecibirLineaModal = ({ linea, onClose, onConfirm, isSubmitting }) => {
+const RecibirLineaModal = ({ linea, ordenId, onClose, onConfirm, isSubmitting }) => {
   const [cantidad, setCantidad] = useState(linea.cantidad - linea.cantidad_recibida);
   const [lote, setLote] = useState('');
+
+  // Cargo el código de lote sugerido y lo pre-relleno apenas llega.
+  // Si el usuario lo edita después, no lo sobreescribo.
+  const { data: loteData } = useLoteSugerido(ordenId);
+  useEffect(() => {
+    if (loteData?.lote && lote === '') setLote(loteData.lote);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loteData?.lote]);
 
   const max        = linea.cantidad - (linea.cantidad_recibida ?? 0);
   const sobreMax   = Number(cantidad) > max;
@@ -122,22 +131,21 @@ const RecibirLineaModal = ({ linea, onClose, onConfirm, isSubmitting }) => {
             </div>
           )}
 
-          {/* Lote del proveedor (opcional pero visible) */}
+          {/* Lote del proveedor — pre-rellenado por el sistema, editable */}
           <div>
             <label className="flex items-center gap-1 text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1.5">
               <Hash size={10} /> Código de lote del proveedor
-              <span className="ml-1 text-content-muted/60 normal-case font-normal tracking-normal">(recomendado para trazabilidad)</span>
             </label>
             <input
               type="text"
               value={lote}
               onChange={(e) => setLote(e.target.value)}
-              placeholder="Ej: LT-2026-A042"
+              placeholder="Generando…"
               maxLength={60}
               className="w-full px-3 py-2 text-sm font-mono border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition text-content-secondary"
             />
             <p className="text-[10px] text-content-tertiary mt-1 leading-snug">
-              Si lo dejás vacío, podés cargarlo después — pero la trazabilidad inversa por lote no funcionará para este ingreso.
+              Compartido entre todas las recepciones de esta OC. Podés editarlo si tu proveedor te dio un código propio.
             </p>
           </div>
 

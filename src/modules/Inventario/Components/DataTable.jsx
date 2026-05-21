@@ -3,10 +3,8 @@ import {
   ArrowRightLeft,
   ChevronLeft,
   ChevronRight,
-  Info,
   Wrench,
 } from 'lucide-react';
-import TamboresItemModal from './TamboresItemModal';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { NavTabs } from './NavTabs';
 import { formatoPesoColombiano } from '../../../utils/formatters';
@@ -34,7 +32,6 @@ const DataTable = () => {
   const [searchTerm,  setSearchTerm]  = useState('');
   const [tipoFilter,  setTipoFilter]  = useState('');
   const [itemTraspaso, setItemTraspaso] = useState(null);
-  const [itemDetalle,  setItemDetalle]  = useState(null);
   const [itemAjuste,   setItemAjuste]   = useState(null);
 
   const id_bodega   = useBoundStore(state => state.activeBodegaId);
@@ -185,13 +182,6 @@ const DataTable = () => {
                           >
                             <Wrench size={12} />
                           </button>
-                          <button
-                            onClick={() => setItemDetalle(item)}
-                            title="Ver tambores"
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-colors"
-                          >
-                            <Info size={12} />
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -291,14 +281,6 @@ const DataTable = () => {
 
       <ConfirmModal />
       <ExcelModal data={items} tipoFilter={tipoFilter} searchTerm={searchTerm} />
-
-      {itemDetalle && (
-        <TamboresItemModal
-          item={itemDetalle}
-          bodegaId={id_bodega}
-          onClose={() => setItemDetalle(null)}
-        />
-      )}
 
       {itemTraspaso && (
         <TraspasoModal

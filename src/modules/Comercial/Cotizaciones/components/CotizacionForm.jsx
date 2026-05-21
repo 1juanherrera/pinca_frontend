@@ -195,7 +195,23 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
       subtotal:        0,
     }]);
 
-  const removeItem = (idx) => setItems((p) => p.filter((_, i) => i !== idx));
+  const openConfirm = useBoundStore((s) => s.openConfirm);
+  const removeItem = (idx) => {
+    const item = items[idx];
+    const filled = item?.descripcion?.trim() || Number(item?.precio_unit) > 0 || item?.item_general_id;
+    // Solo confirma si la línea tiene contenido real — borrar una línea vacía
+    // recién agregada no necesita preguntar.
+    if (!filled) {
+      setItems((p) => p.filter((_, i) => i !== idx));
+      return;
+    }
+    openConfirm({
+      title:   'Eliminar línea',
+      message: `¿Eliminar "${item.descripcion || 'esta línea'}" de la cotización?`,
+      variant: 'danger',
+      onConfirm: () => setItems((p) => p.filter((_, i) => i !== idx)),
+    });
+  };
 
   const subtotal  = items.reduce((s, it) => s + (Number(it.subtotal) || 0), 0);
   const baseIva   = subtotal - Number(form.descuento);
@@ -234,9 +250,28 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
     closeDrawer();
   };
 
+  // Heurística de "dirty": hay datos significativos cargados que se perderían
+  // al cerrar. No incluye los valores por default (cantidad=1, precio=0) ni
+  // un cliente vacío recién montado.
+  const isDirty =
+    items.some((it) => it.descripcion?.trim() || Number(it.precio_unit) > 0 || it.item_general_id) ||
+    !!clienteSel ||
+    !!clienteLibre.trim() ||
+    !!form.observaciones?.trim();
+
+  const requestClose = () => {
+    if (!isDirty) { closeDrawer(); return; }
+    openConfirm({
+      title:   'Cerrar sin guardar',
+      message: 'Tenés cambios sin guardar. ¿Cerrar igual?',
+      variant: 'warning',
+      onConfirm: closeDrawer,
+    });
+  };
+
   return (
     <>
-      <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]" onClick={closeDrawer} />
+      <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]" onClick={requestClose} />
       <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-white shadow-2xl z-50 flex flex-col border-l border-border-base">
 
         {/* Header */}
@@ -247,7 +282,7 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
             </h2>
             <p className="text-xs text-content-tertiary mt-0.5">Complete los datos de la propuesta comercial</p>
           </div>
-          <button onClick={closeDrawer} className="w-8 h-8 rounded-lg flex items-center justify-center text-content-muted hover:bg-surface-strong">
+          <button onClick={requestClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-content-muted hover:bg-surface-strong">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -293,6 +328,9 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                   type="text"
                   value={clienteLibre}
                   onChange={(e) => { setClienteLibre(e.target.value); setErrors((p) => ({ ...p, cliente: null })); }}
+                  onBlur={() => {
+                    if (!clienteLibre.trim()) setErrors((p) => ({ ...p, cliente: 'Escribe el nombre del cliente' }));
+                  }}
                   placeholder="Nombre del cliente..."
                   className="w-full text-sm border border-border-base rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
                 />
@@ -604,7 +642,7 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={closeDrawer}
+              onClick={requestClose}
               className="px-4 py-2 text-sm text-content-secondary border border-border-base rounded-lg hover:bg-surface-muted"
             >
               Cancelar

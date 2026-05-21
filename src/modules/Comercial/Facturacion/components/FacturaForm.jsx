@@ -13,6 +13,8 @@ import { FormTextarea } from '../../../../shared/Form/FormTexarea';
 import FormDate from '../../../../shared/Form/FormDate';
 import { LABEL_BASE } from '../../../../shared/Form/styles';
 import { useConfigValue } from '../../../Configuracion/api/useConfiguracion';
+import { useFieldErrors } from '../../../../hooks/useFieldErrors';
+import { useFormValidation } from '../../../../hooks/useFormValidation';
 import cn from '../../../../utils/cn';
 
 const EMPTY_ITEM = { descripcion: '', cantidad: 1, precio_unitario: 0 };
@@ -61,11 +63,41 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
   );
   const [ivaPct,    setIvaPct]    = useState(ivaDefault);
 
-  const setField   = (k, v) => setForm((p) => ({ ...p, [k]: v }));
-  const setItem    = (idx, k, v) =>
+  const { errors: fieldErrors, setFromBackend, clearField, clearAll } = useFieldErrors();
+
+  // Validación frontend con touched. Marca un campo onBlur, lo limpia onChange
+  // si pasa a ser válido, valida todo antes de submit.
+  const validation = useFormValidation({
+    cliente_id:    { required: 'Selecciona un cliente' },
+    fecha_emision: { required: 'La fecha de emisión es obligatoria' },
+  });
+
+  const setField   = (k, v) => {
+    clearField(k);
+    validation.change(k, v);
+    setForm((p) => ({ ...p, [k]: v }));
+  };
+  const setItem    = (idx, k, v) => {
+    clearField(`items.${idx}.${k}`);
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, [k]: v } : it)));
+  };
   const addItem    = () => setItems((p) => [...p, { ...EMPTY_ITEM }]);
-  const removeItem = (idx) => setItems((p) => p.filter((_, i) => i !== idx));
+
+  const openConfirm = useBoundStore((s) => s.openConfirm);
+  const removeItem = (idx) => {
+    const item = items[idx];
+    const filled = item?.descripcion?.trim() || Number(item?.precio_unitario) > 0;
+    if (!filled) {
+      setItems((p) => p.filter((_, i) => i !== idx));
+      return;
+    }
+    openConfirm({
+      title:   'Eliminar línea',
+      message: `¿Eliminar "${item.descripcion || 'esta línea'}" de la factura?`,
+      variant: 'danger',
+      onConfirm: () => setItems((p) => p.filter((_, i) => i !== idx)),
+    });
+  };
 
   const subtotal  = items.reduce((acc, it) => acc + Number(it.precio_unitario) * Number(it.cantidad), 0);
   const baseIva   = subtotal - Number(form.descuento);
@@ -73,21 +105,39 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
   const total     = subtotal - Number(form.descuento) + impuestos - Number(form.retencion);
 
   const handleSubmit = async () => {
+    clearAll();
+    // Validación frontend primero — evita un round-trip al backend si hay
+    // campos vacíos o malformados.
+    if (!validation.validateAll(form)) return;
+
     const payload = { ...form, impuestos, items, subtotal, total };
-    if (editData) {
-      await updateAsync({ id: editData.id_facturas, data: payload });
-    } else {
-      await createAsync(payload);
+    try {
+      if (editData) {
+        await updateAsync({ id: editData.id_facturas, data: payload });
+      } else {
+        await createAsync(payload);
+      }
+      closeDrawer();
+    } catch (err) {
+      // Cuando el backend devuelve 422 con `errors: { campo: msg }`, se
+      // pintan inline en los inputs. El toast genérico ya lo dispara apiClient.
+      setFromBackend(err);
     }
-    closeDrawer();
   };
 
   const isSaving = isCreating || isUpdating;
+
+  // Si tocaron algo importante, el Drawer pide confirmación al cerrar.
+  const isDirty =
+    items.some((it) => it.descripcion?.trim() || Number(it.precio_unitario) > 0) ||
+    !!form.cliente_id ||
+    !!form.observaciones?.trim();
 
   return (
     <Drawer
       isOpen
       onClose={closeDrawer}
+      isDirty={isDirty && !isSaving}
       icon={FileText}
       title={editData ? 'Editar factura' : 'Nueva factura'}
       description={editData ? `Modificando ${editData.numero}` : 'Complete los datos de la factura'}
@@ -117,12 +167,15 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
               placeholder="ID del cliente"
               value={form.cliente_id}
               onChange={(e) => setField('cliente_id', e.target.value)}
+              onBlur={() => validation.blur('cliente_id', form.cliente_id)}
+              error={fieldErrors.cliente_id || validation.fieldError('cliente_id')}
             />
             <FormDate
               label="Fecha emisión"
               required
               value={form.fecha_emision}
-              onChange={(iso) => setField('fecha_emision', iso)}
+              onChange={(iso) => { setField('fecha_emision', iso); validation.blur('fecha_emision', iso); }}
+              error={fieldErrors.fecha_emision || validation.fieldError('fecha_emision')}
             />
             <FormDate
               label="Fecha vencimiento"

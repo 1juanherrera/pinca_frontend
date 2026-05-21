@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { ArrowDownUp } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
-import TopProgressBar from '../../shared/TopProgressBar';
 import { useMovimientos } from './api/useMovimientos';
 import { MovimientosFilters } from './components/MovimientosFilters';
 import { MovimientosTable } from './components/MovimientosTable';
@@ -41,7 +40,6 @@ const MovimientosPage = () => {
 
   return (
     <div className="relative flex flex-col w-full gap-4">
-      <TopProgressBar active={isLoading || isFetching} />
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection

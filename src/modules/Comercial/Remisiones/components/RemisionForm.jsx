@@ -163,7 +163,21 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
       return updated;
     }));
 
-  const removeItem = (idx) => setItems((p) => p.filter((_, i) => i !== idx));
+  const openConfirm = useBoundStore((s) => s.openConfirm);
+  const removeItem = (idx) => {
+    const item = items[idx];
+    const filled = item?.descripcion?.trim() || Number(item?.precio_unit) > 0;
+    if (!filled) {
+      setItems((p) => p.filter((_, i) => i !== idx));
+      return;
+    }
+    openConfirm({
+      title:   'Eliminar línea',
+      message: `¿Eliminar "${item.descripcion || 'esta línea'}" de la remisión?`,
+      variant: 'danger',
+      onConfirm: () => setItems((p) => p.filter((_, i) => i !== idx)),
+    });
+  };
 
   const total = items.reduce((s, i) => s + (Number(i.subtotal) || 0), 0);
 
@@ -201,9 +215,26 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
     closeDrawer();
   };
 
+  // Cerrar con confirmación si hay cambios sin guardar.
+  const isDirty =
+    items.some((it) => it.descripcion?.trim() || Number(it.precio_unit) > 0) ||
+    !!clienteSel ||
+    !!clienteLibre.trim() ||
+    !!form.observaciones?.trim();
+
+  const requestClose = () => {
+    if (!isDirty) { closeDrawer(); return; }
+    openConfirm({
+      title:   'Cerrar sin guardar',
+      message: 'Tenés cambios sin guardar. ¿Cerrar igual?',
+      variant: 'warning',
+      onConfirm: closeDrawer,
+    });
+  };
+
   return (
     <>
-      <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]" onClick={closeDrawer} />
+      <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]" onClick={requestClose} />
       <div className="fixed top-0 right-0 h-full w-full max-w-3xl bg-white shadow-2xl z-50 flex flex-col border-l border-border-base">
 
         {/* Header */}
@@ -214,7 +245,7 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
             </h2>
             <p className="text-xs text-content-tertiary mt-0.5">Complete los datos del despacho</p>
           </div>
-          <button onClick={closeDrawer} className="w-8 h-8 rounded-lg flex items-center justify-center text-content-muted hover:bg-surface-strong">
+          <button onClick={requestClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-content-muted hover:bg-surface-strong">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -259,7 +290,10 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
                 <input
                   type="text"
                   value={clienteLibre}
-                  onChange={(e) => setClienteLibre(e.target.value)}
+                  onChange={(e) => { setClienteLibre(e.target.value); setErrors(p => ({...p, cliente: null})); }}
+                  onBlur={() => {
+                    if (!clienteLibre.trim()) setErrors(p => ({...p, cliente: 'Escribe el nombre del cliente'}));
+                  }}
                   placeholder="Nombre del cliente..."
                   className="w-full text-sm border border-border-base rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
                 />
@@ -508,7 +542,7 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
             {items.length} ítem(s) · <span className="font-semibold text-content-secondary">{fmt(total)}</span>
           </p>
           <div className="flex gap-2">
-            <button onClick={closeDrawer} className="px-4 py-2 text-sm text-content-secondary border border-border-base rounded-lg hover:bg-surface-muted">
+            <button onClick={requestClose} className="px-4 py-2 text-sm text-content-secondary border border-border-base rounded-lg hover:bg-surface-muted">
               Cancelar
             </button>
             <Button variant="black" onClick={handleSubmit} disabled={isCreating || isUpdating} icon={Save}>

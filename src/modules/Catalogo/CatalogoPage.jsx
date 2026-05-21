@@ -4,7 +4,6 @@ import { BookOpen, Plus, RefreshCw, Boxes, Truck } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import PageTabs from '../../shared/PageTabs';
 import { Button, ButtonSquare } from '../../shared/Button';
-import TopProgressBar from '../../shared/TopProgressBar';
 import ConfirmModal from '../../shared/ConfirmModal';
 import { useBoundStore } from '../../store/useBoundStore';
 import { useUrlSearch } from '../../hooks/useUrlSearch';
@@ -74,8 +73,6 @@ const CatalogoPage = () => {
 
   return (
     <div className="relative flex flex-col w-full gap-4">
-      <TopProgressBar active={isLoading && tab === 'productos'} />
-
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection
           title="Catálogo"

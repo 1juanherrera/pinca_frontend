@@ -51,12 +51,14 @@ const ForceChangePasswordModal = () => {
 
     setLoading(true);
     try {
-      await apiClient.patch(API_ROUTES.AUTH.CAMBIAR_PASSWORD, {
+      const res = await apiClient.patch(API_ROUTES.AUTH.CAMBIAR_PASSWORD, {
         currentPassword: current,
         newPassword:     next,
       });
-      // Actualizar el store: ya no debe cambiar password
-      setAuth(token, { ...user, password_must_change: 0 });
+      // El backend incrementa token_version al cambiar password — usa el
+      // token nuevo que vuelve en la respuesta para que esta sesión siga viva.
+      const nuevoToken = res?.token ?? token;
+      setAuth(nuevoToken, { ...user, password_must_change: 0 });
       toast.success('Contraseña actualizada. Bienvenido.');
     } catch (err) {
       const msg = err?.response?.data?.msg || 'No se pudo actualizar la contraseña.';

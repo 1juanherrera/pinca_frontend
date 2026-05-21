@@ -1,3 +1,4 @@
+import { useIsFetching } from '@tanstack/react-query';
 import cn from '../utils/cn';
 
 /**
@@ -39,6 +40,28 @@ const TopProgressBar = ({ active = true, tone = 'brand', fixed = false, classNam
       )}
     >
       <div className={cn('h-full w-1/3 rounded-r-full animate-top-progress', bar)} />
+    </div>
+  );
+};
+
+/**
+ * Versión global, montada una sola vez en Layout debajo del Topbar.
+ * Se activa automáticamente cuando hay queries en vuelo (React Query).
+ * Reserva 2px de alto siempre para evitar layout shift.
+ */
+export const GlobalTopProgressBar = ({ tone = 'brand' }) => {
+  const isFetching = useIsFetching();
+  const bar = TONE_BG[tone] ?? TONE_BG.brand;
+  return (
+    <div
+      role="progressbar"
+      aria-busy={isFetching > 0}
+      aria-label={isFetching > 0 ? 'Cargando' : undefined}
+      className="h-0.5 overflow-hidden shrink-0 pointer-events-none"
+    >
+      {isFetching > 0 && (
+        <div className={cn('h-full w-1/3 rounded-r-full animate-top-progress', bar)} />
+      )}
     </div>
   );
 };

@@ -5,9 +5,7 @@ import {
 } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import PageTabs from '../../shared/PageTabs';
-import TopProgressBar from '../../shared/TopProgressBar';
 import { useBoundStore } from '../../store/useBoundStore';
-import { useConfiguracion } from './api/useConfiguracion';
 import TributariaTab  from './components/TributariaTab';
 import UmbralesTab    from './components/UmbralesTab';
 import NumeracionTab  from './components/NumeracionTab';
@@ -32,7 +30,6 @@ const ConfiguracionPage = () => {
   const setActiveTitle = useBoundStore((s) => s.setActiveTitle);
   const user           = useBoundStore((s) => s.user);
   const [tab, setTab]  = useState('empresa');
-  const { isLoading, isFetching } = useConfiguracion();
 
   useEffect(() => { setActiveTitle?.('Configuración'); }, [setActiveTitle]);
 
@@ -40,8 +37,6 @@ const ConfiguracionPage = () => {
 
   return (
     <div className="relative flex flex-col w-full gap-4">
-      <TopProgressBar active={isLoading || isFetching} />
-
       <HeaderSection
         title="Configuración del sistema"
         subtitle="Parámetros globales: tributaria, umbrales, numeración y más"

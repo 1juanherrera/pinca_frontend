@@ -4,7 +4,6 @@ import {
   AlertTriangle, ArrowRight,
 } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
-import TopProgressBar from '../../shared/TopProgressBar';
 import EmptyState from '../../shared/EmptyState';
 import IconBox from '../../shared/IconBox';
 import StatusBadge from '../../shared/StatusBadge';
@@ -36,14 +35,12 @@ const TrazabilidadPage = () => {
     return () => clearTimeout(t);
   }, [query]);
 
-  const { data: lotes = [], isLoading, isFetching } = useLotesAutocomplete(debounced);
+  const { data: lotes = [], isLoading } = useLotesAutocomplete(debounced);
 
   const recientes = useMemo(() => lotes.slice(0, 30), [lotes]);
 
   return (
     <div className="relative flex flex-col w-full gap-4">
-      <TopProgressBar active={isLoading || isFetching} />
-
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <HeaderSection
           title="Trazabilidad de lotes"

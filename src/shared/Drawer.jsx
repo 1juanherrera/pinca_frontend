@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import cn from '../utils/cn';
+import { useBoundStore } from '../store/useBoundStore';
 
 const SIZE_CLASSES = {
   sm:  'max-w-sm',
@@ -25,10 +26,27 @@ const Drawer = ({
   closeOnBackdrop = true,
   closeOnEsc = true,
   bodyClassName = '',
+  isDirty = false,
+  dirtyMessage = 'Tenés cambios sin guardar. ¿Cerrar igual?',
 }) => {
+  const openConfirm = useBoundStore((s) => s.openConfirm);
+
+  // Wrapper de cierre: si el form está "dirty", pide confirmación antes
+  // de descartar. Para cierres programáticos (post-submit) la página
+  // puede pasar isDirty=false o llamar onClose directamente.
+  const requestClose = () => {
+    if (!isDirty) { onClose?.(); return; }
+    openConfirm({
+      title:   'Cerrar sin guardar',
+      message: dirtyMessage,
+      variant: 'warning',
+      onConfirm: () => onClose?.(),
+    });
+  };
+
   useEffect(() => {
     if (!isOpen) return;
-    const onKey = (e) => { if (closeOnEsc && e.key === 'Escape') onClose?.(); };
+    const onKey = (e) => { if (closeOnEsc && e.key === 'Escape') requestClose(); };
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -36,7 +54,8 @@ const Drawer = ({
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
     };
-  }, [isOpen, closeOnEsc, onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, closeOnEsc, onClose, isDirty]);
 
   if (!isOpen) return null;
 
@@ -47,7 +66,7 @@ const Drawer = ({
       <div
         className="fixed inset-0 z-[100] animate-in fade-in"
         style={{ background: 'var(--surface-overlay)' }}
-        onClick={closeOnBackdrop ? onClose : undefined}
+        onClick={closeOnBackdrop ? requestClose : undefined}
       />
 
       <div
@@ -82,7 +101,7 @@ const Drawer = ({
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={requestClose}
             className="p-1 -mr-1 rounded-md text-content-muted hover:text-content-primary hover:bg-surface-muted transition-colors shrink-0"
             aria-label="Cerrar"
           >

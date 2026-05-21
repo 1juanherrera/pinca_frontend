@@ -15,8 +15,6 @@ const ROUTE_TITLES = {
   '/proveedores':    'Proveedores',
   '/movimientos':    'Movimientos',
   '/rentabilidad':   'Rentabilidad',
-  '/tambores':          'Tambores',
-  '/prorrateo':         'Prorrateo',
 };
 
 const PREFIX_TITLES = [
