@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { costosProduccionKeys } from './costosProduccionKeys';
 
 /**
@@ -13,7 +14,7 @@ const COBERTURA_DEFAULT = { mps_totales: 0, mps_cubiertas: 0, mps_sin_proveedor:
 export const useCostosProduccion = () => {
   const query = useQuery({
     queryKey: costosProduccionKeys.list(),
-    queryFn:  () => apiClient.get('/costos-produccion'),
+    queryFn:  () => apiClient.get(API_ROUTES.COSTOS_PRODUCCION.LIST),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -51,7 +52,7 @@ export const useCostosProduccion = () => {
 export const useCostoProduccionDetalle = (id, opts = {}) => {
   return useQuery({
     queryKey: costosProduccionKeys.detail(id),
-    queryFn:  () => apiClient.get(`/costos-produccion/${id}`),
+    queryFn:  () => apiClient.get(API_ROUTES.COSTOS_PRODUCCION.SHOW(id)),
     enabled:  !!id && (opts.enabled ?? true),
     staleTime: 5 * 60 * 1000,
   });
@@ -61,7 +62,7 @@ export const useCostoProduccionDetalle = (id, opts = {}) => {
 export const useCostoHistoria = (id, opts = {}) => {
   return useQuery({
     queryKey: ['costos-produccion', 'historia', id],
-    queryFn:  () => apiClient.get(`/costos-produccion/${id}/historia`),
+    queryFn:  () => apiClient.get(API_ROUTES.COSTOS_PRODUCCION.HISTORIA(id)),
     enabled:  !!id && (opts.enabled ?? true),
     staleTime: 5 * 60 * 1000,
   });

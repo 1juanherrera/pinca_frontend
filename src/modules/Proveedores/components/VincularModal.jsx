@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link2, Plus, X, ArrowRight, Info, AlertCircle } from 'lucide-react';
 import { useProveedores } from '../api/useProveedores';
 import { useUnidades } from '../../../api/useUnidades';
@@ -28,10 +28,12 @@ const VincularModal = ({ item, onClose }) => {
   const unidadSeleccionada = unidades.find(u => String(u.id_unidad) === String(unidadCompraId));
   const esKilo = unidadSeleccionada?.nombre === KILO_NOMBRE;
 
-  useEffect(() => {
-    if (!unidadSeleccionada) return;
-    setFactorConversion(Number(unidadSeleccionada.escala) || 1);
-  }, [unidadCompraId]);
+  // Al cambiar unidad de compra, reseteamos el factor a la escala default de esa unidad
+  const handleUnidadChange = (newId) => {
+    setUnidadCompraId(newId);
+    const u = unidades.find(x => String(x.id_unidad) === String(newId));
+    if (u) setFactorConversion(Number(u.escala) || 1);
+  };
 
   const esValido = modo === 'existente'
     ? !!selectedItem
@@ -170,7 +172,7 @@ const VincularModal = ({ item, onClose }) => {
                   label="El proveedor vende en"
                   options={unidadOptions}
                   value={unidadCompraId}
-                  onChange={setUnidadCompraId}
+                  onChange={handleUnidadChange}
                   placeholder="Selecciona unidad..."
                 />
                 <div className="relative group">

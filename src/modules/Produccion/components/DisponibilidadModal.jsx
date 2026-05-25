@@ -171,14 +171,22 @@ const DisponibilidadModal = ({
   const { verificar }          = useVerificarDisponibilidad();
   const crearRequisiciones     = useCrearRequisiciones();
 
-  // Ejecuta la verificación al montar
+  // Ejecuta la verificación al montar / al cambiar inputs
   useEffect(() => {
-    setCargando(true);
-    setError(null);
+    let cancelled = false;
     verificar(itemGeneralId, cantidad, unidadId)
-      .then((data) => setDisponibilidad(data))
-      .catch((e)   => setError(e?.response?.data?.message ?? 'Error al verificar disponibilidad'))
-      .finally(()  => setCargando(false));
+      .then((data) => {
+        if (cancelled) return;
+        setDisponibilidad(data);
+        setError(null);
+        setCargando(false);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setError(e?.response?.data?.message ?? 'Error al verificar disponibilidad');
+        setCargando(false);
+      });
+    return () => { cancelled = true; };
   }, [itemGeneralId, cantidad, unidadId]);
 
   const handleSelectProveedor = (itemId, proveedor) => {

@@ -2,9 +2,11 @@
 
 > Este archivo es la **fuente de verdad** para cualquier Claude que retome este proyecto. Está organizado para leerse en orden de necesidad: contexto rápido arriba, detalles técnicos abajo.
 
-## 1. Estado actual (snapshot 2026-05-20)
+## 1. Estado actual (snapshot 2026-05-25 — tarde)
 
-> **Última sesión grande**: 2026-05-20 — Módulo Costos de Producción (con gráfico de evolución de costos por snapshot), módulo Salud del Sistema embebido como tab del UserPanel, rol superadmin, tablas unificadas con TableShell (search+filters+pagination embebidos), ForceChangePasswordModal en primer login, iniciales basadas en nombre + apellido. Ver §19 al final.
+> **Última sesión grande**: 2026-05-25 (tarde) — Tercera ronda del día. Backlog DEV prácticamente vacío. Code-splitting reduce main bundle **76% (1.77 MB → 424 KB)**. ESLint **33 errors (de 69 inicial, −52%)**, ningún `setState in effect` queda. `useFieldErrors` integrado en items de tabla, document.title en rutas faltantes, EmptyStates con CTA en Cotizaciones/OCs, touch targets 44px, PUT/DELETE OC centralizadas. README raíz monorepo creado. Ver §23.
+>
+> **Sesiones anteriores del mismo día**: §21 (audit 2026-05-25 mañana), §22 (ejecución 2026-05-25 mediodía), §20 (hardening 2026-05-21).
 
 > **Sesión 2026-05-19**: IVA toggle global, FormDate component (reemplaza inputs nativos en 11 archivos), módulo Costos eliminado y unificado en Rentabilidad, sidebar singleton sin flyout, Salud de cartera rediseñada. Ver §18.
 
@@ -87,7 +89,7 @@ Todas las rutas (excepto `/login` y `*`) están envueltas en `<Layout>`:
 
 ### Módulos (`src/modules/`)
 
-20 módulos en total. Cada uno sigue el patrón:
+24 módulos en total (snapshot 2026-05-25 — la doc anterior decía 20). Cada uno sigue el patrón:
 
 ```
 ModuleName/
@@ -1244,3 +1246,346 @@ src/modules/Compras/components/AnalisisAhorroOC.jsx
 
 > **Snapshot al cierre 2026-05-21**: Frontend con auditoría profunda completa (3 fases ejecutadas), prorrateo integrado al flujo de OC con auto-generación de código de lote y formato peso COP, toggle costo real/lista en Formulaciones que cierra la inconsistencia entre prorrateo de capas y costo mostrado. Módulos huérfanos (Tambores, Prorrateo standalone, AnalisisAhorroOC) eliminados. Build limpio en ~13-16s. Backlog completo en `PENDIENTES.md` (raíz). Tareas mayores pendientes: tests automatizados, OpenAPI/Swagger, refresh token, deploy hardening (HTTPS/security headers/CORS prod).
 
+---
+
+## 21. Sesión 2026-05-25 — Audit y doc refresh (sin cambios de código)
+
+Ningún archivo `.jsx`, `.js` o `.css` modificado desde 2026-05-22. Esta sesión solo refresca documentación. Lo importante para un Claude que entre frío:
+
+### Conteos reales vs lo que decía la doc
+
+| Item | Doc anterior | Real (2026-05-25) |
+|---|---|---|
+| Módulos en `src/modules/` | 20 | **24** — agregar a la cuenta: `CostosProduccion`, `SaludSistema`, `Sincronizacion`, `Trazabilidad`, `Roles` (que aunque se montó como tab del UserPanel, la carpeta sigue presente con archivos `RolesPage.jsx`/`RolesTab.jsx`) |
+| Hooks en `src/hooks/` | sin contar | **4**: `useFieldErrors.js`, `useFormValidation.js`, `useTableSorts.js`, `useUrlSearch.js` |
+| Components en `src/shared/` | "28" | **34** archivos `.jsx` en raíz + 7 en `Form/` = 41. Hay más de los listados en §5 |
+| ESLint | "build limpio" | **69 errors + 16 warnings**: build pasa porque ESLint no es parte del build, pero hay deuda real |
+| README | no mencionado | **NO EXISTE** `pinca_frontend/README.md` |
+
+### `useClientPagination` — convive con TableShell
+
+La doc decía "hook compañero" en §20 implicando que vive en `src/hooks/`. En realidad está **exportado desde `src/shared/TableShell.jsx:38`** (junto al componente). Funciona idéntico, pero si lo buscás como archivo independiente no existe. Está bien como está — solo dejá la convivencia clara.
+
+### `FormTexarea.jsx` — typo persiste
+
+Documentado en §5 y en `PENDIENTES.md` como "renombrar a `FormTextarea.jsx`". Sigue con el typo en `src/shared/Form/FormTexarea.jsx`. Si lo renombrás, actualizá los imports en los callsites (grep `from.*FormTexarea`).
+
+### `apiRoutes.js` — namespaces incompletos
+
+Los namespaces presentes cubren la mayoría de los recursos, pero **3 grupos de rutas están hardcodeadas en hooks**, no centralizadas:
+
+- **OC**: `src/modules/Compras/api/useCompras.js` y `useLoteSugerido.js` hacen `apiClient.get('/ordenes_compra/...')` directo. Falta `ORDENES_COMPRA` namespace.
+- **Costos de Producción**: `src/modules/CostosProduccion/api/useCostosProduccion.js` hace `apiClient.get('/costos-produccion')` directo. Falta `COSTOS_PRODUCCION` namespace.
+- **Salud del Sistema**: `src/modules/SaludSistema/api/useSaludSistema.js` hace `apiClient.get('/salud-sistema')` directo. Falta `SALUD_SISTEMA` namespace.
+
+No rompe nada, pero rompe el patrón DRY del archivo. Migrar al centralizar.
+
+### ESLint — categorización de los 69 errors
+
+Si vas a abrir un tab para limpiar, los errores se agrupan así (corré `npm run lint > /tmp/lint.txt 2>&1; head -200 /tmp/lint.txt`):
+
+1. **Hooks called conditionally** (3 en `ModalRegistrarPago.jsx` líneas 38/46/47) — bug real, romper return early.
+2. **setState in effect** (~6 lugares: `ClientePage.jsx:51`, `TableShell.jsx`, `UserPanel.jsx:508/582`, `Sincronizacion`...). Migrar a `useMemo` o llamar setState fuera del effect.
+3. **Components created during render** (`ExportCotizacion.jsx:188` declara `<Row>` adentro, `IvaToggle.jsx` declara `<Segment>` adentro). Mover fuera del componente padre.
+4. **Fast-refresh exports** (`main.jsx:13` con `ToastLimiter`, `TableShell.jsx` con `useClientPagination`). Mover a archivo propio.
+5. **Unused vars** (`logoUrl` en `ExportCotizacion`, `checked`, `proveedoresFormulacion`, `isLoadingProveedores`, `isLoadingCostosProveedor` en `FormulacionesPage`).
+6. **Exhaustive-deps warnings** (`usePagos`, `modulos`, `list` deps faltantes — bajo riesgo).
+
+### Rutas actuales en `src/App.jsx`
+
+Verificadas hoy. La sección §3 sigue listando rutas obsoletas (`/tambores`, `/prorrateo`, `/roles`). Rutas REALES presentes:
+
+```
+/login, /, /sedes, /catalogo, /inventario-global, /inventario/bodega/:id,
+/instalaciones/bodegas/:id, /formulaciones, /produccion, /comercial, /compras,
+/cartera, /pagos, /proveedores, /clientes, /movimientos, /rentabilidad,
+/sincronizacion, /configuracion, /trazabilidad, /costos-produccion, *
++ /costos → Navigate to /rentabilidad (preserva bookmarks)
+```
+
+`/tambores`, `/prorrateo`, `/roles`, `/salud-sistema` ya no son rutas — fueron eliminadas o movidas a tabs del UserPanel.
+
+### Build status
+
+```bash
+npm run build  # ~12s, bundle main ~1.78 MB (gzip ~463 KB)
+```
+
+Compila limpio. Warnings de chunks > 500KB (jspdf 385KB + vendor-ui 426KB + main). Dynamic imports ya aplicados a PDFs (jspdf cargado on-demand desde modales de Export), pero la mayoría del peso es el bundle principal — pendiente de code-splitting agresivo si crece más.
+
+### Build status y rutas — coupling backend
+
+Sin cambios desde §20. El backend tampoco se tocó (último archivo PHP modificado: 2026-05-21). Confirmado: el contrato `/auth/me`, `/ordenes_compra/:id/recibir-prorrateado`, `/lote-sugerido`, `/costos-produccion/:id/historia` sigue intacto.
+
+---
+
+> **Snapshot intermedio 2026-05-25 (audit)**: Audit cerrado. Sigue abajo la segunda mitad de la sesión que ejecutó los pendientes detectados.
+
+---
+
+## 22. Sesión 2026-05-25 — Ejecución de pendientes del audit
+
+Segunda mitad de la sesión. Después del audit se ejecutaron 6 bloques de cambios concretos. **Build sigue compilando limpio (~12.6s)**. ESLint bajó de **69 → 47 errors** (−32%, −22 errores), y de 16 → 14 warnings.
+
+### Archivos creados (3)
+
+- `src/hooks/useClientPagination.js` — extraído de TableShell (también arregla un Fast-refresh error)
+- `src/shared/ToastLimiter.jsx` — extraído de `main.jsx` (idem)
+- `pinca_frontend/README.md` — antes no existía
+
+### Archivos renombrados (1)
+
+- `src/shared/Form/FormTexarea.jsx` → `src/shared/Form/FormTextarea.jsx`
+
+Imports actualizados en 6 callsites: `ModalRegistrarPago.jsx`, `FacturaForm.jsx`, `FormulacionModal.jsx`, `TraspasoModal.jsx`, `PagoForm.jsx`, `SedeForm.jsx`.
+
+> El componente exportado siempre se llamó `FormTextarea` (sin typo en el nombre), el typo era solo el nombre del archivo. No hubo que renombrar el componente.
+
+### `useClientPagination` movido a `src/hooks/`
+
+Antes vivía co-exportado en `src/shared/TableShell.jsx:38`. Ahora:
+
+```js
+// src/hooks/useClientPagination.js
+export default function useClientPagination(data = [], defaultPerPage = 20) { ... }
+```
+
+Y desde TableShell:
+
+```js
+import useClientPagination from '../hooks/useClientPagination';
+```
+
+Callsites actualizados (9 archivos): `FacturasTable.jsx`, `CotizacionesTab.jsx`, `FacturacionTab.jsx`, `RemisionesTab.jsx`, `OrdenesTab.jsx`, `HistorialTab.jsx`, `HuerfanosTab.jsx`, `MaestroTab.jsx`, y el propio `TableShell.jsx`.
+
+**Nota de patrón**: la nueva implementación no usa `useEffect` para re-snapshot — calcula página actual en render. Funcionalmente equivalente al previo (el effect anterior tampoco resetaba si la referencia del array cambiaba sin cambiar `length`). Si en un callsite la data se recrea por referencia constantemente, el comportamiento es idéntico al previo.
+
+### `apiRoutes.js` — 3 namespaces centralizados
+
+Agregados al archivo:
+
+```js
+ORDENES_COMPRA: {
+  LIST: '/ordenes_compra',
+  DETAIL: (id) => `/ordenes_compra/${id}/detalle`,
+  CREATE: '/ordenes_compra',
+  UPDATE_ESTADO: (id) => `/ordenes_compra/${id}/estado`,
+  RECIBIR_LINEA: (id, idDetalle) => `/ordenes_compra/${id}/recibir/${idDetalle}`,
+  RECIBIR_PRORRATEADO: (id) => `/ordenes_compra/${id}/recibir-prorrateado`,
+  LOTE_SUGERIDO: (id) => `/ordenes_compra/${id}/lote-sugerido`,
+},
+COSTOS_PRODUCCION: {
+  LIST: '/costos-produccion',
+  SHOW: (id) => `/costos-produccion/${id}`,
+  HISTORIA: (id) => `/costos-produccion/${id}/historia`,
+},
+SALUD_SISTEMA: '/salud-sistema',
+```
+
+Hooks migrados: `useCompras.js`, `useLoteSugerido.js`, `useCostosProduccion.js`, `useSaludSistema.js`.
+
+**Pendiente menor**: `PUT /ordenes_compra/:id` (UPDATE) y `DELETE /ordenes_compra/:id` quedaron hardcoded en `useCompras.js` con un comentario `NOTA:` porque no estaban en el spec del refactor. Próxima vez, agregarlas al namespace.
+
+### ESLint fixes (de 69 → 47 errors)
+
+| Bloque | Fix |
+|---|---|
+| **useState condicional** (`ModalRegistrarPago.jsx` líneas 38/46/47) | Movidos TODOS los hooks arriba del early return → orden estable. Trade-off: ahora los setters quedan sin uso cuando `factura?.id_facturas` es null (inocuo, desperdicia 0 ciclos relevantes). |
+| **setState in effect** (4 lugares pedidos) | `useClientPagination` (eliminado el effect), `ClientePage.jsx:51` (initializer pattern con `useState(() => initialQ || '')`), `UserPanel.jsx:511` (EmpresaTab), `UserPanel.jsx:582` (ModulosMatrix). |
+| **Components in render** | `<Row>` en `ExportCotizacion.jsx:188` movido fuera del componente. `<Segment>` en `IvaToggle.jsx` también. |
+| **Fast-refresh exports** | `ToastLimiter` movido a `src/shared/ToastLimiter.jsx` (main.jsx ahora lo importa). `useClientPagination` ya no se exporta desde TableShell. |
+| **Unused vars** | `logoUrl` eliminado en `ExportCotizacion.jsx`. `proveedoresFormulacion`, `isLoadingProveedores`, `isLoadingCostosProveedor` eliminados en `FormulacionesPage.jsx`. |
+
+**Quedan ~14 `setState in effect`** en archivos NO pedidos por el spec del refactor. Siguen pendientes — listados en `PENDIENTES.md`.
+
+### Validación blur en CotizacionForm + RemisionForm
+
+Aplicado `useFormValidation` ya existente. Reglas:
+- `cliente_id` o `cliente_libre`: al menos uno requerido (mensaje: "Cliente requerido").
+- `fecha`: requerido.
+- `items[]`: chequeado en `handleSubmit` que al menos 1 item tenga `cantidad > 0`.
+
+Pattern en `FormDate`: `onChange={(iso) => { v.change('fecha', iso); v.blur('fecha', iso); }}` — dispara la validación al seleccionar fecha (no espera blur real, que no existe en pickers).
+
+### README frontend
+
+Antes no existía. Ahora ~60 líneas con descripción, stack, comandos `npm` (dev/build/lint/preview), env vars (`VITE_API_BASE_URL`), link a `CLAUDE.md`.
+
+### Build status al cierre
+
+```bash
+npm run build  # ✓ ~12.6s, main 1.77MB (gzip 463 KB)
+npm run lint   # ✖ 47 errors + 14 warnings (de 69+16 inicial)
+```
+
+Bundle no creció. Warnings de chunks > 500KB son pre-existentes (jsPDF 385KB + vendor-ui 426KB) — no relacionados con esta sesión.
+
+### Riesgos detectados (mantener en cuenta al usar)
+
+1. **CotizacionForm/RemisionForm con FormDate**: el patrón `change+blur` en el `onChange` del picker muestra el error de validación inmediatamente al seleccionar fecha. Para selectors es correcto (no hay blur natural), pero es UX a probar.
+2. **ModalRegistrarPago**: ahora los hooks se ejecutan incluso si la factura aún no está cargada. Es inocuo pero técnicamente desperdicia ciclos. Alternativa "más limpia" requería wrapper externo — no se hizo para no entrar a refactor mayor.
+3. **`useClientPagination`**: nueva implementación es "snapshot in render". Si algún callsite tiene `data` recreado por referencia constantemente sin cambiar `length`, no resetea — comportamiento idéntico al previo.
+
+### Lo que NO se hizo en esta sesión (sigue en `PENDIENTES.md`)
+
+Por scope explícito de la sesión:
+- 14 `setState in effect` restantes en archivos fuera del spec.
+- Dark mode (re-pintar todo el design system).
+- Virtualización (`MovimientosTable`, `ProduccionTable`).
+- Bulk actions en Cotizaciones/Facturas/OCs.
+- Export Excel.
+- Notificaciones real-time (WebSockets/SSE).
+- Refresh token / logout server-side.
+- Vitest setup + cobertura.
+- Code-splitting agresivo (dynamic imports en módulos pesados).
+- `useFieldErrors` integrado en items de tabla (`RowInput`).
+- Búsqueda con debounce dentro de drawers grandes.
+- Touch targets 44px en mobile.
+- `document.title` en rutas faltantes.
+
+---
+
+> **Snapshot intermedio 2026-05-25 (mediodía)**: Cleanups menores cerrados. Sigue abajo §23 con la tercera ronda del mismo día.
+
+---
+
+## 23. Sesión 2026-05-25 (tarde) — Cleanups grandes + code-splitting agresivo + UX
+
+Tercera ronda del día. Después del audit (mañana) y ejecución del backlog (mediodía), esta sesión cerró todos los items pequeños/medianos restantes del backlog y dejó solo features grandes pendientes (dark mode, refresh token redesign, bulk actions, virtualización, Vitest setup, OpenAPI). **Bundle reducido 76%**, ESLint **33 errors (de 47, −30%)**, **CERO `setState in effect` quedan**.
+
+### Archivos modificados (24) + creados (2)
+
+**setState in effect fixed (13)**:
+- 5 tabs de `Configuracion/components/`: `EmpresaTab`, `FinancieroTab`, `SeguridadTab`, `TributariaTab`, `UmbralesTab`
+- `Formulaciones/components/ClonarFormulacionModal`, `FormulacionVersionesDrawer`
+- `InventarioGlobal/InventarioGlobalPage`
+- `Produccion/components/DisponibilidadModal`
+- `Proveedores/ProveedoresPage`, `Proveedores/components/VincularModal`
+- `Roles/RolesPage`
+- `shared/CommandPalette`
+
+**Otros**:
+- `src/api/apiRoutes.js` (UPDATE + DELETE de OC en namespace)
+- `src/modules/Compras/api/useCompras.js` (callsites migrados)
+- `src/modules/Comercial/Cotizaciones/components/CotizacionForm.jsx` + `Remisiones/components/RemisionForm.jsx` (useFieldErrors en items)
+- `src/shared/PageTitle.jsx` (5 rutas nuevas)
+- `src/shared/ActionMenu.jsx` (touch targets 44px)
+- `src/shared/ErpTable.jsx` (nueva prop `emptyAction`)
+- `src/modules/Comercial/Cotizaciones/CotizacionesTab.jsx` + `Compras/components/OrdenesTab.jsx` (EmptyState con CTA)
+- `src/App.jsx` (lazy + Suspense en 18 pages)
+
+**Nuevos**:
+- `/PROYECTO_PINCA/README.md` (raíz monorepo, ~95 líneas)
+
+### Code-splitting agresivo en `src/App.jsx`
+
+Convertidas a `lazy()` + `<Suspense fallback={<FullPageLoader />}>`:
+
+```js
+const FormulacionesPage = lazy(() => import('./modules/Formulaciones/FormulacionesPage.jsx'));
+const ProduccionPage = lazy(() => import('./modules/Produccion/ProduccionPage.jsx'));
+// ... 18 pages en total
+```
+
+**Eagerly importadas** (entry path crítico): `Layout`, `Login`, `NotFound`, `SedePage`.
+
+**Resultado**:
+
+| Métrica | Antes | Después |
+|---|---|---|
+| Main bundle | 1.77 MB (gzip 463 KB) | **424 KB** (gzip 133 KB) |
+| Reducción | — | **−76% raw, −71% gzip** |
+| Chunks nuevos | — | 18 (uno por page) |
+| Chunks pesados que se mantienen como dependencias separadas | jspdf 385KB, vendor-ui 426KB, html2canvas 201KB, xlsx 283KB | — |
+
+**Trade-off**: la primera navegación a cada page muestra `<FullPageLoader>` brevemente (carga el chunk). En conexiones rápidas no se nota, en lentas sí.
+
+### `useFieldErrors` integrado en items de tabla
+
+`GridInput.jsx` ya aceptaba `error`. En `CotizacionForm` y `RemisionForm` (FacturaForm ya lo tenía) se pasan errores por path anidado:
+
+```jsx
+<GridInput
+  value={item.cantidad}
+  onChange={(v) => { setItem(idx, 'cantidad', v); clearField(`items.${idx}.cantidad`); }}
+  error={errors[`items.${idx}.cantidad`]}
+/>
+```
+
+El hook `useFieldErrors` ya soportaba paths anidados naturalmente.
+
+### `document.title` por ruta — completa
+
+`src/shared/PageTitle.jsx` ahora cubre las 19 rutas declaradas en App.jsx. Agregadas: `/sedes`, `/costos-produccion`, `/sincronizacion`, `/trazabilidad`, `/configuracion`, `/inventario-global`.
+
+### Touch targets ≥ 44px en `ActionMenu`
+
+Trigger: `min-w-[44px] min-h-[44px]`. Items: `py-2.5 min-h-[44px]`. Visualmente igual, ahora tappeable en mobile sin perder el punto.
+
+### EmptyState con CTA
+
+`<ErpTable>` ahora acepta prop `emptyAction` que se renderiza dentro del `<EmptyState>`. Aplicado en `CotizacionesTab` y `OrdenesTab`:
+
+```jsx
+<ErpTable
+  ...
+  emptyMessage="No hay cotizaciones"
+  emptySubMessage="Cuando crees una cotización, aparecerá acá."
+  emptyAction={<Button variant="primary" onClick={openCreate} icon={Plus}>Nueva cotización</Button>}
+/>
+```
+
+### Patrón usado para `setState in effect` → `useMemo`/state controlado
+
+```jsx
+// MAL
+const [val, setVal] = useState(initial);
+useEffect(() => { if (data) setVal(transform(data)); }, [data]);
+
+// BIEN — useMemo cuando es puro derived
+const val = useMemo(() => data ? transform(data) : initial, [data]);
+
+// BIEN — initializer + state controlado para edición
+const originales = useMemo(() => buildOriginales(data), [data]);
+const [overrides, setOverrides] = useState({});
+const form = { ...originales, ...overrides };
+// onSuccess de save: setOverrides({})
+```
+
+El patrón "overrides" se usó en los 5 tabs de Configuracion para editar config sin que el effect rompa el flujo de save.
+
+### Estado final ESLint + build
+
+```bash
+npm run lint   # ✖ 46 problems (33 errors, 13 warnings)
+npm run build  # ✓ ~12s, main 424 KB (gzip 133 KB)
+```
+
+Los 33 errores restantes son:
+- Algunos `react-hooks/static-components` en exports legacy (Row/Segment ya fueron movidos en sesión mediodía; quedan en exports que no se tocaron).
+- `Cannot access refs during render` en `FormulacionModal`, `FormCostProducts` (no estaban en el spec — requieren refactor de portales).
+- `no-unused-vars` y `react-hooks/rules-of-hooks` en `FormulacionesTable` (preexisten desde antes).
+- 0 `set-state-in-effect`.
+
+### Riesgos / cosas raras
+
+1. **Patrón overrides en Configuracion tabs**: si el backend devuelve valor distinto al original tras un save fallido, el override stale podría persistir. Mitigado: `useUpdateEmpresa.onSuccess` invalida queries y refetch.
+2. **`FormulacionVersionesDrawer.selectedId`** ahora se deriva en render. Si el `overrideId` apunta a un id que ya no existe (versiones[] cambia), muestra detalles vacíos. Mismo gap que el patrón previo.
+3. **CommandPalette** desmonta/remonta el body al toggle (Suspense + lazy del modal). Perdió cualquier focus/scroll local — UX idéntica al previo, que también reseteaba on close.
+4. **Code-splitting + Suspense fallback**: primera navegación a cada page muestra loader. Trade-off explícito.
+
+### Lo que NO se hizo (sigue en `PENDIENTES.md`)
+
+- ~12 errores ESLint restantes (refs durante render, components-in-render legacy en otros archivos).
+- Dark mode (design system completo).
+- Virtualización en `MovimientosTable` y `ProduccionTable`.
+- Bulk actions (selección múltiple + acción batch en Cotizaciones/Facturas/OCs).
+- Export Excel (xlsx ya instalado — solo falta la UI/serialización).
+- Vitest setup + cobertura.
+- Refresh token / modal "tu sesión expira" (parcial: logout server-side ya existe en backend).
+- Búsqueda con debounce en drawers grandes (selects con 100+ entradas).
+- Notificaciones real-time (WebSockets/SSE).
+
+---
+
+> **Snapshot al cierre 2026-05-25 (tarde)**: Frontend en estado **post-cleanup masivo**. Bundle main 424 KB (de 1.77 MB), 0 `setState in effect`, 19 rutas con `document.title`, items de tabla con errores backend mapeados, touch targets mobile-ready, EmptyStates con CTA en módulos clave. Code-splitting agresivo separó 18 pages en chunks independientes. Próxima sesión grande: dark mode, refresh token UX, bulk actions, virtualización, Vitest — cada uno propia sesión. El backlog ajustado está en `PENDIENTES.md`.

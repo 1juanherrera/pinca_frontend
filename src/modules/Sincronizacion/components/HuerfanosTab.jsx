@@ -2,7 +2,8 @@ import { Ban, Calendar, Boxes } from 'lucide-react';
 import StatusBadge from '../../../shared/StatusBadge';
 import ErpTable from '../../../shared/ErpTable';
 import EmptyState from '../../../shared/EmptyState';
-import TableShell, { useClientPagination } from '../../../shared/TableShell';
+import TableShell from '../../../shared/TableShell';
+import useClientPagination from '../../../hooks/useClientPagination';
 import { formatLetterDate } from '../../../utils/formatters';
 
 const fmtNum = (v, dec = 2) =>

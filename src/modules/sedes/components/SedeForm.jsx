@@ -5,7 +5,7 @@ import Drawer from '../../../shared/Drawer';
 import { Button } from '../../../shared/Button';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { useBoundStore } from '../../../store/useBoundStore';
-import { FormTextarea } from '../../../shared/Form/FormTexarea';
+import { FormTextarea } from '../../../shared/Form/FormTextarea';
 import { useInstalaciones } from '../api/useInstalaciones';
 
 const SedeForm = () => {

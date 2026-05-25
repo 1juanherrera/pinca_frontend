@@ -26,41 +26,9 @@
  *     </TableShell>
  *   );
  */
-import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import cn from '../utils/cn';
 import { getPaginationRange } from '../modules/Inventario/services/pagination';
-
-/**
- * Hook auxiliar para paginar client-side.
- * Resetea automáticamente la página al cambiar el tamaño del dataset o perPage.
- */
-export const useClientPagination = (data = [], defaultPerPage = 20) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage]         = useState(defaultPerPage);
-
-  const totalItems = data.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
-
-  // Reset al cambiar tamaño del set (por filtros) o perPage
-  useEffect(() => { setCurrentPage(1); }, [totalItems, perPage]);
-
-  const safePage  = Math.min(currentPage, totalPages);
-  const paginated = useMemo(() => {
-    const start = (safePage - 1) * perPage;
-    return data.slice(start, start + perPage);
-  }, [data, safePage, perPage]);
-
-  return {
-    paginated,
-    currentPage: safePage,
-    perPage,
-    totalItems,
-    totalPages,
-    setCurrentPage,
-    setPerPage,
-  };
-};
 
 const PaginationFooter = ({ pagination, isLoading }) => {
   const { paginated, currentPage, perPage, totalItems, totalPages, setCurrentPage, setPerPage } = pagination;

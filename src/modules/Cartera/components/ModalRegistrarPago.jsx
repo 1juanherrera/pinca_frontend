@@ -8,7 +8,7 @@ import { usePagos } from '../api/useCartera';
 import Drawer from '../../../shared/Drawer';
 import { Button } from '../../../shared/Button';
 import { FormInput } from '../../../shared/Form/FormInput';
-import { FormTextarea } from '../../../shared/Form/FormTexarea';
+import { FormTextarea } from '../../../shared/Form/FormTextarea';
 import FormDate from '../../../shared/Form/FormDate';
 import { LABEL_BASE, LABEL_REQUIRED_MARK, FIELD_ERROR } from '../../../shared/Form/styles';
 import { fmt } from '../../../utils/formatters';
@@ -20,6 +20,20 @@ import cn from '../../../utils/cn';
 const RegistrarPagoContent = ({ factura, onClose }) => {
   const hoy = new Date().toISOString().split('T')[0];
 
+  // Hooks SIEMPRE al inicio — el orden debe ser estable entre renders.
+  const [form, setForm] = useState({
+    monto:             '',
+    tipo:              'abono',
+    metodo_pago:       '',
+    numero_referencia: '',
+    observaciones:     '',
+    fecha_pago:        hoy,
+  });
+  const [errors, setErrors] = useState({});
+  const { registrarPagoAsync, isRegistrando } = usePagos();
+
+  // Early return DESPUÉS de los hooks: se renderiza un drawer con mensaje y
+  // los hooks de arriba quedan inutilizados pero declarados — lint OK.
   if (!factura?.id_facturas) {
     return (
       <Drawer
@@ -34,17 +48,6 @@ const RegistrarPagoContent = ({ factura, onClose }) => {
       </Drawer>
     );
   }
-
-  const [form, setForm] = useState({
-    monto:             '',
-    tipo:              'abono',
-    metodo_pago:       '',
-    numero_referencia: '',
-    observaciones:     '',
-    fecha_pago:        hoy,
-  });
-  const [errors, setErrors] = useState({});
-  const { registrarPagoAsync, isRegistrando } = usePagos();
 
   const saldo       = Number(factura.saldo_pendiente ?? 0);
   const estado      = getEstadoEfectivo(factura);

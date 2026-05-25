@@ -40,10 +40,7 @@ const FormulacionesPage = () => {
     costosBase,
     costosRecalculados,
     isRecalculating,
-    proveedoresFormulacion,
-    isLoadingProveedores,
     costosProveedor,
-    isLoadingCostosProveedor,
     opcionesIngredientes,
   } = useFormulaciones(selectedId, nuevoVolumen, null, selectedProveedorId);
 

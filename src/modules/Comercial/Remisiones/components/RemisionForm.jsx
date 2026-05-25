@@ -7,6 +7,8 @@ import { useInventario } from '../../../Inventario/api/useInventario'; // ajusta
 import { Button }              from '../../../../shared/Button';
 import FormDate                from '../../../../shared/Form/FormDate';
 import apiClient               from '../../../../api/apiClient';
+import { useFormValidation }   from '../../../../hooks/useFormValidation';
+import { useFieldErrors }      from '../../../../hooks/useFieldErrors';
 
 // ─── Hooks auxiliares ─────────────────────────────────────────────────────────
 const useClientes = () => useQuery({
@@ -114,6 +116,10 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
   });
   const [items, setItems] = useState(editData?.items ?? []);
 
+  // Errores backend (422) mapeados a campos. Soporta paths anidados
+  // tipo "items.0.cantidad" devueltos por ValidatesJson.
+  const fieldErrors = useFieldErrors();
+
   // ── Inventario: reutiliza useInventario con perPage alto ─────────────────
   const { items: invData, isLoadingItems: loadingInv } =
     useInventario(bodegaSel?.id_bodegas, 1, 9999);
@@ -182,18 +188,32 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
   const total = items.reduce((s, i) => s + (Number(i.subtotal) || 0), 0);
 
   const [errors, setErrors] = useState({});
+  // Validación blur centralizada — mismo patrón que CotizacionForm/FacturaForm.
+  const v = useFormValidation({
+    cliente:        { required: 'Cliente requerido' },
+    fecha_remision: { required: 'La fecha es requerida' },
+  });
 
   const handleSubmit = async () => {
-    // Validación
-    const errs = {};
-    if (!form.fecha_remision)   errs.fecha_remision    = 'La fecha es requerida';
-    if (!form.direccion_entrega) errs.direccion_entrega = 'La dirección es requerida';
-    if (clienteMode === 'select' && !clienteSel) errs.cliente = 'Selecciona un cliente';
-    if (clienteMode === 'libre'  && !clienteLibre.trim()) errs.cliente = 'Escribe el nombre del cliente';
-    if (items.length === 0) errs.items = 'Agrega al menos un ítem';
+    const clienteValue = clienteMode === 'select'
+      ? (clienteSel ? 'ok' : '')
+      : clienteLibre.trim();
+    const okBase = v.validateAll({
+      cliente:        clienteValue,
+      fecha_remision: form.fecha_remision,
+    });
 
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    setErrors({});
+    // Validaciones que no calzan en useFormValidation (campos compuestos)
+    const errs = {};
+    if (!form.direccion_entrega) errs.direccion_entrega = 'La dirección es requerida';
+    const itemsOk = items.length > 0 &&
+      items.every((it) => Number(it.cantidad) > 0);
+    if (!itemsOk) errs.items = items.length === 0
+      ? 'Agrega al menos un ítem'
+      : 'Cada ítem debe tener cantidad mayor a 0';
+    setErrors(errs);
+
+    if (!okBase || Object.keys(errs).length > 0) return;
 
     const payload = {
       ...form,
@@ -210,9 +230,14 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
         subtotal:        Number(it.subtotal),
       })),
     };
-    if (editData) await updateAsync({ id: editData.id_remisiones, data: payload });
-    else          await createAsync(payload);
-    closeDrawer();
+    try {
+      fieldErrors.clearAll();
+      if (editData) await updateAsync({ id: editData.id_remisiones, data: payload });
+      else          await createAsync(payload);
+      closeDrawer();
+    } catch (err) {
+      fieldErrors.setFromBackend(err);
+    }
   };
 
   // Cerrar con confirmación si hay cambios sin guardar.
@@ -275,7 +300,7 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
                 <SearchSelect
                   placeholder="Buscar cliente..."
                   value={clienteSel}
-                  onChange={setClienteSel}
+                  onChange={(c) => { setClienteSel(c); v.change('cliente', c ? 'ok' : ''); }}
                   options={clientes}
                   loading={loadingClientes}
                   renderValue={(c) => c.nombre_empresa || c.nombre_encargado}
@@ -290,16 +315,14 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
                 <input
                   type="text"
                   value={clienteLibre}
-                  onChange={(e) => { setClienteLibre(e.target.value); setErrors(p => ({...p, cliente: null})); }}
-                  onBlur={() => {
-                    if (!clienteLibre.trim()) setErrors(p => ({...p, cliente: 'Escribe el nombre del cliente'}));
-                  }}
+                  onChange={(e) => { setClienteLibre(e.target.value); v.change('cliente', e.target.value.trim()); }}
+                  onBlur={() => v.blur('cliente', clienteLibre.trim())}
                   placeholder="Nombre del cliente..."
                   className="w-full text-sm border border-border-base rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
                 />
               )}
 
-              {errors.cliente && <p className="text-[10px] text-semantic-danger mt-1">{errors.cliente}</p>}
+              {v.fieldError('cliente') && <p className="text-[10px] text-semantic-danger mt-1">{v.fieldError('cliente')}</p>}
 
               {clienteSel && clienteMode === 'select' && (
                 <div className="bg-semantic-info-subtle border border-semantic-info/15 rounded-lg px-3 py-2 text-xs text-semantic-info-fg space-y-0.5">
@@ -318,8 +341,8 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
                 label="Fecha"
                 required
                 value={form.fecha_remision}
-                onChange={(iso) => { setField('fecha_remision', iso); setErrors(p => ({...p, fecha_remision: null})); }}
-                error={errors.fecha_remision}
+                onChange={(iso) => { setField('fecha_remision', iso); v.change('fecha_remision', iso); v.blur('fecha_remision', iso); }}
+                error={v.fieldError('fecha_remision')}
               />
 
               <div>
@@ -478,17 +501,22 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border-subtle">
-                    {items.map((item, idx) => (
+                    {items.map((item, idx) => {
+                      const errDescripcion = fieldErrors.errors[`items.${idx}.descripcion`];
+                      const errCantidad    = fieldErrors.errors[`items.${idx}.cantidad`];
+                      const errPrecio      = fieldErrors.errors[`items.${idx}.precio_unit`];
+                      return (
                       <tr key={idx} className="hover:bg-surface-subtle">
                         <td className="px-3 py-2">
                           <input
                             type="text"
                             value={item.descripcion}
-                            onChange={(e) => setItemField(idx, 'descripcion', e.target.value)}
-                            className="w-full text-xs border border-border-base rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand-primary/30"
+                            onChange={(e) => { setItemField(idx, 'descripcion', e.target.value); fieldErrors.clearField(`items.${idx}.descripcion`); }}
+                            className={`w-full text-xs border rounded px-2 py-1 focus:outline-none focus:ring-1 ${errDescripcion ? 'border-semantic-danger focus:ring-semantic-danger' : 'border-border-base focus:ring-brand-primary/30'}`}
                             placeholder="Descripción"
                           />
-                          {item.stock !== undefined && (
+                          {errDescripcion && <p className="text-[9px] mt-0.5 text-semantic-danger">{errDescripcion}</p>}
+                          {!errDescripcion && item.stock !== undefined && (
                             <p className={`text-[9px] mt-0.5 font-medium ${Number(item.stock) >= Number(item.cantidad) ? 'text-semantic-success' : 'text-semantic-danger'}`}>
                               Stock: {item.stock}
                             </p>
@@ -499,18 +527,20 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
                             type="number"
                             value={item.cantidad}
                             min="1"
-                            onChange={(e) => setItemField(idx, 'cantidad', e.target.value)}
-                            className="w-full text-xs border border-border-base rounded px-2 py-1 text-right  focus:outline-none focus:ring-1 focus:ring-brand-primary/30"
+                            onChange={(e) => { setItemField(idx, 'cantidad', e.target.value); fieldErrors.clearField(`items.${idx}.cantidad`); }}
+                            className={`w-full text-xs border rounded px-2 py-1 text-right focus:outline-none focus:ring-1 ${errCantidad ? 'border-semantic-danger focus:ring-semantic-danger' : 'border-border-base focus:ring-brand-primary/30'}`}
                           />
+                          {errCantidad && <p className="text-[9px] mt-0.5 text-semantic-danger text-right">{errCantidad}</p>}
                         </td>
                         <td className="px-2 py-2">
                           <input
                             type="number"
                             value={item.precio_unit}
                             min="0"
-                            onChange={(e) => setItemField(idx, 'precio_unit', e.target.value)}
-                            className="w-full text-xs border border-border-base rounded px-2 py-1 text-right  focus:outline-none focus:ring-1 focus:ring-brand-primary/30"
+                            onChange={(e) => { setItemField(idx, 'precio_unit', e.target.value); fieldErrors.clearField(`items.${idx}.precio_unit`); }}
+                            className={`w-full text-xs border rounded px-2 py-1 text-right focus:outline-none focus:ring-1 ${errPrecio ? 'border-semantic-danger focus:ring-semantic-danger' : 'border-border-base focus:ring-brand-primary/30'}`}
                           />
+                          {errPrecio && <p className="text-[9px] mt-0.5 text-semantic-danger text-right">{errPrecio}</p>}
                         </td>
                         <td className="px-3 py-2 text-right  font-semibold text-content-secondary whitespace-nowrap">
                           {fmt(item.subtotal)}
@@ -521,7 +551,8 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
                           </button>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                   <tfoot>
                     <tr className="bg-content-primary">

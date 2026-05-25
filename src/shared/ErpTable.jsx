@@ -36,6 +36,7 @@ const ERPTable = ({
   isLoading = false,
   emptyMessage = 'No hay registros',
   emptySubMessage = '',
+  emptyAction,                 // ReactNode opcional (Button) que se muestra en el empty state
   EmptyIcon = Package,
   onRowClick,
   sortBy,
@@ -57,6 +58,7 @@ const ERPTable = ({
         {emptySubMessage && (
           <p className="text-xs text-content-muted max-w-md">{emptySubMessage}</p>
         )}
+        {emptyAction && <div className="mt-2">{emptyAction}</div>}
       </div>
     );
   }

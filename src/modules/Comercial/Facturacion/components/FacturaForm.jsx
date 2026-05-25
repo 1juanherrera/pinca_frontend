@@ -9,7 +9,7 @@ import { useFactura } from '../api/useFactura';
 import Drawer from '../../../../shared/Drawer';
 import { Button } from '../../../../shared/Button';
 import { FormInput } from '../../../../shared/Form/FormInput';
-import { FormTextarea } from '../../../../shared/Form/FormTexarea';
+import { FormTextarea } from '../../../../shared/Form/FormTextarea';
 import FormDate from '../../../../shared/Form/FormDate';
 import { LABEL_BASE } from '../../../../shared/Form/styles';
 import { useConfigValue } from '../../../Configuracion/api/useConfiguracion';

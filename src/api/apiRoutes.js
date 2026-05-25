@@ -110,4 +110,21 @@ export const API_ROUTES = {
     HUERFANOS:  '/sincronizacion/huerfanos',
     MERGE:      '/sincronizacion/merge',
   },
+  ORDENES_COMPRA: {
+    LIST:               '/ordenes_compra',
+    DETAIL:             (id) => `/ordenes_compra/${id}/detalle`,
+    CREATE:             '/ordenes_compra',
+    UPDATE:             (id) => `/ordenes_compra/${id}`,
+    DELETE:             (id) => `/ordenes_compra/${id}`,
+    UPDATE_ESTADO:      (id) => `/ordenes_compra/${id}/estado`,
+    RECIBIR_LINEA:      (id, idDetalle) => `/ordenes_compra/${id}/recibir/${idDetalle}`,
+    RECIBIR_PRORRATEADO:(id) => `/ordenes_compra/${id}/recibir-prorrateado`,
+    LOTE_SUGERIDO:      (id) => `/ordenes_compra/${id}/lote-sugerido`,
+  },
+  COSTOS_PRODUCCION: {
+    LIST:     '/costos-produccion',
+    SHOW:     (id) => `/costos-produccion/${id}`,
+    HISTORIA: (id) => `/costos-produccion/${id}/historia`,
+  },
+  SALUD_SISTEMA: '/salud-sistema',
 };

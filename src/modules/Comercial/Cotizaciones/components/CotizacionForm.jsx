@@ -13,6 +13,8 @@ import { Button }          from '../../../../shared/Button';
 import FormDate            from '../../../../shared/Form/FormDate';
 import apiClient           from '../../../../api/apiClient';
 import { useConfigValue }  from '../../../Configuracion/api/useConfiguracion';
+import { useFormValidation } from '../../../../hooks/useFormValidation';
+import { useFieldErrors } from '../../../../hooks/useFieldErrors';
 
 // ─── Hooks auxiliares ─────────────────────────────────────────────────────────
 const useClientes = () => useQuery({
@@ -112,6 +114,16 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
   const [bodegaSel,    setBodegaSel]    = useState(null);
   const [itemSearch,   setItemSearch]   = useState('');
   const [errors,       setErrors]       = useState({});
+  // Validación blur centralizada (hook reusable). Reglas mínimas — el resto
+  // de la validación granular (items.length, items[].cantidad) se chequea
+  // en handleSubmit con el state local porque depende de arrays compuestos.
+  const v = useFormValidation({
+    cliente:           { required: 'Cliente requerido' },
+    fecha_cotizacion:  { required: 'La fecha es requerida' },
+  });
+  // Errores del backend (422) mapeados a campos. Soporta paths anidados
+  // tipo "items.0.cantidad" devueltos por ValidatesJson.
+  const fieldErrors = useFieldErrors();
   const ivaDefault       = useConfigValue('iva_default', 19);
   const aplicarIvaDefault = useConfigValue('aplicar_iva_por_default', true);
   const [ivaActivo,    setIvaActivo]    = useState(() =>
@@ -219,13 +231,26 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
   const total     = subtotal - Number(form.descuento) + impuestos - Number(form.retencion);
 
   const handleSubmit = async () => {
+    // Construir un objeto plano para useFormValidation.validateAll
+    const clienteValue = clienteMode === 'select'
+      ? (clienteSel ? 'ok' : '')
+      : clienteLibre.trim();
+    const okBase = v.validateAll({
+      cliente:          clienteValue,
+      fecha_cotizacion: form.fecha_cotizacion,
+    });
+
+    // Validación cruzada de items (al menos uno con cantidad > 0)
+    const itemsOk = items.length > 0 &&
+      items.every((it) => Number(it.cantidad) > 0);
     const errs = {};
-    if (clienteMode === 'select' && !clienteSel)          errs.cliente          = 'Selecciona un cliente';
-    if (clienteMode === 'libre'  && !clienteLibre.trim()) errs.cliente          = 'Escribe el nombre del cliente';
-    if (!form.fecha_cotizacion)                           errs.fecha_cotizacion = 'La fecha es requerida';
-    if (items.length === 0)                               errs.items            = 'Agrega al menos un ítem';
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    setErrors({});
+    if (!itemsOk) errs.items = items.length === 0
+      ? 'Agrega al menos un ítem'
+      : 'Cada ítem debe tener cantidad mayor a 0';
+    if (Object.keys(errs).length > 0) setErrors(errs);
+    else setErrors({});
+
+    if (!okBase || !itemsOk) return;
 
     const payload = {
       ...form,
@@ -245,9 +270,14 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
       })),
     };
 
-    if (editData) await updateAsync({ id: editData.id_cotizaciones, data: payload });
-    else          await createAsync(payload);
-    closeDrawer();
+    try {
+      fieldErrors.clearAll();
+      if (editData) await updateAsync({ id: editData.id_cotizaciones, data: payload });
+      else          await createAsync(payload);
+      closeDrawer();
+    } catch (err) {
+      fieldErrors.setFromBackend(err);
+    }
   };
 
   // Heurística de "dirty": hay datos significativos cargados que se perderían
@@ -312,7 +342,7 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                 <SearchSelect
                   placeholder="Buscar cliente..."
                   value={clienteSel}
-                  onChange={(c) => { setClienteSel(c); setErrors((p) => ({ ...p, cliente: null })); }}
+                  onChange={(c) => { setClienteSel(c); v.change('cliente', c ? 'ok' : ''); }}
                   options={clientes}
                   loading={loadingClientes}
                   renderValue={(c) => c.nombre_empresa || c.nombre_encargado}
@@ -327,16 +357,14 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                 <input
                   type="text"
                   value={clienteLibre}
-                  onChange={(e) => { setClienteLibre(e.target.value); setErrors((p) => ({ ...p, cliente: null })); }}
-                  onBlur={() => {
-                    if (!clienteLibre.trim()) setErrors((p) => ({ ...p, cliente: 'Escribe el nombre del cliente' }));
-                  }}
+                  onChange={(e) => { setClienteLibre(e.target.value); v.change('cliente', e.target.value.trim()); }}
+                  onBlur={() => v.blur('cliente', clienteLibre.trim())}
                   placeholder="Nombre del cliente..."
                   className="w-full text-sm border border-border-base rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
                 />
               )}
 
-              {errors.cliente && <p className="text-[10px] text-semantic-danger">{errors.cliente}</p>}
+              {v.fieldError('cliente') && <p className="text-[10px] text-semantic-danger">{v.fieldError('cliente')}</p>}
 
               {clienteSel && clienteMode === 'select' && (
                 <div className="bg-semantic-info-subtle border border-semantic-info/15 rounded-lg px-3 py-2 text-xs text-semantic-info-fg space-y-0.5">
@@ -354,10 +382,10 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                   label="Fecha"
                   required
                   value={form.fecha_cotizacion}
-                  onChange={(iso) => { setField('fecha_cotizacion', iso); setErrors((p) => ({ ...p, fecha_cotizacion: null })); }}
-                  error={errors.fecha_cotizacion}
+                  onChange={(iso) => { setField('fecha_cotizacion', iso); v.change('fecha_cotizacion', iso); v.blur('fecha_cotizacion', iso); }}
+                  error={v.fieldError('fecha_cotizacion')}
                 />
-                {errors.fecha_cotizacion && <p className="text-[10px] text-semantic-danger mt-1">{errors.fecha_cotizacion}</p>}
+                {v.fieldError('fecha_cotizacion') && <p className="text-[10px] text-semantic-danger mt-1">{v.fieldError('fecha_cotizacion')}</p>}
               </div>
               <div>
                 <FormDate
@@ -566,17 +594,22 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border-subtle">
-                    {items.map((item, idx) => (
+                    {items.map((item, idx) => {
+                      const errDescripcion = fieldErrors.errors[`items.${idx}.descripcion`];
+                      const errCantidad    = fieldErrors.errors[`items.${idx}.cantidad`];
+                      const errPrecio      = fieldErrors.errors[`items.${idx}.precio_unit`];
+                      return (
                       <tr key={idx} className="hover:bg-surface-subtle">
                         <td className="px-3 py-2">
                           <input
                             type="text"
                             value={item.descripcion}
-                            onChange={(e) => setItemField(idx, 'descripcion', e.target.value)}
-                            className="w-full text-xs border border-border-base rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand-primary/30"
+                            onChange={(e) => { setItemField(idx, 'descripcion', e.target.value); fieldErrors.clearField(`items.${idx}.descripcion`); }}
+                            className={`w-full text-xs border rounded px-2 py-1 focus:outline-none focus:ring-1 ${errDescripcion ? 'border-semantic-danger focus:ring-semantic-danger' : 'border-border-base focus:ring-brand-primary/30'}`}
                             placeholder="Descripción"
                           />
-                          {item.stock !== undefined && (
+                          {errDescripcion && <p className="text-[9px] mt-0.5 text-semantic-danger">{errDescripcion}</p>}
+                          {!errDescripcion && item.stock !== undefined && (
                             <p className={`text-[9px] mt-0.5 font-medium ${Number(item.stock) >= Number(item.cantidad) ? 'text-semantic-success' : 'text-semantic-danger'}`}>
                               Stock: {item.stock}
                             </p>
@@ -587,18 +620,20 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                             type="number"
                             value={item.cantidad}
                             min="1"
-                            onChange={(e) => setItemField(idx, 'cantidad', e.target.value)}
-                            className="w-full text-xs border border-border-base rounded px-2 py-1 text-right  focus:outline-none focus:ring-1 focus:ring-brand-primary/30"
+                            onChange={(e) => { setItemField(idx, 'cantidad', e.target.value); fieldErrors.clearField(`items.${idx}.cantidad`); }}
+                            className={`w-full text-xs border rounded px-2 py-1 text-right focus:outline-none focus:ring-1 ${errCantidad ? 'border-semantic-danger focus:ring-semantic-danger' : 'border-border-base focus:ring-brand-primary/30'}`}
                           />
+                          {errCantidad && <p className="text-[9px] mt-0.5 text-semantic-danger text-right">{errCantidad}</p>}
                         </td>
                         <td className="px-2 py-2">
                           <input
                             type="number"
                             value={item.precio_unit}
                             min="0"
-                            onChange={(e) => setItemField(idx, 'precio_unit', e.target.value)}
-                            className="w-full text-xs border border-border-base rounded px-2 py-1 text-right  focus:outline-none focus:ring-1 focus:ring-brand-primary/30"
+                            onChange={(e) => { setItemField(idx, 'precio_unit', e.target.value); fieldErrors.clearField(`items.${idx}.precio_unit`); }}
+                            className={`w-full text-xs border rounded px-2 py-1 text-right focus:outline-none focus:ring-1 ${errPrecio ? 'border-semantic-danger focus:ring-semantic-danger' : 'border-border-base focus:ring-brand-primary/30'}`}
                           />
+                          {errPrecio && <p className="text-[9px] mt-0.5 text-semantic-danger text-right">{errPrecio}</p>}
                         </td>
                         <td className="px-2 py-2">
                           <input
@@ -619,7 +654,8 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                           </button>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                   <tfoot>
                     <tr className="bg-content-primary">

@@ -10,7 +10,7 @@ import { Button } from '../../../shared/Button';
 import { FormInput } from '../../../shared/Form/FormInput';
 import FormDate from '../../../shared/Form/FormDate';
 import { FormSelect } from '../../../shared/Form/FormSelect';
-import { FormTextarea } from '../../../shared/Form/FormTexarea';
+import { FormTextarea } from '../../../shared/Form/FormTextarea';
 import { usePagos } from '../api/usePago';
 
 const METODO_OPTIONS = [

@@ -3,7 +3,7 @@
  * El destino debe ser un producto existente (tipo=0) sin fórmula activa
  * (si la tiene, se desactiva al clonar).
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Copy, X, ArrowRight, Search } from 'lucide-react';
 import { useFormulaciones } from '../api/useFormulaciones';
 
@@ -11,11 +11,7 @@ const ClonarFormulacionModal = ({ from, onClose, onCloned }) => {
   const { productos, isLoadingProductos, clonarFormulacionAsync, isCloning } = useFormulaciones();
   const [busqueda, setBusqueda] = useState('');
   const [destino,  setDestino]  = useState(null);
-  const [nombre,   setNombre]   = useState('');
-
-  useEffect(() => {
-    if (from?.nombre) setNombre(`${from.nombre} (copia)`);
-  }, [from?.nombre]);
+  const [nombre,   setNombre]   = useState(() => from?.nombre ? `${from.nombre} (copia)` : '');
 
   // Excluir el origen
   const opciones = useMemo(() => {

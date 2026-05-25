@@ -7,6 +7,15 @@ import { fmt } from '../../../../utils/formatters';
 import { useEmpresaInfo, useEmpresaLogoUrl, EMPRESA_FALLBACK } from '../../../../utils/empresaInfo';
 import { useEmpresaLogoBase64 } from '../../../Configuracion/api/useEmpresa';
 
+// Helper de filas tipo recibo: "Label .......... Valor". Declarado a top-level
+// para evitar el error react/no-unstable-nested-components.
+const Row = ({ label, value, bold = false }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontWeight: bold ? 700 : 400, padding: '1px 0' }}>
+    <span>{label}</span>
+    <span style={{ whiteSpace: 'nowrap' }}>{value}</span>
+  </div>
+);
+
 // ── Template carta A4 ─────────────────────────────────────────────────────────
 const PdfTemplate = ({ cotizacion, items, sinPrecio = false, tipo = 'cotizacion', empresa: EMPRESA = EMPRESA_FALLBACK, logoUrl = logoFallback }) => {
   const logo = logoUrl;
@@ -176,21 +185,13 @@ const PdfTemplate = ({ cotizacion, items, sinPrecio = false, tipo = 'cotizacion'
 };
 
 // ── Template tiquete 80 mm — estilo POS genérico (blanco/negro, monoespaciado)
-const PdfTemplateTicket = ({ cotizacion, items, sinPrecio = false, tipo = 'cotizacion', empresa: EMPRESA = EMPRESA_FALLBACK, logoUrl = logoFallback }) => {
+const PdfTemplateTicket = ({ cotizacion, items, sinPrecio = false, tipo = 'cotizacion', empresa: EMPRESA = EMPRESA_FALLBACK }) => {
   const esFact   = tipo === 'factura';
   const docLabel = esFact ? 'FACTURA DE VENTA' : 'COTIZACION';
   // Línea separadora típica de POS: guiones repetidos
   const dashLine = { borderTop: '1px dashed #000', margin: '6px 0' };
   // Línea fuerte
   const solidLine = { borderTop: '1px solid #000', margin: '4px 0' };
-
-  // Helpers de filas tipo recibo: "Label .......... Valor"
-  const Row = ({ label, value, bold = false }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontWeight: bold ? 700 : 400, padding: '1px 0' }}>
-      <span>{label}</span>
-      <span style={{ whiteSpace: 'nowrap' }}>{value}</span>
-    </div>
-  );
 
   return (
     <div style={{
@@ -776,7 +777,7 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
                   </div>
                 ) : (
                   <div className="shadow-2xl rounded overflow-hidden">
-                    <PdfTemplateTicket cotizacion={cotizacion} items={items} sinPrecio={sinPrecio} tipo={tipo} empresa={EMPRESA} logoUrl={logoUrl} />
+                    <PdfTemplateTicket cotizacion={cotizacion} items={items} sinPrecio={sinPrecio} tipo={tipo} empresa={EMPRESA} />
                   </div>
                 )}
               </div>

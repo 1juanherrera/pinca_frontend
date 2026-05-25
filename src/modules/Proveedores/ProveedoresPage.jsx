@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Truck, Plus, Search, BarChart2, LayoutList, LayoutGrid, X } from 'lucide-react';
 import HeaderSection   from '../../shared/HeaderSection';
 import { Button }      from '../../shared/Button';
@@ -54,10 +54,8 @@ const ProveedoresPage = () => {
   const [tab, setTab] = useState('proveedores');
   const [viewMode, setViewMode] = useState('tabla');
   const [portafolioProv, setPortafolioProv] = useState(null);
-  const [cardSearch, setCardSearch] = useState('');
-
-  // Pre-llenar búsqueda al llegar desde Cmd+K
-  useEffect(() => { if (initialQ) setCardSearch(initialQ); }, [initialQ]);
+  // Pre-llenar búsqueda al llegar desde Cmd+K (initializer pattern)
+  const [cardSearch, setCardSearch] = useState(() => initialQ ?? '');
 
   const { proveedores, isLoadingProveedores, catalogo, removeAsync } = useProveedores();
   const { openDrawer } = useBoundStore();

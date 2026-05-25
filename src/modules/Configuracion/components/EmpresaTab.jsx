@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Building2, Save, RotateCcw, Globe, DollarSign, Upload, Trash2, Image as ImageIcon } from 'lucide-react';
 import { Button } from '../../../shared/Button';
 import IconBox from '../../../shared/IconBox';
@@ -45,24 +45,28 @@ const EmpresaTab = () => {
   const { mutate: borrarLogo, isPending: isDeleting } = useDeleteLogo();
 
   const fileInputRef = useRef(null);
-  const [form,       setForm]       = useState({});
-  const [originales, setOriginales] = useState({});
 
-  useEffect(() => {
-    if (!data) return;
-    const next = {
+  const originales = useMemo(() => {
+    if (!data) return {};
+    return {
       ...FIELDS.reduce((acc, f) => ({ ...acc, [f.key]: data[f.key] ?? '' }), {}),
       locale: data.locale ?? 'es-CO',
       moneda: data.moneda ?? 'COP',
     };
-    setForm(next);
-    setOriginales(next);
   }, [data]);
 
-  const dirty = JSON.stringify(form) !== JSON.stringify(originales);
-  const setField = (k, v) => setForm((p) => ({ ...p, [k]: v }));
-  const handleReset = () => setForm(originales);
-  const handleSave  = () => { if (dirty && esAdmin) actualizar(form); };
+  const [overrides, setOverrides] = useState({});
+  const form = useMemo(() => ({ ...originales, ...overrides }), [originales, overrides]);
+
+  const dirty = useMemo(
+    () => Object.keys(overrides).some((k) => overrides[k] !== originales[k]),
+    [overrides, originales]
+  );
+  const setField = (k, v) => setOverrides((p) => ({ ...p, [k]: v }));
+  const handleReset = () => setOverrides({});
+  const handleSave  = () => {
+    if (dirty && esAdmin) actualizar(form, { onSuccess: () => setOverrides({}) });
+  };
 
   const handleFileSelected = (e) => {
     const file = e.target.files?.[0];

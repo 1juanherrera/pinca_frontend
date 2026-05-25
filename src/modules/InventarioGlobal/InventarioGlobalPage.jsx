@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 import {
@@ -405,13 +405,12 @@ const InventarioGlobalPage = ({ embedded = false }) => {
     return i.nombre.toLowerCase().includes(q) || (i.codigo ?? '').toLowerCase().includes(q);
   }), [items, soloStock, busqueda]);
 
-  // Reset a página 1 cuando cambian filtros
-  useEffect(() => { setCurrentPage(1); }, [tipoActivo, busqueda, soloStock, perPage]);
-
   const totalPages = Math.max(1, Math.ceil(filtrados.length / perPage));
+  // Clamp página actual dentro de rango (cuando cambian filtros el total puede bajar)
+  const safePage = Math.min(currentPage, totalPages);
   const paginados  = useMemo(
-    () => filtrados.slice((currentPage - 1) * perPage, currentPage * perPage),
-    [filtrados, currentPage, perPage],
+    () => filtrados.slice((safePage - 1) * perPage, safePage * perPage),
+    [filtrados, safePage, perPage],
   );
 
   const tipoLabel = TIPO_TABS.find((t) => t.tipo === tipoActivo)?.label ?? 'Todos';
@@ -552,7 +551,7 @@ const InventarioGlobalPage = ({ embedded = false }) => {
                   <ItemRow
                     key={item.id_item_general}
                     item={item}
-                    index={(currentPage - 1) * perPage + index}
+                    index={(safePage - 1) * perPage + index}
                     onAjustar={(it, bodega) => setAjusteData({ item: it, bodega })}
                   />
                 ))}
@@ -595,21 +594,21 @@ const InventarioGlobalPage = ({ embedded = false }) => {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                  disabled={currentPage === 1}
+                  disabled={safePage === 1}
                   className="p-1.5 border border-border-base rounded-md bg-surface-base hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronLeft size={14} />
                 </button>
 
                 <div className="flex items-center gap-1">
-                  {getPaginationRange(currentPage, totalPages).map((page, idx) => (
+                  {getPaginationRange(safePage, totalPages).map((page, idx) => (
                     <button
                       key={idx}
                       onClick={() => typeof page === 'number' && setCurrentPage(page)}
                       disabled={page === '...'}
                       className={cn(
                         'min-w-7 h-7 flex items-center justify-center rounded-md text-[11px] font-semibold transition-colors',
-                        page === currentPage
+                        page === safePage
                           ? 'bg-content-primary text-content-inverse'
                           : page === '...'
                             ? 'text-content-muted cursor-default'
@@ -623,7 +622,7 @@ const InventarioGlobalPage = ({ embedded = false }) => {
 
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                  disabled={currentPage >= totalPages}
+                  disabled={safePage >= totalPages}
                   className="p-1.5 border border-border-base rounded-md bg-surface-base hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronRight size={14} />

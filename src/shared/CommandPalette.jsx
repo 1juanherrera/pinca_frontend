@@ -69,7 +69,14 @@ const useGlobalSearch = (q) =>
     keepPreviousData: true,
   });
 
+// Wrapper que monta el body sólo cuando isOpen — así el state interno se resetea
+// gratis al cerrar sin necesidad de setState en effect.
 const CommandPalette = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
+  return <CommandPaletteBody onClose={onClose} />;
+};
+
+const CommandPaletteBody = ({ onClose }) => {
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');
   const [highlighted, setHighlighted] = useState(0);
@@ -77,11 +84,11 @@ const CommandPalette = ({ isOpen, onClose }) => {
   const listRef  = useRef(null);
   const navigate = useNavigate();
 
-  // Reset al abrir
+  // Focus al montar (sólo ocurre cuando se abre, ya que el wrapper desmonta al cerrar)
   useEffect(() => {
-    if (!isOpen) { setQuery(''); setDebounced(''); setHighlighted(0); return; }
-    setTimeout(() => inputRef.current?.focus(), 50);
-  }, [isOpen]);
+    const t = setTimeout(() => inputRef.current?.focus(), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   // Debounce
   useEffect(() => {
@@ -103,18 +110,17 @@ const CommandPalette = ({ isOpen, onClose }) => {
     return [...remotos, ...paginas].map((r, i) => ({ ...r, _key: r._key ?? r.id ?? `row-${i}`, _idx: i }));
   }, [remoto, debounced]);
 
-  // Reset highlight cuando cambia la lista
-  useEffect(() => { setHighlighted(0); }, [flat.length]);
+  // Clamp highlight dentro del rango de resultados (cuando la lista achica)
+  const safeHighlighted = Math.min(highlighted, Math.max(0, flat.length - 1));
 
   // Scroll item resaltado a la vista
   useEffect(() => {
-    const el = listRef.current?.querySelector(`[data-idx="${highlighted}"]`);
+    const el = listRef.current?.querySelector(`[data-idx="${safeHighlighted}"]`);
     el?.scrollIntoView({ block: 'nearest' });
-  }, [highlighted]);
+  }, [safeHighlighted]);
 
   // Keyboard
   useEffect(() => {
-    if (!isOpen) return;
     const onKey = (e) => {
       if (e.key === 'Escape') { e.preventDefault(); onClose(); return; }
       if (e.key === 'ArrowDown') {
@@ -125,15 +131,13 @@ const CommandPalette = ({ isOpen, onClose }) => {
         setHighlighted((h) => Math.max(0, h - 1));
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        const item = flat[highlighted];
+        const item = flat[safeHighlighted];
         if (item?.path) { navigate(item.path); onClose(); }
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, flat, highlighted, navigate, onClose]);
-
-  if (!isOpen) return null;
+  }, [flat, safeHighlighted, navigate, onClose]);
 
   // Agrupar para render con headers
   const grupos = [];
@@ -203,7 +207,7 @@ const CommandPalette = ({ isOpen, onClose }) => {
                   </div>
                   {g.items.map((item) => {
                     const Icon = item.icon ?? cfg.icon;
-                    const active = item._idx === highlighted;
+                    const active = item._idx === safeHighlighted;
                     return (
                       <button
                         key={item._key}

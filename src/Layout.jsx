@@ -7,7 +7,7 @@ import UserPanel from './Shared/UserPanel';
 import CommandPalette from './shared/CommandPalette';
 import ForceChangePasswordModal from './shared/ForceChangePasswordModal';
 import { GlobalTopProgressBar } from './shared/TopProgressBar';
-import { FullPageLoader } from './shared/Loader';
+import { SessionLoader } from './shared/Loader';
 import apiClient from './api/apiClient';
 import { API_ROUTES } from './api/apiRoutes';
 import { useBoundStore } from './store/useBoundStore';
@@ -107,7 +107,7 @@ const Layout = () => {
 
   // Mientras verificamos el token, mostramos un loader full-page —
   // así no se ve ni un frame del panel principal con datos de la sesión vieja.
-  if (verifyingToken) return <FullPageLoader message="Verificando sesión" />;
+  if (verifyingToken) return <SessionLoader message="Verificando sesión" />;
 
   // Verificar acceso al módulo actual.
   // El rol admin tiene acceso irrestricto a toda la app — se evalúa antes

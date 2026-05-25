@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Users, Plus, Search, X, LayoutList, LayoutGrid } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import { Button } from '../../shared/Button';
@@ -45,10 +45,15 @@ const ClientesPage = () => {
 
   const initialQ = useUrlSearch('q');
   const [viewMode,   setViewMode]   = useState('tabla');
-  const [cardSearch, setCardSearch] = useState('');
-
-  // Pre-llenar búsqueda al llegar desde Cmd+K
-  useEffect(() => { if (initialQ) setCardSearch(initialQ); }, [initialQ]);
+  // Inicializar con initialQ ahorra el setState-in-effect. Si initialQ cambia
+  // entre renders (caso raro porque useUrlSearch limpia la URL después de
+  // leer), re-sincronizamos vía snapshot pattern.
+  const [cardSearch, setCardSearch] = useState(() => initialQ || '');
+  const [lastInitialQ, setLastInitialQ] = useState(initialQ);
+  if (initialQ && initialQ !== lastInitialQ) {
+    setLastInitialQ(initialQ);
+    setCardSearch(initialQ);
+  }
 
   const list = Array.isArray(clientes) ? clientes : [];
 

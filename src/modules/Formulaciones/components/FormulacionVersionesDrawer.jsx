@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   History, FileClock, User, Calendar, FileText,
   Plus, Minus, ArrowRight, Check, Beaker, RotateCcw,
@@ -216,18 +216,16 @@ const FormulacionVersionesDrawer = ({
 }) => {
   const { data: versiones, isLoading: isLoadingInterno } = useFormulacionVersiones(formulacionId);
   const isLoading = isLoadingExterno || isLoadingInterno;
-  const [selectedId, setSelectedId] = useState(initialVersionId);
+  const [overrideId, setOverrideId] = useState(initialVersionId);
 
   const openConfirm = useBoundStore((s) => s.openConfirm);
   const { mutate: restaurar, isPending: isRestoring } = useRestaurarVersion();
 
-  // Auto-seleccionar la versión actual o la primera al cargar
-  useEffect(() => {
-    if (!selectedId && versiones?.length) {
-      const actual = versiones.find((v) => Number(v.es_actual) === 1) ?? versiones[0];
-      setSelectedId(actual.id);
-    }
-  }, [versiones, selectedId]);
+  // Derivar selectedId: si el usuario eligió uno, ese; si no, la versión actual o la primera.
+  const selectedId = overrideId ?? (versiones?.length
+    ? (versiones.find((v) => Number(v.es_actual) === 1) ?? versiones[0]).id
+    : null);
+  const setSelectedId = setOverrideId;
 
   const selectedEsActual = (() => {
     if (!versiones || !selectedId) return false;

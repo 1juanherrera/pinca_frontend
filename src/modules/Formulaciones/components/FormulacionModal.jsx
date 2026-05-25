@@ -10,7 +10,7 @@ import { useFormulaciones } from '../api/useFormulaciones';
 import { useCapasStock } from '../../Produccion/api/useCapasStock';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import { FormInput } from '../../../shared/Form/FormInput';
-import { FormTextarea } from '../../../shared/Form/FormTexarea';
+import { FormTextarea } from '../../../shared/Form/FormTextarea';
 import { Button } from '../../../shared/Button';
 import toast from 'react-hot-toast';
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Save, RotateCcw, Boxes, Wallet, TrendingUp, AlertTriangle } from 'lucide-react';
 import { Button } from '../../../shared/Button';
 import IconBox from '../../../shared/IconBox';
@@ -66,21 +66,23 @@ const UmbralesTab = () => {
   const { data: grupo, isLoading } = useConfiguracionGrupo('umbrales');
   const { mutate: bulkUpdate, isPending: isSaving } = useBulkUpdateConfig();
 
-  const [valores,    setValores]    = useState({});
-  const [originales, setOriginales] = useState({});
-
-  useEffect(() => {
-    if (!grupo) return;
+  const originales = useMemo(() => {
+    if (!grupo) return {};
     const next = {};
     Object.entries(grupo).forEach(([clave, item]) => { next[clave] = item.valor; });
-    setValores(next);
-    setOriginales(next);
+    return next;
   }, [grupo]);
 
-  const dirty = JSON.stringify(valores) !== JSON.stringify(originales);
+  const [overrides, setOverrides] = useState({});
+  const valores = useMemo(() => ({ ...originales, ...overrides }), [originales, overrides]);
+
+  const dirty = useMemo(
+    () => Object.keys(overrides).some((k) => overrides[k] !== originales[k]),
+    [overrides, originales]
+  );
 
   const handleChange = (clave, raw) => {
-    setValores((prev) => ({ ...prev, [clave]: raw === '' ? '' : Number(raw) }));
+    setOverrides((prev) => ({ ...prev, [clave]: raw === '' ? '' : Number(raw) }));
   };
 
   // Validación cruzada por sección
@@ -100,10 +102,10 @@ const UmbralesTab = () => {
 
   const handleSave = () => {
     if (!dirty || !esAdmin || advertencias.length > 0) return;
-    bulkUpdate(valores);
+    bulkUpdate(valores, { onSuccess: () => setOverrides({}) });
   };
 
-  const handleReset = () => setValores(originales);
+  const handleReset = () => setOverrides({});
 
   if (isLoading) {
     return (

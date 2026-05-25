@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ShieldCheck, Save, Users, RefreshCw } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import PageTabs from '../../shared/PageTabs';
@@ -34,12 +34,11 @@ const PermisosSection = () => {
   const { data: permisos, isLoading } = usePermisos();
   const { mutate: updatePermisos, isPending } = useUpdatePermisos();
 
-  const [draft, setDraft] = useState(null);
+  const [overrideDraft, setOverrideDraft] = useState(null);
   const [dirty, setDirty] = useState({});
 
-  useEffect(() => {
-    if (permisos) setDraft(permisos);
-  }, [permisos]);
+  // Derivar draft: si el usuario hizo cambios, usa esos; si no, los permisos del servidor
+  const draft = overrideDraft ?? permisos;
 
   if (isLoading || !draft) {
     return (
@@ -53,12 +52,13 @@ const PermisosSection = () => {
 
   const toggle = (rol, moduloKey) => {
     if (rol === 'admin') return; // admin no editable
-    setDraft(prev => {
-      const actual = prev[rol] ?? [];
+    setOverrideDraft(prev => {
+      const base = prev ?? permisos;
+      const actual = base[rol] ?? [];
       const next = actual.includes(moduloKey)
         ? actual.filter(m => m !== moduloKey)
         : [...actual, moduloKey];
-      return { ...prev, [rol]: next };
+      return { ...base, [rol]: next };
     });
     setDirty(prev => ({ ...prev, [rol]: true }));
   };

@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react';
-import { ShoppingCart, CheckCircle2, XCircle, Send, Pencil, Trash2, VariableIcon, Download } from 'lucide-react';
+import { ShoppingCart, CheckCircle2, XCircle, Send, Pencil, Trash2, VariableIcon, Download, Plus } from 'lucide-react';
+import { Button } from '../../../shared/Button';
 import ERPTable        from '../../../shared/ERPTable';
 import StatusBadge     from '../../../shared/StatusBadge';
 import SummaryCard     from '../../../shared/SummaryCard';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay   from '../../../shared/AmountDisplay';
-import TableShell, { useClientPagination } from '../../../shared/TableShell';
+import TableShell from '../../../shared/TableShell';
+import useClientPagination from '../../../hooks/useClientPagination';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { useCompras }    from '../api/useCompras';
 import useTableSort      from '../../../hooks/useTableSorts';
@@ -223,8 +225,14 @@ const OrdenesTab = ({ onVerDetalle }) => {
           isLoading={isLoadingOrdenes}
           variant="default"
           borderless
+          EmptyIcon={ShoppingCart}
           emptyMessage="No hay órdenes de compra"
-          emptySubMessage="Crea una orden desde el botón superior"
+          emptySubMessage="Cuando crees una orden de compra, aparecerá acá."
+          emptyAction={
+            <Button variant="primary" size="sm" icon={Plus} onClick={() => openDrawer('ORDEN_COMPRA_FORM')}>
+              Nueva orden de compra
+            </Button>
+          }
           onRowClick={(row) => onVerDetalle(row)}
           sortBy={sortBy}
           sortDir={sortDir}

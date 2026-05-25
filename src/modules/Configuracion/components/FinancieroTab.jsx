@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Save, RotateCcw, TrendingUp, FileText, BellRing, DollarSign } from 'lucide-react';
 import { Button } from '../../../shared/Button';
 import IconBox from '../../../shared/IconBox';
@@ -54,25 +54,29 @@ const FinancieroTab = () => {
   const { data: all, isLoading } = useConfiguracion();
   const { mutate: bulkUpdate, isPending: isSaving } = useBulkUpdateConfig();
 
-  const [valores, setValores]       = useState({});
-  const [originales, setOriginales] = useState({});
-
-  useEffect(() => {
-    if (!all) return;
+  const originales = useMemo(() => {
+    if (!all) return {};
     const next = {};
     SECCIONES.forEach((sec) => {
       const grupo = all[sec.grupo] ?? {};
       sec.campos.forEach((c) => { next[c.clave] = grupo[c.clave]?.valor ?? ''; });
     });
-    setValores(next);
-    setOriginales(next);
+    return next;
   }, [all]);
 
-  const dirty = JSON.stringify(valores) !== JSON.stringify(originales);
+  const [overrides, setOverrides] = useState({});
+  const valores = useMemo(() => ({ ...originales, ...overrides }), [originales, overrides]);
+
+  const dirty = useMemo(
+    () => Object.keys(overrides).some((k) => overrides[k] !== originales[k]),
+    [overrides, originales]
+  );
   const handleChange = (clave, raw) =>
-    setValores((p) => ({ ...p, [clave]: raw === '' ? '' : Number(raw) }));
-  const handleSave  = () => { if (dirty && esAdmin) bulkUpdate(valores); };
-  const handleReset = () => setValores(originales);
+    setOverrides((p) => ({ ...p, [clave]: raw === '' ? '' : Number(raw) }));
+  const handleSave  = () => {
+    if (dirty && esAdmin) bulkUpdate(valores, { onSuccess: () => setOverrides({}) });
+  };
+  const handleReset = () => setOverrides({});
 
   if (isLoading) {
     return (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Save, Receipt, Percent, RotateCcw } from 'lucide-react';
 import { Button } from '../../../shared/Button';
 import IconBox from '../../../shared/IconBox';
@@ -43,24 +43,25 @@ const TributariaTab = () => {
   const { data: grupo, isLoading } = useConfiguracionGrupo('tributaria');
   const { mutate: bulkUpdate, isPending: isSaving } = useBulkUpdateConfig();
 
-  const [valores,   setValores]   = useState({});
-  const [originales, setOriginales] = useState({});
-
-  // Hidrata el form al cargar
-  useEffect(() => {
-    if (!grupo) return;
+  const originales = useMemo(() => {
+    if (!grupo) return {};
     const next = {};
     Object.entries(grupo).forEach(([clave, item]) => {
       next[clave] = item.valor;
     });
-    setValores(next);
-    setOriginales(next);
+    return next;
   }, [grupo]);
 
-  const dirty = JSON.stringify(valores) !== JSON.stringify(originales);
+  const [overrides, setOverrides] = useState({});
+  const valores = useMemo(() => ({ ...originales, ...overrides }), [originales, overrides]);
+
+  const dirty = useMemo(
+    () => Object.keys(overrides).some((k) => overrides[k] !== originales[k]),
+    [overrides, originales]
+  );
 
   const handleChange = (clave, raw, tipo = 'number') => {
-    setValores((prev) => ({
+    setOverrides((prev) => ({
       ...prev,
       [clave]: tipo === 'boolean' ? !!raw : (raw === '' ? '' : Number(raw)),
     }));
@@ -68,10 +69,10 @@ const TributariaTab = () => {
 
   const handleSave = () => {
     if (!dirty || !esAdmin) return;
-    bulkUpdate(valores);
+    bulkUpdate(valores, { onSuccess: () => setOverrides({}) });
   };
 
-  const handleReset = () => setValores(originales);
+  const handleReset = () => setOverrides({});
 
   const lastUpdated = grupo?.iva_default?.updated_at;
   const lastBy      = grupo?.iva_default?.updated_by;

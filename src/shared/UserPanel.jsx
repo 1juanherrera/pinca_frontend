@@ -508,7 +508,11 @@ const EmpresaTab = () => {
 
   const [form, setForm] = useState(null);
 
-  useEffect(() => { if (data && !form) setForm(data); }, [data]);
+  // Sincronizar el draft con la data del backend en el render — evita
+  // setState-in-effect. Si form está vacío, lo inicializamos con data.
+  if (data && !form) {
+    setForm(data);
+  }
 
   const { mutate: save, isPending } = useMutation({
     mutationFn: (body) => apiClient.put(API_ROUTES.EMPRESA.UPDATE, body),
@@ -579,7 +583,10 @@ const ModulosMatrix = () => {
   const [draft, setDraft] = useState(null);
   const [dirty, setDirty] = useState({});
 
-  useEffect(() => { if (permisos && !draft) setDraft(permisos); }, [permisos]);
+  // Inicializar el draft sin useEffect — patrón "derive from props in render".
+  if (permisos && !draft) {
+    setDraft(permisos);
+  }
   if (isLoading) return <p className="text-xs text-content-muted">Cargando…</p>;
   if (!draft)    return null;
 

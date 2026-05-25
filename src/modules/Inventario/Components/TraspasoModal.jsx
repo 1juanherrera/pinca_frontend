@@ -4,7 +4,7 @@ import Modal from '../../../shared/Modal';
 import { Button } from '../../../shared/Button';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import { FormInput } from '../../../shared/Form/FormInput';
-import { FormTextarea } from '../../../shared/Form/FormTexarea';
+import { FormTextarea } from '../../../shared/Form/FormTextarea';
 
 export const TraspasoModal = ({ item, bodegas, onClose, onConfirm, isSubmitting, id_bodega }) => {
   const [destino,     setDestino]     = useState('');

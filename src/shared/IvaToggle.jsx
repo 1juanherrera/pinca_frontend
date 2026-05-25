@@ -34,34 +34,37 @@ export const useIvaToggle = () => {
  *  - onChange: (next: bool) => void
  *  - size?: 'sm' | 'md'  (default 'sm')
  */
-const IvaToggle = ({ value, onChange, size = 'sm' }) => {
-  const sizes = {
-    sm: { btn: 'text-xs px-2.5 py-1', icon: 'w-3.5 h-3.5' },
-    md: { btn: 'text-sm px-3 py-1.5', icon: 'w-4 h-4' },
-  };
-  const s = sizes[size] || sizes.sm;
+const SIZES = {
+  sm: { btn: 'text-xs px-2.5 py-1', icon: 'w-3.5 h-3.5' },
+  md: { btn: 'text-sm px-3 py-1.5', icon: 'w-4 h-4' },
+};
 
-  const Segment = ({ active, icon: Icon, label, onClick, title }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-pill font-medium transition-all',
-        s.btn,
-        active
-          ? 'bg-content-primary text-white shadow-sm'
-          : 'text-content-tertiary hover:text-content-secondary'
-      )}
-    >
-      <Icon className={s.icon} />
-      {label}
-    </button>
-  );
+// Subcomponente a top-level para evitar el error react/no-unstable-nested-components.
+const Segment = ({ active, icon: Icon, label, onClick, title, s }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    title={title}
+    className={cn(
+      'inline-flex items-center gap-1.5 rounded-pill font-medium transition-all',
+      s.btn,
+      active
+        ? 'bg-content-primary text-white shadow-sm'
+        : 'text-content-tertiary hover:text-content-secondary'
+    )}
+  >
+    <Icon className={s.icon} />
+    {label}
+  </button>
+);
+
+const IvaToggle = ({ value, onChange, size = 'sm' }) => {
+  const s = SIZES[size] || SIZES.sm;
 
   return (
     <div className="inline-flex items-center gap-0.5 bg-surface-muted border border-border-base rounded-pill p-0.5">
       <Segment
+        s={s}
         active={value}
         icon={Receipt}
         label="Con IVA"
@@ -69,6 +72,7 @@ const IvaToggle = ({ value, onChange, size = 'sm' }) => {
         onClick={() => onChange(true)}
       />
       <Segment
+        s={s}
         active={!value}
         icon={FileText}
         label="Sin IVA"

@@ -10,7 +10,8 @@ import SearchFilterBar     from '../../../shared/SearchFilterBar';
 import RemisionDrawer      from './components/RemisionDrawer';
 import { useRemisiones }   from './api/useRemisiones';
 import useTableSort        from '../../../hooks/useTableSorts';
-import TableShell, { useClientPagination } from '../../../shared/TableShell';
+import TableShell       from '../../../shared/TableShell';
+import useClientPagination from '../../../hooks/useClientPagination';
 
 const STATUS_OPTIONS = [
   { value: 'Pendiente', label: 'Pendiente', dot: 'bg-semantic-warning'   },

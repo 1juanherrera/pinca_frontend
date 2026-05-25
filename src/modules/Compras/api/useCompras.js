@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { comprasKeys } from './comprasKeys';
 import { inventarioKeys } from '../../Inventario/api/inventarioKeys';
 import toast from 'react-hot-toast';
@@ -10,19 +11,19 @@ export const useCompras = (id = null) => {
   // ── GET: Lista de órdenes ─────────────────────────────────────────────
   const queryOrdenes = useQuery({
     queryKey: comprasKeys.lists(),
-    queryFn:  () => apiClient.get('/ordenes_compra'),
+    queryFn:  () => apiClient.get(API_ROUTES.ORDENES_COMPRA.LIST),
   });
 
   // ── GET: Detalle de una orden ─────────────────────────────────────────
   const queryDetalle = useQuery({
     queryKey: comprasKeys.detail(id),
-    queryFn:  () => apiClient.get(`/ordenes_compra/${id}/detalle`),
+    queryFn:  () => apiClient.get(API_ROUTES.ORDENES_COMPRA.DETAIL(id)),
     enabled:  !!id,
   });
 
   // ── CREATE ────────────────────────────────────────────────────────────
   const createMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/ordenes_compra', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.ORDENES_COMPRA.CREATE, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: comprasKeys.lists() });
       toast.success('Orden de compra creada');
@@ -32,7 +33,7 @@ export const useCompras = (id = null) => {
 
   // ── UPDATE ────────────────────────────────────────────────────────────
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/ordenes_compra/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.ORDENES_COMPRA.UPDATE(id), data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: comprasKeys.lists() });
       queryClient.invalidateQueries({ queryKey: comprasKeys.detail(id) });
@@ -43,7 +44,7 @@ export const useCompras = (id = null) => {
 
   // ── CAMBIAR ESTADO ────────────────────────────────────────────────────
   const cambiarEstadoMutation = useMutation({
-    mutationFn: ({ id, estado }) => apiClient.patch(`/ordenes_compra/${id}/estado`, { estado }),
+    mutationFn: ({ id, estado }) => apiClient.patch(API_ROUTES.ORDENES_COMPRA.UPDATE_ESTADO(id), { estado }),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: comprasKeys.lists() });
       queryClient.invalidateQueries({ queryKey: comprasKeys.detail(id) });
@@ -55,7 +56,7 @@ export const useCompras = (id = null) => {
   // ── RECIBIR LÍNEA ─────────────────────────────────────────────────────
   const recibirLineaMutation = useMutation({
     mutationFn: ({ idOrden, idDetalle, cantidad_recibida, lote_proveedor }) =>
-      apiClient.post(`/ordenes_compra/${idOrden}/recibir/${idDetalle}`, {
+      apiClient.post(API_ROUTES.ORDENES_COMPRA.RECIBIR_LINEA(idOrden, idDetalle), {
         cantidad_recibida,
         lote_proveedor: lote_proveedor ?? null,
       }),
@@ -77,7 +78,7 @@ export const useCompras = (id = null) => {
   // las capas con el costo prorrateado.
   const recibirProrrateadoMutation = useMutation({
     mutationFn: ({ idOrden, precio_total_pagado, lote_proveedor, lineas }) =>
-      apiClient.post(`/ordenes_compra/${idOrden}/recibir-prorrateado`, {
+      apiClient.post(API_ROUTES.ORDENES_COMPRA.RECIBIR_PRORRATEADO(idOrden), {
         precio_total_pagado,
         lote_proveedor: lote_proveedor ?? null,
         lineas,
@@ -94,7 +95,7 @@ export const useCompras = (id = null) => {
 
   // ── DELETE ────────────────────────────────────────────────────────────
   const deleteMutation = useMutation({
-    mutationFn: (id) => apiClient.delete(`/ordenes_compra/${id}`),
+    mutationFn: (id) => apiClient.delete(API_ROUTES.ORDENES_COMPRA.DELETE(id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: comprasKeys.lists() });
       toast.success('Orden eliminada');

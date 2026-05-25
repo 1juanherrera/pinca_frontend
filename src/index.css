@@ -312,6 +312,49 @@ input[type="number"] { -moz-appearance: textfield; }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   LOGIN — animaciones de la pantalla de acceso (paint theme)
+   Orbes de pintura que flotan, entrada escalonada y brillo dorado en el título.
+   ───────────────────────────────────────────────────────────────────────────── */
+@keyframes login-blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(40px, -30px) scale(1.1); }
+  66%      { transform: translate(-30px, 20px) scale(0.92); }
+}
+@keyframes login-blob-slow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(-50px, 40px) scale(1.15); }
+}
+@keyframes login-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes login-shimmer {
+  to { background-position: 200% center; }
+}
+@utility animate-login-blob {
+  animation: login-blob 18s ease-in-out infinite;
+}
+@utility animate-login-blob-slow {
+  animation: login-blob-slow 24s ease-in-out infinite;
+}
+@utility animate-login-rise {
+  animation: login-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@utility animate-login-shimmer {
+  background-size: 200% auto;
+  animation: login-shimmer 5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-login-blob,
+  .animate-login-blob-slow,
+  .animate-login-rise,
+  .animate-login-shimmer {
+    animation: none !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    UTILITIES PINCA 2.0
    ───────────────────────────────────────────────────────────────────────────── */
 

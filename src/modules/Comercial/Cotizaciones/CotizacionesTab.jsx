@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import {
-  ClipboardList, Send, CheckCircle2, ArrowRight, Eye, Trash2, Download, CircleAlert
+  ClipboardList, Send, CheckCircle2, ArrowRight, Eye, Trash2, Download, CircleAlert, Plus
 } from 'lucide-react';
+import { Button } from '../../../shared/Button';
 import { useBoundStore }    from '../../../store/useBoundStore';
 import ERPTable             from '../../../shared/ERPTable';
 import StatusBadge          from '../../../shared/StatusBadge';
@@ -13,7 +14,8 @@ import ExportCotizacion     from './components/ExportCotizacion';
 import { fmt }              from '../../../utils/formatters';
 import { useCotizaciones }  from './api/useCotizaciones';
 import useTableSort         from '../../../hooks/useTableSorts';
-import TableShell, { useClientPagination } from '../../../shared/TableShell';
+import TableShell        from '../../../shared/TableShell';
+import useClientPagination from '../../../hooks/useClientPagination';
 
 const STATUS_OPTIONS = [
   { value: 'Borrador',  label: 'Borrador',  dot: 'bg-content-muted'    },
@@ -210,8 +212,14 @@ const columns = useMemo(() => [
           isLoading={isLoadingCotizaciones}
           variant="default"
           borderless
-          emptyMessage="No se encontraron cotizaciones"
-          emptySubMessage="Crea una cotización desde el módulo de Ventas"
+          EmptyIcon={ClipboardList}
+          emptyMessage="No hay cotizaciones"
+          emptySubMessage="Cuando crees una cotización, aparecerá acá."
+          emptyAction={
+            <Button variant="primary" size="sm" icon={Plus} onClick={() => openDrawer('COTIZACION_FORM')}>
+              Nueva cotización
+            </Button>
+          }
           onRowClick={(row) => setSelected(row)}
           sortBy={sortBy}
           sortDir={sortDir}

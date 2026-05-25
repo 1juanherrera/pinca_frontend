@@ -2,19 +2,25 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 
 const ROUTE_TITLES = {
-  '/':               'Inicio',
-  '/login':          'Login',
-  '/catalogo':       'Catálogo',
-  '/formulaciones':  'Formulaciones',
-  '/produccion':     'Producción',
-  '/clientes':       'Clientes',
-  '/pagos':          'Pagos',
-  '/cartera':        'Cartera',
-  '/comercial':      'Comercial',
-  '/compras':        'Compras',
-  '/proveedores':    'Proveedores',
-  '/movimientos':    'Movimientos',
-  '/rentabilidad':   'Rentabilidad',
+  '/':                  'Inicio',
+  '/login':             'Login',
+  '/catalogo':          'Catálogo',
+  '/formulaciones':     'Formulaciones',
+  '/produccion':        'Producción',
+  '/clientes':          'Clientes',
+  '/pagos':             'Pagos',
+  '/cartera':           'Cartera',
+  '/comercial':         'Comercial',
+  '/compras':           'Compras',
+  '/proveedores':       'Proveedores',
+  '/movimientos':       'Movimientos',
+  '/rentabilidad':      'Rentabilidad',
+  '/sedes':             'Sedes y Bodegas',
+  '/costos-produccion': 'Costos de Producción',
+  '/sincronizacion':    'Sincronización',
+  '/trazabilidad':      'Trazabilidad de Lotes',
+  '/configuracion':     'Configuración',
+  '/inventario-global': 'Inventario Global',
 };
 
 const PREFIX_TITLES = [
