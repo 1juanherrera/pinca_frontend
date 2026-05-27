@@ -9,6 +9,15 @@ import { useEmpresaLogoBase64 } from '../../../Configuracion/api/useEmpresa';
 const fmt = (n) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(n) || 0);
 
+// Fila tipo recibo: "Label .......... Valor". Declarada a top-level para evitar
+// el error react/no-unstable-nested-components (Cannot create components during render).
+const Row = ({ label, value, bold = false }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontWeight: bold ? 700 : 400, padding: '1px 0' }}>
+    <span>{label}</span>
+    <span style={{ whiteSpace: 'nowrap' }}>{value}</span>
+  </div>
+);
+
 // ── Template carta A4 ─────────────────────────────────────────────────────────
 const PdfTemplate = ({ remision, items, empresa: EMPRESA = EMPRESA_FALLBACK, logoUrl = logoFallback }) => {
   const logo = logoUrl;
@@ -153,13 +162,6 @@ const PdfTemplateTicket = ({ remision, items, empresa: EMPRESA = EMPRESA_FALLBAC
   const dashLine  = { borderTop: '1px dashed #000', margin: '6px 0' };
   const solidLine = { borderTop: '1px solid #000',  margin: '4px 0' };
 
-  const Row = ({ label, value, bold = false }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontWeight: bold ? 700 : 400, padding: '1px 0' }}>
-      <span>{label}</span>
-      <span style={{ whiteSpace: 'nowrap' }}>{value}</span>
-    </div>
-  );
-
   return (
     <div style={{
       fontFamily: '"Courier New", Courier, monospace',
@@ -264,7 +266,6 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
   const EMPRESA = useEmpresaInfo();
   const logoUrl = useEmpresaLogoUrl();
   const { data: logoB64Data } = useEmpresaLogoBase64();
-  const logo    = logoUrl;
   const { items, isLoadingItems } = useRemisiones(remision.id_remisiones);
   const [isExporting, setIsExporting] = useState(false);
   const [done,        setDone]        = useState(false);
@@ -446,7 +447,7 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
   };
 
   // ── Descarga tiquete 80 mm — estilo POS genérico (B/N, monoespaciado) ──
-  const downloadTicket = async (autoTable, logoBase64) => {
+  const downloadTicket = async () => {
     const { jsPDF } = await import('jspdf');
     const W = 80, M = 4;
     const estimatedH = Math.max(170, 110 + (items ?? []).length * 12 + (remision.observaciones ? 25 : 0));
@@ -572,7 +573,7 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
         await downloadCarta(doc, autoTable, logoBase64);
       } else {
-        await downloadTicket(autoTable, logoBase64);
+        await downloadTicket();
       }
 
       setDone(true);

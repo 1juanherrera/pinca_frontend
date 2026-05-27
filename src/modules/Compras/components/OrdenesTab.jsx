@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
-import { ShoppingCart, CheckCircle2, XCircle, Send, Pencil, Trash2, VariableIcon, Download, Plus } from 'lucide-react';
+import { ShoppingCart, CheckCircle2, XCircle, Send, Pencil, Trash2, VariableIcon, Download, Plus, FileSpreadsheet } from 'lucide-react';
 import { Button } from '../../../shared/Button';
+import { exportOrdenesCompraExcel } from './ExportOrdenCompraExcel';
 import ERPTable        from '../../../shared/ERPTable';
 import StatusBadge     from '../../../shared/StatusBadge';
-import SummaryCard     from '../../../shared/SummaryCard';
+import FlowCard        from '../../../shared/FlowCard';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay   from '../../../shared/AmountDisplay';
 import TableShell from '../../../shared/TableShell';
@@ -146,6 +147,15 @@ const OrdenesTab = ({ onVerDetalle }) => {
             </button>
           )}
 
+          {/* Exportar Excel */}
+          <button
+            onClick={(e) => { e.stopPropagation(); exportOrdenesCompraExcel(row, { ivaPct }); }}
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
+            title="Exportar Excel"
+          >
+            <FileSpreadsheet size={12} />
+          </button>
+
           {/* Exportar PDF */}
           <button
             onClick={(e) => { e.stopPropagation(); openDrawer('EXPORT_MODAL_OC', row); }}
@@ -199,22 +209,35 @@ const OrdenesTab = ({ onVerDetalle }) => {
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <SummaryCard label="Total órdenes" value={metrics.total}     icon={ShoppingCart}  color="gray"  />
-        <SummaryCard label="Enviadas"       value={metrics.enviadas}  icon={Send}          color="blue"  />
-        <SummaryCard label="Recibidas"      value={metrics.recibidas} icon={CheckCircle2}  color="green" />
-        <SummaryCard label="Canceladas"     value={metrics.canceladas} icon={XCircle}      color="red"   />
+        <FlowCard label="Total órdenes" value={metrics.total}     icon={ShoppingCart}  tone="neutral" />
+        <FlowCard label="Enviadas"       value={metrics.enviadas}  icon={Send}          tone="info"    />
+        <FlowCard label="Recibidas"      value={metrics.recibidas} icon={CheckCircle2}  tone="success" />
+        <FlowCard label="Canceladas"     value={metrics.canceladas} icon={XCircle}      tone="danger"  />
       </div>
 
       <TableShell
         header={
-          <SearchFilterBar
-            search={search}
-            onSearch={setSearch}
-            placeholder="Buscar por número o proveedor..."
-            values={filters}
-            onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
-            statusOptions={STATUS_OPTIONS}
-          />
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <SearchFilterBar
+                search={search}
+                onSearch={setSearch}
+                placeholder="Buscar por número o proveedor..."
+                values={filters}
+                onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+                statusOptions={STATUS_OPTIONS}
+              />
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={FileSpreadsheet}
+              onClick={() => exportOrdenesCompraExcel(filtered, { ivaPct, filename: 'ordenes-compra' })}
+              disabled={!filtered.length}
+            >
+              Excel
+            </Button>
+          </div>
         }
         pagination={pagination}
         isLoading={isLoadingOrdenes}

@@ -275,7 +275,9 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
   const [costosData,        setCostosData]        = useState({});
 
   const searchInputRef  = useRef(null);
-  const saveAndContinue = useRef(false);
+  // Flag "guardar y continuar": es state (no ref) porque condiciona el render
+  // del label del botón. Leer un ref durante render lo prohíbe el React Compiler.
+  const [saveAndContinue, setSaveAndContinue] = useState(false);
 
   const {
     formulacion, isLoadingFormulacion, productos, materiasDisponibles,
@@ -336,7 +338,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
           data: { crear: true, nombre: mp.nombre, codigo: mp.codigo, tipo: 1 },
         });
         append({ materia_prima_id: String(res.item_general_id), id_item_proveedor: String(mp.id_item_proveedor), nombre: mp.nombre, cantidad: 0, costo_unitario: mp.costo_unitario, fuente: 'proveedor', proveedor_nombre: mp.proveedor_nombre });
-      } catch (_) {}
+      } catch { /* error manejado por el hook (toast) */ }
     } else {
       append({ materia_prima_id: String(mp.item_general_id), nombre: mp.nombre, cantidad: 0, costo_unitario: mp.costo_unitario, fuente: mp.fuente ?? 'inventario', proveedor_nombre: mp.proveedor_nombre ?? null });
     }
@@ -351,7 +353,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
       setValue('item_general_id', String(res.id));
       setNuevoProductoData(EMPTY_PRODUCTO);
       setShowNuevoProducto(false);
-    } catch (_) {}
+    } catch { /* error manejado por el hook (toast) */ }
   };
 
   const handleCrearMateriaPrima = async () => {
@@ -362,7 +364,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
       setNuevaMpData(EMPTY_MP);
       setShowNuevaMp(false);
       setSearchTerm('');
-    } catch (_) {}
+    } catch { /* error manejado por el hook (toast) */ }
   };
 
   const handleProveedorChange = useCallback((fieldId, proveedorId) => {
@@ -400,7 +402,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
   const deficitItems = Object.values(costosData).filter(d => d?.hasDeficit);
   const hasAnyDeficit = deficitItems.length > 0;
 
-  const onSubmit = async (data) => {
+  const onSubmit = (continuar = false) => async (data) => {
     if (data.materias_primas.length === 0) {
       toast.error('Agrega al menos una materia prima');
       return;
@@ -421,8 +423,8 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
       } else {
         await createFormulacionAsync(payload);
       }
-      if (saveAndContinue.current) {
-        saveAndContinue.current = false;
+      if (continuar) {
+        setSaveAndContinue(false);
         reset({ item_general_id: '', nombre: '', descripcion: '', materias_primas: [] });
         setCostosData({});
         setProveedores({});
@@ -430,7 +432,10 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
       } else {
         handleClose();
       }
-    } catch (_) {}
+    } catch {
+      /* error manejado por el hook (toast) */
+      setSaveAndContinue(false);
+    }
   };
 
   const handleClose = () => {
@@ -502,7 +507,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+        <form onSubmit={(e) => handleSubmit(onSubmit(false))(e)} className="flex flex-col flex-1 overflow-hidden">
 
           {/* ─── BODY ─────────────────────────────────────────────────────── */}
           <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
@@ -838,9 +843,9 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                     type="button"
                     variant="white"
                     disabled={isSaving}
-                    onClick={() => { saveAndContinue.current = true; handleSubmit(onSubmit)(); }}
+                    onClick={() => { setSaveAndContinue(true); handleSubmit(onSubmit(true))(); }}
                   >
-                    {isSaving && saveAndContinue.current
+                    {isSaving && saveAndContinue
                       ? <><span className="w-4 h-4 border-2 border-border-strong border-t-transparent rounded-full animate-spin inline-block mr-1.5" />Guardando...</>
                       : 'Guardar y continuar →'
                     }

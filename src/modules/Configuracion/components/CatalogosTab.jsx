@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import {
   Layers, Tag, Ruler, ArrowDownUp, Plus, Edit, Trash2, Save, Check,
 } from 'lucide-react';

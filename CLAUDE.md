@@ -2,11 +2,11 @@
 
 > Este archivo es la **fuente de verdad** para cualquier Claude que retome este proyecto. Está organizado para leerse en orden de necesidad: contexto rápido arriba, detalles técnicos abajo.
 
-## 1. Estado actual (snapshot 2026-05-25 — tarde)
+## 1. Estado actual (snapshot 2026-05-27)
 
-> **Última sesión grande**: 2026-05-25 (tarde) — Tercera ronda del día. Backlog DEV prácticamente vacío. Code-splitting reduce main bundle **76% (1.77 MB → 424 KB)**. ESLint **33 errors (de 69 inicial, −52%)**, ningún `setState in effect` queda. `useFieldErrors` integrado en items de tabla, document.title en rutas faltantes, EmptyStates con CTA en Cotizaciones/OCs, touch targets 44px, PUT/DELETE OC centralizadas. README raíz monorepo creado. Ver §23.
+> **Última sesión grande**: 2026-05-27 — Refresh token UX + Export Excel + Vitest setup + ESLint **33 → 4 errors**. `SessionExpiryModal`, Export Excel en Cotizaciones/OCs, `SummaryCard → FlowCard` migrado completo (6 archivos), popovers mobile-safe. Ver §24.
 >
-> **Sesiones anteriores del mismo día**: §21 (audit 2026-05-25 mañana), §22 (ejecución 2026-05-25 mediodía), §20 (hardening 2026-05-21).
+> **Sesiones anteriores**: §23 (2026-05-25 tarde — code-splitting, cleanups), §22 (2026-05-25 mediodía), §21 (audit), §20 (2026-05-21 hardening).
 
 > **Sesión 2026-05-19**: IVA toggle global, FormDate component (reemplaza inputs nativos en 11 archivos), módulo Costos eliminado y unificado en Rentabilidad, sidebar singleton sin flyout, Salud de cartera rediseñada. Ver §18.
 
@@ -1588,4 +1588,92 @@ Los 33 errores restantes son:
 
 ---
 
-> **Snapshot al cierre 2026-05-25 (tarde)**: Frontend en estado **post-cleanup masivo**. Bundle main 424 KB (de 1.77 MB), 0 `setState in effect`, 19 rutas con `document.title`, items de tabla con errores backend mapeados, touch targets mobile-ready, EmptyStates con CTA en módulos clave. Code-splitting agresivo separó 18 pages en chunks independientes. Próxima sesión grande: dark mode, refresh token UX, bulk actions, virtualización, Vitest — cada uno propia sesión. El backlog ajustado está en `PENDIENTES.md`.
+> **Snapshot al cierre 2026-05-25 (tarde)**: Frontend en estado **post-cleanup masivo**. Bundle main 424 KB (de 1.77 MB), 0 `setState in effect`, 19 rutas con `document.title`, items de tabla con errores backend mapeados, touch targets mobile-ready, EmptyStates con CTA en módulos clave. Code-splitting agresivo separó 18 pages en chunks independientes.
+
+---
+
+## 24. Sesión 2026-05-27 — Refresh token UX + Export Excel + Vitest + ESLint final
+
+Sesión coordinada con backend (3 agentes paralelos). ESLint **33 → 4 errors**. Build limpio (~9.8s). El backlog DEV frontend queda casi vacío: dark mode, virtualización, bulk actions, y completar el install de Vitest.
+
+### Refresh token UX — `SessionExpiryModal`
+
+Contrapartida del refresh token rotativo del backend (ver `pinca_backend/CLAUDE.md § Sesión 2026-05-27`).
+
+**Contrato consumido**:
+- `POST /login` ahora devuelve `refresh_token` → se guarda en `localStorage` key `pinca:refresh_token`.
+- `POST /api/auth/refresh` (`AUTH.REFRESH` en apiRoutes) body `{refresh_token}` → `{ok, token, refresh_token}` (rota ambos).
+
+**`src/shared/SessionExpiryModal.jsx`** (nuevo, montado en `Layout.jsx` junto a `ForceChangePasswordModal`):
+- Decodifica el `exp` del JWT actual con `JSON.parse(atob(token.split('.')[1]))` (sin librería).
+- Programa timer que muestra el modal **5 min antes** del `exp`. Countdown mm:ss.
+- "Extender sesión" → `POST /auth/refresh` con el refresh de localStorage. Si OK: guarda nuevo token (`setAuth`) + nuevo refresh (localStorage), cierra, reprograma. Si falla (401) → `logout()` + redirect login.
+- "Cerrar sesión" → `logout()`.
+- Si el JWT no tiene `exp` parseable, no programa nada (no rompe).
+- `authSlice.logout()` ahora borra `pinca:refresh_token`. `Login.jsx` guarda `res.refresh_token` al loguear.
+
+### Export Excel — Cotizaciones y OCs
+
+`xlsx` ya estaba instalado. Dos exporters nuevos:
+- `src/modules/Comercial/Cotizaciones/components/ExportCotizacionExcel.js` — columnas: Número, Cliente, NIT, Fecha, Vencimiento, Ítems, Subtotal, IVA, Total, Estado. Acepta fila única o lista.
+- `src/modules/Compras/components/ExportOrdenCompraExcel.js` — columnas: Número OC, Proveedor, Fecha, Total, IVA, Total con IVA, Estado (usa `total_con_iva`/`iva_monto` del backend con fallback a `ivaPct`).
+- Wireup en `CotizacionesTab` y `OrdenesTab`: botón Excel por fila (junto al PDF) + botón "Excel" en header que exporta la lista filtrada visible.
+- **Nota de scope**: el export de lista usa campos de resumen, no detalle de ítems por fila (eso requeriría fetch por entidad).
+
+### Vitest — setup creado, ⚠️ PENDIENTE DE INSTALL
+
+Vitest **no estaba instalado y NO se instaló** (sin red garantizada en la sesión). Quedó listo para activar:
+- `vitest.config.js` (environment jsdom, globals).
+- `src/utils/formatters.test.js` (tests reales de `formatoPesoColombiano`, `parsePesoColombiano`).
+- `src/hooks/useClientPagination.test.js` (paginación con `renderHook`).
+- Script `"test": "vitest"` en package.json.
+
+**Para activar**:
+```bash
+npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom
+npm run test -- --run
+```
+
+### ESLint 33 → 4
+
+Arreglado: unused vars (`useMemo`, `logo`, `autoTable`/`logoBase64`, `margenPromedio`, `hayStockOk`, `checked`, `catch (e)`), empty catch en `FormulacionModal`, refs durante render en `FormCostProducts` y `FormulacionModal` (`saveAndContinue` ref→state + factory de `onSubmit`), rules-of-hooks en `FormulacionesTable` (`useMemo` movido antes del return condicional), 3 `react-refresh/only-export-components` (extraídos `fmtFechaChip`→`utils/dateChip.js`, `getDateRange`→`Rentabilidad/components/dateRange.js`, `useIvaToggle`→`hooks/useIvaToggle.js`).
+
+**Quedan 4 errores** (requieren refactor mayor, no afectan build/runtime):
+- `CapasStockPanel:351` — `Date.now()` impuro en render.
+- `FormulacionesTable:189` — memoization skip.
+- `FormCostProducts:226` + `FormulacionModal:317` — 2 `setState in effect` (reset-on-open) que se "revelaron" al desbloquear la compilación; necesitan refactor del padre con `key`.
+
+### `SummaryCard → FlowCard` — migración completa
+
+Migrados los 6 archivos que usaban `SummaryCard`: `FacturasTable`, `CotizacionesTab`, `FacturacionTab`, `RemisionesTab`, `OrdenesTab`, `InventarioGlobalPage`. Mapeo `color → tone` (gray→neutral, blue→info, green→success, amber→warning, red→danger). Ningún uso pasaba `trend` (prop no soportada por FlowCard), migración limpia. `SummaryCard.jsx` quedó huérfano (sin importadores) — se dejó el archivo por si se quiere referencia, pero ya no se usa.
+
+### Popovers mobile-safe
+
+- `FormDate`: clampea `left` contra `window.innerWidth` (margen 8px) + `maxWidth` + `overflow-x-auto`.
+- `DateRangePicker`: muestra 1 mes (no 2) en `<640px` + `max-w-[calc(100vw-1rem)]` + scroll.
+
+### Marcar todas como leídas — ya existía
+
+`NotificacionesDropdown.jsx` ya tenía el botón "Leer todas" + `useMarcarTodasLeidas` que llama `/notificaciones/leer-todas`. Sin cambios necesarios.
+
+### Estado sidebar (reporte)
+
+- `/pagos` — ruta en App.jsx pero sin entrada en `sidebarMenu.js` (acceso por URL/links). Intencional.
+- `/sincronizacion`, `/configuracion` — ruta sin entry (Configuración se abre por el engranaje). Intencional.
+- `/roles` — ya no es ruta (movido a tab del UserPanel, solo superadmin).
+
+### Archivos de esta sesión
+
+**Creados**: `SessionExpiryModal.jsx`, `ExportCotizacionExcel.js`, `ExportOrdenCompraExcel.js`, `vitest.config.js`, `formatters.test.js`, `useClientPagination.test.js`, `utils/dateChip.js`, `Rentabilidad/components/dateRange.js`, `hooks/useIvaToggle.js`.
+**Modificados**: `Layout.jsx`, `authSlice.js`, `Login.jsx`, `apiRoutes.js`, `CotizacionesTab`, `OrdenesTab`, `FormDate`, `DateRangePicker`, `FormCostProducts`, `FormulacionModal`, `FormulacionesTable`, + los 6 de `SummaryCard→FlowCard`, package.json.
+
+### Riesgos
+
+1. **`FormulacionModal`**: `onSubmit` ahora es factory `(continuar) => async (data) => …` y `saveAndContinue` es state. Verificar manualmente "Guardar y continuar".
+2. **Vitest no corre hasta el `npm install`** de los 4 dev-deps.
+3. **4 ESLint restantes** no afectan build/runtime.
+4. **`SummaryCard.jsx` huérfano** — borrable en un cleanup futuro.
+
+---
+
+> **Snapshot al cierre 2026-05-27**: Frontend con refresh token UX (modal "sesión por expirar" + extend silencioso), Export Excel en Cotizaciones/OCs, Vitest configurado (pendiente `npm install`), ESLint 4 errors (de 69 inicial, −94%), SummaryCard totalmente migrado a FlowCard, popovers mobile-safe. Backlog DEV restante: dark mode, virtualización, bulk actions, completar Vitest install, 4 ESLint con refactor mayor. Build limpio.

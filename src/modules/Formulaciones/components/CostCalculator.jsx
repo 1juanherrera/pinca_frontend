@@ -44,7 +44,6 @@ export const CostCalculator = ({
     return disponible < requerido;
   });
 
-  const hayStockOk    = faltantes.length === 0 && formulacionesBase.length > 0;
   const puedePreparar = tieneRecalculo;
 
   const razonBloqueo = !tieneRecalculo

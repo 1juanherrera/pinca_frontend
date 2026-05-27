@@ -11,6 +11,7 @@ export const createAuthSlice = (set) => ({
     logout: () => {
         localStorage.removeItem('token');
         localStorage.removeItem('pinca-user');
+        localStorage.removeItem('pinca:refresh_token');
         set({ token: null, user: null });
     },
 });

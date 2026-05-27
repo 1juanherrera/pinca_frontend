@@ -151,7 +151,6 @@ const ExportProduccionContent = ({ preparacion, closeModal }) => {
   const EMPRESA = useEmpresaInfo();
   const logoUrl = useEmpresaLogoUrl();
   const { data: logoB64Data } = useEmpresaLogoBase64();
-  const logo    = logoUrl;
   const [isExporting, setIsExporting] = useState(false);
   const [done, setDone] = useState(false);
   const [modo, setModo] = useState('ESTANDAR'); // 'ESTANDAR' | 'MUESTRARIO'

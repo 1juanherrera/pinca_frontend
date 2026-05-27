@@ -17,6 +17,7 @@ import { es } from 'date-fns/locale';
 import { format, parseISO, isValid } from 'date-fns';
 import { Calendar as CalendarIcon, ChevronDown, X, ArrowRight } from 'lucide-react';
 import 'react-day-picker/style.css';
+import { fmtFechaChip } from '../utils/dateChip';
 
 const isoToDate = (iso) => {
   if (!iso) return undefined;
@@ -26,20 +27,14 @@ const isoToDate = (iso) => {
 
 const dateToIso = (d) => (d ? format(d, 'yyyy-MM-dd') : null);
 
-// "5 May 2026" — formato corto, legible, sin comilla rara
-export const fmtFechaChip = (d) => {
-  if (!d) return null;
-  const date = typeof d === 'string' ? isoToDate(d) : d;
-  if (!date) return null;
-  const s = format(date, 'd MMM yyyy', { locale: es });
-  // Capitalizar el mes (date-fns devuelve en minúsculas)
-  return s.replace(/\s([a-z])/, (_, c) => ' ' + c.toUpperCase());
-};
-
 const fmtChip = fmtFechaChip;
 
 const DateRangePicker = ({ desde, hasta, onChange, align = 'left' }) => {
   const [open, setOpen] = useState(false);
+  // En viewports angostos mostramos 1 mes (2 meses se desbordan en mobile).
+  const [narrow, setNarrow] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  );
   const ref = useRef(null);
 
   const range = {
@@ -53,11 +48,15 @@ const DateRangePicker = ({ desde, hasta, onChange, align = 'left' }) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     };
     const onEsc = (e) => { if (e.key === 'Escape') setOpen(false); };
+    const onResize = () => setNarrow(window.innerWidth < 640);
+    onResize();
     document.addEventListener('mousedown', onClick);
     document.addEventListener('keydown', onEsc);
+    window.addEventListener('resize', onResize);
     return () => {
       document.removeEventListener('mousedown', onClick);
       document.removeEventListener('keydown', onEsc);
+      window.removeEventListener('resize', onResize);
     };
   }, [open]);
 
@@ -120,12 +119,12 @@ const DateRangePicker = ({ desde, hasta, onChange, align = 'left' }) => {
 
       {open && (
         <div
-          className={`absolute z-50 mt-2 ${align === 'right' ? 'right-0' : 'left-0'} bg-white border border-border-base rounded-2xl shadow-2xl p-3 animate-in fade-in zoom-in-95`}
+          className={`absolute z-50 mt-2 ${align === 'right' ? 'right-0' : 'left-0'} bg-white border border-border-base rounded-2xl shadow-2xl p-3 animate-in fade-in zoom-in-95 max-w-[calc(100vw-1rem)] overflow-x-auto`}
         >
           <DayPicker
             mode="range"
             locale={es}
-            numberOfMonths={2}
+            numberOfMonths={narrow ? 1 : 2}
             selected={range}
             onSelect={handleSelect}
             weekStartsOn={1}

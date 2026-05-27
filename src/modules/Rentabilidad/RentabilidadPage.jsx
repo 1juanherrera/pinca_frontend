@@ -3,14 +3,15 @@ import { Factory, ShoppingCart, Wrench, Download, TrendingUp, DollarSign } from 
 import HeaderSection from '../../shared/HeaderSection';
 import { Button } from '../../shared/Button';
 import PageTabs from '../../shared/PageTabs';
-import IvaToggle, { useIvaToggle } from '../../shared/IvaToggle';
+import IvaToggle from '../../shared/IvaToggle';
+import { useIvaToggle } from '../../hooks/useIvaToggle';
 import * as XLSX from 'xlsx';
 
 import { useCostosProduccion }  from './api/useCostosProduccion';
 import { useCostosCompras }     from './api/useCostosCompras';
 import { useCostosIndirectos }  from './api/useCostosIndirectos';
 import { useGananciasVentas }   from './api/useGananciasVentas'; // Nueva funcionalidad
-import { getDateRange }         from './components/RentabilidadFilters';
+import { getDateRange }         from './components/dateRange';
 
 import RentabilidadKpis        from './components/RentabilidadKpis';
 import RentabilidadFilters     from './components/RentabilidadFilters';
@@ -57,7 +58,7 @@ const RentabilidadPage = () => {
   const { lista: listaInd, porCategoria, totalMensual, isLoading: loadInd } =
     useCostosIndirectos();
 
-  const { ventas, totalGanancias, margenPromedio, isLoading: loadGanancias } =
+  const { ventas, totalGanancias, isLoading: loadGanancias } =
     useGananciasVentas({ desde, hasta });
 
   const isLoading = loadProd || loadCompras || loadInd || loadGanancias;

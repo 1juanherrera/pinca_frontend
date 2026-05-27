@@ -5,7 +5,7 @@ import {
 import { useBoundStore }   from '../../../store/useBoundStore';
 import ERPTable            from '../../../shared/ERPTable';
 import StatusBadge         from '../../../shared/StatusBadge';
-import SummaryCard         from '../../../shared/SummaryCard';
+import FlowCard            from '../../../shared/FlowCard';
 import SearchFilterBar     from '../../../shared/SearchFilterBar';
 import RemisionDrawer      from './components/RemisionDrawer';
 import { useRemisiones }   from './api/useRemisiones';
@@ -178,10 +178,10 @@ const RemisionesTab = () => {
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <SummaryCard label="Total"      value={metrics.total}      icon={Package}      color="gray"  />
-        <SummaryCard label="Pendientes" value={metrics.pendientes} icon={Clock}        color="amber" />
-        <SummaryCard label="Entregadas" value={metrics.entregadas} icon={CheckCircle2} color="green" />
-        <SummaryCard label="Facturadas" value={metrics.conFactura} icon={Truck}        color="blue"  />
+        <FlowCard label="Total"      value={metrics.total}      icon={Package}      tone="neutral" />
+        <FlowCard label="Pendientes" value={metrics.pendientes} icon={Clock}        tone="warning" />
+        <FlowCard label="Entregadas" value={metrics.entregadas} icon={CheckCircle2} tone="success" />
+        <FlowCard label="Facturadas" value={metrics.conFactura} icon={Truck}        tone="info"    />
       </div>
 
       <TableShell

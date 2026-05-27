@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import ERPTable from '../../../shared/ERPTable';
 import StatusBadge from '../../../shared/StatusBadge';
-import SummaryCard from '../../../shared/SummaryCard';
+import FlowCard from '../../../shared/FlowCard';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay from '../../../shared/AmountDisplay';
 import { fmt } from '../../../utils/formatters';
@@ -205,14 +205,14 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <SummaryCard label="Total Facturas"  value={metrics.total}     icon={Receipt}      color="gray"  />
-        <SummaryCard label="Pendientes"       value={metrics.pendiente} icon={Clock}        color="amber" />
-        <SummaryCard label="Pagadas"          value={metrics.pagada}    icon={CheckCircle2} color="green" />
-        <SummaryCard
+        <FlowCard label="Total Facturas"  value={metrics.total}     icon={Receipt}      tone="neutral" />
+        <FlowCard label="Pendientes"       value={metrics.pendiente} icon={Clock}        tone="warning" />
+        <FlowCard label="Pagadas"          value={metrics.pagada}    icon={CheckCircle2} tone="success" />
+        <FlowCard
           label="Saldo por Cobrar"
           value={fmt(metrics.saldoTotal)}
           icon={DollarSign}
-          color="blue"
+          tone="info"
           sub={`${metrics.vencida} vencida(s)`}
         />
       </div>

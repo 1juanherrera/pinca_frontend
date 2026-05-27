@@ -11,7 +11,7 @@ import AjusteModal from '../Inventario/Components/AjusteModal';
 import HeaderSection from '../../shared/HeaderSection';
 import PageTabs from '../../shared/PageTabs';
 import { FullPageLoader } from '../../shared/Loader';
-import SummaryCard from '../../shared/SummaryCard';
+import FlowCard from '../../shared/FlowCard';
 import StatusBadge from '../../shared/StatusBadge';
 import { fmt } from '../../utils/formatters';
 import { getPaginationRange } from '../Inventario/services/pagination';
@@ -474,10 +474,10 @@ const InventarioGlobalPage = ({ embedded = false }) => {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <SummaryCard label="Ítems en catálogo" value={totalItems}      icon={Package}       color="gray"  />
-        <SummaryCard label="Sin stock"          value={sinStock}        icon={Package}       color="gray"  />
-        <SummaryCard label="Stock crítico"      value={stockCritico}    icon={AlertTriangle} color={stockCritico > 0 ? 'red' : 'gray'} />
-        <SummaryCard label="Valor inventario"   value={fmt(totalValor)} icon={DollarSign}    color="green" />
+        <FlowCard label="Ítems en catálogo" value={totalItems}      icon={Package}       tone="neutral" />
+        <FlowCard label="Sin stock"          value={sinStock}        icon={Package}       tone="neutral" />
+        <FlowCard label="Stock crítico"      value={stockCritico}    icon={AlertTriangle} tone={stockCritico > 0 ? 'danger' : 'neutral'} />
+        <FlowCard label="Valor inventario"   value={fmt(totalValor)} icon={DollarSign}    tone="success" />
       </div>
 
       {/* Filtros */}

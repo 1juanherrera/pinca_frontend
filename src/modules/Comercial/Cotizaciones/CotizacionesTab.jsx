@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import {
-  ClipboardList, Send, CheckCircle2, ArrowRight, Eye, Trash2, Download, CircleAlert, Plus
+  ClipboardList, Send, CheckCircle2, ArrowRight, Eye, Trash2, Download, CircleAlert, Plus, FileSpreadsheet
 } from 'lucide-react';
+import { exportCotizacionesExcel } from './components/ExportCotizacionExcel';
 import { Button } from '../../../shared/Button';
 import { useBoundStore }    from '../../../store/useBoundStore';
 import ERPTable             from '../../../shared/ERPTable';
 import StatusBadge          from '../../../shared/StatusBadge';
-import SummaryCard          from '../../../shared/SummaryCard';
+import FlowCard             from '../../../shared/FlowCard';
 import SearchFilterBar      from '../../../shared/SearchFilterBar';
 import AmountDisplay        from '../../../shared/AmountDisplay';
 import CotizacionDrawer     from './components/CotizacionDrawer';
@@ -134,9 +135,17 @@ const columns = useMemo(() => [
           <button
             onClick={(e) => { e.stopPropagation(); openDrawer('EXPORT_MODAL_COTIZACIONES', row); }}
             className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
-            title="Exportar"
+            title="Exportar PDF"
           >
             <Download size={12} />
+          </button>
+
+          <button
+            onClick={(e) => { e.stopPropagation(); exportCotizacionesExcel(row); }}
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
+            title="Exportar Excel"
+          >
+            <FileSpreadsheet size={12} />
           </button>
 
           {row.estado === 'Aceptada' && !row.facturas_id && (
@@ -186,22 +195,35 @@ const columns = useMemo(() => [
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <SummaryCard label="Total"          value={metrics.total}              icon={ClipboardList} color="gray"  />
-        <SummaryCard label="Enviadas"       value={metrics.enviadas}           icon={Send}          color="blue"  />
-        <SummaryCard label="Aprobadas"      value={metrics.aprobadas}          icon={CheckCircle2}  color="green" />
-        <SummaryCard label="Monto Aprobado" value={fmt(metrics.montoAprobado)} icon={CheckCircle2}  color="green" />
+        <FlowCard label="Total"          value={metrics.total}              icon={ClipboardList} tone="neutral" />
+        <FlowCard label="Enviadas"       value={metrics.enviadas}           icon={Send}          tone="info"    />
+        <FlowCard label="Aprobadas"      value={metrics.aprobadas}          icon={CheckCircle2}  tone="success" />
+        <FlowCard label="Monto Aprobado" value={fmt(metrics.montoAprobado)} icon={CheckCircle2}  tone="success" />
       </div>
 
       <TableShell
         header={
-          <SearchFilterBar
-            search={search}
-            onSearch={setSearch}
-            placeholder="Buscar por número, empresa o encargado..."
-            values={filters}
-            onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
-            statusOptions={STATUS_OPTIONS}
-          />
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <SearchFilterBar
+                search={search}
+                onSearch={setSearch}
+                placeholder="Buscar por número, empresa o encargado..."
+                values={filters}
+                onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+                statusOptions={STATUS_OPTIONS}
+              />
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={FileSpreadsheet}
+              onClick={() => exportCotizacionesExcel(filtered, 'cotizaciones')}
+              disabled={!filtered.length}
+            >
+              Excel
+            </Button>
+          </div>
         }
         pagination={pagination}
         isLoading={isLoadingCotizaciones}

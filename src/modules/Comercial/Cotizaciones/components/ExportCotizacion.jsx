@@ -302,7 +302,6 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
   const EMPRESA = useEmpresaInfo();
   const logoUrl = useEmpresaLogoUrl();
   const { data: logoB64Data } = useEmpresaLogoBase64();
-  const logo    = logoUrl; // para JSX (preview del PDF en pantalla)
   const { items, isLoadingItems } = useCotizaciones(cotizacion.id_cotizaciones);
   const [isExporting, setIsExporting] = useState(false);
   const [done,        setDone]        = useState(false);
@@ -519,7 +518,7 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
   };
 
   // ── Descarga tiquete 80 mm — estilo POS genérico (B/N, monoespaciado) ──
-  const downloadTicket = async (autoTable, logoBase64) => {
+  const downloadTicket = async () => {
     const { jsPDF } = await import('jspdf');
     const W = 80, M = 4;
     // Estimación dinámica de alto según items
@@ -658,7 +657,7 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
         await downloadCarta(doc, autoTable, logoBase64);
       } else {
-        await downloadTicket(autoTable, logoBase64);
+        await downloadTicket();
       }
 
       setDone(true);

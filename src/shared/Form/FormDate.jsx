@@ -73,10 +73,19 @@ const FormDate = ({
     const computePos = () => {
       const r = triggerRef.current?.getBoundingClientRect();
       if (!r) return;
-      const left = align === 'right'
-        ? r.right + window.scrollX - 320 // ancho aprox del popover
+      const POP_W  = 320;            // ancho aprox del popover
+      const MARGIN = 8;              // respiro contra el borde del viewport
+      const vw     = window.innerWidth;
+      // Ancho disponible (en viewport chico el popover se encoge).
+      const popW   = Math.min(POP_W, vw - MARGIN * 2);
+      let left = align === 'right'
+        ? r.right + window.scrollX - popW
         : r.left + window.scrollX;
-      setPos({ top: r.bottom + window.scrollY + 6, left });
+      // Clamp horizontal: que no se desborde por izquierda ni derecha.
+      const minLeft = window.scrollX + MARGIN;
+      const maxLeft = window.scrollX + vw - popW - MARGIN;
+      left = Math.max(minLeft, Math.min(left, maxLeft));
+      setPos({ top: r.bottom + window.scrollY + 6, left, maxWidth: popW });
     };
     computePos();
     const onClick = (e) => {
@@ -158,8 +167,8 @@ const FormDate = ({
       {open && createPortal(
         <div
           ref={popoverRef}
-          style={{ position: 'absolute', top: pos.top, left: pos.left, zIndex: 130 }}
-          className="bg-white border border-border-base rounded-2xl shadow-2xl p-3 animate-in fade-in zoom-in-95"
+          style={{ position: 'absolute', top: pos.top, left: pos.left, maxWidth: pos.maxWidth, zIndex: 130 }}
+          className="bg-white border border-border-base rounded-2xl shadow-2xl p-3 animate-in fade-in zoom-in-95 overflow-x-auto"
         >
           <DayPicker
             mode="single"

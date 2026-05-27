@@ -6,6 +6,7 @@ import Topbar from './Shared/Topbar';
 import UserPanel from './Shared/UserPanel';
 import CommandPalette from './shared/CommandPalette';
 import ForceChangePasswordModal from './shared/ForceChangePasswordModal';
+import SessionExpiryModal from './shared/SessionExpiryModal';
 import { GlobalTopProgressBar } from './shared/TopProgressBar';
 import { SessionLoader } from './shared/Loader';
 import apiClient from './api/apiClient';
@@ -146,6 +147,7 @@ const Layout = () => {
       <UserPanel />
       <CommandPalette isOpen={paletteOpen} onClose={() => setPaletteOpen(false)} />
       <ForceChangePasswordModal />
+      <SessionExpiryModal />
     </div>
   );
 };

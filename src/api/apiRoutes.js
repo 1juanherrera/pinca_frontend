@@ -3,6 +3,7 @@ export const API_ROUTES = {
     LOGIN:             '/login',
     REGISTER:          '/crear',
     ME:                '/auth/me',
+    REFRESH:           '/auth/refresh',
     CAMBIAR_PASSWORD:  '/usuarios/mi-password',
     ACTUALIZAR_PERFIL: '/usuarios/mi-perfil',
     MI_ACTIVIDAD:      '/usuarios/mi-actividad',

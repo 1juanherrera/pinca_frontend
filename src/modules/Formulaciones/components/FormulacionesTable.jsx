@@ -130,22 +130,6 @@ export const FormulacionesTable = ({
     onClone,
     isLoading = false,
 }) => {
-    if (!selectedProductData) {
-        return (
-            <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-                <div className="text-content-muted mb-3">
-                    <FlaskConical size={compact ? 32 : 48} className="mx-auto" />
-                </div>
-                <h3 className={`${compact ? 'text-base' : 'text-lg'} font-medium text-content-primary mb-2`}>
-                    Formulaciones
-                </h3>
-                <p className="text-sm text-content-tertiary">
-                    Selecciona un producto para ver sus formulaciones
-                </p>
-            </div>
-        );
-    }
-
     const dataToShow = recalculatedData || productDetail;
     const proveedorMap = {};
     if (costosProveedor?.formulaciones) {
@@ -221,6 +205,24 @@ export const FormulacionesTable = ({
         }
         return { totalUnificado: total.toFixed(2), sinProveedor: sinProv };
     }, [seleccionPorIngrediente, dataToShow, materiasOpciones, recalculatedData, costMode]);
+
+    // Empty state: sin producto seleccionado. Se evalúa DESPUÉS de los hooks
+    // para no romper las reglas de hooks (orden estable en cada render).
+    if (!selectedProductData) {
+        return (
+            <div className="bg-white rounded-lg shadow-sm p-4 text-center">
+                <div className="text-content-muted mb-3">
+                    <FlaskConical size={compact ? 32 : 48} className="mx-auto" />
+                </div>
+                <h3 className={`${compact ? 'text-base' : 'text-lg'} font-medium text-content-primary mb-2`}>
+                    Formulaciones
+                </h3>
+                <p className="text-sm text-content-tertiary">
+                    Selecciona un producto para ver sus formulaciones
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white rounded-lg shadow-sm overflow-visible border border-border-base/60">

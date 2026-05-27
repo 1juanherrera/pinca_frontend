@@ -5,7 +5,7 @@ import {
 import { useBoundStore }  from '../../../store/useBoundStore';
 import ERPTable           from '../../../shared/ERPTable';
 import StatusBadge        from '../../../shared/StatusBadge';
-import SummaryCard        from '../../../shared/SummaryCard';
+import FlowCard           from '../../../shared/FlowCard';
 import SearchFilterBar    from '../../../shared/SearchFilterBar';
 import AmountDisplay      from '../../../shared/AmountDisplay';
 import FacturaDrawer      from './components/FacturaDrawer';
@@ -167,14 +167,14 @@ const FacturacionTab = () => {
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <SummaryCard label="Total Facturas"  value={metrics.total}                  icon={Receipt}      color="gray"  />
-        <SummaryCard label="Pendientes"       value={metrics.pendiente}              icon={Clock}        color="amber" />
-        <SummaryCard label="Pagadas"          value={metrics.pagada}                 icon={CheckCircle2} color="green" />
-        <SummaryCard
+        <FlowCard label="Total Facturas"  value={metrics.total}                  icon={Receipt}      tone="neutral" />
+        <FlowCard label="Pendientes"       value={metrics.pendiente}              icon={Clock}        tone="warning" />
+        <FlowCard label="Pagadas"          value={metrics.pagada}                 icon={CheckCircle2} tone="success" />
+        <FlowCard
           label="Saldo por Cobrar"
           value={fmt(metrics.montoPendiente)}
           icon={DollarSign}
-          color="blue"
+          tone="info"
           sub={`${metrics.vencida} vencida(s)`}
         />
       </div>

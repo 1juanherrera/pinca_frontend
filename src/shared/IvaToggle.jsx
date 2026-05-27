@@ -1,29 +1,8 @@
-import { useEffect, useState } from 'react';
 import { Receipt, FileText } from 'lucide-react';
 import { cn } from '../utils/cn';
 
-const STORAGE_KEY = 'pinca:showIva';
-
-/**
- * Hook que persiste el estado "ver con/sin IVA" en localStorage.
- * Default: true (con IVA, cash flow real).
- */
-export const useIvaToggle = () => {
-  const [showIva, setShowIva] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw === null) return true;
-    return raw === '1';
-  });
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, showIva ? '1' : '0');
-    } catch { /* localStorage no disponible */ }
-  }, [showIva]);
-
-  return [showIva, setShowIva];
-};
+// El hook `useIvaToggle` vive ahora en src/hooks/useIvaToggle.js (este archivo
+// solo exporta componentes — regla react-refresh/only-export-components).
 
 /**
  * Toggle visual de dos segmentos. Controla si las cifras se muestran con o

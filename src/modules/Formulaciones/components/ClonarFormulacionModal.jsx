@@ -33,7 +33,7 @@ const ClonarFormulacionModal = ({ from, onClose, onCloned }) => {
       });
       onCloned?.(destino);
       onClose();
-    } catch (e) { /* toast viene del hook */ }
+    } catch { /* toast viene del hook */ }
   };
 
   return (

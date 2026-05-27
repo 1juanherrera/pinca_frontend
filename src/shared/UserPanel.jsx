@@ -476,7 +476,7 @@ const PreferenciasTab = () => {
           {[
             { title: 'Errores de conexión',  desc: 'Alertas cuando falla una petición al servidor.',  checked: true },
             { title: 'Confirmación de acciones', desc: 'Al guardar, eliminar o actualizar registros.', checked: true },
-          ].map(({ title, desc, checked }) => (
+          ].map(({ title, desc }) => (
             <div key={title} className="flex items-center justify-between px-4 py-3 hover:bg-surface-subtle transition-colors">
               <div>
                 <p className="text-sm font-medium text-content-secondary">{title}</p>

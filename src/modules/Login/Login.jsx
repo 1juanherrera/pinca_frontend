@@ -65,6 +65,11 @@ export const Login = () => {
         setError(res.msg || 'Usuario o contraseña incorrectos.');
         return;
       }
+      // Guardar el refresh_token (key dedicada) — lo usa SessionExpiryModal
+      // para extender la sesión vía POST /auth/refresh.
+      if (res.refresh_token) {
+        localStorage.setItem('pinca:refresh_token', res.refresh_token);
+      }
       setAuth(res.token, res.usuario);
       navigate('/', { replace: true });
     } catch {

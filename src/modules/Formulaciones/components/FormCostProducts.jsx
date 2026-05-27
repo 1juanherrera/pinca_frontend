@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import {
   X, Package, Tag, LayoutGrid, Layers, Wrench,
@@ -203,8 +203,6 @@ const FormCostProducts = () => {
   const [precioManualActivo, setPrecioManualActivo] = useState(false);
   const [precioManual, setPrecioManual]             = useState('');
 
-  const initialPrecioManualActivo = useRef(false);
-  const initialPrecioManual       = useRef('');
 
   const { control, handleSubmit, reset, formState: { errors, isDirty } } = useForm({
     defaultValues: {
@@ -227,8 +225,6 @@ const FormCostProducts = () => {
       const initManual = item?.precio_venta_manual ? String(item.precio_venta_manual) : '';
       setPrecioManualActivo(initActivo);
       setPrecioManual(initManual);
-      initialPrecioManualActivo.current = initActivo;
-      initialPrecioManual.current       = initManual;
     }
   }, [isOpen, costos, item, reset]);
 
@@ -250,9 +246,14 @@ const FormCostProducts = () => {
     handleClose();
   };
 
+  // "Dirty" = el estado editable difiere de los valores de origen (props del item).
+  // Derivado en render directamente desde props → ni refs (prohibido leerlos en
+  // render) ni state extra (que requeriría setState dentro del effect).
+  const initialPrecioManualActivo = !!item?.precio_manual_activo;
+  const initialPrecioManual       = item?.precio_venta_manual ? String(item.precio_venta_manual) : '';
   const precioManualDirty =
-    precioManualActivo !== initialPrecioManualActivo.current ||
-    precioManual       !== initialPrecioManual.current;
+    precioManualActivo !== initialPrecioManualActivo ||
+    precioManual       !== initialPrecioManual;
 
   if (!isOpen) return null;
 
