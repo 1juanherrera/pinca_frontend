@@ -28,7 +28,7 @@ const KpiCard = ({ label, icon: Icon, value, sub, tone = 'neutral' }) => {
     info:    { iconBg: 'bg-semantic-info-subtle',    iconText: 'text-semantic-info-fg',    value: 'text-semantic-info-fg' },
   }[tone];
   return (
-    <div className="bg-white border border-border-base/70 rounded-xl shadow-sm px-3 py-3 hover:shadow-md transition-shadow overflow-hidden">
+    <div className="bg-surface-base border border-border-base/70 rounded-xl shadow-sm px-3 py-3 hover:shadow-md transition-shadow overflow-hidden">
       <div className="flex items-start justify-between gap-2 mb-1.5">
         <p className="text-[11px] font-medium text-content-tertiary leading-tight truncate min-w-0 pt-1">{label}</p>
         <div className={`w-8 h-8 ${TONE.iconBg} rounded-full flex items-center justify-center shrink-0`}>
@@ -279,7 +279,7 @@ const CostosProduccionPage = () => {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white border border-border-subtle rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-surface-base border border-border-subtle rounded-2xl shadow-sm overflow-hidden">
         <div className="px-4 pt-2">
           <PageTabs tabs={tabsConCounts} value={tab} onChange={setTab} />
         </div>

@@ -116,7 +116,7 @@ const NotificacionesDropdown = () => {
     <div ref={containerRef} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative p-2 hover:bg-surface-sidebar-hover rounded-full transition-colors text-content-muted hover:text-content-inverse"
+        className="relative p-2 hover:bg-surface-sidebar-hover rounded-full transition-colors text-content-on-dark-muted hover:text-content-on-dark"
         title={noLeidas > 0 ? `${noLeidas} notificación(es) sin leer` : 'Notificaciones'}
       >
         <Bell size={16} />

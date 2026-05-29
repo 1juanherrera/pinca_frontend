@@ -270,7 +270,7 @@ const ItemFormModal = () => {
           </div>
           <button 
             type="button" onClick={handleGenerateCode} title="Generar código"
-            className="group mb-px p-2.5 text-content-tertiary bg-surface-muted border border-border-base rounded-lg hover:bg-content-primary hover:text-white transition-all active:scale-95"
+            className="group mb-px p-2.5 text-content-tertiary bg-surface-muted border border-border-base rounded-lg hover:bg-content-primary hover:text-content-inverse transition-all active:scale-95"
           >
             <Wand2 size={16} className="group-hover:rotate-12 transition-transform" />
           </button>
@@ -448,7 +448,7 @@ const ItemFormModal = () => {
       <Controller
         name={id} control={control}
         render={({ field }) => (
-          <div className="flex flex-col border-r border-b border-border-base bg-white p-4 focus-within:ring-1 focus-within:ring-inset focus-within:ring-brand-primary/30 focus-within:z-10 transition-colors">
+          <div className="flex flex-col border-r border-b border-border-base bg-surface-base p-4 focus-within:ring-1 focus-within:ring-inset focus-within:ring-brand-primary/30 focus-within:z-10 transition-colors">
             <label className="text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1">{label}</label>
             <InputMoneda
               value={field.value} onChange={field.onChange}
@@ -478,7 +478,7 @@ const ItemFormModal = () => {
               </span>
             )}
           </div>
-          <div className="px-4 py-3 bg-white">
+          <div className="px-4 py-3 bg-surface-base">
             <Controller
               name="unidad_almacenaje_id"
               control={control}
@@ -506,7 +506,7 @@ const ItemFormModal = () => {
                 />
                 {errors.cantidad && <span className="text-[9px] text-semantic-danger font-bold uppercase">{errors.cantidad.message}</span>}
               </div>
-              <div className="hidden md:block px-4 py-2 bg-white border border-semantic-success/15 rounded-lg shadow-sm">
+              <div className="hidden md:block px-4 py-2 bg-surface-base border border-semantic-success/15 rounded-lg shadow-sm">
                 <span className="text-[10px] font-bold text-semantic-success uppercase">Inventario</span>
               </div>
             </div>
@@ -543,18 +543,18 @@ const ItemFormModal = () => {
                   className={`relative flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all duration-200 ${
                     toggleField.value
                       ? 'bg-semantic-success border-semantic-success text-white shadow-sm shadow-semantic-success/30'
-                      : 'bg-white border-border-strong text-content-muted hover:border-border-strong'
+                      : 'bg-surface-base border-border-strong text-content-muted hover:border-border-strong'
                   }`}
                 >
                   <span className={`relative inline-block w-7 h-4 rounded-full transition-colors duration-200 ${toggleField.value ? 'bg-white/30' : 'bg-surface-strong'}`}>
-                    <span className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full shadow transition-transform duration-200 ${toggleField.value ? 'translate-x-3 bg-white' : 'bg-white'}`} />
+                    <span className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full shadow transition-transform duration-200 ${toggleField.value ? 'translate-x-3 bg-surface-base' : 'bg-surface-base'}`} />
                   </span>
                   <span className="leading-none">{toggleField.value ? 'Activo' : 'Inactivo'}</span>
                 </button>
               </div>
 
               {/* Input precio */}
-              <div className="px-4 py-3 bg-white">
+              <div className="px-4 py-3 bg-surface-base">
                 {toggleField.value ? (
                   <Controller
                     name="precio_venta_manual"
@@ -569,7 +569,7 @@ const ItemFormModal = () => {
                           <InputMoneda
                             value={field.value}
                             onChange={field.onChange}
-                            className="flex-1 text-sm font-bold text-content-primary border border-border-base rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary/40 focus:border-transparent outline-none transition-all bg-surface-subtle focus:bg-white"
+                            className="flex-1 text-sm font-bold text-content-primary border border-border-base rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary/40 focus:border-transparent outline-none transition-all bg-surface-subtle focus:bg-surface-base"
                           />
                         </div>
                         <p className="text-[10px] text-content-muted mt-1">
@@ -586,9 +586,9 @@ const ItemFormModal = () => {
           )}
         />
 
-        <div className="mt-4 p-4 bg-content-primary flex items-center justify-between text-white shadow-lg">
+        <div className="mt-4 p-4 bg-content-primary flex items-center justify-between text-content-inverse shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-content-inverse/10 flex items-center justify-center">
               <CircleDollarSign size={18} className="text-semantic-success/80" />
             </div>
             <span className="text-xs font-bold uppercase tracking-widest text-content-muted">Análisis de Costos</span>
@@ -603,13 +603,13 @@ const ItemFormModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-content-primary/50 backdrop-blur-sm">
-      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-surface-overlay backdrop-blur-sm">
+      <div className="w-full max-w-5xl bg-surface-base rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
         
         {/* Encabezado */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle bg-white">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle bg-surface-base">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-content-primary text-white rounded-xl">
+            <div className="flex items-center justify-center w-10 h-10 bg-content-primary text-content-inverse rounded-xl">
               <FlaskConical size={20} />
             </div>
             <div>
@@ -631,7 +631,7 @@ const ItemFormModal = () => {
               key={tab.id} type="button" onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-4 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap
                 ${currentTab === tab.id
-                  ? 'border-content-primary text-content-primary bg-white' 
+                  ? 'border-content-primary text-content-primary bg-surface-base' 
                   : 'border-transparent text-content-tertiary hover:text-content-secondary hover:bg-surface-strong/50'
                 }`}
             >
@@ -646,7 +646,7 @@ const ItemFormModal = () => {
           onSubmit={handleSubmit(onSubmit, onInvalid)} 
           className="flex flex-col flex-1 overflow-hidden"
         >
-          <div className="overflow-y-auto flex-1 bg-white">
+          <div className="overflow-y-auto flex-1 bg-surface-base">
             {currentTab === 'basico'        && renderTabBasico()}
             {currentTab === 'propiedades'   && renderTabPropiedades()}
             {currentTab === 'formulaciones' && renderTabFormulaciones()}

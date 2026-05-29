@@ -143,7 +143,7 @@ const NombreAutocomplete = ({ value, onChange, onSelectItem, error, catalogoExis
       {error && <p className="text-[10px] text-semantic-danger mt-1">{error}</p>}
 
       {abierto && hay && (
-        <div className="absolute z-20 w-full mt-1 bg-white border border-border-base rounded-xl shadow-xl overflow-hidden">
+        <div className="absolute z-20 w-full mt-1 bg-surface-base border border-border-base rounded-xl shadow-xl overflow-hidden">
           <div className="max-h-64 overflow-y-auto">
 
             {/* Sección 1: ítem_general (vinculables al inventario) */}
@@ -433,7 +433,7 @@ const ItemProveedorForm = () => {
       footer={
         <>
           <button onClick={handleClose} type="button"
-            className="px-5 py-2.5 text-sm font-semibold text-content-secondary bg-white border border-border-base/80 rounded-xl hover:bg-surface-subtle transition-all">
+            className="px-5 py-2.5 text-sm font-semibold text-content-secondary bg-surface-base border border-border-base/80 rounded-xl hover:bg-surface-subtle transition-all">
             Cancelar
           </button>
           {/* Solo en modo creación: Guardar y crear otro */}
@@ -444,7 +444,7 @@ const ItemProveedorForm = () => {
               disabled={isSaving}
               onClick={() => { keepOpenRef.current = true; }}
               title="Guarda y deja el form abierto para cargar otro producto del mismo proveedor"
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-content-secondary bg-white border border-border-base rounded-xl hover:bg-surface-subtle disabled:opacity-70 transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-content-secondary bg-surface-base border border-border-base rounded-xl hover:bg-surface-subtle disabled:opacity-70 transition-all"
             >
               <PlusCircle size={16} /> Guardar y crear otro
             </button>
@@ -659,7 +659,7 @@ const ItemProveedorForm = () => {
                   onClick={() => setAplicarIva(v => !v)}
                   className={`relative w-9 h-5 rounded-full transition-colors duration-200 focus:outline-none ${aplicarIva ? 'bg-content-primary' : 'bg-surface-strong'}`}
                 >
-                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${aplicarIva ? 'translate-x-4' : 'translate-x-0'}`} />
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-surface-base rounded-full shadow transition-transform duration-200 ${aplicarIva ? 'translate-x-4' : 'translate-x-0'}`} />
                 </button>
                 <span className="text-sm font-semibold text-content-secondary">Aplicar IVA</span>
               </label>
@@ -669,7 +669,7 @@ const ItemProveedorForm = () => {
                   value={porcentajeIva}
                   onChange={e => setPorcentajeIva(Number(e.target.value) || 0)}
                   disabled={!aplicarIva}
-                  className="w-16 px-2 py-1 text-sm font-bold border border-border-base rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-brand-primary/30 bg-white disabled:opacity-40 disabled:cursor-not-allowed tabular-nums"
+                  className="w-16 px-2 py-1 text-sm font-bold border border-border-base rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-brand-primary/30 bg-surface-base disabled:opacity-40 disabled:cursor-not-allowed tabular-nums"
                 />
                 <Percent size={14} className={`transition-opacity ${aplicarIva ? 'text-content-tertiary' : 'text-content-muted'}`} />
               </div>

@@ -64,7 +64,7 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
                 {/* Botón descargar PDF */}
                 <button
                   onClick={() => openDrawer('EXPORT_MODAL_REMISIONES', r)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-content-secondary border border-border-base rounded-lg bg-white hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-content-secondary border border-border-base rounded-lg bg-surface-base hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all active:scale-95"
                   title="Descargar PDF"
                 >
                   <Download className="w-3 h-3" />
@@ -72,7 +72,7 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
                 </button>
               </div>
             </div>
-            <div className="flex items-start gap-2 bg-white rounded-lg p-3 border border-border-subtle">
+            <div className="flex items-start gap-2 bg-surface-base rounded-lg p-3 border border-border-subtle">
               <MapPin className="w-4 h-4 text-semantic-info shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs text-content-tertiary font-medium">Dirección de entrega</p>
@@ -95,7 +95,7 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
                       onConfirm: () => { onCambiarEstado?.(r.id_remisiones, estado); onClose(); },
                     });
                   }}
-                  className="flex items-center gap-1 px-2.5 py-1 text-xs border border-border-base rounded-lg bg-white hover:bg-surface-subtle text-content-secondary transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs border border-border-base rounded-lg bg-surface-base hover:bg-surface-subtle text-content-secondary transition-colors"
                 >
                   <RefreshCw className="w-3 h-3" />
                   {estado}
@@ -176,8 +176,8 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
                   {/* Total */}
                   <tfoot>
                     <tr className="bg-content-primary">
-                      <td colSpan={3} className="px-3 py-2 text-xs font-bold text-white text-right">Total</td>
-                      <td className="px-3 py-2 text-right text-xs font-bold text-white  tabular-nums">
+                      <td colSpan={3} className="px-3 py-2 text-xs font-bold text-content-inverse text-right">Total</td>
+                      <td className="px-3 py-2 text-right text-xs font-bold text-content-inverse  tabular-nums">
                         {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(
                           items.reduce((s, i) => s + (Number(i.subtotal) || 0), 0)
                         )}

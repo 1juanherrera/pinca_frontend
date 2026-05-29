@@ -70,7 +70,7 @@ const CoberturaBanner = ({ cobertura }) => {
           </div>
 
           {/* Barra de progreso */}
-          <div className="mt-2 h-2 rounded-full bg-white/60 overflow-hidden border border-white/40">
+          <div className="mt-2 h-2 rounded-full bg-surface-base/60 overflow-hidden border border-border-base/40">
             <div
               className={cn('h-full rounded-full transition-all duration-500', TONE_CLS.bar)}
               style={{ width: `${Math.min(pct, 100)}%` }}
@@ -84,14 +84,14 @@ const CoberturaBanner = ({ cobertura }) => {
               <button
                 type="button"
                 onClick={() => navigate('/catalogo?tab=proveedores')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-white border border-border-base text-[11px] font-semibold text-content-primary hover:border-content-primary hover:shadow-sm transition"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-surface-base border border-border-base text-[11px] font-semibold text-content-primary hover:border-content-primary hover:shadow-sm transition"
               >
                 <Truck size={11} /> Cargar proveedores
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/sincronizacion')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-white border border-border-base text-[11px] font-semibold text-content-primary hover:border-content-primary hover:shadow-sm transition"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-surface-base border border-border-base text-[11px] font-semibold text-content-primary hover:border-content-primary hover:shadow-sm transition"
               >
                 <GitBranch size={11} /> Vincular existentes
                 <ExternalLink size={9} className="text-content-muted" />

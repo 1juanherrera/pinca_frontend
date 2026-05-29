@@ -69,7 +69,7 @@ const InfoTab = ({ item, onEdit }) => {
             {FICHA_TECNICA.map(f => (
               <div
                 key={f.key}
-                className="flex flex-col p-3 border-r border-b border-border-base last:border-r-0 bg-white"
+                className="flex flex-col p-3 border-r border-b border-border-base last:border-r-0 bg-surface-base"
               >
                 <p className="text-[10px] font-bold text-content-muted uppercase tracking-widest mb-0.5">{f.label}</p>
                 <p className="text-sm font-semibold text-content-primary">{item[f.key] || '—'}</p>

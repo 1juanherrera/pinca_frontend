@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect, useState } from 'react';
+import { List } from 'react-window';
 import { ArrowDownUp, PackageOpen, ArrowDownLeft } from 'lucide-react';
 import { fmt } from '../../../utils/formatters';
 import ErpTable from '../../../shared/ErpTable';
@@ -14,8 +15,47 @@ const TIPO_CANT_COLOR = {
   ENTRADA:  'text-semantic-success-fg',
 };
 
+// Umbral para activar virtualización. Bajo este número, render normal.
+const VIRTUAL_THRESHOLD = 200;
+const ROW_HEIGHT = 56; // px, alto fijo por fila virtualizada
+
 const fmtFecha = (d) => new Date(d).toLocaleDateString('es-CO');
 const fmtHora  = (d) => new Date(d).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+
+// ─── Componente de fila para react-window v2 ────────────────────────────────
+// react-window v2 inyecta { index, style, ariaAttributes, ...rowProps }.
+const VirtualRow = ({ index, style, ariaAttributes, rows, columns, onRowClick }) => {
+  const row = rows[index];
+  if (!row) return null;
+  return (
+    <div
+      {...ariaAttributes}
+      style={style}
+      onClick={() => onRowClick?.(row)}
+      className={cn(
+        'flex items-center border-b border-border-subtle hover:bg-surface-subtle transition-colors',
+        onRowClick && 'cursor-pointer',
+      )}
+    >
+      {columns.map((col) => (
+        <div
+          key={col.key}
+          className={cn(
+            'px-3 py-2 text-xs text-content-primary',
+            col.align === 'right'  && 'text-right',
+            col.align === 'center' && 'text-center',
+            col.flexClass || 'flex-1 min-w-0',
+            col.cellClassName,
+          )}
+        >
+          {col.render
+            ? col.render(row[col.key], row)
+            : (row[col.key] ?? <span className="text-content-muted">—</span>)}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export const MovimientosTable = ({ data, meta, isLoading, onPageChange, onRowClick }) => {
   const columns = useMemo(() => [
@@ -25,6 +65,7 @@ export const MovimientosTable = ({ data, meta, isLoading, onPageChange, onRowCli
       align: 'center',
       sortable: false,
       className: 'w-12',
+      flexClass: 'w-12 shrink-0',
       cellClassName: 'text-content-muted',
     },
     {
@@ -32,6 +73,7 @@ export const MovimientosTable = ({ data, meta, isLoading, onPageChange, onRowCli
       label: 'Fecha',
       sortable: false,
       className: 'w-24',
+      flexClass: 'w-24 shrink-0',
       render: (v) => (
         <div className="flex flex-col leading-tight">
           <span className="text-xs font-medium text-content-secondary">{fmtFecha(v)}</span>
@@ -44,6 +86,7 @@ export const MovimientosTable = ({ data, meta, isLoading, onPageChange, onRowCli
       label: 'Tipo',
       sortable: false,
       className: 'w-32',
+      flexClass: 'w-32 shrink-0',
       render: (tipo) => {
         const tipoUC = tipo?.toUpperCase();
         const Icon   = TIPO_ICON[tipoUC] ?? ArrowDownUp;
@@ -136,6 +179,7 @@ export const MovimientosTable = ({ data, meta, isLoading, onPageChange, onRowCli
       label: 'Responsable',
       sortable: false,
       className: 'w-28',
+      flexClass: 'w-28 shrink-0',
       render: (v) => (
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-5 h-5 rounded-full bg-surface-muted flex items-center justify-center shrink-0 border border-border-base">
@@ -151,19 +195,30 @@ export const MovimientosTable = ({ data, meta, isLoading, onPageChange, onRowCli
     },
   ], []);
 
+  const rows = data ?? [];
+  const useVirtual = rows.length > VIRTUAL_THRESHOLD;
+
   return (
     <div className="flex flex-col gap-3 h-full">
-      <ErpTable
-        columns={columns}
-        data={data ?? []}
-        isLoading={isLoading}
-        density="normal"
-        stickyHeader
-        onRowClick={onRowClick}
-        EmptyIcon={PackageOpen}
-        emptyMessage="No hay movimientos registrados"
-        emptySubMessage="No se encontraron movimientos de inventario que coincidan con los filtros actuales."
-      />
+      {useVirtual ? (
+        <VirtualMovimientosTable
+          columns={columns}
+          rows={rows}
+          onRowClick={onRowClick}
+        />
+      ) : (
+        <ErpTable
+          columns={columns}
+          data={rows}
+          isLoading={isLoading}
+          density="normal"
+          stickyHeader
+          onRowClick={onRowClick}
+          EmptyIcon={PackageOpen}
+          emptyMessage="No hay movimientos registrados"
+          emptySubMessage="No se encontraron movimientos de inventario que coincidan con los filtros actuales."
+        />
+      )}
 
       {meta && meta.pages > 1 && (
         <div className="flex items-center justify-between px-1 shrink-0">
@@ -190,6 +245,61 @@ export const MovimientosTable = ({ data, meta, isLoading, onPageChange, onRowCli
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+// ─── Tabla virtualizada (solo cuando data.length > VIRTUAL_THRESHOLD) ───────
+const VirtualMovimientosTable = ({ columns, rows, onRowClick }) => {
+  const wrapperRef = useRef(null);
+  const [height, setHeight] = useState(600);
+
+  // Mide la altura disponible del contenedor padre (se ajusta a la viewport).
+  useEffect(() => {
+    if (!wrapperRef.current) return;
+    const el = wrapperRef.current;
+    const update = () => {
+      const rect = el.getBoundingClientRect();
+      // 80px aprox para footer paginación + margen.
+      const available = Math.max(300, window.innerHeight - rect.top - 100);
+      setHeight(available);
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  return (
+    <div
+      ref={wrapperRef}
+      className="rounded-xl border border-border-base bg-surface-base shadow-card overflow-hidden"
+    >
+      {/* Header sticky */}
+      <div className="flex bg-surface-muted border-b border-border-base">
+        {columns.map((col) => (
+          <div
+            key={col.key}
+            className={cn(
+              'px-3 py-2 text-[10px] font-semibold text-content-secondary uppercase tracking-wider',
+              col.align === 'right'  && 'text-right',
+              col.align === 'center' && 'text-center',
+              col.flexClass || 'flex-1 min-w-0',
+              col.className,
+            )}
+          >
+            {col.label}
+          </div>
+        ))}
+      </div>
+
+      <List
+        rowComponent={VirtualRow}
+        rowCount={rows.length}
+        rowHeight={ROW_HEIGHT}
+        rowProps={{ rows, columns, onRowClick }}
+        defaultHeight={height}
+        style={{ height }}
+      />
     </div>
   );
 };

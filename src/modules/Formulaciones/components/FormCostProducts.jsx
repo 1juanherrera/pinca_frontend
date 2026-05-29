@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import {
   X, Package, Tag, LayoutGrid, Layers, Wrench,
@@ -48,26 +48,26 @@ const PricePreview = ({ control, costos }) => {
     <div className="bg-content-primary rounded-xl shadow-md shadow-content-primary/20 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2 border-b border-white/5">
         <span className="w-1.5 h-1.5 rounded-full bg-semantic-success/80 animate-pulse" />
-        <span className="text-[9px] font-bold tracking-widest text-content-tertiary uppercase">Preview en tiempo real</span>
-        <span className="ml-auto text-[9px] text-content-secondary">{pct}% markup</span>
+        <span className="text-[9px] font-bold tracking-widest text-content-inverse/60 uppercase">Preview en tiempo real</span>
+        <span className="ml-auto text-[9px] text-content-inverse/80">{pct}% markup</span>
       </div>
       <div className="grid grid-cols-3 divide-x divide-white/5 px-1 py-1">
         <div className="flex flex-col gap-0.5 px-4 py-3">
-          <span className="text-[9px] font-bold tracking-widest text-content-tertiary uppercase">Costo Total</span>
-          <span className="text-sm font-semibold text-content-muted tabular-nums">{formatCOP(costoTotal)}</span>
-          <span className="text-[9px] text-content-secondary">MP/galón + indirectos</span>
+          <span className="text-[9px] font-bold tracking-widest text-content-inverse/60 uppercase">Costo Total</span>
+          <span className="text-sm font-semibold text-content-inverse tabular-nums">{formatCOP(costoTotal)}</span>
+          <span className="text-[9px] text-content-inverse/60">MP/galón + indirectos</span>
         </div>
         <div className="flex flex-col gap-0.5 px-4 py-3">
           <span className="text-[9px] font-bold tracking-widest text-semantic-success uppercase">Utilidad</span>
           <span className="text-sm font-semibold text-semantic-success/80 tabular-nums">{formatCOP(utilidad)}</span>
-          <span className="text-[9px] text-content-secondary">Ganancia bruta</span>
+          <span className="text-[9px] text-content-inverse/60">Ganancia bruta</span>
         </div>
         <div className="flex flex-col gap-0.5 px-4 py-3">
-          <span className="text-[9px] font-bold tracking-widest text-white uppercase flex items-center gap-1">
+          <span className="text-[9px] font-bold tracking-widest text-content-inverse uppercase flex items-center gap-1">
             Venta <ArrowUpRight size={9} className="text-semantic-success/80" />
           </span>
-          <span className="text-sm font-semibold text-white tabular-nums">{formatCOP(ventaSugerida)}</span>
-          <span className="text-[9px] text-content-secondary">Precio sugerido</span>
+          <span className="text-sm font-semibold text-content-inverse tabular-nums">{formatCOP(ventaSugerida)}</span>
+          <span className="text-[9px] text-content-inverse/60">Precio sugerido</span>
         </div>
       </div>
     </div>
@@ -115,13 +115,13 @@ const PrecioLista = ({ control, costos, precioManualActivo, setPrecioManualActiv
           className={`relative flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all duration-200 ${
             precioManualActivo
               ? 'bg-semantic-success border-semantic-success text-white shadow-sm shadow-semantic-success/30'
-              : 'bg-white border-border-strong text-content-muted hover:border-border-strong'
+              : 'bg-surface-base border-border-strong text-content-muted hover:border-border-strong'
           }`}
         >
           {/* Switch track */}
           <span className={`relative inline-block w-7 h-4 rounded-full transition-colors duration-200 ${precioManualActivo ? 'bg-white/30' : 'bg-surface-strong'}`}>
             <span className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full shadow transition-transform duration-200 ${
-              precioManualActivo ? 'translate-x-3 bg-white' : 'translate-x-0 bg-white'
+              precioManualActivo ? 'translate-x-3 bg-surface-base' : 'translate-x-0 bg-surface-base'
             }`} />
           </span>
           <span className="leading-none">
@@ -131,7 +131,7 @@ const PrecioLista = ({ control, costos, precioManualActivo, setPrecioManualActiv
       </div>
 
       {/* Comparación siempre visible */}
-      <div className="grid grid-cols-2 divide-x divide-border-subtle bg-white">
+      <div className="grid grid-cols-2 divide-x divide-border-subtle bg-surface-base">
         {/* Precio calculado (referencia) */}
         <div className="px-4 py-3">
           <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest mb-1">
@@ -187,46 +187,34 @@ const PrecioLista = ({ control, costos, precioManualActivo, setPrecioManualActiv
   );
 };
 
-const FormCostProducts = () => {
-
-  const activeDrawer = useBoundStore(state => state.activeDrawer);
-  const payload      = useBoundStore(state => state.drawerPayload);
-  const closeDrawer  = useBoundStore(state => state.closeDrawer);
-
-  const isOpen   = activeDrawer === 'COSTOS_FORM';
-  const costos   = payload?.costos;
-  const item     = payload?.item;
+/**
+ * FormCostProductsInner — contiene toda la lógica del modal de costos.
+ *
+ * Recibe `costos`, `item`, `closeDrawer` y se monta con `key={idCostos}` desde
+ * el wrapper de afuera. Esto garantiza un mount fresco por apertura → los
+ * `useState(() => ...)` calculan los iniciales directo desde props sin necesidad
+ * de `useEffect(() => setX(...))` (que disparaba la regla `set-state-in-effect`).
+ */
+const FormCostProductsInner = ({ costos, item, closeDrawer }) => {
   const idCostos = costos?.id_costos_item;
-
   const { updateCostosAsync, isUpdating, updatePrecioManualAsync, isUpdatingPrecio } = useCostosItem();
 
-  const [precioManualActivo, setPrecioManualActivo] = useState(false);
-  const [precioManual, setPrecioManual]             = useState('');
+  const initialPrecioManualActivo = !!item?.precio_manual_activo;
+  const initialPrecioManual       = item?.precio_venta_manual ? String(item.precio_venta_manual) : '';
 
+  const [precioManualActivo, setPrecioManualActivo] = useState(() => initialPrecioManualActivo);
+  const [precioManual, setPrecioManual]             = useState(() => initialPrecioManual);
 
   const { control, handleSubmit, reset, formState: { errors, isDirty } } = useForm({
     defaultValues: {
-      envase: 0, etiqueta: 0, bandeja: 0,
-      plastico: 0, costo_mod: 0, porcentaje_utilidad: 0,
-    }
+      envase:              parseCOP(costos?.envase),
+      etiqueta:            parseCOP(costos?.etiqueta),
+      bandeja:             parseCOP(costos?.bandeja),
+      plastico:            parseCOP(costos?.plastico),
+      costo_mod:           parseCOP(costos?.costo_mod),
+      porcentaje_utilidad: parseCOP(costos?.porcentaje_utilidad ?? 0),
+    },
   });
-
-  useEffect(() => {
-    if (isOpen && costos) {
-      reset({
-        envase:              parseCOP(costos.envase),
-        etiqueta:            parseCOP(costos.etiqueta),
-        bandeja:             parseCOP(costos.bandeja),
-        plastico:            parseCOP(costos.plastico),
-        costo_mod:           parseCOP(costos.costo_mod),
-        porcentaje_utilidad: parseCOP(costos.porcentaje_utilidad ?? 0),
-      });
-      const initActivo = !!item?.precio_manual_activo;
-      const initManual = item?.precio_venta_manual ? String(item.precio_venta_manual) : '';
-      setPrecioManualActivo(initActivo);
-      setPrecioManual(initManual);
-    }
-  }, [isOpen, costos, item, reset]);
 
   // 5. Handlers
   const handleClose = () => {
@@ -246,26 +234,20 @@ const FormCostProducts = () => {
     handleClose();
   };
 
-  // "Dirty" = el estado editable difiere de los valores de origen (props del item).
-  // Derivado en render directamente desde props → ni refs (prohibido leerlos en
-  // render) ni state extra (que requeriría setState dentro del effect).
-  const initialPrecioManualActivo = !!item?.precio_manual_activo;
-  const initialPrecioManual       = item?.precio_venta_manual ? String(item.precio_venta_manual) : '';
+  // "Dirty" del precio manual: estado editable difiere de los valores de origen.
   const precioManualDirty =
     precioManualActivo !== initialPrecioManualActivo ||
     precioManual       !== initialPrecioManual;
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-content-primary/50 backdrop-blur-sm">
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-overlay backdrop-blur-sm">
+      <div className="w-full max-w-lg bg-surface-base rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-content-primary flex items-center justify-center shadow-md shadow-content-primary/20">
-              <CircleDollarSign size={18} className="text-white" />
+              <CircleDollarSign size={18} className="text-content-inverse" />
             </div>
             <div>
               <h2 className="text-base font-semibold text-content-primary tracking-tight leading-none">
@@ -286,7 +268,7 @@ const FormCostProducts = () => {
 
         {/* ── KPIs ── */}
         <div className="grid grid-cols-2 gap-3 px-6 py-4 border-b border-border-subtle bg-surface-subtle/50">
-          <div className="bg-white border border-border-base rounded-xl px-4 py-3 shadow-sm">
+          <div className="bg-surface-base border border-border-base rounded-xl px-4 py-3 shadow-sm">
             <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest mb-1">
               Total Materia Prima
             </p>
@@ -325,7 +307,7 @@ const FormCostProducts = () => {
                   name={f.id}
                   control={control}
                   render={({ field }) => (
-                    <div className="flex items-center gap-4 bg-white border border-border-base rounded-xl px-4 py-3 shadow-sm hover:border-border-strong hover:shadow-md transition-all">
+                    <div className="flex items-center gap-4 bg-surface-base border border-border-base rounded-xl px-4 py-3 shadow-sm hover:border-border-strong hover:shadow-md transition-all">
                       <div className={`w-9 h-9 rounded-xl ${f.iconBg} flex items-center justify-center shrink-0`}>
                         <Icon size={16} className={f.iconColor} />
                       </div>
@@ -340,7 +322,7 @@ const FormCostProducts = () => {
                           value={field.value}
                           onChange={field.onChange}
                           error={errors[f.id]?.message}
-                          className="text-right font-bold text-content-primary text-sm border border-border-base rounded-xl px-3 py-2 w-full focus:ring-2 focus:ring-brand-primary/40 focus:border-transparent outline-none transition-all bg-surface-subtle focus:bg-white"
+                          className="text-right font-bold text-content-primary text-sm border border-border-base rounded-xl px-3 py-2 w-full focus:ring-2 focus:ring-brand-primary/40 focus:border-transparent outline-none transition-all bg-surface-subtle focus:bg-surface-base"
                         />
                       </div>
                     </div>
@@ -362,7 +344,7 @@ const FormCostProducts = () => {
                 max: { value: 99, message: 'Máximo 99%' }
               }}
               render={({ field }) => (
-                <div className={`flex items-center gap-4 bg-white border rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition-all ${errors.porcentaje_utilidad ? 'border-semantic-danger/30' : 'border-border-base hover:border-border-strong'}`}>
+                <div className={`flex items-center gap-4 bg-surface-base border rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition-all ${errors.porcentaje_utilidad ? 'border-semantic-danger/30' : 'border-border-base hover:border-border-strong'}`}>
                   <div className="w-9 h-9 rounded-xl bg-semantic-warning-subtle flex items-center justify-center shrink-0">
                     <Percent size={16} className="text-semantic-warning" />
                   </div>
@@ -380,7 +362,7 @@ const FormCostProducts = () => {
                       type="number" min="0" max="99" step="0.1"
                       value={field.value}
                       onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
-                      className="text-right font-bold text-content-primary text-sm border border-border-base rounded-xl px-3 py-2 w-full pr-7 focus:ring-2 focus:ring-brand-primary/40 focus:border-transparent outline-none transition-all bg-surface-subtle focus:bg-white"
+                      className="text-right font-bold text-content-primary text-sm border border-border-base rounded-xl px-3 py-2 w-full pr-7 focus:ring-2 focus:ring-brand-primary/40 focus:border-transparent outline-none transition-all bg-surface-subtle focus:bg-surface-base"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-content-muted text-xs font-bold">%</span>
                   </div>
@@ -422,14 +404,14 @@ const FormCostProducts = () => {
                 type="button"
                 onClick={handleClose}
                 disabled={isUpdating}
-                className="flex items-center gap-2 px-5 py-2.5 border border-border-base rounded-xl text-sm font-semibold text-content-secondary bg-white shadow-sm hover:bg-surface-subtle transition-all active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-2 px-5 py-2.5 border border-border-base rounded-xl text-sm font-semibold text-content-secondary bg-surface-base shadow-sm hover:bg-surface-subtle transition-all active:scale-95 disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={isUpdating || isUpdatingPrecio || (!isDirty && !precioManualDirty)}
-                className="flex items-center gap-2 px-5 py-2.5 border border-transparent rounded-xl text-sm font-semibold text-white bg-content-primary shadow-md shadow-content-primary/20 hover:bg-content-primary transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-5 py-2.5 border border-transparent rounded-xl text-sm font-semibold text-content-inverse bg-content-primary shadow-md shadow-content-primary/20 hover:bg-content-primary transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {(isUpdating || isUpdatingPrecio) ? (
                   <>
@@ -448,6 +430,32 @@ const FormCostProducts = () => {
         </form>
       </div>
     </div>
+  );
+};
+
+/**
+ * Wrapper que lee el store y monta el inner con `key={idCostos}` para forzar
+ * un mount nuevo en cada apertura → los initializers de useState calculan los
+ * valores frescos desde props sin necesidad de useEffect(setState).
+ */
+const FormCostProducts = () => {
+  const activeDrawer = useBoundStore(state => state.activeDrawer);
+  const payload      = useBoundStore(state => state.drawerPayload);
+  const closeDrawer  = useBoundStore(state => state.closeDrawer);
+
+  if (activeDrawer !== 'COSTOS_FORM') return null;
+
+  const costos   = payload?.costos;
+  const item     = payload?.item;
+  const idCostos = costos?.id_costos_item ?? 'new';
+
+  return (
+    <FormCostProductsInner
+      key={idCostos}
+      costos={costos}
+      item={item}
+      closeDrawer={closeDrawer}
+    />
   );
 };
 

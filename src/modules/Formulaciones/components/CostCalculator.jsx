@@ -53,7 +53,7 @@ export const CostCalculator = ({
   // 1. Estado de espera
   if (!selectedProductData) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-4 text-center">
+      <div className="bg-surface-base rounded-lg shadow-sm p-4 text-center">
         <div className="text-content-muted mb-3">
           <Calculator size={compact ? 32 : 48} className="mx-auto" />
         </div>
@@ -66,10 +66,10 @@ export const CostCalculator = ({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-border-base/60">
+    <div className="bg-surface-base rounded-lg shadow-sm overflow-hidden border border-border-base/60">
 
       {/* Header */}
-      <div className="bg-content-secondary text-white px-4 py-3">
+      <div className="bg-content-secondary text-content-inverse px-4 py-3">
         <div className="flex items-center justify-between">
           <div>
             <h3 className={`${compact ? 'text-base' : 'text-lg'} font-semibold flex items-center gap-2`}>
@@ -104,7 +104,7 @@ export const CostCalculator = ({
                 onClick={confirmar}
                 disabled={isProcessing || !inputVolumen}
                 variant="zinc"
-                className="hover:bg-content-secondary hover:scale-105 text-white px-3 py-2 cursor-pointer rounded-lg transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="hover:bg-content-secondary hover:scale-105 text-content-inverse px-3 py-2 cursor-pointer rounded-lg transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <RotateCw size={18} className={isRecalculating ? 'animate-spin' : ''} />
               </Button>
@@ -156,7 +156,7 @@ export const CostCalculator = ({
 
                 {/* Tooltip al hover cuando está bloqueado */}
                 {!puedePreparar && (
-                  <div className="absolute bottom-full right-0 mb-2 w-64 bg-content-primary text-white rounded-xl shadow-xl p-3 z-50
+                  <div className="absolute bottom-full right-0 mb-2 w-64 bg-content-primary text-content-inverse rounded-xl shadow-xl p-3 z-50
                                   opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-semantic-danger mb-1.5 flex items-center gap-1">
                       <AlertTriangle size={10} /> No se puede preparar
@@ -193,7 +193,7 @@ export const CostCalculator = ({
 
           {/* Grid original vs calculado */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white rounded-lg border-2 border-border-base p-3 shadow-sm">
+            <div className="bg-surface-base rounded-lg border-2 border-border-base p-3 shadow-sm">
               <h5 className="font-bold text-content-muted mb-2 text-[10px] uppercase tracking-widest leading-none">
                 Original ({productDetail.item?.volumen_base} G)
               </h5>
@@ -213,7 +213,7 @@ export const CostCalculator = ({
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-3 border-2 border-semantic-success/20 shadow-sm">
+            <div className="bg-surface-base rounded-lg p-3 border-2 border-semantic-success/20 shadow-sm">
               <h5 className="font-bold text-semantic-success-fg mb-2 text-[10px] uppercase tracking-widest leading-none">
                 Nuevo ({recalculatedData?.item?.volumen_nuevo} G)
               </h5>

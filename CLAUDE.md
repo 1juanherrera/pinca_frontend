@@ -2,11 +2,12 @@
 
 > Este archivo es la **fuente de verdad** para cualquier Claude que retome este proyecto. Está organizado para leerse en orden de necesidad: contexto rápido arriba, detalles técnicos abajo.
 
-## 1. Estado actual (snapshot 2026-05-27)
+## 1. Estado actual (snapshot 2026-05-29)
 
-> **Última sesión grande**: 2026-05-27 — Refresh token UX + Export Excel + Vitest setup + ESLint **33 → 4 errors**. `SessionExpiryModal`, Export Excel en Cotizaciones/OCs, `SummaryCard → FlowCard` migrado completo (6 archivos), popovers mobile-safe. Ver §24.
+> **Última sesión**: 2026-05-29 (tarde) — fixes de auditoría: botones de modal Export visibles en dark, rollback en mutación optimista de `useItem`, fallback de error en `useCatalogo`, `SummaryCard` muerto eliminado. Ver §26.
+> **Anterior (misma fecha)**: Dark mode foundation + virtualización + bulk actions + Vitest + ESLint 0 errors. Ver §25.
 >
-> **Sesiones anteriores**: §23 (2026-05-25 tarde — code-splitting, cleanups), §22 (2026-05-25 mediodía), §21 (audit), §20 (2026-05-21 hardening).
+> **Sesiones anteriores**: §24 (2026-05-27 refresh token UX + Excel), §23 (2026-05-25 tarde code-splitting), §22 (2026-05-25 mediodía), §21 (audit), §20 (2026-05-21).
 
 > **Sesión 2026-05-19**: IVA toggle global, FormDate component (reemplaza inputs nativos en 11 archivos), módulo Costos eliminado y unificado en Rentabilidad, sidebar singleton sin flyout, Salud de cartera rediseñada. Ver §18.
 
@@ -1676,4 +1677,143 @@ Migrados los 6 archivos que usaban `SummaryCard`: `FacturasTable`, `Cotizaciones
 
 ---
 
-> **Snapshot al cierre 2026-05-27**: Frontend con refresh token UX (modal "sesión por expirar" + extend silencioso), Export Excel en Cotizaciones/OCs, Vitest configurado (pendiente `npm install`), ESLint 4 errors (de 69 inicial, −94%), SummaryCard totalmente migrado a FlowCard, popovers mobile-safe. Backlog DEV restante: dark mode, virtualización, bulk actions, completar Vitest install, 4 ESLint con refactor mayor. Build limpio.
+> **Snapshot al cierre 2026-05-27**: Frontend con refresh token UX (modal "sesión por expirar" + extend silencioso), Export Excel en Cotizaciones/OCs, Vitest configurado (pendiente `npm install`), ESLint 4 errors (de 69 inicial, −94%), SummaryCard totalmente migrado a FlowCard, popovers mobile-safe.
+
+---
+
+## 25. Sesión 2026-05-29 — Dark mode foundation + virtualización + bulk actions + Vitest install
+
+Sesión grande coordinada con backend (4 agentes paralelos: 2 backend, 2 frontend). El backlog DEV frontend queda **prácticamente cerrado**: solo dark mode tiene áreas con `bg-white` literal que requieren audit visual, queda búsqueda con debounce en drawers, y notificaciones real-time.
+
+### Dark mode foundation completa
+
+**Archivos**:
+- `src/index.css` — agregado bloque `html.dark { ... }` con override completo de tokens (surfaces, content, borders, semantic-subtles, brand-subtle, sombras). `--color-scheme: dark` en `html.dark` para que scrollbars nativos respeten el tema. **Brand-primary amarillo Pinca intacto**.
+- `index.html` — script anti-flash inline (`pinca:theme` + `prefers-color-scheme`) ANTES de hidratar React.
+- `src/hooks/useTheme.js` (nuevo) — hook con 3 modos: `light`, `dark`, `system`. El modo `system` borra la key de localStorage y escucha `matchMedia('(prefers-color-scheme: dark)')` para auto-actualizar.
+- `src/shared/UserPanel.jsx` — `PreferenciasTab` nueva sección "Tema" con 3 botones (Sol/Luna/Monitor) sobre "Apariencia y comportamiento".
+- `src/shared/Topbar.jsx` — botón Sol/Moon rápido entre Sincronización y Notificaciones (toggle inmediato light↔dark).
+
+**Paleta dark** (zinc-based, contraste alto):
+- `surface-base: #18181b`, `surface-subtle: #09090b`, `surface-muted: #27272a`, `surface-strong: #3f3f46`, `surface-elevated: #27272a`, `surface-overlay: rgba(0,0,0,0.65)`.
+- `content-primary: #fafafa`, `content-secondary: #d4d4d8`, `content-tertiary: #a1a1aa`, `content-muted: #71717a`, `content-inverse: #18181b`.
+- `border-subtle: #27272a`, `border-base: #3f3f46`, `border-strong: #52525b`, `border-focus: #fafafa`.
+- Semantic subtles usan `rgba(color, 0.15-0.18)` para mantener color sobre fondo oscuro.
+
+**Cascadeo automático**: como todos los componentes usan tokens semánticos (`bg-surface-*`, `text-content-*`, etc.), no se tocó ningún módulo individual. Los tokens cambian y todo cascadea.
+
+**Áreas que NO cascadean (follow-up con app corriendo)**:
+- `bg-white` literal en algunos componentes (ej. `CapasStockPanel.jsx`, varios inputs). En dark se ven blancos.
+- `bg-content-primary` (negro literal) usado para botones primary y backdrops — posible exceso de contraste en dark.
+- `utils/avatarTheme.js` (gradientes hardcoded, intencional por diseño).
+
+### Virtualización con `react-window` v2
+
+- **Instalado** `react-window@2.2.7`. API v2 cambió: usa `List` con `rowComponent` + `rowProps`, filas como `<div>` (no `<tr>`).
+- **`MovimientosTable`** virtualizado. Umbral `data.length > 200`. `ROW_HEIGHT=56`. Render normal (`ErpTable`) por debajo del umbral. Helpers `renderProductoCell`, `renderCantidadCell`, `renderFechaCreacion` factorizados para reuso entre modo virtual y normal.
+- **`ProduccionTable`** virtualizado con mismo patrón.
+
+**Trade-off**: en modo virtual los headers pierden el sort (es un rare path con >200 filas — aceptable, documentado).
+
+### Bulk actions pilot en `FacturasTable` (Cartera)
+
+`src/modules/Cartera/components/FacturasTable.jsx`:
+- Nueva columna `__select` con checkbox por fila + checkbox header (indeterminate cuando selección parcial; selecciona las filas VISIBLES en la página actual).
+- Estado local `selected: Set<facturaId>` + helpers `toggleSelected`, `toggleSelectAllVisible`, `clearSelection`.
+- **Barra flotante** arriba del `TableShell` cuando `selected.size > 0`: pill amarilla con contador "N seleccionadas" + botón "Cambiar estado a Anulada" (variant=danger) + "Limpiar selección" (ghost).
+- Confirmación con `openConfirm` (Zustand `variant: 'danger'`) antes de ejecutar.
+- Acción batch: `Promise.allSettled(ids.map(id => cambiarEstadoAsync({id, estado: 'Anulada'})))`. Toast con resultado: "X actualizadas, Y con error". La mutation ya invalida `facturaKeys.lists()` en `onSuccess`.
+- Comentario al final del archivo documenta el patrón para replicar en `CotizacionesTab` y `OrdenesTab`.
+
+**Pendiente**: si N grande, agregar endpoint backend `POST /facturas/bulk/cambiar-estado` (documentado en el comment).
+
+### Vitest install + tests críticos
+
+- Instalado: `vitest@4.1.7`, `@testing-library/react@16.3.2`, `@testing-library/jest-dom@6.9.1`, `jsdom@29.1.1`, `@vitest/ui@4.1.7`.
+- `vitest.config.js`: agregado `setupFiles: ['./src/test/setup.js']` para matchers de `jest-dom`.
+- `src/test/setup.js` nuevo: importa `@testing-library/jest-dom`.
+
+**Tests creados** (3 nuevos + 2 que ya estaban):
+- `src/utils/formatters.test.js` (8 tests, ya existía).
+- `src/hooks/useClientPagination.test.js` (5 tests, ya existía).
+- `src/utils/cn.test.js` (7 tests) — clsx helper con strings, falsies, arrays anidados, objects, mezclas.
+- `src/shared/StatusBadge.test.jsx` (9 tests) — tone por estado (Pendiente, Pagada, Anulada, desconocido), override tone, fixedWidth, minWidth.
+- `src/hooks/useUrlSearch.test.js` (5 tests) — param vacío, lectura `q`, decode URL, param custom, ignorar otros. Usa `MemoryRouter` y `{clean: false}` para evitar cleanup que vacía el valor.
+
+**Resultado**: `npm run test -- --run` → **5 archivos / 34 tests, 100% pass** en ~6.6s.
+
+### ESLint 4 → 0 errors
+
+Fixes:
+- **`CapasStockPanel.jsx:351`** — `Date.now()` impuro en render → `useState(() => Date.now())` (pin al mount).
+- **`FormulacionesTable.jsx:189`** — memoization skip → `useMemo` re-escrito inlineando lógica de `getCostoOverride`/`getOpcionEfectiva`.
+- **`FormCostProducts.jsx:226`** — setState in effect reset-on-open → split en `FormCostProductsInner` + wrapper externo con `key={idCostos}`. Inner usa `useState(() => calcInitial())`.
+- **`FormulacionModal.jsx:317`** — mismo patrón: renombrado a `FormulacionModalInner` + wrapper que monta inner solo cuando `isOpen` con `key={itemId ?? 'new'}`.
+
+**ESLint final**: 0 errors + 13 warnings. **Build limpio ~9.1s**, main bundle 435.9 KB (gzip 136 KB).
+
+### Coupling con backend (saber para no romper)
+
+- El backend **migró 21 controllers** de shape de error CI4 nativo (`{status, error, messages}`) a `{ok, msg}` de `ApiResponse`. El `apiClient.js` ya tolera ambos para toasts (lee `.message || .messages.error || .msg`). Componentes que inspeccionen `.messages.error` directamente reciben `null`. Smoke-test recomendado para módulos: Auditoría, Configuración, Trazabilidad, Sincronización, Numeración, Cartera, Notificaciones, Empresa, CostosProduccion, Bodegas, Categoría, Unidad, Item, Capas, CostosItem, CostosIndirectos, Comparador, GestionesCobro, Clientes, Proveedor, Instalaciones.
+- Endpoints documentados ahora en **Swagger UI**: `http://localhost:8080/swagger-ui.html` (52 ops, 8 tags).
+- `apiSuccessFlat` existe en el backend trait — endpoints viejos que ya devuelven shape top-level (`login`, `refresh`, `me`, etc.) lo usan internamente sin cambios visibles para el frontend.
+
+### Riesgos al cierre
+
+1. **`bg-white` literal** en algunos componentes no cascadea a dark — requiere audit visual con la app corriendo (no se hizo en esta sesión por scope).
+2. **`react-window` v2 sort en headers**: modo virtual no soporta sort. Documentado, rare path (>200 filas).
+3. **Bulk actions** ejecuta N requests paralelos. Para N grande conviene endpoint bulk dedicado.
+4. **`FormulacionModal` ahora usa `key={itemId ?? 'new'}`** para forzar remount al cambiar de OC. Si el flujo "Guardar y continuar" tenía estado que dependía de NO remountar, podría romperse — verificar manualmente.
+
+### Lo que queda (PENDIENTES.md)
+
+- Audit visual de dark mode (areas con `bg-white` literal).
+- Búsqueda con debounce en drawers grandes.
+- Notificaciones real-time (WebSockets/SSE).
+- Replicar bulk actions en `CotizacionesTab` y `OrdenesTab`.
+- Endpoint backend bulk dedicado para cambios masivos.
+
+---
+
+> **Snapshot al cierre 2026-05-29 (mañana)**: Frontend con dark mode foundation, virtualización `react-window` en 2 tablas, bulk actions pilot en Facturas, Vitest 34/34 PASS, ESLint 0 errors. Build limpio.
+
+---
+
+## 26. Sesión 2026-05-29 (tarde) — Fixes de auditoría profunda
+
+Análisis profundo del sistema (3 agentes) → fixes accionables del lado frontend. Build limpio, lint 0 errors, 34/34 tests.
+
+### Botones de modal de los Export\* invisibles en dark (CRÍTICO arreglado)
+
+El audit de dark mode anterior excluyó los `Export*.jsx` **completos** (correcto para el PDF, que debe ser papel blanco). Pero esos componentes también tienen un **modal de preview (chrome de UI)** cuyos botones usaban `bg-content-primary text-white` → en dark `content-primary` flipea a claro = botón casi blanco con texto blanco, ilegible.
+
+Arreglado en 8 archivos (`ExportFactura`, `ExportOrdenCompra`, `ExportCotizacion`, `ExportProduccion`, `ExportNotaCredito`, `ExportRecibo`, `ExportRemision`, `ExportTrazabilidad`):
+- **Botones de acción "Descargar PDF"**: `bg-content-primary text-white` → `bg-brand-primary text-content-on-brand` (amarillo de marca + texto oscuro, legible en ambos modos).
+- **Chrome no-botón** (icon-boxes de header, 1 toggle): `text-white` → `text-content-inverse` (que flipea; white no), conservando `bg-content-primary`.
+
+**Regla aprendida**: cuando un componente Export tiene PDF + modal de preview, el PDF (`<PdfTemplate>` / lo capturado por html2canvas) NO se toca, pero el **chrome del modal SÍ debe usar tokens dark-aware**. El PDF quedó intacto en todos.
+
+### Mutación optimista sin rollback (CRÍTICO arreglado)
+
+`src/modules/Inventario/api/useItem.js` `updateMutation`: tenía `onMutate` con update optimista (snapshot de `inventarioKeys.all` vía `getQueriesData`) pero faltaba `onError` (revertir) y `onSettled` (invalidar). Si el PUT fallaba, la UI quedaba con datos editados incorrectos en caché. Agregado `onError` que restaura cada `[queryKey, data]` del snapshot + `onSettled` que invalida `inventarioKeys.all`.
+
+### Otros
+
+- **`useCatalogo.js`**: los 3 `onError` leían solo `e?.response?.data?.messages?.error` (shape viejo CI4). El backend migró a `{ok, msg}`. Agregado fallback `|| e?.response?.data?.msg`.
+- **`SummaryCard.jsx` eliminado**: estaba 100% muerto (migrado a `FlowCard` en sesión anterior, 0 imports).
+
+### Coupling con backend (esta sesión)
+
+- Backend reforzó RBAC: `InventarioController::traspaso/ajusteManual/removeFromBodega` ahora requieren rol **operador+** (visor recibe 403). `RemisionesController::delete` es admin-only. Si el frontend muestra esos botones a un visor, van a recibir 403 — conviene ocultarlos por rol en la UI (pendiente menor).
+- Backend: consumo MANUAL de capas ahora **falla** si las capas seleccionadas no suman la cantidad requerida. Si algún flujo del frontend permite sub-selección parcial de capas, el POST de producción va a dar error — revisar `CapasStockPanel`/preparación.
+
+### Pendientes frontend del análisis (NO arreglados, en backlog)
+- **recharts en chunk eager** (`vite.config.js` lo agrupa con lucide-react) → entra en bundle inicial aunque solo se use en Dashboard/Rentabilidad/CostosProduccion.
+- **~30 hooks con rutas hardcodeadas** en vez de `API_ROUTES`.
+- **Modal sin focus-trap** (a11y).
+- **`CapasStockPanel` con 3 efectos que llaman callbacks del padre** (riesgo de re-render si el padre no memoiza — los warnings ESLint reales).
+- **Ocultar por rol** los botones de mutación de inventario para el visor (espejo del RBAC backend).
+
+---
+
+> **Snapshot al cierre 2026-05-29 (tarde)**: Frontend con botones de modal Export legibles en dark, mutación optimista de inventario con rollback, fallback de error en catálogo, SummaryCard eliminado. Build limpio, lint 0 errors, 34/34 tests. Backlog: recharts chunk, apiRoutes hardcoded, focus-trap, ocultar acciones por rol.

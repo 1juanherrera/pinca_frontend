@@ -55,7 +55,7 @@ const MovimientosPage = () => {
       </div>
 
       {/* ── Filtros ── */}
-      <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
+      <div className="bg-surface-base border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
         <MovimientosFilters
           filters={filters}
           onChange={handleFilterChange}
@@ -65,7 +65,7 @@ const MovimientosPage = () => {
       </div>
 
       {/* ── Tabla ── */}
-      <div className="bg-white border border-border-subtle rounded-2xl shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+      <div className="bg-surface-base border border-border-subtle rounded-2xl shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
         <MovimientosTable
           data={movimientos}
           meta={meta}

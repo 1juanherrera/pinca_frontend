@@ -4,9 +4,11 @@ import {
   CheckCircle2, Clock, History, Settings2, Building2, Save,
   Globe, Phone, MapPin, FileText, Hash, AlertCircle, Bell,
   BellOff, Rows3, Maximize2, Palette, Check, User as UserIcon, HeartPulse,
+  Sun, Moon, Monitor,
 } from 'lucide-react';
 import SaludSistemaPage from '../modules/SaludSistema/SaludSistemaPage';
 import { useBoundStore }  from '../store/useBoundStore';
+import { useTheme }        from '../hooks/useTheme';
 import { useNavigate }    from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient           from '../api/apiClient';
@@ -59,7 +61,7 @@ const Toggle = ({ checked, onChange, disabled }) => (
                  : 'bg-surface-strong cursor-pointer'
     }`}
   >
-    <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
+    <span className={`inline-block h-3.5 w-3.5 rounded-full bg-surface-base shadow transition-transform ${
       checked ? 'translate-x-4.5' : 'translate-x-0.75'
     }`} />
   </button>
@@ -75,7 +77,7 @@ const FieldInput = ({ label, value, onChange, icon: Icon, placeholder, type = 't
   <div>
     <label className="flex items-center gap-1 text-xs text-content-tertiary mb-1">{Icon && <Icon size={11} />}{label}</label>
     <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-      className="w-full border border-border-base rounded-lg px-3 py-2 text-sm bg-surface-subtle text-content-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:bg-white transition-all" />
+      className="w-full border border-border-base rounded-lg px-3 py-2 text-sm bg-surface-subtle text-content-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:bg-surface-base transition-all" />
   </div>
 );
 
@@ -204,7 +206,7 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
                 <span className="text-[10px] text-content-muted font-medium w-20 shrink-0 pt-0.5">{grupo}</span>
                 <div className="flex flex-wrap gap-1">
                   {labels.map(label => (
-                    <span key={label} className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-border-subtle text-content-secondary rounded-full text-[11px]">
+                    <span key={label} className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-base border border-border-subtle text-content-secondary rounded-full text-[11px]">
                       <span className="w-1.5 h-1.5 rounded-full bg-semantic-success/80 shrink-0" />
                       {label}
                     </span>
@@ -236,7 +238,7 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
               onChange={(e) => setNombreInput(e.target.value)}
               placeholder="Ej. Juan Pérez"
               maxLength={100}
-              className="w-full border border-border-base rounded-lg px-3 py-2 text-sm bg-surface-subtle text-content-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:bg-white transition-all"
+              className="w-full border border-border-base rounded-lg px-3 py-2 text-sm bg-surface-subtle text-content-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:bg-surface-base transition-all"
             />
             <p className="text-[10px] text-content-muted mt-1">
               Es el nombre que verás en el saludo y la cabecera. Tu username (<span className="font-mono">{user?.username}</span>) sigue siendo el identificador para iniciar sesión.
@@ -245,7 +247,7 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
           <button
             type="submit"
             disabled={isPendingNombre || nombreInput.trim() === (user?.nombre ?? '')}
-            className="w-full py-2 rounded-lg text-sm font-semibold bg-content-primary hover:bg-content-secondary text-white transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full py-2 rounded-lg text-sm font-semibold bg-content-primary hover:bg-content-secondary text-content-inverse transition-all disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isPendingNombre ? 'Guardando…' : 'Guardar nombre'}
           </button>
@@ -266,7 +268,7 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
               <div className="relative">
                 <input type={show[sk] ? 'text' : 'password'} value={form[key]} required
                   onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                  className="w-full border border-border-base rounded-lg px-3 py-2 pr-9 text-sm bg-surface-subtle text-content-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:bg-white transition-all" />
+                  className="w-full border border-border-base rounded-lg px-3 py-2 pr-9 text-sm bg-surface-subtle text-content-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:bg-surface-base transition-all" />
                 <button type="button" onClick={() => setShow(s => ({ ...s, [sk]: !s[sk] }))}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-secondary">
                   {show[sk] ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -276,7 +278,7 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
           ))}
           <button type="submit" disabled={isPending}
             className={`w-full py-2 rounded-lg text-sm font-semibold transition-all mt-1 ${
-              ok ? 'bg-semantic-success text-white' : 'bg-content-primary hover:bg-content-secondary text-white disabled:opacity-60'
+              ok ? 'bg-semantic-success text-content-inverse' : 'bg-content-primary hover:bg-content-secondary text-content-inverse disabled:opacity-60'
             }`}>
             {isPending ? 'Guardando…' : ok ? '¡Actualizada correctamente!' : 'Guardar contraseña'}
           </button>
@@ -374,6 +376,19 @@ const PreferenciasTab = () => {
   const [notifs,   setNotifs]   = useState(() => readPref('pinca-notifs', true));
   const [densidad, setDensidad] = useState(() => readPref('pinca-dense-sidebar', false));
   const avatarKey = useAvatarKey();
+  const { mode: themeMode, setTheme } = useTheme();
+
+  const themeOptions = [
+    { key: 'light',  label: 'Claro',   icon: Sun,     desc: 'Tema claro siempre.' },
+    { key: 'dark',   label: 'Oscuro',  icon: Moon,    desc: 'Tema oscuro siempre.' },
+    { key: 'system', label: 'Sistema', icon: Monitor, desc: 'Sigue tu sistema operativo.' },
+  ];
+
+  const pickTheme = (key) => {
+    setTheme(key);
+    const found = themeOptions.find(o => o.key === key);
+    toast.success(`Tema: ${found?.label ?? key}`);
+  };
 
   const pickAvatar = (key) => {
     setStoredAvatarKey(key);
@@ -420,6 +435,47 @@ const PreferenciasTab = () => {
 
   return (
     <div className="flex flex-col gap-5 p-5">
+      <div>
+        <SectionTitle icon={Sun}>Tema</SectionTitle>
+        <div className="rounded-xl border border-border-subtle p-3">
+          <div className="grid grid-cols-3 gap-2">
+            {themeOptions.map(({ key, label, icon: Icon, desc }) => {
+              const active = themeMode === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => pickTheme(key)}
+                  title={desc}
+                  className={`group relative flex flex-col items-center gap-1.5 rounded-xl p-3 transition-all border ${
+                    active
+                      ? 'bg-surface-muted border-content-primary ring-2 ring-content-primary/20'
+                      : 'bg-surface-base border-border-subtle hover:bg-surface-subtle hover:border-border-base'
+                  }`}
+                >
+                  <span className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                    active ? 'bg-content-primary text-content-inverse' : 'bg-surface-muted text-content-secondary'
+                  }`}>
+                    <Icon size={16} />
+                  </span>
+                  <span className={`text-xs font-medium ${active ? 'text-content-primary' : 'text-content-secondary'}`}>
+                    {label}
+                  </span>
+                  {active && (
+                    <span className="absolute top-1.5 right-1.5 text-content-primary">
+                      <Check size={12} strokeWidth={3} />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-content-muted mt-2.5">
+            “Sistema” usa la preferencia de tu sistema operativo y se actualiza automáticamente.
+          </p>
+        </div>
+      </div>
+
       <div>
         <SectionTitle icon={Settings2}>Apariencia y comportamiento</SectionTitle>
         <div className="rounded-xl border border-border-subtle divide-y divide-border-subtle overflow-hidden">
@@ -545,7 +601,7 @@ const EmpresaTab = () => {
       </div>
 
       <button onClick={() => save(form)} disabled={isPending}
-        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-content-primary hover:bg-content-secondary text-white text-sm font-semibold transition-colors disabled:opacity-60">
+        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-content-primary hover:bg-content-secondary text-content-inverse text-sm font-semibold transition-colors disabled:opacity-60">
         <Save size={15} />
         {isPending ? 'Guardando…' : 'Guardar cambios'}
       </button>
@@ -695,7 +751,7 @@ const UsuariosRoles = () => {
               <select value={u.rol} disabled={isPending || esYoMismo}
                 onChange={e => handleChange(u, e.target.value)}
                 title={esYoMismo ? 'No podés cambiar tu propio rol' : undefined}
-                className="border border-border-base rounded-lg px-2 py-1 text-xs bg-white text-content-secondary focus:outline-none focus:ring-1 focus:ring-brand-primary/30 disabled:opacity-60 disabled:cursor-not-allowed">
+                className="border border-border-base rounded-lg px-2 py-1 text-xs bg-surface-base text-content-secondary focus:outline-none focus:ring-1 focus:ring-brand-primary/30 disabled:opacity-60 disabled:cursor-not-allowed">
                 {ROLES.map(r => <option key={r} value={r}>{ROLES_LABELS[r]}</option>)}
               </select>
             </div>
@@ -752,12 +808,12 @@ const UserPanel = () => {
     <>
       {/* Overlay */}
       <div onClick={closeDrawer}
-        className={`fixed inset-0 bg-black/40 z-100 transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-surface-overlay z-100 transition-opacity duration-300 ${
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`} />
 
       {/* Panel */}
-      <div className={`fixed right-0 top-0 h-full z-101 flex flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out w-full sm:w-[50vw] sm:min-w-125 sm:max-w-225 ${
+      <div className={`fixed right-0 top-0 h-full z-101 flex flex-col bg-surface-base shadow-2xl transition-transform duration-300 ease-in-out w-full sm:w-[50vw] sm:min-w-125 sm:max-w-225 ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
 

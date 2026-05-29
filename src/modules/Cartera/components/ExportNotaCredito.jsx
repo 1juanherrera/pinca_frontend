@@ -221,7 +221,7 @@ const ExportNotaCreditoContent = ({ nota, closeModal }) => {
             onClick={handleDownload}
             disabled={isExporting}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95
-              ${done ? 'bg-semantic-success text-white' : 'bg-content-primary text-white hover:bg-content-secondary disabled:opacity-50'}`}
+              ${done ? 'bg-semantic-success text-white' : 'bg-brand-primary text-content-on-brand hover:bg-brand-primary-hover disabled:opacity-50'}`}
           >
             {done ? <><CheckCircle2 size={16} /> Descargado</>
               : isExporting ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando…</>

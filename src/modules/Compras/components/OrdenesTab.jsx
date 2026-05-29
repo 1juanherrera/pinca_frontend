@@ -150,7 +150,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
           {/* Exportar Excel */}
           <button
             onClick={(e) => { e.stopPropagation(); exportOrdenesCompraExcel(row, { ivaPct }); }}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all active:scale-95"
             title="Exportar Excel"
           >
             <FileSpreadsheet size={12} />
@@ -159,7 +159,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
           {/* Exportar PDF */}
           <button
             onClick={(e) => { e.stopPropagation(); openDrawer('EXPORT_MODAL_OC', row); }}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all active:scale-95"
             title="Descargar PDF"
           >
             <Download size={12} />
@@ -168,7 +168,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
           {/* Ver detalle */}
           <button
             onClick={(e) => { e.stopPropagation(); onVerDetalle(row); }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all"
           >
             Ver
           </button>
@@ -177,7 +177,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
           {row.estado === 'Borrador' && (
             <button
               onClick={(e) => { e.stopPropagation(); openDrawer('ORDEN_COMPRA_FORM', row); }}
-              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
+              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all active:scale-95"
               title="Editar"
             >
               <Pencil size={12}/>

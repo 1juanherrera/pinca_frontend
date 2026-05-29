@@ -37,15 +37,15 @@ const ClonarFormulacionModal = ({ from, onClose, onCloned }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[120] bg-black/50 backdrop-blur-[2px] flex items-center justify-center p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-border-base flex flex-col max-h-[80vh]">
+    <div className="fixed inset-0 z-[120] bg-surface-overlay backdrop-blur-[2px] flex items-center justify-center p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-surface-base rounded-2xl shadow-2xl overflow-hidden border border-border-base flex flex-col max-h-[80vh]">
 
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-surface-subtle">
           <div className="flex items-center gap-2">
             <Copy size={15} className="text-content-secondary" />
             <h2 className="text-sm font-bold text-content-primary uppercase tracking-wide">Clonar fórmula</h2>
           </div>
-          <button onClick={onClose} className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white border border-border-base text-content-primary hover:bg-surface-muted transition">
+          <button onClick={onClose} className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-surface-base border border-border-base text-content-primary hover:bg-surface-muted transition">
             <X size={14} />
           </button>
         </div>
@@ -137,7 +137,7 @@ const ClonarFormulacionModal = ({ from, onClose, onCloned }) => {
             className={`inline-flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition active:scale-95 ${
               !destino || isCloning
                 ? 'bg-surface-strong text-content-muted cursor-not-allowed'
-                : 'bg-content-primary text-white hover:bg-content-secondary'
+                : 'bg-content-primary text-content-inverse hover:bg-content-secondary'
             }`}
           >
             <Copy size={13} /> {isCloning ? 'Clonando…' : 'Clonar fórmula'}

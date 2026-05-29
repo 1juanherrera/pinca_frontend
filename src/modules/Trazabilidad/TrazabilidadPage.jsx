@@ -55,7 +55,7 @@ const TrazabilidadPage = () => {
       </div>
 
       {/* Buscador */}
-      <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
+      <div className="bg-surface-base border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
         <label className="block text-[10px] font-bold uppercase tracking-widest text-content-muted mb-2">
           Buscar por código de lote del proveedor
         </label>
@@ -76,7 +76,7 @@ const TrazabilidadPage = () => {
       </div>
 
       {/* Listado de lotes */}
-      <div className="bg-white border border-border-subtle rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-surface-base border border-border-subtle rounded-2xl shadow-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-border-subtle flex items-center justify-between">
           <p className="text-[10px] font-bold uppercase tracking-widest text-content-muted flex items-center gap-1.5">
             <Layers size={11} /> {debounced ? `Resultados para "${debounced}"` : 'Lotes recientes'}

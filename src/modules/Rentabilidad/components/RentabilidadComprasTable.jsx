@@ -75,7 +75,7 @@ const RentabilidadComprasTable = ({ ordenes, isLoading }) => {
       />
 
       {!isLoading && ordenes.length > 0 && (
-        <div className="bg-content-primary text-white rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
+        <div className="bg-content-primary text-content-inverse rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
           <span className="text-content-muted">{ordenes.length} orden(es)</span>
           <div className="text-right">
             <p className="text-content-muted font-normal text-[10px]">Subtotal</p>

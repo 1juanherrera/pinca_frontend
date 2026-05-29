@@ -62,11 +62,11 @@ const ItemSearch = ({ onAdd, seleccionados }) => {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Buscar ítem de proveedor o inventario..."
-        className="w-full pl-8 pr-3 py-2 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition placeholder:text-content-muted bg-white"
+        className="w-full pl-8 pr-3 py-2 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition placeholder:text-content-muted bg-surface-base"
       />
 
       {resultados.length > 0 && (
-        <div className="absolute top-full mt-1 left-0 right-0 z-30 bg-white border border-border-subtle rounded-lg shadow-xl overflow-hidden max-h-64 overflow-y-auto">
+        <div className="absolute top-full mt-1 left-0 right-0 z-30 bg-surface-base border border-border-subtle rounded-lg shadow-xl overflow-hidden max-h-64 overflow-y-auto">
           {resultados.map((item) => (
             <button
               key={item._key}
@@ -126,7 +126,7 @@ const ItemCard = ({ item, onQuitar, mejores }) => {
   const cfg = FUENTE_CONFIG[item._source];
 
   return (
-    <div className={`relative flex flex-col bg-white border rounded-xl overflow-hidden shadow-sm ${cfg.border}`}>
+    <div className={`relative flex flex-col bg-surface-base border rounded-xl overflow-hidden shadow-sm ${cfg.border}`}>
       <div className={`h-1 w-full ${cfg.dot}`} />
 
       <div className="px-4 pt-3 pb-2">
@@ -206,7 +206,7 @@ const ComparadorLibreTab = () => {
     <div className="flex flex-col gap-3">
 
       {/* Buscador + leyenda + limpiar — todo en un card */}
-      <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
+      <div className="bg-surface-base border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
         <div className="flex items-center gap-2">
           <div className="flex-1">
             <ItemSearch onAdd={agregar} seleccionados={seleccionados} />

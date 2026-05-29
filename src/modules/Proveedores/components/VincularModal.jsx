@@ -57,8 +57,8 @@ const VincularModal = ({ item, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[110]">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-border-subtle">
+    <div className="fixed inset-0 bg-surface-overlay backdrop-blur-[2px] flex items-center justify-center z-[110]">
+      <div className="bg-surface-base rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-border-subtle">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-surface-subtle">
@@ -71,7 +71,7 @@ const VincularModal = ({ item, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all"
           >
             <X size={14} />
           </button>
@@ -95,8 +95,8 @@ const VincularModal = ({ item, onClose }) => {
               onClick={() => setModo('existente')}
               className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-all ${
                 modo === 'existente'
-                  ? 'bg-content-primary text-white border-content-primary'
-                  : 'bg-white text-content-tertiary border-border-base hover:border-border-strong'
+                  ? 'bg-content-primary text-content-inverse border-content-primary'
+                  : 'bg-surface-base text-content-tertiary border-border-base hover:border-border-strong'
               }`}
             >
               Buscar ítem existente
@@ -105,8 +105,8 @@ const VincularModal = ({ item, onClose }) => {
               onClick={() => setModo('nuevo')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold border transition-all ${
                 modo === 'nuevo'
-                  ? 'bg-content-primary text-white border-content-primary'
-                  : 'bg-white text-content-tertiary border-border-base hover:border-border-strong'
+                  ? 'bg-content-primary text-content-inverse border-content-primary'
+                  : 'bg-surface-base text-content-tertiary border-border-base hover:border-border-strong'
               }`}
             >
               <Plus size={12} /> Crear ítem nuevo
@@ -188,13 +188,13 @@ const VincularModal = ({ item, onClose }) => {
                     onChange={e => setFactorConversion(e.target.value)}
                     disabled={esKilo}
                     placeholder={esKilo ? '1' : (unidadSeleccionada ? `Ej: 25 si 1 ${unidadSeleccionada.nombre} = 25 kg` : 'Ej: 25')}
-                    className="w-full px-3 py-2 text-sm font-mono border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 bg-white disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full px-3 py-2 text-sm font-mono border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 bg-surface-base disabled:opacity-40 disabled:cursor-not-allowed"
                   />
                   {/* Tooltip al hacer hover en el label */}
-                  <div className="hidden group-hover:block absolute left-0 top-full mt-1 z-50 w-56 p-2.5 bg-content-primary text-white text-[10px] rounded-lg shadow-xl">
+                  <div className="hidden group-hover:block absolute left-0 top-full mt-1 z-50 w-56 p-2.5 bg-content-primary text-content-inverse text-[10px] rounded-lg shadow-xl">
                     <p className="font-bold mb-1">Factor de conversión</p>
-                    <p className="text-white/80 mb-1.5 leading-snug">Cuántos kg hay en 1 unidad de compra del proveedor.</p>
-                    <div className="bg-white/10 rounded px-2 py-1 font-mono">
+                    <p className="text-content-inverse/80 mb-1.5 leading-snug">Cuántos kg hay en 1 unidad de compra del proveedor.</p>
+                    <div className="bg-content-inverse/10 rounded px-2 py-1 font-mono">
                       1 BULTO = 25 kg → Factor = <strong>25</strong>
                     </div>
                   </div>
@@ -230,7 +230,7 @@ const VincularModal = ({ item, onClose }) => {
             className={`inline-flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold shadow-sm transition-all active:scale-95 ${
               !esValido || isVinculando
                 ? 'bg-surface-strong text-content-muted cursor-not-allowed'
-                : 'bg-content-primary text-white hover:bg-content-secondary'
+                : 'bg-content-primary text-content-inverse hover:bg-content-secondary'
             }`}
           >
             <ArrowRight size={13} />

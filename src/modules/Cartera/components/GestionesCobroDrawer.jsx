@@ -28,7 +28,7 @@ const GestionRow = ({ gestion, onEliminar }) => {
   const Icon = ICONO_TIPO[gestion.tipo] ?? Phone;
   return (
     <div className="flex items-start gap-3 p-3 bg-surface-subtle rounded-lg border border-border-subtle">
-      <div className="shrink-0 w-8 h-8 rounded-lg bg-white border border-border-base flex items-center justify-center shadow-sm">
+      <div className="shrink-0 w-8 h-8 rounded-lg bg-surface-base border border-border-base flex items-center justify-center shadow-sm">
         <Icon className="w-4 h-4 text-content-tertiary" />
       </div>
       <div className="flex-1 min-w-0">
@@ -93,7 +93,7 @@ const NuevaGestionForm = ({ facturaId, clienteId, onCreado }) => {
               className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border-2 transition-all capitalize
                 ${form.tipo === t
                   ? 'border-content-primary bg-content-primary text-content-inverse'
-                  : 'border-border-base bg-white text-content-secondary hover:border-border-strong'
+                  : 'border-border-base bg-surface-base text-content-secondary hover:border-border-strong'
                 }`}
             >
               <Icon className="w-3.5 h-3.5" /> {t}

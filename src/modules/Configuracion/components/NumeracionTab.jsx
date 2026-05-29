@@ -317,7 +317,7 @@ const NumeracionTab = () => {
                     {esAdmin && (
                       <button
                         onClick={() => setEditando(s)}
-                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
+                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all"
                         title="Editar serie"
                       >
                         <Edit size={12} />

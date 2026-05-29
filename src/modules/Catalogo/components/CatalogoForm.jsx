@@ -62,15 +62,15 @@ const CatalogoForm = ({ item, onSubmit, onClose, isSaving }) => {
   ];
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-content-primary/50 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-surface-overlay backdrop-blur-sm" onClick={onClose}>
       <div
-        className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]"
+        className="w-full max-w-3xl bg-surface-base rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-content-primary text-white rounded-xl">
+            <div className="flex items-center justify-center w-10 h-10 bg-content-primary text-content-inverse rounded-xl">
               <FileText size={20} />
             </div>
             <div>
@@ -111,7 +111,7 @@ const CatalogoForm = ({ item, onSubmit, onClose, isSaving }) => {
                   </div>
                   <button
                     type="button" onClick={handleGenerateCode} title="Generar código"
-                    className="group mb-px p-2.5 text-content-tertiary bg-surface-muted border border-border-base rounded-lg hover:bg-content-primary hover:text-white transition-all active:scale-95"
+                    className="group mb-px p-2.5 text-content-tertiary bg-surface-muted border border-border-base rounded-lg hover:bg-content-primary hover:text-content-inverse transition-all active:scale-95"
                   >
                     <Wand2 size={16} className="group-hover:rotate-12 transition-transform" />
                   </button>

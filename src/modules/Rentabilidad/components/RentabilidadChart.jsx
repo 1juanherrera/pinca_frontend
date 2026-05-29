@@ -35,7 +35,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   const utilidad = (ventas?.value ?? 0) - totalCostos;
   
   return (
-    <div className="bg-white border border-border-base rounded-xl shadow-lg p-3 text-xs min-w-[200px]">
+    <div className="bg-surface-base border border-border-base rounded-xl shadow-lg p-3 text-xs min-w-[200px]">
       <p className="font-semibold text-content-secondary mb-2">{label}</p>
       
       {/* Ventas */}
@@ -121,7 +121,7 @@ const RentabilidadChart = ({ ordenesProd, ordenesCompras, ventasData, desde, has
 
   if (!chartData.length) {
     return (
-      <div className="bg-white border border-border-base/70 rounded-xl p-6 text-center text-content-muted text-sm h-64 flex items-center justify-center">
+      <div className="bg-surface-base border border-border-base/70 rounded-xl p-6 text-center text-content-muted text-sm h-64 flex items-center justify-center">
         Sin datos para el gráfico en el período seleccionado.
       </div>
     );
@@ -136,7 +136,7 @@ const RentabilidadChart = ({ ordenesProd, ordenesCompras, ventasData, desde, has
   const percentFormatter = (v) => `${v.toFixed(1)}%`;
 
   return (
-    <div className="bg-white border border-border-base/70 rounded-xl p-4">
+    <div className="bg-surface-base border border-border-base/70 rounded-xl p-4">
       <p className="text-xs font-semibold text-content-tertiary mb-4">Costos vs Ventas y Rentabilidad por mes (COP)</p>
       <ResponsiveContainer width="100%" height={320}>
         <ComposedChart data={chartData} margin={{ top: 4, right: 40, left: 0, bottom: 0 }} barSize={18}>

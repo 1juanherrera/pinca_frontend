@@ -192,7 +192,7 @@ const RentabilidadResumen = ({
       </div>
 
       {/* Análisis detallado */}
-      <div className="bg-white border border-border-base/70 rounded-xl p-6">
+      <div className="bg-surface-base border border-border-base/70 rounded-xl p-6">
         <h3 className="text-lg font-bold text-content-primary mb-4">Análisis de Rentabilidad</h3>
         <div className="space-y-3">
           {analysis.analyses.map((item, index) => (
@@ -202,7 +202,7 @@ const RentabilidadResumen = ({
       </div>
 
       {/* Distribución de costos */}
-      <div className="bg-white border border-border-base/70 rounded-xl p-6">
+      <div className="bg-surface-base border border-border-base/70 rounded-xl p-6">
         <h3 className="text-lg font-bold text-content-primary mb-4">Distribución de Costos</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center">

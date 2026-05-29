@@ -34,7 +34,7 @@ const KpiCard = ({ formulaciones = [], productDetail = null, recalculatedData = 
                 return (
                     <div 
                         key={index} 
-                        className="bg-white rounded-lg border border-border-base/60 shadow-sm px-3 py-2 transition-all hover:shadow-md group"
+                        className="bg-surface-base rounded-lg border border-border-base/60 shadow-sm px-3 py-2 transition-all hover:shadow-md group"
                     >
                         <div className="flex items-center justify-between">
                             <div>

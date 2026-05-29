@@ -41,7 +41,7 @@ const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
         footer={
           <button
             onClick={() => openDrawer('ITEM_PROVEEDOR_FORM', { proveedor_id: proveedor.id_proveedor })}
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold bg-content-primary text-white rounded-xl hover:bg-content-secondary transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold bg-content-primary text-content-inverse rounded-xl hover:bg-content-secondary transition-all"
           >
             <Plus size={14} /> Agregar Producto
           </button>
@@ -152,7 +152,7 @@ const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
                             className={`w-6 h-6 flex items-center justify-center rounded-md border transition-all ${
                               item.item_general_nombre
                                 ? 'border-semantic-success/20 text-semantic-success hover:bg-semantic-success hover:text-white hover:border-semantic-success'
-                                : 'border-border-base text-content-muted hover:bg-content-primary hover:text-white hover:border-content-primary'
+                                : 'border-border-base text-content-muted hover:bg-content-primary hover:text-content-inverse hover:border-content-primary'
                             }`}
                             title={item.item_general_nombre ? 'Editar vínculo' : 'Vincular a catálogo'}
                           >
@@ -160,7 +160,7 @@ const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
                           </button>
                           <button
                             onClick={() => openDrawer('ITEM_PROVEEDOR_FORM', item)}
-                            className="w-6 h-6 flex items-center justify-center rounded-md border border-border-base/60 text-content-muted hover:bg-content-primary hover:text-white hover:border-content-primary transition-all duration-150"
+                            className="w-6 h-6 flex items-center justify-center rounded-md border border-border-base/60 text-content-muted hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all duration-150"
                             title="Editar producto"
                           >
                             <Pencil size={10} />

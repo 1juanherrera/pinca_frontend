@@ -36,7 +36,7 @@ export const ProduccionFilters = ({ filters, onChange, itemOptions = [] }) => {
             placeholder="Buscar por producto o código…"
             value={filters.search}
             onChange={e => onChange({ ...filters, search: e.target.value })}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-border-base rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition placeholder:text-content-muted"
+            className="w-full pl-9 pr-4 py-2 text-sm border border-border-base rounded-lg bg-surface-base focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition placeholder:text-content-muted"
           />
         </div>
 
@@ -45,7 +45,7 @@ export const ProduccionFilters = ({ filters, onChange, itemOptions = [] }) => {
           <select
             value={filters.item}
             onChange={e => onChange({ ...filters, item: e.target.value })}
-            className="px-3 py-2 text-sm border border-border-base rounded-lg bg-white text-content-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition"
+            className="px-3 py-2 text-sm border border-border-base rounded-lg bg-surface-base text-content-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition"
           >
             <option value="">Todos los productos</option>
             {itemOptions.map(opt => (
@@ -86,7 +86,7 @@ export const ProduccionFilters = ({ filters, onChange, itemOptions = [] }) => {
               onClick={() => onChange({ ...filters, estado })}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
                 ${selected
-                  ? 'bg-content-primary text-white shadow-sm'
+                  ? 'bg-content-primary text-content-inverse shadow-sm'
                   : 'bg-surface-muted text-content-tertiary hover:bg-surface-strong'
                 }`}
             >

@@ -139,7 +139,7 @@ const FormulacionesPage = () => {
               puede igual sobreescribir un ingrediente individual seleccionando
               proveedor en el dropdown de cada fila. */}
           {selectedId && (
-            <div className="bg-white rounded-xl border border-border-subtle shadow-sm px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="bg-surface-base rounded-xl border border-border-subtle shadow-sm px-4 py-3 flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-content-primary">Fuente del costo</p>
                 <p className="text-[10px] text-content-tertiary leading-snug mt-0.5">
@@ -154,7 +154,7 @@ const FormulacionesPage = () => {
                   onClick={() => setCostMode('real')}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${
                     costMode === 'real'
-                      ? 'bg-white text-content-primary shadow-sm'
+                      ? 'bg-surface-base text-content-primary shadow-sm'
                       : 'text-content-muted hover:text-content-secondary'
                   }`}
                   title="Costo real — promedio ponderado de inventario"
@@ -166,7 +166,7 @@ const FormulacionesPage = () => {
                   onClick={() => setCostMode('lista')}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${
                     costMode === 'lista'
-                      ? 'bg-white text-content-primary shadow-sm'
+                      ? 'bg-surface-base text-content-primary shadow-sm'
                       : 'text-content-muted hover:text-content-secondary'
                   }`}
                   title="Costo lista — precio de reposición del proveedor"

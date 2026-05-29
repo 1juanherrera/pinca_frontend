@@ -346,7 +346,7 @@ const ExportTrazContent = ({ payload, closeModal }) => {
         <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-content-primary flex items-center justify-center shrink-0">
-              <GitBranch size={15} className="text-white" />
+              <GitBranch size={15} className="text-content-inverse" />
             </div>
             <div className="min-w-0">
               <h2 className="text-sm font-bold text-content-primary truncate">{titulo}</h2>
@@ -391,7 +391,7 @@ const ExportTrazContent = ({ payload, closeModal }) => {
             className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${
               done
                 ? 'bg-semantic-success text-white'
-                : 'bg-content-primary text-white hover:bg-content-secondary disabled:opacity-50'
+                : 'bg-brand-primary text-content-on-brand hover:bg-brand-primary-hover disabled:opacity-50'
             }`}
           >
             {done ? (

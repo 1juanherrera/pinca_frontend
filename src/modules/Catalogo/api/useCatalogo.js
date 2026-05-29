@@ -76,19 +76,19 @@ export const useCatalogoMutations = () => {
   const crear = useMutation({
     mutationFn: (data) => apiClient.post(API_ROUTES.CATALOGO.LIST, data),
     onSuccess: () => { toast.success('Ítem creado en el catálogo'); invalidate(); },
-    onError:   (e) => toast.error(e?.response?.data?.messages?.error || e.message || 'Error al crear'),
+    onError:   (e) => toast.error(e?.response?.data?.messages?.error || e?.response?.data?.msg || e.message || 'Error al crear'),
   });
 
   const actualizar = useMutation({
     mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.CATALOGO.DETAIL(id), data),
     onSuccess: () => { toast.success('Ítem actualizado'); invalidate(); },
-    onError:   (e) => toast.error(e?.response?.data?.messages?.error || e.message || 'Error al actualizar'),
+    onError:   (e) => toast.error(e?.response?.data?.messages?.error || e?.response?.data?.msg || e.message || 'Error al actualizar'),
   });
 
   const eliminar = useMutation({
     mutationFn: (id) => apiClient.delete(API_ROUTES.CATALOGO.DETAIL(id)),
     onSuccess: () => { toast.success('Ítem eliminado'); invalidate(); },
-    onError:   (e) => toast.error(e?.response?.data?.messages?.error || e.message || 'Error al eliminar'),
+    onError:   (e) => toast.error(e?.response?.data?.messages?.error || e?.response?.data?.msg || e.message || 'Error al eliminar'),
   });
 
   return {

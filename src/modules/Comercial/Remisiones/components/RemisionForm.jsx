@@ -46,7 +46,7 @@ const SearchSelect = ({ placeholder, value, onChange, options = [], loading = fa
         type="button"
         onClick={() => { setOpen((p) => !p); setSearch(''); }}
         disabled={loading && !value}
-        className="w-full flex items-center justify-between text-sm border border-border-base rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 text-left disabled:opacity-60 disabled:cursor-wait"
+        className="w-full flex items-center justify-between text-sm border border-border-base rounded-lg px-3 py-2 bg-surface-base focus:outline-none focus:ring-2 focus:ring-brand-primary/30 text-left disabled:opacity-60 disabled:cursor-wait"
       >
         <span className={value ? 'text-content-primary' : 'text-content-muted'}>
           {value
@@ -61,7 +61,7 @@ const SearchSelect = ({ placeholder, value, onChange, options = [], loading = fa
       </button>
 
       {open && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-border-base rounded-xl shadow-xl overflow-hidden">
+        <div className="absolute z-50 w-full mt-1 bg-surface-base border border-border-base rounded-xl shadow-xl overflow-hidden">
           <div className="p-2 border-b border-border-subtle">
             <div className="relative">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-content-muted" />
@@ -259,8 +259,8 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]" onClick={requestClose} />
-      <div className="fixed top-0 right-0 h-full w-full max-w-3xl bg-white shadow-2xl z-50 flex flex-col border-l border-border-base">
+      <div className="fixed inset-0 bg-surface-overlay z-40 backdrop-blur-[1px]" onClick={requestClose} />
+      <div className="fixed top-0 right-0 h-full w-full max-w-3xl bg-surface-base shadow-2xl z-50 flex flex-col border-l border-border-base">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-surface-subtle shrink-0">
@@ -556,8 +556,8 @@ const RemisionFormContent = ({ editData, closeDrawer }) => {
                   </tbody>
                   <tfoot>
                     <tr className="bg-content-primary">
-                      <td colSpan={3} className="px-3 py-2.5 text-xs font-bold text-white text-right">Total</td>
-                      <td className="px-3 py-2.5 text-right text-sm font-bold text-white  whitespace-nowrap">{fmt(total)}</td>
+                      <td colSpan={3} className="px-3 py-2.5 text-xs font-bold text-content-inverse text-right">Total</td>
+                      <td className="px-3 py-2.5 text-right text-sm font-bold text-content-inverse  whitespace-nowrap">{fmt(total)}</td>
                       <td />
                     </tr>
                   </tfoot>

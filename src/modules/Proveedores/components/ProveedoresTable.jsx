@@ -119,7 +119,7 @@ const ProveedoresTable = ({
   const colCount = 6;
 
   return (
-    <div className="bg-white border border-border-base rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-surface-base border border-border-base rounded-2xl shadow-sm overflow-hidden">
 
       {/* ── Toolbar ── */}
       <div className="flex flex-wrap items-center gap-3 border-b border-border-subtle px-4 py-3 bg-surface-subtle">
@@ -130,7 +130,7 @@ const ProveedoresTable = ({
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Buscar proveedor..."
-            className="w-full pl-8 pr-8 py-1.5 text-xs bg-white border border-border-base rounded-lg focus:ring-1 focus:ring-border-focus/15 focus:border-border-focus outline-none transition-all duration-150 placeholder:text-content-muted disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-full pl-8 pr-8 py-1.5 text-xs bg-surface-base border border-border-base rounded-lg focus:ring-1 focus:ring-border-focus/15 focus:border-border-focus outline-none transition-all duration-150 placeholder:text-content-muted disabled:opacity-30 disabled:cursor-not-allowed"
             disabled={isComparison}
           />
           {search && (
@@ -168,7 +168,7 @@ const ProveedoresTable = ({
           )}
 
           {showDropdown && !productoFilter && (
-            <div className="absolute top-full mt-1.5 right-0 z-30 w-72 bg-white border border-border-base rounded-xl shadow-lg overflow-hidden">
+            <div className="absolute top-full mt-1.5 right-0 z-30 w-72 bg-surface-base border border-border-base rounded-xl shadow-lg overflow-hidden">
               <div className="p-2.5 border-b border-border-subtle">
                 <div className="relative">
                   <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-content-muted" />

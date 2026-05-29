@@ -72,7 +72,7 @@ const ItemRow = ({ item, index, onAjustar }) => {
         onClick={() => hasBodegas && setOpen((o) => !o)}
         className={`
           border-b border-border-subtle text-sm transition-colors
-          ${open ? 'bg-surface-muted' : index % 2 === 0 ? 'bg-white' : 'bg-surface-subtle'}
+          ${open ? 'bg-surface-muted' : index % 2 === 0 ? 'bg-surface-base' : 'bg-surface-subtle'}
           ${hasBodegas ? 'cursor-pointer hover:bg-surface-muted' : 'hover:bg-surface-subtle'}
         `}
       >
@@ -179,7 +179,7 @@ const ItemRow = ({ item, index, onAjustar }) => {
               {item.stock_por_bodega.map((b) => (
                 <div
                   key={b.bodega_id}
-                  className="group relative bg-white border border-brand-primary/15 rounded-xl px-4 py-3 min-w-40 shadow-sm"
+                  className="group relative bg-surface-base border border-brand-primary/15 rounded-xl px-4 py-3 min-w-40 shadow-sm"
                 >
                   <p className="font-semibold text-content-primary text-sm pr-7">{b.bodega}</p>
                   {b.instalacion && (
@@ -481,7 +481,7 @@ const InventarioGlobalPage = ({ embedded = false }) => {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-2xl border border-border-subtle shadow-sm">
+      <div className="bg-surface-base rounded-2xl border border-border-subtle shadow-sm">
 
         {/* Tabs tipo */}
         <div className="px-4 pt-2">

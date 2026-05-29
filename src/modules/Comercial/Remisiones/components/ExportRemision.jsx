@@ -593,7 +593,7 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
           <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 bg-content-primary rounded-xl flex items-center justify-center">
-                <Truck size={16} className="text-white" />
+                <Truck size={16} className="text-content-inverse" />
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-content-primary">Vista previa — {remision.numero}</h2>
@@ -663,7 +663,7 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 shrink-0
                 ${done
                   ? 'bg-semantic-success text-white'
-                  : 'bg-content-primary text-white hover:bg-content-secondary disabled:opacity-50 disabled:pointer-events-none'
+                  : 'bg-brand-primary text-content-on-brand hover:bg-brand-primary-hover disabled:opacity-50 disabled:pointer-events-none'
                 }`}
             >
               {done

@@ -28,7 +28,7 @@ const CapaRow = ({ capa, modo, cantidadAsignada, onCantidadChange, disabled }) =
     <div className={`rounded-xl border px-3 py-2.5 transition-all ${
       cantidadAsignada > 0
         ? 'border-semantic-info/30 bg-semantic-info-subtle/50'
-        : 'border-border-subtle bg-white hover:border-border-base'
+        : 'border-border-subtle bg-surface-base hover:border-border-base'
     }`}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -126,6 +126,9 @@ const CapasStockPanel = ({
   onCostoChange,
 }) => {
   const [expanded, setExpanded] = useState(false);
+  // Pin "now" al momento del mount para que el cálculo de "días desde recepción"
+  // sea puro durante el render (no se re-evalúa por render).
+  const [nowMs] = useState(() => Date.now());
 
   const { capas, stockTotal, costoPromedio, isLoading } = useCapasStock(itemGeneralId, bodegaSeleccionada);
   const { bodegas } = useBodegasConCapas();
@@ -331,7 +334,7 @@ const CapasStockPanel = ({
                       <select
                         value={proveedorId ?? ''}
                         onChange={e => onProveedorChange(itemGeneralId, e.target.value ? parseInt(e.target.value) : null)}
-                        className={`text-[10px] border rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-brand-primary/30 w-full ${
+                        className={`text-[10px] border rounded-lg px-2 py-1.5 bg-surface-base focus:outline-none focus:ring-1 focus:ring-brand-primary/30 w-full ${
                           proveedorId ? 'border-semantic-info/30 text-semantic-info-fg bg-semantic-info-subtle' : 'border-border-base'
                         }`}
                       >
@@ -348,7 +351,7 @@ const CapasStockPanel = ({
                       const pInfo = proveedoresDisponibles.find(p => String(p.id) === String(proveedorId));
                       if (!pInfo) return null;
                       const diasDesde = pInfo.ultima_fecha
-                        ? Math.round((Date.now() - new Date(pInfo.ultima_fecha).getTime()) / 86400000)
+                        ? Math.round((nowMs - new Date(pInfo.ultima_fecha).getTime()) / 86400000)
                         : null;
                       return (
                         <div className="flex items-center gap-2 text-[9px] text-content-tertiary bg-semantic-info-subtle border border-semantic-info/15 rounded-lg px-2 py-1">
@@ -376,7 +379,7 @@ const CapasStockPanel = ({
                   <select
                     value={bodegaSeleccionada ?? ''}
                     onChange={e => onBodegaChange(itemGeneralId, e.target.value ? parseInt(e.target.value) : null)}
-                    className="text-[10px] border border-border-base rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-brand-primary/30"
+                    className="text-[10px] border border-border-base rounded-lg px-2 py-1.5 bg-surface-base focus:outline-none focus:ring-1 focus:ring-brand-primary/30"
                   >
                     <option value="">Todas las bodegas</option>
                     {bodegas.map(b => (

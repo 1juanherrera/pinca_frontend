@@ -67,7 +67,7 @@ export const ProductSelect = ({
 
   return (
     // ESTILOS EXTERIORES ORIGINALES (px-4 py-3)
-    <div className="bg-white border border-border-base/60 rounded-xl px-4 py-3 shadow-sm transition-all hover:border-border-strong w-full">
+    <div className="bg-surface-base border border-border-base/60 rounded-xl px-4 py-3 shadow-sm transition-all hover:border-border-strong w-full">
       
       {/* Cabecera Compacta Original */}
       <div className="flex items-center justify-between mb-2.5">
@@ -102,7 +102,7 @@ export const ProductSelect = ({
               type="button"
               onClick={() => (isOpen ? setIsOpen(false) : handleOpen())}
               className={`w-full pl-9 pr-8 py-1.5 text-left bg-surface-subtle border rounded-lg text-xs font-medium transition-all appearance-none truncate
-                ${isOpen ? 'border-semantic-info bg-white ring-2 ring-semantic-info/10' : 'border-border-base text-content-tertiary'}
+                ${isOpen ? 'border-semantic-info bg-surface-base ring-2 ring-semantic-info/10' : 'border-border-base text-content-tertiary'}
               `}
           >
               {currentProduct ? `${currentProduct.codigo_item_general} — ${currentProduct.nombre}` : 'Buscar producto o insumo...'}
@@ -116,7 +116,7 @@ export const ProductSelect = ({
       {/* Info Box Compacto Original */}
       {selectedProduct && currentProduct && !isOpen && (
           <div className="mt-2.5 flex items-center gap-2.5 p-2 bg-surface-subtle/80 border border-border-base/80 rounded-lg animate-in fade-in slide-in-from-top-1">
-              <div className="w-6 h-6 rounded-md bg-white border border-border-base flex items-center justify-center text-semantic-info-fg shadow-sm shrink-0">
+              <div className="w-6 h-6 rounded-md bg-surface-base border border-border-base flex items-center justify-center text-semantic-info-fg shadow-sm shrink-0">
                   <Package size={13} />
               </div>
               <div>
@@ -133,7 +133,7 @@ export const ProductSelect = ({
         <div 
           ref={dropdownRef}
           style={dropdownStyles}
-          className="bg-white border border-border-base rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-100 flex flex-col"
+          className="bg-surface-base border border-border-base rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-100 flex flex-col"
         >
           {/* Input de búsqueda interno */}
           <div className="p-2 border-b border-border-subtle bg-surface-subtle">

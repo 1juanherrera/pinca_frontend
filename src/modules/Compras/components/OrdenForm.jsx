@@ -158,7 +158,7 @@ const OrdenForm = () => {
           <button
             onClick={handleClose}
             type="button"
-            className="px-5 py-2.5 text-sm font-semibold text-content-secondary bg-white border border-border-base/80 rounded-xl hover:bg-surface-subtle transition-all"
+            className="px-5 py-2.5 text-sm font-semibold text-content-secondary bg-surface-base border border-border-base/80 rounded-xl hover:bg-surface-subtle transition-all"
           >
             Cancelar
           </button>
@@ -263,7 +263,7 @@ const OrdenForm = () => {
               <button
                 type="button"
                 onClick={() => setShowSearch((v) => !v)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all"
               >
                 <Plus size={11} /> Agregar producto
               </button>
@@ -283,7 +283,7 @@ const OrdenForm = () => {
                 className="w-full pl-8 pr-3 py-2 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition placeholder:text-content-muted"
               />
               {itemsFiltrados.length > 0 && (
-                <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-white border border-border-subtle rounded-lg shadow-xl overflow-hidden max-h-48 overflow-y-auto">
+                <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-surface-base border border-border-subtle rounded-lg shadow-xl overflow-hidden max-h-48 overflow-y-auto">
                   {itemsFiltrados.map((item) => (
                     <button
                       key={item.id_item_proveedor}
@@ -326,7 +326,7 @@ const OrdenForm = () => {
                     onClick={() => setConIva(v => !v)}
                     className={`relative w-8 h-4 rounded-full transition-colors duration-200 focus:outline-none ${conIva ? 'bg-content-primary' : 'bg-surface-strong'}`}
                   >
-                    <span className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform duration-200 ${conIva ? 'translate-x-4' : 'translate-x-0'}`} />
+                    <span className={`absolute top-0.5 left-0.5 w-3 h-3 bg-surface-base rounded-full shadow transition-transform duration-200 ${conIva ? 'translate-x-4' : 'translate-x-0'}`} />
                   </button>
                 </label>
               </div>

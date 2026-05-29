@@ -287,7 +287,7 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
                 )}
               >
                 <span className={cn(
-                  'inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform',
+                  'inline-block h-3.5 w-3.5 transform rounded-full bg-surface-base shadow transition-transform',
                   ivaActivo ? 'translate-x-4' : 'translate-x-1',
                 )} />
               </button>

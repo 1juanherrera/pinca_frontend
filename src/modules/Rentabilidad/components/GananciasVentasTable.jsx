@@ -97,7 +97,7 @@ const GananciasVentasTable = ({ ventas, isLoading }) => {
 
       {/* Fila de totales */}
       {!isLoading && ventas.length > 0 && (
-        <div className="bg-content-primary text-white rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
+        <div className="bg-content-primary text-content-inverse rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
           <span className="text-content-muted">{ventas.length} venta(s)</span>
           <div className="flex items-center gap-8">
             <div className="text-right">

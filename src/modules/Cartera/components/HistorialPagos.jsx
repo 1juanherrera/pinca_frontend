@@ -27,7 +27,7 @@ const PagoRow = ({ pago }) => {
   const isAbono = pago.tipo === 'abono';
   return (
     <div className="flex items-start gap-3 p-3 bg-surface-subtle rounded-lg border border-border-subtle">
-      <div className="shrink-0 w-9 h-9 rounded-xl bg-white border border-border-base flex items-center justify-center shadow-sm">
+      <div className="shrink-0 w-9 h-9 rounded-xl bg-surface-base border border-border-base flex items-center justify-center shadow-sm">
         {(() => { const Icon = ICONO_METODO[pago.metodo_pago] ?? Banknote; return <Icon className="w-4 h-4 text-content-tertiary" />; })()}
       </div>
       <div className="flex-1 min-w-0">

@@ -12,7 +12,7 @@ const KPICard = ({ icon: Icon, label, value, sub, theme = 'zinc' }) => {
   const t = THEME[theme] ?? THEME.zinc;
 
   return (
-    <div className="bg-white rounded-lg border border-border-base/60 shadow-sm px-3 py-2 transition-all hover:shadow-md group">
+    <div className="bg-surface-base rounded-lg border border-border-base/60 shadow-sm px-3 py-2 transition-all hover:shadow-md group">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs font-medium text-content-tertiary">{label}</p>

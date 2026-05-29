@@ -109,12 +109,26 @@ const queryFormulacion = useQuery({
       });
 
       useBoundStore.setState((state) => ({
-        drawerPayload: String(state.drawerPayload?.id_item_general) === String(variables.id) 
+        drawerPayload: String(state.drawerPayload?.id_item_general) === String(variables.id)
           ? { ...state.drawerPayload, ...variables.data, nombre_item_general: variables.data.nombre }
           : state.drawerPayload
       }));
 
       toast.success('Ítem editado correctamente');
+    },
+
+    onError: (err, variables, context) => {
+      // Revertir la actualización optimista al snapshot previo
+      if (context?.previousInventory) {
+        context.previousInventory.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
+
+    onSettled: () => {
+      // Re-sincronizar con el servidor pase lo que pase
+      queryClient.invalidateQueries({ queryKey: inventarioKeys.all });
     },
   });
 

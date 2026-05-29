@@ -60,7 +60,7 @@ const ClientesTable = ({
   const colCount = 7;
 
   return (
-    <div className="bg-white border border-border-base rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-surface-base border border-border-base rounded-2xl shadow-sm overflow-hidden">
 
       {/* ── Toolbar ── */}
       <div className="flex flex-wrap items-center gap-3 border-b border-border-subtle px-4 py-3 bg-surface-subtle">
@@ -71,7 +71,7 @@ const ClientesTable = ({
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Buscar cliente, NIT, encargado..."
-            className="w-full pl-8 pr-8 py-1.5 text-xs bg-white border border-border-base rounded-lg focus:ring-1 focus:ring-border-focus/15 focus:border-border-focus outline-none transition-all duration-150 placeholder:text-content-muted"
+            className="w-full pl-8 pr-8 py-1.5 text-xs bg-surface-base border border-border-base rounded-lg focus:ring-1 focus:ring-border-focus/15 focus:border-border-focus outline-none transition-all duration-150 placeholder:text-content-muted"
           />
           {search && (
             <button onClick={() => { setSearch(''); setPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-secondary transition-colors">

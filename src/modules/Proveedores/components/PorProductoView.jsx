@@ -36,7 +36,7 @@ const PorProductoView = ({ onHistorial }) => {
   return (
     <div className="flex flex-col gap-3">
       {/* Buscador */}
-      <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm relative">
+      <div className="bg-surface-base border border-border-subtle rounded-2xl px-5 py-4 shadow-sm relative">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
@@ -45,10 +45,10 @@ const PorProductoView = ({ onHistorial }) => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Busca un producto para comparar sus proveedores (ej: Resina)..."
-              className="w-full pl-8 pr-3 py-2.5 text-xs border border-border-base rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition placeholder:text-content-muted bg-white"
+              className="w-full pl-8 pr-3 py-2.5 text-xs border border-border-base rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition placeholder:text-content-muted bg-surface-base"
             />
             {filteredGrupos.length > 0 && (
-              <div className="absolute top-full mt-2 left-0 right-0 z-30 bg-white border border-border-subtle rounded-xl shadow-xl overflow-hidden max-h-64 overflow-y-auto">
+              <div className="absolute top-full mt-2 left-0 right-0 z-30 bg-surface-base border border-border-subtle rounded-xl shadow-xl overflow-hidden max-h-64 overflow-y-auto">
                 {filteredGrupos.map((grupo, i) => (
                   <button
                     key={i}
@@ -84,7 +84,7 @@ const PorProductoView = ({ onHistorial }) => {
 
       {/* Resultados */}
       {!selectedGrupo ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-center bg-white border border-border-subtle rounded-2xl shadow-sm">
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-center bg-surface-base border border-border-subtle rounded-2xl shadow-sm">
           <div className="w-14 h-14 rounded-2xl bg-surface-subtle flex items-center justify-center border border-border-subtle">
             <PackageOpen size={24} className="text-content-muted" />
           </div>
@@ -96,7 +96,7 @@ const PorProductoView = ({ onHistorial }) => {
           <div className="bg-content-primary rounded-2xl px-5 py-4 shadow-sm flex items-center justify-between">
             <div>
               <p className="text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1">Comparando producto</p>
-              <h2 className="text-base font-bold text-white">{selectedGrupo.nombre}</h2>
+              <h2 className="text-base font-bold text-content-inverse">{selectedGrupo.nombre}</h2>
               <p className="text-xs text-content-muted mt-0.5">{selectedGrupo.proveedores.length} opciones disponibles</p>
             </div>
             <div className="text-right">
@@ -109,7 +109,7 @@ const PorProductoView = ({ onHistorial }) => {
             {selectedGrupo.proveedores.map((prov) => {
               const esMejorPrecio = prov.precio_unitario === selectedGrupo.precio_min;
               return (
-                <div key={prov.id_item_proveedor} className={`relative flex flex-col bg-white border rounded-2xl overflow-hidden shadow-sm transition-all ${esMejorPrecio ? 'border-semantic-success/20 ring-2 ring-semantic-success/20' : 'border-border-base hover:border-border-strong'}`}>
+                <div key={prov.id_item_proveedor} className={`relative flex flex-col bg-surface-base border rounded-2xl overflow-hidden shadow-sm transition-all ${esMejorPrecio ? 'border-semantic-success/20 ring-2 ring-semantic-success/20' : 'border-border-base hover:border-border-strong'}`}>
                   <div className={`h-1.5 w-full ${esMejorPrecio ? 'bg-semantic-success' : 'bg-semantic-info'}`} />
                   
                   <div className="px-5 pt-4 pb-3">
@@ -120,7 +120,7 @@ const PorProductoView = ({ onHistorial }) => {
                       </div>
                       <button
                         onClick={() => onHistorial(prov)}
-                        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xl border border-border-base text-content-muted hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
+                        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xl border border-border-base text-content-muted hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all"
                         title="Ver historial de precios"
                       >
                         <History size={13} />

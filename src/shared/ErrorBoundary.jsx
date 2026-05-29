@@ -18,14 +18,14 @@ class ErrorBoundary extends Component {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-surface-subtle">
-          <div className="bg-white rounded-2xl shadow p-10 max-w-md text-center">
+          <div className="bg-surface-base rounded-2xl shadow p-10 max-w-md text-center">
             <h1 className="text-2xl font-bold text-content-primary mb-2">Algo salió mal</h1>
             <p className="text-content-tertiary mb-6">
               Ocurrió un error inesperado. Recarga la página o contacta al administrador.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-5 py-2 bg-content-primary text-white rounded-lg hover:bg-content-secondary transition"
+              className="px-5 py-2 bg-content-primary text-content-inverse rounded-lg hover:bg-content-secondary transition"
             >
               Recargar página
             </button>

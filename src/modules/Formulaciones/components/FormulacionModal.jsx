@@ -110,7 +110,7 @@ const IngredientCard = ({
             value={proveedorId ?? ''}
             onChange={e => onProveedorChange(field.id, e.target.value ? parseInt(e.target.value) : null)}
             tabIndex={tabBase + 1}
-            className="text-[10px] border border-border-base rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-brand-primary/30 max-w-[150px] shrink-0"
+            className="text-[10px] border border-border-base rounded-lg px-2 py-1 bg-surface-base focus:outline-none focus:ring-1 focus:ring-brand-primary/30 max-w-[150px] shrink-0"
           >
             <option value="">— Todo stock —</option>
             {proveedoresDisponibles.map(p => (
@@ -135,7 +135,7 @@ const IngredientCard = ({
       </div>
 
       {/* Cuerpo: 3 celdas */}
-      <div className="grid grid-cols-3 divide-x divide-border-subtle bg-white">
+      <div className="grid grid-cols-3 divide-x divide-border-subtle bg-surface-base">
         {/* Cantidad */}
         <div className="px-3 py-2.5 flex flex-col gap-1">
           <div className="flex items-center justify-between mb-0.5">
@@ -145,7 +145,7 @@ const IngredientCard = ({
               tabIndex={-1}
               onClick={() => setUnidad(u => u === 'kg' ? 'g' : 'kg')}
               title={unidad === 'kg' ? 'Cambiar a gramos' : 'Cambiar a kilogramos'}
-              className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-surface-muted text-content-tertiary hover:bg-content-primary hover:text-white transition-colors"
+              className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-surface-muted text-content-tertiary hover:bg-content-primary hover:text-content-inverse transition-colors"
             >
               {unidad}
             </button>
@@ -264,7 +264,10 @@ const IngredientCard = ({
 };
 
 // ─── Modal principal ──────────────────────────────────────────────────────────
-const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
+// Implementación interna. El wrapper `FormulacionModal` (al final del archivo)
+// la monta con `key={itemId ?? 'new'}` para forzar mount fresco por apertura y
+// evitar el patrón `useEffect(() => setX(initialFromProp), [prop])`.
+const FormulacionModalInner = ({ onClose, itemId = null }) => {
   const [searchTerm,        setSearchTerm]        = useState('');
   const [showNuevoProducto, setShowNuevoProducto] = useState(false);
   const [nuevoProductoData, setNuevoProductoData] = useState(EMPTY_PRODUCTO);
@@ -296,8 +299,11 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
   const { fields, append, remove } = useFieldArray({ control, name: 'materias_primas' });
   const watchedMPs = useWatch({ control, name: 'materias_primas' });
 
+  // Cuando llega la formulación async (modo edición), poblar el form una sola
+  // vez. El wrapper externo monta este componente con `key={itemId}` → cada
+  // apertura es un mount fresco, así que `costosData` y `proveedores` ya están
+  // limpios por sus initializers de useState y no hace falta resetearlos acá.
   useEffect(() => {
-    if (!isOpen) return;
     if (formulacion && itemId) {
       reset({
         item_general_id: String(formulacion.item.id),
@@ -311,12 +317,8 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
           fuente:           'inventario',
         })),
       });
-    } else {
-      reset({ item_general_id: itemId ? String(itemId) : '', nombre: '', descripcion: '', materias_primas: [] });
     }
-    setCostosData({});
-    setProveedores({});
-  }, [isOpen, formulacion, itemId, reset]);
+  }, [formulacion, itemId, reset]);
 
   const mpFiltradas = materiasDisponibles.filter(mp => {
     if (!searchTerm) return true;
@@ -446,8 +448,6 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
     onClose();
   };
 
-  if (!isOpen) return null;
-
   const isActioning    = isCreatingItem || isVinculando;
   const opcionesProductos = [
     { value: '', label: 'Seleccione un producto...' },
@@ -455,13 +455,13 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-content-primary/50 backdrop-blur-sm">
-      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-overlay backdrop-blur-sm">
+      <div className="w-full max-w-5xl bg-surface-base rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]">
 
         {/* ─── HEADER ───────────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-content-primary text-white rounded-xl flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 bg-content-primary text-content-inverse rounded-xl flex items-center justify-center shrink-0">
               <FlaskConical size={18} />
             </div>
             <div>
@@ -480,7 +480,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                 onClick={() => setModoGlobal('FIFO')}
                 className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all ${
                   modoGlobal === 'FIFO'
-                    ? 'bg-white text-content-primary shadow-sm'
+                    ? 'bg-surface-base text-content-primary shadow-sm'
                     : 'text-content-muted hover:text-content-secondary'
                 }`}
               >
@@ -491,7 +491,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                 onClick={() => setModoGlobal('MANUAL')}
                 className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all ${
                   modoGlobal === 'MANUAL'
-                    ? 'bg-white text-content-primary shadow-sm'
+                    ? 'bg-surface-base text-content-primary shadow-sm'
                     : 'text-content-muted hover:text-content-secondary'
                 }`}
               >
@@ -595,11 +595,11 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                       <input type="text" value={nuevoProductoData.nombre}
                         onChange={e => setNuevoProductoData(p => ({ ...p, nombre: e.target.value }))}
                         placeholder="Nombre *"
-                        className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-white placeholder:text-content-muted" />
+                        className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-surface-base placeholder:text-content-muted" />
                       <input type="text" value={nuevoProductoData.codigo}
                         onChange={e => setNuevoProductoData(p => ({ ...p, codigo: e.target.value }))}
                         placeholder="Código (opcional)"
-                        className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-white placeholder:text-content-muted" />
+                        className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-surface-base placeholder:text-content-muted" />
                     </div>
                     <div className="flex justify-end gap-2">
                       <button type="button"
@@ -609,7 +609,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                       </button>
                       <button type="button" onClick={handleCrearProducto}
                         disabled={isActioning || !nuevoProductoData.nombre.trim()}
-                        className="px-3 py-1.5 text-xs font-semibold bg-content-primary text-white rounded-lg hover:bg-content-secondary disabled:opacity-40 transition-colors">
+                        className="px-3 py-1.5 text-xs font-semibold bg-content-primary text-content-inverse rounded-lg hover:bg-content-secondary disabled:opacity-40 transition-colors">
                         {isActioning ? 'Creando...' : '+ Crear'}
                       </button>
                     </div>
@@ -664,7 +664,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                 />
 
                 {searchTerm && mpFiltradas.length > 0 && (
-                  <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-white border border-border-subtle rounded-xl shadow-xl overflow-hidden max-h-56 overflow-y-auto">
+                  <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-surface-base border border-border-subtle rounded-xl shadow-xl overflow-hidden max-h-56 overflow-y-auto">
                     {mpFiltradas.map((mp, i) => {
                       const esProveedor = mp.fuente === 'proveedor';
                       return (
@@ -704,7 +704,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                 )}
 
                 {searchTerm && mpFiltradas.length === 0 && (
-                  <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-white border border-border-subtle rounded-xl shadow-xl p-3 space-y-2">
+                  <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-surface-base border border-border-subtle rounded-xl shadow-xl p-3 space-y-2">
                     <p className="text-xs text-content-muted">No se encontraron resultados</p>
                     <button type="button"
                       onClick={() => { setNuevaMpData(d => ({ ...d, nombre: searchTerm })); setShowNuevaMp(true); setSearchTerm(''); }}
@@ -725,16 +725,16 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                     <input type="text" value={nuevaMpData.nombre}
                       onChange={e => setNuevaMpData(p => ({ ...p, nombre: e.target.value }))}
                       placeholder="Nombre *"
-                      className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-white placeholder:text-content-muted" />
+                      className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-surface-base placeholder:text-content-muted" />
                     <input type="text" value={nuevaMpData.codigo}
                       onChange={e => setNuevaMpData(p => ({ ...p, codigo: e.target.value }))}
                       placeholder="Código (opcional)"
-                      className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-white placeholder:text-content-muted" />
+                      className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-surface-base placeholder:text-content-muted" />
                   </div>
                   <input type="number" step="0.01" min="0" value={nuevaMpData.costo_unitario}
                     onChange={e => setNuevaMpData(p => ({ ...p, costo_unitario: e.target.value }))}
                     placeholder="Costo unitario (opcional)"
-                    className="w-full px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-white placeholder:text-content-muted" />
+                    className="w-full px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-surface-base placeholder:text-content-muted" />
                   <div className="flex justify-end gap-2">
                     <button type="button"
                       onClick={() => { setShowNuevaMp(false); setNuevaMpData(EMPTY_MP); }}
@@ -743,7 +743,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
                     </button>
                     <button type="button" onClick={handleCrearMateriaPrima}
                       disabled={isActioning || !nuevaMpData.nombre.trim()}
-                      className="px-3 py-1.5 text-xs font-semibold bg-content-primary text-white rounded-lg hover:bg-content-secondary disabled:opacity-40 transition-colors">
+                      className="px-3 py-1.5 text-xs font-semibold bg-content-primary text-content-inverse rounded-lg hover:bg-content-secondary disabled:opacity-40 transition-colors">
                       {isActioning ? 'Creando...' : '+ Crear y agregar'}
                     </button>
                   </div>
@@ -786,7 +786,7 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
           </div>
 
           {/* ─── STICKY FOOTER ────────────────────────────────────────────── */}
-          <div className="shrink-0 border-t border-border-subtle bg-white">
+          <div className="shrink-0 border-t border-border-subtle bg-surface-base">
             {fields.length > 0 && (
               <div className="grid grid-cols-3 divide-x divide-border-subtle border-b border-border-subtle">
                 <div className="px-5 py-3">
@@ -866,6 +866,18 @@ const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
       </div>
     </div>
   );
+};
+
+/**
+ * Wrapper público. Monta el inner solo cuando `isOpen=true`, con
+ * `key={itemId ?? 'new'}` para forzar mount fresco por apertura. Esto evita
+ * el patrón `useEffect(() => setX(initialFromProp), [isOpen])` que disparaba
+ * la regla `set-state-in-effect`: ahora cada apertura es una instancia nueva,
+ * y los `useState(...)` inicializan en valores limpios sin esfuerzo.
+ */
+const FormulacionModal = ({ isOpen, onClose, itemId = null }) => {
+  if (!isOpen) return null;
+  return <FormulacionModalInner key={itemId ?? 'new'} onClose={onClose} itemId={itemId} />;
 };
 
 export default FormulacionModal;

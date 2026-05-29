@@ -244,7 +244,7 @@ const ItemGeneralSearch = ({
 
           {/* Dropdown */}
           {abierto && resultados.length > 0 && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-border-base rounded-xl shadow-lg overflow-hidden">
+            <div className="absolute z-10 w-full mt-1 bg-surface-base border border-border-base rounded-xl shadow-lg overflow-hidden">
               <div className="max-h-52 overflow-y-auto divide-y divide-border-subtle">
                 {resultados.map((item) => {
                   const costo  = parseFloat(item.costo_unitario ?? 0);
@@ -290,7 +290,7 @@ const ItemGeneralSearch = ({
           )}
 
           {abierto && !cargando && query.length >= 2 && resultados.length === 0 && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-border-base rounded-xl shadow-lg px-3 py-3">
+            <div className="absolute z-10 w-full mt-1 bg-surface-base border border-border-base rounded-xl shadow-lg px-3 py-3">
               <p className="text-xs text-content-muted text-center">Sin coincidencias para "{query}"</p>
             </div>
           )}

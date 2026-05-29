@@ -153,7 +153,7 @@ const ProduccionPage = () => {
       <ProduccionKPIs data={allPreparaciones} />
 
       {/* ── Filtros ── */}
-      <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
+      <div className="bg-surface-base border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
         <ProduccionFilters
           filters={filters}
           onChange={setFilters}
@@ -162,7 +162,7 @@ const ProduccionPage = () => {
       </div>
 
       {/* ── Tabla ── */}
-      <div className="bg-white border border-border-subtle rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-surface-base border border-border-subtle rounded-2xl shadow-sm overflow-hidden">
         {filters.estado !== 'TODOS' && (
           <span className="text-[10px] block font-bold py-3 px-4 text-content-muted uppercase tracking-widest">
             Filtrado por: {filters.estado.replace('_', ' ')}

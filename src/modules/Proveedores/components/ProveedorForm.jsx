@@ -58,7 +58,7 @@ const ProveedorForm = () => {
           <button
             onClick={handleClose}
             type="button"
-            className="px-5 py-2.5 text-sm font-semibold text-content-secondary bg-white border border-border-base/80 rounded-xl hover:bg-surface-subtle transition-all"
+            className="px-5 py-2.5 text-sm font-semibold text-content-secondary bg-surface-base border border-border-base/80 rounded-xl hover:bg-surface-subtle transition-all"
           >
             Cancelar
           </button>

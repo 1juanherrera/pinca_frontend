@@ -37,6 +37,8 @@
   --content-muted: #A1A1AA;            /* placeholders, disabled */
   --content-inverse: #FAFAFA;          /* texto sobre fondos oscuros */
   --content-on-brand: #18181B;         /* texto sobre el amarillo */
+  --content-on-dark: #FAFAFA;          /* texto sobre superficies SIEMPRE oscuras (sidebar/topbar) — estable en ambos modos */
+  --content-on-dark-muted: #A1A1AA;    /* versión muted del anterior */
 
   /* ── Borders ────────────────────────────────────────────────────────────── */
   --border-subtle: #F4F4F5;            /* separadores internos finos */
@@ -104,6 +106,73 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   DARK MODE — Overrides para html.dark
+   Brand (amarillo Pinca) NO oscurece — solo surfaces, content, borders y subtles.
+   Activación: html.dark (Tailwind 4 native dark mode via class).
+   ───────────────────────────────────────────────────────────────────────────── */
+html.dark {
+  /* ── Surfaces (capas verticales — invertidas zinc) ────────────────────── */
+  --surface-base:            #18181B;             /* zinc-900 — cards principales */
+  --surface-subtle:          #09090B;             /* zinc-950 — fondo de página */
+  --surface-muted:           #27272A;             /* zinc-800 — inputs, hover suave */
+  --surface-strong:          #3F3F46;             /* zinc-700 — separadores fuertes */
+  --surface-elevated:        #27272A;             /* zinc-800 — cards sobre fondo subtle */
+  --surface-overlay:         rgba(0, 0, 0, 0.65);
+  --surface-overlay-strong:  rgba(0, 0, 0, 0.80);
+  --surface-sidebar:         #09090B;             /* mismo — ya es oscuro */
+  --surface-sidebar-hover:   #18181B;
+
+  /* ── Content (texto) ──────────────────────────────────────────────────── */
+  --content-primary:    #FAFAFA;                  /* zinc-50 — texto principal */
+  --content-secondary:  #D4D4D8;                  /* zinc-300 — cuerpo */
+  --content-tertiary:   #A1A1AA;                  /* zinc-400 — metadata */
+  --content-muted:      #71717A;                  /* zinc-500 — placeholders */
+  --content-inverse:    #18181B;                  /* zinc-900 — texto sobre brand */
+  --content-on-brand:   #18181B;                  /* sigue oscuro sobre amarillo */
+
+  /* ── Borders ──────────────────────────────────────────────────────────── */
+  --border-subtle:  #27272A;                       /* zinc-800 */
+  --border-base:    #3F3F46;                       /* zinc-700 */
+  --border-strong:  #52525B;                       /* zinc-600 */
+  --border-focus:   #FAFAFA;                       /* zinc-50 — foco visible */
+
+  /* ── Semantic — base intacta, subtles más oscuros, fg más claro ───────── */
+  --semantic-success-subtle:        rgba(16, 185, 129, 0.15);
+  --semantic-success-fg:            #6EE7B7;       /* emerald-300 */
+
+  --semantic-danger-subtle:         rgba(239, 68, 68, 0.15);
+  --semantic-danger-fg:             #FCA5A5;       /* red-300 */
+
+  --semantic-warning-subtle:        rgba(245, 158, 11, 0.18);
+  --semantic-warning-subtle-hover:  rgba(245, 158, 11, 0.28);
+  --semantic-warning-fg:            #FCD34D;       /* amber-300 */
+
+  --semantic-info-subtle:           rgba(59, 130, 246, 0.18);
+  --semantic-info-fg:                #93C5FD;      /* blue-300 */
+
+  /* ── Brand subtle más visible sobre fondo oscuro ──────────────────────── */
+  --brand-subtle: color-mix(in srgb, var(--brand-primary) 18%, transparent);
+
+  /* ── Sombras más agresivas para que se noten sobre dark ───────────────── */
+  --shadow-xs:    0 1px 2px 0 rgba(0, 0, 0, 0.35);
+  --shadow-sm:    0 1px 3px 0 rgba(0, 0, 0, 0.40), 0 1px 2px -1px rgba(0, 0, 0, 0.30);
+  --shadow-md:    0 4px 8px -2px rgba(0, 0, 0, 0.50), 0 2px 4px -2px rgba(0, 0, 0, 0.40);
+  --shadow-lg:    0 10px 20px -5px rgba(0, 0, 0, 0.55), 0 4px 6px -4px rgba(0, 0, 0, 0.40);
+  --shadow-xl:    0 20px 25px -5px rgba(0, 0, 0, 0.60), 0 8px 10px -6px rgba(0, 0, 0, 0.40);
+  --shadow-2xl:   0 25px 50px -12px rgba(0, 0, 0, 0.75);
+  --shadow-card:  0 2px 6px rgba(0, 0, 0, 0.40);
+  --shadow-lift:  0 8px 16px -4px rgba(0, 0, 0, 0.55);
+}
+
+/* Smooth transition al alternar tema (no animar transform/layout) */
+html.dark, html:not(.dark) {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    TAILWIND @theme — exponemos los tokens como utilidades
    ───────────────────────────────────────────────────────────────────────────── */
 @theme {
@@ -138,6 +207,8 @@
   --color-surface-elevated:       var(--surface-elevated);
   --color-surface-sidebar:        var(--surface-sidebar);
   --color-surface-sidebar-hover:  var(--surface-sidebar-hover);
+  --color-surface-overlay:        var(--surface-overlay);
+  --color-surface-overlay-strong: var(--surface-overlay-strong);
 
   /* Legacy surface aliases */
   --color-surface:        var(--surface-subtle);
@@ -151,6 +222,8 @@
   --color-content-muted:      var(--content-muted);
   --color-content-inverse:    var(--content-inverse);
   --color-content-on-brand:   var(--content-on-brand);
+  --color-content-on-dark:        var(--content-on-dark);
+  --color-content-on-dark-muted:  var(--content-on-dark-muted);
 
   /* Borders */
   --color-border-subtle:  var(--border-subtle);

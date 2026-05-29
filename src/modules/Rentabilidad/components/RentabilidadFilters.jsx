@@ -12,7 +12,7 @@ const PERIODOS = [
 ];
 
 const RentabilidadFilters = ({ periodo, desde, hasta, onPeriodo, onDesde, onHasta }) => (
-  <div className="bg-white border border-border-base/70 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3">
+  <div className="bg-surface-base border border-border-base/70 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3">
     <div className="flex items-center gap-1.5 text-xs font-semibold text-content-tertiary">
       <Calendar className="w-3.5 h-3.5" />
       Período:
@@ -26,7 +26,7 @@ const RentabilidadFilters = ({ periodo, desde, hasta, onPeriodo, onDesde, onHast
           onClick={() => onPeriodo(p.id)}
           className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
             periodo === p.id
-              ? 'bg-white text-content-primary shadow-sm'
+              ? 'bg-surface-base text-content-primary shadow-sm'
               : 'text-content-tertiary hover:text-content-secondary'
           }`}
         >
@@ -46,7 +46,7 @@ const RentabilidadFilters = ({ periodo, desde, hasta, onPeriodo, onDesde, onHast
         }}
       />
     ) : (
-      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold bg-white border border-border-base rounded-lg">
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold bg-surface-base border border-border-base rounded-lg">
         <Calendar size={12} className="text-content-tertiary" />
         <span className="px-2 py-0.5 rounded-md bg-surface-muted text-content-primary tabular-nums">
           {fmtFechaChip(desde) ?? '—'}

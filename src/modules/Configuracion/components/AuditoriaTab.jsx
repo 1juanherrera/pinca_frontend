@@ -29,7 +29,7 @@ const FilterBar = ({ filters, onChange, onClear, fields }) => (
           <select
             value={filters[f.key] ?? ''}
             onChange={(e) => onChange(f.key, e.target.value)}
-            className="w-full px-2.5 py-1.5 text-xs border border-border-base rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary/30 bg-white"
+            className="w-full px-2.5 py-1.5 text-xs border border-border-base rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary/30 bg-surface-base"
           >
             <option value="">Todos</option>
             {f.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -61,11 +61,11 @@ const Pager = ({ meta, onPage }) => {
       </p>
       <div className="flex items-center gap-1">
         <button onClick={() => onPage(meta.page - 1)} disabled={meta.page <= 1}
-          className="p-1.5 border border-border-base rounded-md bg-white hover:bg-surface-muted disabled:opacity-40 transition">
+          className="p-1.5 border border-border-base rounded-md bg-surface-base hover:bg-surface-muted disabled:opacity-40 transition">
           <ChevronLeft size={13} />
         </button>
         <button onClick={() => onPage(meta.page + 1)} disabled={meta.page >= meta.pages}
-          className="p-1.5 border border-border-base rounded-md bg-white hover:bg-surface-muted disabled:opacity-40 transition">
+          className="p-1.5 border border-border-base rounded-md bg-surface-base hover:bg-surface-muted disabled:opacity-40 transition">
           <ChevronRight size={13} />
         </button>
       </div>

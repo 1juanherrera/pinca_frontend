@@ -1,19 +1,22 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   CreditCard, Clock, CheckCircle2, Receipt,
-  DollarSign, AlertCircle, Phone, FileMinus, User,
+  DollarSign, AlertCircle, Phone, FileMinus, User, X, Ban,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import ERPTable from '../../../shared/ERPTable';
 import StatusBadge from '../../../shared/StatusBadge';
 import FlowCard from '../../../shared/FlowCard';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay from '../../../shared/AmountDisplay';
+import { Button } from '../../../shared/Button';
 import { fmt } from '../../../utils/formatters';
 import { calcularDiasMora, getEstadoEfectivo } from '../services/carteraService';
 import { useFactura } from '../../Comercial/Facturacion/api/useFactura';
 import useTableSort from '../../../hooks/useTableSorts';
 import TableShell from '../../../shared/TableShell';
 import useClientPagination from '../../../hooks/useClientPagination';
+import { useBoundStore } from '../../../store/useBoundStore';
 
 const STATUS_OPTIONS = [
   { value: 'Pendiente', label: 'Pendiente', dot: 'bg-semantic-warning' },
@@ -32,9 +35,26 @@ const SECTOR_OPTIONS = [
 ];
 
 const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, onEstadoCuenta }) => {
-  const { facturas, isLoadingFacturas } = useFactura();
+  const { facturas, isLoadingFacturas, cambiarEstadoAsync } = useFactura();
+  const openConfirm = useBoundStore((s) => s.openConfirm);
+
   const [search,  setSearch]  = useState('');
   const [filters, setFilters] = useState({ estado: '', sector: '' });
+
+  // ─── Selección múltiple (bulk actions) ──────────────────────────────────
+  const [selected, setSelected] = useState(() => new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  const toggleSelected = useCallback((id) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => setSelected(new Set()), []);
 
   const metrics = useMemo(() => {
     const list = Array.isArray(facturas) ? facturas : [];
@@ -69,7 +89,85 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
   const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
   const pagination = useClientPagination(sorted, 20);
 
+  // Estado del header checkbox: select-all SOBRE las filas visibles (page actual).
+  const visibleIds = useMemo(
+    () => pagination.paginated.map((r) => r.id_facturas).filter(Boolean),
+    [pagination.paginated],
+  );
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));
+  const someVisibleSelected = visibleIds.some((id) => selected.has(id));
+
+  const toggleSelectAllVisible = useCallback(() => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        visibleIds.forEach((id) => next.delete(id));
+      } else {
+        visibleIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  }, [allVisibleSelected, visibleIds]);
+
+  // ─── Bulk action: cambiar estado a Anulada ──────────────────────────────
+  const runBulkAnular = useCallback(async () => {
+    const ids = Array.from(selected);
+    if (ids.length === 0) return;
+    setBulkLoading(true);
+    const results = await Promise.allSettled(
+      ids.map((id) => cambiarEstadoAsync({ id, estado: 'Anulada' })),
+    );
+    const ok = results.filter((r) => r.status === 'fulfilled').length;
+    const fail = results.length - ok;
+    setBulkLoading(false);
+    clearSelection();
+    if (fail === 0) {
+      toast.success(`${ok} factura(s) anulada(s)`);
+    } else if (ok === 0) {
+      toast.error(`No se pudo anular ninguna (${fail} con error)`);
+    } else {
+      toast.success(`${ok} actualizadas, ${fail} con error`);
+    }
+  }, [selected, cambiarEstadoAsync, clearSelection]);
+
+  const handleBulkAnularClick = useCallback(() => {
+    if (selected.size === 0) return;
+    openConfirm({
+      title: 'Anular facturas seleccionadas',
+      message: `¿Marcar como Anuladas ${selected.size} factura(s)? Esta acción no se puede deshacer fácilmente.`,
+      variant: 'danger',
+      onConfirm: runBulkAnular,
+    });
+  }, [selected.size, openConfirm, runBulkAnular]);
+
   const columns = useMemo(() => [
+    {
+      key:       '__select',
+      label: (
+        <input
+          type="checkbox"
+          checked={allVisibleSelected}
+          ref={(el) => {
+            if (el) el.indeterminate = !allVisibleSelected && someVisibleSelected;
+          }}
+          onChange={toggleSelectAllVisible}
+          aria-label="Seleccionar todas las visibles"
+          className="cursor-pointer accent-content-primary"
+        />
+      ),
+      className: 'w-10',
+      sortable: false,
+      render: (_, row) => (
+        <input
+          type="checkbox"
+          checked={selected.has(row.id_facturas)}
+          onClick={(e) => e.stopPropagation()}
+          onChange={() => toggleSelected(row.id_facturas)}
+          aria-label={`Seleccionar factura ${row.numero}`}
+          className="cursor-pointer accent-content-primary"
+        />
+      ),
+    },
     {
       key:       'numero',
       label:     'Número',
@@ -200,7 +298,11 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
         );
       },
     },
-  ], [onRegistrarPago, onGestiones, onNotas, onEstadoCuenta]);
+  ], [
+    onRegistrarPago, onGestiones, onNotas, onEstadoCuenta,
+    selected, allVisibleSelected, someVisibleSelected,
+    toggleSelected, toggleSelectAllVisible,
+  ]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -216,6 +318,40 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
           sub={`${metrics.vencida} vencida(s)`}
         />
       </div>
+
+      {/* ── Barra flotante de bulk actions ───────────────────────────────── */}
+      {selected.size > 0 && (
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-content-primary text-content-inverse rounded-xl shadow-lift">
+          <div className="flex items-center gap-3 text-xs">
+            <span className="inline-flex items-center justify-center min-w-8 h-6 px-2 rounded-pill bg-brand-primary text-brand-on-primary font-bold tabular-nums">
+              {selected.size}
+            </span>
+            <span className="font-medium">
+              {selected.size === 1 ? 'factura seleccionada' : 'facturas seleccionadas'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="danger"
+              icon={Ban}
+              loading={bulkLoading}
+              onClick={handleBulkAnularClick}
+            >
+              Cambiar estado a Anulada
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={X}
+              onClick={clearSelection}
+              className="!text-content-inverse hover:!bg-white/10"
+            >
+              Limpiar selección
+            </Button>
+          </div>
+        </div>
+      )}
 
       <TableShell
         header={
@@ -239,7 +375,7 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                     filters.sector === value
                       ? 'bg-content-primary text-content-inverse border-content-primary'
-                      : 'bg-white text-content-tertiary border-border-base hover:border-border-strong'
+                      : 'bg-surface-base text-content-tertiary border-border-base hover:border-border-strong'
                   }`}
                 >
                   {label}
@@ -270,3 +406,22 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
 };
 
 export default FacturasTable;
+
+// PATRÓN: Bulk actions con selección + barra flotante.
+// Replicar en CotizacionesTab y OrdenesTab cuando se decida.
+// Backend: cada acción se ejecuta como N requests paralelos (Promise.all).
+// Para cambios de estado masivos en el futuro, considerar un endpoint
+// bulk dedicado (ej: POST /facturas/bulk/cambiar-estado).
+//
+// Implementación clave:
+//   - `selected` es Set<facturaId> en estado local del componente.
+//   - Columna inicial con checkbox por fila + header checkbox que selecciona
+//     todas las filas VISIBLES (página actual).
+//   - Barra flotante aparece sobre TableShell cuando selected.size > 0 con
+//     contador, acción primaria + "Limpiar selección".
+//   - Antes de ejecutar la acción destructiva: `openConfirm` de la store
+//     Zustand (variant='danger').
+//   - Promise.allSettled para no abortar si una falla; toast con resultado
+//     agregado.
+//   - Tras ejecutar: clearSelection() + invalidación implícita via la mutation
+//     onSuccess (en useFactura ya invalida facturaKeys.lists()).

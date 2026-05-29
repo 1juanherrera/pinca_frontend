@@ -28,7 +28,7 @@ const ViewToggle = ({ value, onChange }) => (
       onClick={() => onChange('tabla')}
       className={`p-1.5 rounded-md transition-all duration-150 ${
         value === 'tabla'
-          ? 'bg-white text-content-primary shadow-sm'
+          ? 'bg-surface-base text-content-primary shadow-sm'
           : 'text-content-muted hover:text-content-secondary'
       }`}
       title="Vista de tabla"
@@ -39,7 +39,7 @@ const ViewToggle = ({ value, onChange }) => (
       onClick={() => onChange('cards')}
       className={`p-1.5 rounded-md transition-all duration-150 ${
         value === 'cards'
-          ? 'bg-white text-content-primary shadow-sm'
+          ? 'bg-surface-base text-content-primary shadow-sm'
           : 'text-content-muted hover:text-content-secondary'
       }`}
       title="Vista de tarjetas"
@@ -141,7 +141,7 @@ const ProveedoresPage = () => {
               value={cardSearch}
               onChange={(e) => setCardSearch(e.target.value)}
               placeholder="Buscar proveedor..."
-              className="w-full pl-9 pr-9 py-2 text-xs bg-white border border-border-base/60 rounded-xl focus:ring-1 focus:ring-brand-primary/30 focus:border-brand-primary outline-none transition-all duration-150 placeholder:text-content-muted"
+              className="w-full pl-9 pr-9 py-2 text-xs bg-surface-base border border-border-base/60 rounded-xl focus:ring-1 focus:ring-brand-primary/30 focus:border-brand-primary outline-none transition-all duration-150 placeholder:text-content-muted"
             />
             {cardSearch && (
               <button onClick={() => setCardSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-secondary transition-colors">

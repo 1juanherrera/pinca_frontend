@@ -134,7 +134,7 @@ const columns = useMemo(() => [
         <div className="flex items-center justify-end gap-1.5">
           <button
             onClick={(e) => { e.stopPropagation(); openDrawer('EXPORT_MODAL_COTIZACIONES', row); }}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all active:scale-95"
             title="Exportar PDF"
           >
             <Download size={12} />
@@ -142,7 +142,7 @@ const columns = useMemo(() => [
 
           <button
             onClick={(e) => { e.stopPropagation(); exportCotizacionesExcel(row); }}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all active:scale-95"
             title="Exportar Excel"
           >
             <FileSpreadsheet size={12} />
@@ -158,7 +158,7 @@ const columns = useMemo(() => [
                   onConfirm: async () => convertir(row.id_cotizaciones),
                 });
               }}
-              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
+              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all active:scale-95"
               title="Convertir a factura"
             >
               <ArrowRight size={12} />
@@ -167,7 +167,7 @@ const columns = useMemo(() => [
 
           <button
             onClick={(e) => { e.stopPropagation(); setSelected(row); }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all"
             title="Ver detalle"
           >
             <Eye size={12} /> Ver

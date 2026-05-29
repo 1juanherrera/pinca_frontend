@@ -120,7 +120,7 @@ const Card = ({
         </div>
 
         {linkTo && (
-          <div className="px-4 py-2 border-t border-border-subtle bg-surface-subtle group-hover:bg-brand-subtle/40 transition-colors">
+          <div className="px-4 py-2 border-t border-border-subtle bg-surface-subtle group-hover:bg-surface-muted transition-colors">
             <NavLink
               to={linkTo}
               className="w-full flex items-center justify-center gap-1.5 text-[10px] font-semibold text-content-tertiary group-hover:text-content-primary uppercase tracking-wide"

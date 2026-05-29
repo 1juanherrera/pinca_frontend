@@ -26,7 +26,7 @@ const ActionsMenu = ({ onEdit, onDelete }) => {
     <div className="relative">
       <button
         onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
-        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+        className="w-8 h-8 flex items-center justify-center rounded-lg text-content-tertiary hover:text-content-secondary hover:bg-surface-muted transition-colors"
       >
         <MoreVertical size={16} />
       </button>
@@ -34,14 +34,14 @@ const ActionsMenu = ({ onEdit, onDelete }) => {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-9 z-20 w-44 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden py-1">
+          <div className="absolute right-0 top-9 z-20 w-44 bg-surface-base border border-border-base rounded-xl shadow-xl overflow-hidden py-1">
             <button
               onClick={() => { setOpen(false); onEdit?.(); }}
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-content-secondary hover:bg-surface-subtle transition-colors"
             >
-              <Pencil size={14} className="text-slate-400" /> Editar
+              <Pencil size={14} className="text-content-tertiary" /> Editar
             </button>
-            <div className="my-1 border-t border-slate-100" />
+            <div className="my-1 border-t border-border-subtle" />
             <button
               onClick={() => { setOpen(false); onDelete?.(); }}
               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-semantic-danger-fg hover:bg-semantic-danger-subtle transition-colors"
@@ -61,7 +61,7 @@ const ProveedorCard = ({ proveedor, totalProductos = null, onEdit, onDelete }) =
   const displayName = proveedor.nombre_empresa || proveedor.nombre_encargado;
 
   return (
-    <div className="group relative bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+    <div className="group relative bg-surface-base border border-border-base rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
 
       {/* Franja de color */}
       <div className={`h-1.5 w-full ${palette.bg}`} />
@@ -76,11 +76,11 @@ const ProveedorCard = ({ proveedor, totalProductos = null, onEdit, onDelete }) =
             </div>
 
             <div className="min-w-0">
-              <h3 className="text-sm font-bold text-slate-900 leading-tight truncate">
+              <h3 className="text-sm font-bold text-content-primary leading-tight truncate">
                 {displayName}
               </h3>
               {proveedor.nombre_empresa && (
-                <p className="text-xs text-slate-500 mt-0.5 truncate">{proveedor.nombre_encargado}</p>
+                <p className="text-xs text-content-tertiary mt-0.5 truncate">{proveedor.nombre_encargado}</p>
               )}
             </div>
           </div>
@@ -95,14 +95,14 @@ const ProveedorCard = ({ proveedor, totalProductos = null, onEdit, onDelete }) =
       </div>
 
       {/* Separador */}
-      <div className="mx-5 border-t border-slate-100" />
+      <div className="mx-5 border-t border-border-subtle" />
 
       {/* Contacto */}
       <div className="px-5 py-3 space-y-2">
         {proveedor.numero_documento && (
           <div className="flex items-center gap-2.5">
-            <FileText size={13} className="text-slate-300 shrink-0" />
-            <span className="text-xs  text-slate-600 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md">
+            <FileText size={13} className="text-content-muted shrink-0" />
+            <span className="text-xs  text-content-secondary bg-surface-subtle border border-border-base px-2 py-0.5 rounded-md">
               {proveedor.numero_documento}
             </span>
           </div>
@@ -110,10 +110,10 @@ const ProveedorCard = ({ proveedor, totalProductos = null, onEdit, onDelete }) =
 
         {proveedor.telefono && (
           <div className="flex items-center gap-2.5">
-            <Phone size={13} className="text-slate-300 shrink-0" />
+            <Phone size={13} className="text-content-muted shrink-0" />
             <a
               href={`tel:${proveedor.telefono}`}
-              className="text-xs text-slate-600 hover:text-semantic-info-fg transition-colors"
+              className="text-xs text-content-secondary hover:text-semantic-info-fg transition-colors"
               onClick={(e) => e.stopPropagation()}
             >
               {proveedor.telefono}
@@ -123,10 +123,10 @@ const ProveedorCard = ({ proveedor, totalProductos = null, onEdit, onDelete }) =
 
         {proveedor.email && (
           <div className="flex items-center gap-2.5 min-w-0">
-            <Mail size={13} className="text-slate-300 shrink-0" />
+            <Mail size={13} className="text-content-muted shrink-0" />
             <a
               href={`mailto:${proveedor.email}`}
-              className="text-xs text-slate-600 hover:text-semantic-info-fg transition-colors truncate"
+              className="text-xs text-content-secondary hover:text-semantic-info-fg transition-colors truncate"
               onClick={(e) => e.stopPropagation()}
             >
               {proveedor.email}
@@ -136,8 +136,8 @@ const ProveedorCard = ({ proveedor, totalProductos = null, onEdit, onDelete }) =
 
         {proveedor.direccion && (
           <div className="flex items-start gap-2.5">
-            <MapPin size={13} className="text-slate-300 shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+            <MapPin size={13} className="text-content-muted shrink-0 mt-0.5" />
+            <p className="text-xs text-content-tertiary leading-relaxed line-clamp-2">
               {proveedor.direccion}
             </p>
           </div>
@@ -147,12 +147,12 @@ const ProveedorCard = ({ proveedor, totalProductos = null, onEdit, onDelete }) =
       {/* Productos en catálogo */}
       {totalProductos !== null && (
         <>
-          <div className="mx-5 border-t border-slate-100" />
+          <div className="mx-5 border-t border-border-subtle" />
           <div className="px-5 py-3">
             <div className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 ${palette.light}`}>
               <Package size={15} className={palette.text} />
               <div>
-                <p className="text-xs text-slate-500 leading-none">Productos en catálogo</p>
+                <p className="text-xs text-content-tertiary leading-none">Productos en catálogo</p>
                 <p className={`text-sm font-bold mt-0.5 ${palette.text}`}>{totalProductos}</p>
               </div>
             </div>
@@ -161,9 +161,9 @@ const ProveedorCard = ({ proveedor, totalProductos = null, onEdit, onDelete }) =
       )}
 
       {/* Footer */}
-      <div className="mx-5 border-t border-slate-100" />
+      <div className="mx-5 border-t border-border-subtle" />
       <div className="px-5 py-3 flex items-center justify-end">
-        <span className="text-xs  text-slate-300">
+        <span className="text-xs  text-content-muted">
           #{String(proveedor.id_proveedor).padStart(4, '0')}
         </span>
       </div>

@@ -197,7 +197,7 @@ const RentabilidadPage = () => {
       />
 
       {/* ── Tabs ────────────────────────────────────────────────────────────── */}
-      <div className="bg-white border border-border-subtle rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-surface-base border border-border-subtle rounded-2xl shadow-sm overflow-hidden">
         <div className="px-4 pt-2">
           <PageTabs tabs={TABS} value={tab} onChange={setTab} size="lg" />
         </div>

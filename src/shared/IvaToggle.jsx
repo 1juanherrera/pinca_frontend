@@ -28,7 +28,7 @@ const Segment = ({ active, icon: Icon, label, onClick, title, s }) => (
       'inline-flex items-center gap-1.5 rounded-pill font-medium transition-all',
       s.btn,
       active
-        ? 'bg-content-primary text-white shadow-sm'
+        ? 'bg-content-primary text-content-inverse shadow-sm'
         : 'text-content-tertiary hover:text-content-secondary'
     )}
   >

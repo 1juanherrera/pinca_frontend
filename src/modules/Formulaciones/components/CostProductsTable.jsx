@@ -25,7 +25,7 @@ export const CostProductsTable = ({
 
     if (!selectedProductData) {
         return (
-            <div className="bg-white rounded-lg shadow-sm p-4 text-center border border-border-base/60">
+            <div className="bg-surface-base rounded-lg shadow-sm p-4 text-center border border-border-base/60">
                 <div className="text-content-muted mb-3">
                     <Calculator size={48} className="mx-auto" />
                 </div>
@@ -50,10 +50,10 @@ export const CostProductsTable = ({
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-border-base/60">
+        <div className="bg-surface-base rounded-lg shadow-sm overflow-hidden border border-border-base/60">
 
             {/* Header */}
-            <div className="bg-content-secondary text-white px-4 py-3">
+            <div className="bg-content-secondary text-content-inverse px-4 py-3">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className={`${compact ? 'text-base' : 'text-lg'} font-semibold flex items-center gap-2 tracking-tight`}>
@@ -81,7 +81,7 @@ export const CostProductsTable = ({
                                 type="button"
                                 onClick={() => openDrawer('COSTOS_FORM', productDetail)}
                                 title="Editar costos indirectos"
-                                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/25 text-white transition-colors"
+                                className="p-1.5 rounded-lg bg-content-inverse/10 hover:bg-content-inverse/25 text-content-inverse transition-colors"
                             >
                                 <Pencil size={14} />
                             </button>
@@ -116,7 +116,7 @@ export const CostProductsTable = ({
                             )}
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-border-subtle">
+                    <tbody className="bg-surface-base divide-y divide-border-subtle">
                         {isLoading
                             ? [...Array(5)].map((_, i) => (
                                 <tr key={i} className="animate-pulse">
@@ -204,15 +204,15 @@ export const CostProductsTable = ({
                                 </td>
                             )}
                         </tr>
-                        <tr className="bg-content-secondary font-semibold text-white">
+                        <tr className="bg-content-secondary font-semibold text-content-inverse">
                             <td className="px-3 py-3 whitespace-nowrap">
                                 <div className="flex items-center">
                                     <div className="shrink-0 mr-3">
-                                        <DollarSign className="text-white" size={16} />
+                                        <DollarSign className="text-content-inverse" size={16} />
                                     </div>
                                     <div className="text-xs font-bold uppercase">
                                         VENTA SUGERIDA
-                                        <span className="ml-1 bg-white text-content-primary px-1.5 py-0.5 rounded text-[9px]">
+                                        <span className="ml-1 bg-surface-base text-content-primary px-1.5 py-0.5 rounded text-[9px]">
                                             {productDetail?.costos?.porcentaje_utilidad ?? 50}%
                                         </span>
                                     </div>

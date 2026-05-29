@@ -106,7 +106,7 @@ const CostosIndirectosSection = ({ preparacionId, costos = [], onUpdated }) => {
                     <select
                       value={editForm.categoria}
                       onChange={e => setEditForm(p => ({ ...p, categoria: e.target.value }))}
-                      className="flex-1 text-xs border border-border-base rounded-lg px-2 py-1 focus:outline-none bg-white"
+                      className="flex-1 text-xs border border-border-base rounded-lg px-2 py-1 focus:outline-none bg-surface-base"
                     >
                       {CATS_CI.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
                     </select>
@@ -120,7 +120,7 @@ const CostosIndirectosSection = ({ preparacionId, costos = [], onUpdated }) => {
                       />
                     </div>
                     <button onClick={() => saveEdit(c.id)} disabled={updateMutation.isPending}
-                      className="px-2 py-1 bg-content-primary text-white rounded-lg text-xs hover:bg-content-secondary transition-colors">
+                      className="px-2 py-1 bg-content-primary text-content-inverse rounded-lg text-xs hover:bg-content-secondary transition-colors">
                       {updateMutation.isPending ? <Loader2 size={10} className="animate-spin" /> : <Check size={11} />}
                     </button>
                     <button onClick={() => setEditingId(null)}
@@ -159,7 +159,7 @@ const CostosIndirectosSection = ({ preparacionId, costos = [], onUpdated }) => {
 
       {/* Formulario de agregar */}
       {showAdd && (
-        <div className="border border-border-base rounded-xl p-3 bg-white flex flex-col gap-2">
+        <div className="border border-border-base rounded-xl p-3 bg-surface-base flex flex-col gap-2">
           <input
             value={form.nombre}
             onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))}
@@ -170,7 +170,7 @@ const CostosIndirectosSection = ({ preparacionId, costos = [], onUpdated }) => {
             <select
               value={form.categoria}
               onChange={e => setForm(p => ({ ...p, categoria: e.target.value }))}
-              className="text-xs border border-border-base rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-white"
+              className="text-xs border border-border-base rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-surface-base"
             >
               {CATS_CI.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
@@ -189,7 +189,7 @@ const CostosIndirectosSection = ({ preparacionId, costos = [], onUpdated }) => {
             <button
               onClick={handleAdd}
               disabled={addMutation.isPending || !form.nombre.trim() || !form.valor_aplicado}
-              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold bg-content-primary text-white rounded-lg hover:bg-content-secondary disabled:opacity-40 transition-colors"
+              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold bg-content-primary text-content-inverse rounded-lg hover:bg-content-secondary disabled:opacity-40 transition-colors"
             >
               {addMutation.isPending ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
               Agregar
@@ -394,14 +394,14 @@ export const ProduccionDetailModal = ({ preparacion, onClose, onUpdated, onVerTr
 
   return (
     <>
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-content-primary/60 backdrop-blur-sm">
-      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-overlay backdrop-blur-sm">
+      <div className="w-full max-w-5xl bg-surface-base rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-content-primary flex items-center justify-center shadow-md shadow-content-primary/20">
-              <ClipboardList size={17} className="text-white" />
+              <ClipboardList size={17} className="text-content-inverse" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -583,7 +583,7 @@ export const ProduccionDetailModal = ({ preparacion, onClose, onUpdated, onVerTr
               </div>
             )}
             {confirming && (
-              <div className="flex flex-col gap-3 bg-white border border-border-base rounded-xl px-4 py-3">
+              <div className="flex flex-col gap-3 bg-surface-base border border-border-base rounded-xl px-4 py-3">
                 <p className="text-xs text-content-secondary font-medium">
                   {confirming === 'cancel'
                     ? '¿Cancelar esta orden? Esta acción devolverá las materias primas al inventario.'
@@ -605,7 +605,7 @@ export const ProduccionDetailModal = ({ preparacion, onClose, onUpdated, onVerTr
                     <button
                       onClick={() => handleTransicion(confirming === 'cancel' ? 'CANCELADA' : transicion.next)}
                       disabled={isUpdating}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-content-primary text-white rounded-lg hover:bg-content-secondary disabled:opacity-50 transition"
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-content-primary text-content-inverse rounded-lg hover:bg-content-secondary disabled:opacity-50 transition"
                     >
                       {isUpdating ? <Loader2 size={12} className="animate-spin" /> : null} Confirmar
                     </button>

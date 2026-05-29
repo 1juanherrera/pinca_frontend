@@ -109,7 +109,7 @@ const CategoriasSubtab = ({ esAdmin }) => {
                   <td className="px-4 py-2 text-right">
                     <div className="inline-flex items-center gap-1">
                       <button onClick={() => setEditando(r)} title="Editar"
-                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all">
+                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all">
                         <Edit size={12} />
                       </button>
                       <button
@@ -193,7 +193,7 @@ const UnidadesSubtab = ({ esAdmin }) => {
                   <td className="px-4 py-2 text-right">
                     <div className="inline-flex items-center gap-1">
                       <button onClick={() => setEditando(r)} title="Editar"
-                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all">
+                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all">
                         <Edit size={12} />
                       </button>
                       <button

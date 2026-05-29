@@ -84,7 +84,7 @@ const DateRangePicker = ({ desde, hasta, onChange, align = 'left' }) => {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`inline-flex items-center gap-2 pl-2.5 pr-2 py-1 text-xs font-semibold bg-white border rounded-lg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 ${
+        className={`inline-flex items-center gap-2 pl-2.5 pr-2 py-1 text-xs font-semibold bg-surface-base border rounded-lg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 ${
           open ? 'border-content-primary shadow-sm' : 'border-border-base hover:border-border-strong'
         }`}
       >
@@ -119,7 +119,7 @@ const DateRangePicker = ({ desde, hasta, onChange, align = 'left' }) => {
 
       {open && (
         <div
-          className={`absolute z-50 mt-2 ${align === 'right' ? 'right-0' : 'left-0'} bg-white border border-border-base rounded-2xl shadow-2xl p-3 animate-in fade-in zoom-in-95 max-w-[calc(100vw-1rem)] overflow-x-auto`}
+          className={`absolute z-50 mt-2 ${align === 'right' ? 'right-0' : 'left-0'} bg-surface-base border border-border-base rounded-2xl shadow-2xl p-3 animate-in fade-in zoom-in-95 max-w-[calc(100vw-1rem)] overflow-x-auto`}
         >
           <DayPicker
             mode="range"
@@ -236,7 +236,7 @@ const DateRangePicker = ({ desde, hasta, onChange, align = 'left' }) => {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="px-3 py-1 text-[11px] font-bold text-white bg-content-primary rounded-md hover:bg-content-secondary transition"
+              className="px-3 py-1 text-[11px] font-bold text-content-inverse bg-content-primary rounded-md hover:bg-content-secondary transition"
             >
               Listo
             </button>

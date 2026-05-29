@@ -54,7 +54,7 @@ const ActionsMenu = ({ onView, onEdit, onDelete }) => {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-9 z-20 w-44 bg-white border border-border-base rounded-xl shadow-xl overflow-hidden py-1">
+          <div className="absolute right-0 top-9 z-20 w-44 bg-surface-base border border-border-base rounded-xl shadow-xl overflow-hidden py-1">
             <button
               onClick={() => { setOpen(false); onView?.(); }}
               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-content-secondary hover:bg-surface-subtle transition-colors"
@@ -109,7 +109,7 @@ const ClienteCard = ({
   const hasMetrics = totalPedidos !== null || totalCompras !== null || ultimaCompra !== null;
 
   return (
-    <div className="group relative bg-white border border-border-base rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+    <div className="group relative bg-surface-base border border-border-base rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
 
       {/* ── Franja superior de color ── */}
       <div className={`h-1.5 w-full ${palette.bg}`} />

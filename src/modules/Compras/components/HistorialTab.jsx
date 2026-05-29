@@ -88,7 +88,7 @@ const HistorialTab = ({ onVerDetalle }) => {
       render: (_, row) => (
         <button
           onClick={(e) => { e.stopPropagation(); onVerDetalle(row); }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all"
         >
           Ver
         </button>

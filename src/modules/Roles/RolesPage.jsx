@@ -22,7 +22,7 @@ const Toggle = ({ checked, onChange, disabled }) => (
     }`}
   >
     <span
-      className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+      className={`inline-block h-3.5 w-3.5 transform rounded-full bg-surface-base shadow transition-transform ${
         checked ? 'translate-x-[18px]' : 'translate-x-[3px]'
       }`}
     />
@@ -73,7 +73,7 @@ const PermisosSection = () => {
   const grupos = [...new Set(MODULOS_SISTEMA.map(m => m.grupo))];
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border-subtle bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-2xl border border-border-subtle bg-surface-base shadow-sm">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border-subtle bg-surface-subtle">
@@ -152,7 +152,7 @@ const UsuariosSection = () => {
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border-subtle bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-2xl border border-border-subtle bg-surface-base shadow-sm">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border-subtle bg-surface-subtle">
@@ -183,7 +183,7 @@ const UsuariosSection = () => {
                   defaultValue={u.rol}
                   disabled={isPending}
                   onChange={(e) => cambiarRol({ userId: u.id_usuarios, rol: e.target.value })}
-                  className="border border-border-base rounded-lg px-2 py-1 text-sm bg-white text-content-secondary focus:outline-none focus:ring-1 focus:ring-border-strong disabled:opacity-60"
+                  className="border border-border-base rounded-lg px-2 py-1 text-sm bg-surface-base text-content-secondary focus:outline-none focus:ring-1 focus:ring-border-strong disabled:opacity-60"
                 >
                   {ROLES.map(r => (
                     <option key={r} value={r}>{ROLES_LABELS[r]}</option>

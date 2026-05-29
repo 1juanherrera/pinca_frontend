@@ -13,8 +13,8 @@ const HistorialDrawer = ({ item, onClose }) => {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]" onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-2xl z-50 flex flex-col border-l border-border-subtle">
+      <div className="fixed inset-0 bg-surface-overlay z-40 backdrop-blur-[1px]" onClick={onClose} />
+      <div className="fixed top-0 right-0 h-full w-full max-w-lg bg-surface-base shadow-2xl z-50 flex flex-col border-l border-border-subtle">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-surface-subtle">
@@ -27,7 +27,7 @@ const HistorialDrawer = ({ item, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all shrink-0"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all shrink-0"
           >
             <X size={14} />
           </button>
@@ -97,15 +97,15 @@ const HistorialDrawer = ({ item, onClose }) => {
                         <div className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center mt-2 z-10 ${
                           esActual
                             ? 'bg-content-primary border-content-primary'
-                            : 'bg-white border-border-strong'
+                            : 'bg-surface-base border-border-strong'
                         }`}>
                           {sube && <TrendingUp size={9} className="text-semantic-danger" />}
                           {baja && <TrendingDown size={9} className="text-semantic-success" />}
-                          {!sube && !baja && <Minus size={9} className={esActual ? 'text-white' : 'text-content-muted'} />}
+                          {!sube && !baja && <Minus size={9} className={esActual ? 'text-content-inverse' : 'text-content-muted'} />}
                         </div>
 
                         {/* Contenido */}
-                        <div className="flex-1 bg-white border border-border-subtle rounded-lg px-3 py-2.5 hover:border-border-base transition-colors">
+                        <div className="flex-1 bg-surface-base border border-border-subtle rounded-lg px-3 py-2.5 hover:border-border-base transition-colors">
                           <div className="flex items-center justify-between gap-2 mb-1.5">
                             <div>
                               <span className="text-xs font-bold text-content-primary tabular-nums">
@@ -119,7 +119,7 @@ const HistorialDrawer = ({ item, onClose }) => {
                             </div>
                             <div className="flex items-center gap-2">
                               {esActual && (
-                                <span className="text-[9px] font-bold bg-content-primary text-white px-1.5 py-0.5 rounded-full uppercase">
+                                <span className="text-[9px] font-bold bg-content-primary text-content-inverse px-1.5 py-0.5 rounded-full uppercase">
                                   Actual
                                 </span>
                               )}

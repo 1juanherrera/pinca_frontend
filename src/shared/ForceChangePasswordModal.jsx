@@ -69,8 +69,8 @@ const ForceChangePasswordModal = () => {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8">
+    <div className="fixed inset-0 z-[200] bg-surface-overlay backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-surface-base rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8">
         {/* Hero */}
         <div className="flex items-start gap-3 mb-5">
           <div className="w-11 h-11 rounded-xl bg-semantic-warning-subtle flex items-center justify-center shrink-0">

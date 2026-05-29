@@ -104,7 +104,7 @@ const MaterialRow = ({ material, seleccion, onSelect }) => (
     className={`rounded-xl border px-4 py-3 ${
       material.tiene_deficit
         ? 'border-semantic-danger/20 bg-semantic-danger-subtle/40'
-        : 'border-border-subtle bg-white'
+        : 'border-border-subtle bg-surface-base'
     }`}
   >
     <div className="flex items-start justify-between gap-2">
@@ -236,11 +236,11 @@ const DisponibilidadModal = ({
   // ── Render ────────────────────────────────────────────────────────────────
   return createPortal(
     <>
-      <div className="fixed inset-0 z-[60] bg-content-primary/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-[60] bg-surface-overlay backdrop-blur-sm" onClick={onClose} />
 
       <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
         <div
-          className="pointer-events-auto bg-white rounded-2xl shadow-2xl border border-border-base w-full max-w-lg max-h-[90vh] flex flex-col"
+          className="pointer-events-auto bg-surface-base rounded-2xl shadow-2xl border border-border-base w-full max-w-lg max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -343,7 +343,7 @@ const DisponibilidadModal = ({
                   <button
                     type="button"
                     onClick={() => onConfirmar({})}
-                    className="flex items-center gap-1.5 text-sm font-semibold bg-content-primary text-white px-4 py-2 rounded-xl hover:bg-content-secondary transition-all"
+                    className="flex items-center gap-1.5 text-sm font-semibold bg-content-primary text-content-inverse px-4 py-2 rounded-xl hover:bg-content-secondary transition-all"
                   >
                     <CheckCircle2 size={15} />
                     Lanzar producción
@@ -353,7 +353,7 @@ const DisponibilidadModal = ({
                   <button
                     type="button"
                     onClick={() => onConfirmar({ omitirRequisiciones: true })}
-                    className="flex items-center gap-1.5 text-sm font-semibold bg-content-primary text-white px-4 py-2 rounded-xl hover:bg-content-secondary transition-all"
+                    className="flex items-center gap-1.5 text-sm font-semibold bg-content-primary text-content-inverse px-4 py-2 rounded-xl hover:bg-content-secondary transition-all"
                   >
                     <CheckCircle2 size={15} />
                     Lanzar de todas formas

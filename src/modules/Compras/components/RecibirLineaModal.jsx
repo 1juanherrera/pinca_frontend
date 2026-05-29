@@ -45,8 +45,8 @@ const RecibirLineaModal = ({ linea, ordenId, onClose, onConfirm, isSubmitting })
   };
 
   return createPortal(
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[200]">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-border-subtle">
+    <div className="fixed inset-0 bg-surface-overlay backdrop-blur-[2px] flex items-center justify-center z-[200]">
+      <div className="bg-surface-base rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-border-subtle">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-surface-subtle">
@@ -58,7 +58,7 @@ const RecibirLineaModal = ({ linea, ordenId, onClose, onConfirm, isSubmitting })
           </div>
           <button
             onClick={onClose}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all"
           >
             <X size={14} />
           </button>
@@ -121,7 +121,7 @@ const RecibirLineaModal = ({ linea, ordenId, onClose, onConfirm, isSubmitting })
                 {' × '}
                 <span className="font-mono font-bold">{fmtNum(factor, 4)}</span>
                 {' = '}
-                <span className="font-mono font-bold text-content-primary bg-white px-1.5 py-0.5 rounded">
+                <span className="font-mono font-bold text-content-primary bg-surface-base px-1.5 py-0.5 rounded">
                   {fmtNum(cantidadBase)} {unidadBase}
                 </span>
               </p>
@@ -164,7 +164,7 @@ const RecibirLineaModal = ({ linea, ordenId, onClose, onConfirm, isSubmitting })
               className={`inline-flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold shadow-sm transition-all active:scale-95
                 ${esInvalido || isSubmitting
                   ? 'bg-surface-strong text-content-muted cursor-not-allowed'
-                  : 'bg-content-primary text-white hover:bg-content-secondary'
+                  : 'bg-content-primary text-content-inverse hover:bg-content-secondary'
                 }`}
             >
               <ArrowRight size={13} />

@@ -43,8 +43,8 @@ const AjusteModal = ({ item, bodegaId, onClose, onConfirm, isSubmitting }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-120 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-border-base">
+    <div className="fixed inset-0 bg-surface-overlay backdrop-blur-[2px] flex items-center justify-center z-120 p-4">
+      <div className="bg-surface-base rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-border-base">
 
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-semantic-warning-subtle">
           <div className="flex items-center gap-2">
@@ -54,7 +54,7 @@ const AjusteModal = ({ item, bodegaId, onClose, onConfirm, isSubmitting }) => {
             </h2>
           </div>
           <button onClick={onClose}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white border border-border-base text-content-primary hover:bg-surface-muted transition-all">
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-surface-base border border-border-base text-content-primary hover:bg-surface-muted transition-all">
             <X size={14} />
           </button>
         </div>
@@ -118,7 +118,7 @@ const AjusteModal = ({ item, bodegaId, onClose, onConfirm, isSubmitting }) => {
             <select
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition bg-white text-content-secondary"
+              className="w-full px-3 py-2 text-sm border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition bg-surface-base text-content-secondary"
             >
               {MOTIVOS.map((m) => (
                 <option key={m.value} value={m.value}>{m.label}</option>

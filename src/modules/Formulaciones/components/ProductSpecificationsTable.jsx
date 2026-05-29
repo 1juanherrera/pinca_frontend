@@ -19,7 +19,7 @@ export const ProductSpecificationsTable = ({
     // 1. Estado de espera (Estilo Original)
     if (!selectedProductData) {
         return (
-            <div className="bg-white rounded-lg shadow-sm p-4 text-center border border-border-base/60">
+            <div className="bg-surface-base rounded-lg shadow-sm p-4 text-center border border-border-base/60">
                 <div className="text-content-muted mb-3">
                     <Beaker size={48} className="mx-auto" />
                 </div>
@@ -98,21 +98,21 @@ export const ProductSpecificationsTable = ({
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-border-base/60">
+        <div className="bg-surface-base rounded-lg shadow-sm overflow-hidden border border-border-base/60">
             {/* Header con Degradado Teal Original */}
-            <div className="bg-content-secondary text-white px-4 py-3">
+            <div className="bg-content-secondary text-content-inverse px-4 py-3">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="text-lg font-semibold flex items-center gap-2 tracking-tight">
                             <FlaskConical size={20} />
                             Especificaciones Técnicas
                         </h3>
-                        <p className="text-white font-medium text-[11px]">
+                        <p className="text-content-inverse font-medium text-[11px]">
                             {selectedProductData.nombre}
                         </p>
                     </div>
                     <div className="text-right">
-                        <div className="text-[10px] font-semibold text-white uppercase">
+                        <div className="text-[10px] font-semibold text-content-inverse uppercase">
                             {productDetail?.item?.codigo}
                         </div>
                     </div>
@@ -132,7 +132,7 @@ export const ProductSpecificationsTable = ({
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-border-subtle">
+                    <tbody className="bg-surface-base divide-y divide-border-subtle">
                         {isLoading
                             ? [...Array(6)].map((_, i) => (
                                 <tr key={i} className="animate-pulse">

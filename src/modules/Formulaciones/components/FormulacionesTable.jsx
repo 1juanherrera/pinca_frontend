@@ -80,7 +80,7 @@ const IngredienteProveedorSelect = ({ opciones, selectedId, onSelect }) => {
       {open && createPortal(
         <div
           ref={dropRef}
-          className="fixed z-[9999] bg-white border border-border-base rounded-lg shadow-xl overflow-hidden"
+          className="fixed z-[9999] bg-surface-base border border-border-base rounded-lg shadow-xl overflow-hidden"
           style={{ top: coords.top, left: coords.left, width: coords.width }}
         >
           <div className="px-2 py-1.5 bg-surface-subtle border-b border-border-subtle">
@@ -186,14 +186,29 @@ export const FormulacionesTable = ({
         };
     };
 
+    // Total unificado y conteo de ingredientes sin proveedor. Inlineado para que
+    // el compilador pueda memoizar sin depender de closures (`getCostoOverride`).
     const { totalUnificado, sinProveedor } = useMemo(() => {
         if (!dataToShow?.formulaciones) return { totalUnificado: null, sinProveedor: 0 };
+        const resolveOpcion = (mpId) => {
+            const matInfo = materiasOpciones[mpId];
+            if (!matInfo?.opciones?.length) return null;
+            const selectedIpId = seleccionPorIngrediente[mpId];
+            if (selectedIpId) {
+                return matInfo.opciones.find((o) => o.id_item_proveedor === selectedIpId) ?? null;
+            }
+            if (costMode === 'lista') return matInfo.opciones[0];
+            return null;
+        };
         let total = 0;
         let sinProv = 0;
         for (const f of dataToShow.formulaciones) {
-            const override = getCostoOverride(f);
-            if (override) {
-                total += Number(override.costo_total);
+            const opcion = resolveOpcion(f.item_general_id);
+            if (opcion) {
+                const cantidad = recalculatedData
+                  ? (f.cantidad_recalculada ?? f.cantidad)
+                  : f.cantidad;
+                total += Number(cantidad) * opcion.precio_por_kg;
             } else {
                 sinProv++;
                 total += Number(
@@ -210,7 +225,7 @@ export const FormulacionesTable = ({
     // para no romper las reglas de hooks (orden estable en cada render).
     if (!selectedProductData) {
         return (
-            <div className="bg-white rounded-lg shadow-sm p-4 text-center">
+            <div className="bg-surface-base rounded-lg shadow-sm p-4 text-center">
                 <div className="text-content-muted mb-3">
                     <FlaskConical size={compact ? 32 : 48} className="mx-auto" />
                 </div>
@@ -225,9 +240,9 @@ export const FormulacionesTable = ({
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-sm overflow-visible border border-border-base/60">
+        <div className="bg-surface-base rounded-lg shadow-sm overflow-visible border border-border-base/60">
             {/* Header */}
-            <div className="bg-content-secondary text-white px-4 py-3 rounded-t-lg">
+            <div className="bg-content-secondary text-content-inverse px-4 py-3 rounded-t-lg">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className={`${compact ? 'text-base' : 'text-lg'} font-semibold flex items-center gap-2`}>
@@ -244,16 +259,16 @@ export const FormulacionesTable = ({
                                 </span>
                             )}
                         </h3>
-                        <p className="text-white text-xs">
+                        <p className="text-content-inverse text-xs">
                             {productDetail?.item?.nombre} - {productDetail?.item?.codigo}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="text-right">
-                            <div className="text-xs text-white overflow-hidden truncate w-40">
+                            <div className="text-xs text-content-inverse overflow-hidden truncate w-40">
                                 vol: {recalculatedData ? recalculatedData?.item?.volumen_nuevo : productDetail?.item?.volumen_base || 0}
                             </div>
-                            <div className="text-xs text-white">
+                            <div className="text-xs text-content-inverse">
                                 {productDetail?.formulaciones?.length || 0} componentes
                             </div>
                         </div>
@@ -262,7 +277,7 @@ export const FormulacionesTable = ({
                                 type="button"
                                 onClick={() => onClone(selectedProductData)}
                                 title="Clonar fórmula a otro producto"
-                                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/25 text-white transition-colors"
+                                className="p-1.5 rounded-lg bg-content-inverse/10 hover:bg-content-inverse/25 text-content-inverse transition-colors"
                             >
                                 <Copy size={14} />
                             </button>
@@ -272,7 +287,7 @@ export const FormulacionesTable = ({
                                 type="button"
                                 onClick={() => onEdit(selectedProductData.id_item_general)}
                                 title="Editar formulación"
-                                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/25 text-white transition-colors"
+                                className="p-1.5 rounded-lg bg-content-inverse/10 hover:bg-content-inverse/25 text-content-inverse transition-colors"
                             >
                                 <Pencil size={14} />
                             </button>
@@ -318,7 +333,7 @@ export const FormulacionesTable = ({
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-border-base">
+                    <tbody className="bg-surface-base divide-y divide-border-base">
                     {isLoading ? (
                         [...Array(5)].map((_, i) => (
                             <tr key={i} className="animate-pulse">
@@ -354,7 +369,7 @@ export const FormulacionesTable = ({
                                 {/* MATERIA PRIMA + SELECTOR PROVEEDOR */}
                                 <td className="px-3 py-2">
                                 <div className="flex items-center">
-                                    <div className={`shrink-0 h-7 w-7 rounded-full bg-white flex items-center justify-center shadow-inner ${tieneProveedor ? 'border border-semantic-info/20' : 'border border-semantic-warning/40'}`}>
+                                    <div className={`shrink-0 h-7 w-7 rounded-full bg-surface-base flex items-center justify-center shadow-inner ${tieneProveedor ? 'border border-semantic-info/20' : 'border border-semantic-warning/40'}`}>
                                     {tieneProveedor
                                         ? <Beaker className="h-4 w-4 text-semantic-info-fg" />
                                         : <AlertTriangle className="h-3.5 w-3.5 text-semantic-warning-fg" />

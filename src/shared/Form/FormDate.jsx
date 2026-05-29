@@ -168,7 +168,7 @@ const FormDate = ({
         <div
           ref={popoverRef}
           style={{ position: 'absolute', top: pos.top, left: pos.left, maxWidth: pos.maxWidth, zIndex: 130 }}
-          className="bg-white border border-border-base rounded-2xl shadow-2xl p-3 animate-in fade-in zoom-in-95 overflow-x-auto"
+          className="bg-surface-base border border-border-base rounded-2xl shadow-2xl p-3 animate-in fade-in zoom-in-95 overflow-x-auto"
         >
           <DayPicker
             mode="single"
@@ -272,7 +272,7 @@ const FormDate = ({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="px-3 py-1 text-[11px] font-bold text-white bg-content-primary rounded-md hover:bg-content-secondary transition"
+              className="px-3 py-1 text-[11px] font-bold text-content-inverse bg-content-primary rounded-md hover:bg-content-secondary transition"
             >
               Listo
             </button>

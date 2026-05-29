@@ -20,12 +20,12 @@ const fmtMonth = (d) => {
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-content-primary text-white rounded-lg px-3 py-2 shadow-xl text-xs">
+    <div className="bg-content-primary text-content-inverse rounded-lg px-3 py-2 shadow-xl text-xs">
       <p className="font-bold mb-1.5">{fmtFecha(label)}</p>
       {payload.map((p) => (
         <div key={p.dataKey} className="flex items-center gap-2 tabular-nums">
           <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-          <span className="text-white/70">{p.name}:</span>
+          <span className="text-content-inverse/70">{p.name}:</span>
           <span className="font-semibold">{fmt(p.value)}</span>
         </div>
       ))}

@@ -5,6 +5,17 @@
     <link rel="shortcut icon" href="src/assets/pincaicono.png" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title></title>
+    <script>
+      // Aplica el tema preferido antes de hidratar React para evitar flash.
+      (function () {
+        try {
+          var stored = localStorage.getItem('pinca:theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var theme = stored || (prefersDark ? 'dark' : 'light');
+          if (theme === 'dark') document.documentElement.classList.add('dark');
+        } catch (e) { /* sin localStorage o matchMedia — ignorar */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

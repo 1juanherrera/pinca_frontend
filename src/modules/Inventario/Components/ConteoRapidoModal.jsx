@@ -54,9 +54,9 @@ const ConteoRapidoModal = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-surface-overlay backdrop-blur-sm" />
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]"
+        className="relative bg-surface-base rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -126,7 +126,7 @@ const ConteoRapidoModal = ({ onClose }) => {
                 <div
                   key={item.id_inventario}
                   className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                    isPorIdentificar ? 'border-semantic-warning/20 bg-semantic-warning-subtle' : 'border-border-subtle bg-white hover:border-border-base'
+                    isPorIdentificar ? 'border-semantic-warning/20 bg-semantic-warning-subtle' : 'border-border-subtle bg-surface-base hover:border-border-base'
                   }`}
                 >
                   {/* Info item */}
@@ -156,7 +156,7 @@ const ConteoRapidoModal = ({ onClose }) => {
                         onKeyDown={e => handleKeyDown(e, item, idx)}
                         onBlur={() => handleSave(item)}
                         disabled={isSaving}
-                        className="w-20 text-center text-sm font-bold border border-border-base rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-semantic-warning focus:border-semantic-warning disabled:opacity-50 transition-all bg-white"
+                        className="w-20 text-center text-sm font-bold border border-border-base rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-semantic-warning focus:border-semantic-warning disabled:opacity-50 transition-all bg-surface-base"
                       />
                       <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-content-muted pointer-events-none">
                         tam.

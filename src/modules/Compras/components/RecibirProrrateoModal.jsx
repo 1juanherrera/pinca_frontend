@@ -122,13 +122,13 @@ const RecibirProrrateoModal = ({ orden, onClose, onConfirm, isSubmitting }) => {
     : calc.factor < 1 ? 'success' : 'danger';
 
   return createPortal(
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-[200] p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-border-subtle">
+    <div className="fixed inset-0 bg-surface-overlay backdrop-blur-[2px] flex items-center justify-center z-[200] p-4">
+      <div className="bg-surface-base rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-border-subtle">
 
         {/* Header */}
         <div className="flex items-start justify-between px-6 py-4 border-b border-border-subtle bg-surface-subtle shrink-0">
           <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-content-primary text-white flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-content-primary text-content-inverse flex items-center justify-center shrink-0">
               <Scale size={16} />
             </div>
             <div>
@@ -215,7 +215,7 @@ const RecibirProrrateoModal = ({ orden, onClose, onConfirm, isSubmitting }) => {
                             className={`w-full text-xs text-right tabular-nums px-2 py-1 rounded-md border outline-none focus:ring-1 ${
                               sobrepedido
                                 ? 'border-semantic-danger bg-semantic-danger-subtle/30 focus:ring-semantic-danger/30'
-                                : 'border-border-base bg-white focus:ring-content-primary/20 focus:border-content-primary'
+                                : 'border-border-base bg-surface-base focus:ring-content-primary/20 focus:border-content-primary'
                             }`}
                             disabled={isSubmitting}
                           />
@@ -263,7 +263,7 @@ const RecibirProrrateoModal = ({ orden, onClose, onConfirm, isSubmitting }) => {
                     value={precioPagado}
                     onChange={(e) => setPrecioPagado(formatThousands(e.target.value))}
                     placeholder="0"
-                    className="flex-1 px-3 py-2.5 text-sm font-semibold text-content-primary outline-none bg-white tabular-nums"
+                    className="flex-1 px-3 py-2.5 text-sm font-semibold text-content-primary outline-none bg-surface-base tabular-nums"
                     disabled={isSubmitting}
                     autoFocus
                   />

@@ -135,7 +135,7 @@ const TributariaTab = () => {
               valores.aplicar_iva_por_default ? 'bg-content-primary' : 'bg-surface-strong'
             }`}
           >
-            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${
+            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-surface-base rounded-full shadow transition-transform duration-200 ${
               valores.aplicar_iva_por_default ? 'translate-x-4.5' : 'translate-x-0'
             }`} />
           </button>

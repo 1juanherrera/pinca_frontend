@@ -95,7 +95,7 @@ export const MovimientosFilters = ({ filters, onChange, onClear, onBuscarLote })
           <button
             type="submit"
             disabled={!loteInput.trim()}
-            className="px-3 h-8 text-xs font-semibold rounded-md bg-content-primary text-white hover:bg-content-secondary disabled:opacity-50 transition-colors"
+            className="px-3 h-8 text-xs font-semibold rounded-md bg-content-primary text-content-inverse hover:bg-content-secondary disabled:opacity-50 transition-colors"
           >
             Rastrear lote
           </button>

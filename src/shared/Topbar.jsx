@@ -5,10 +5,13 @@ import {
   ChevronRight,
   GitMerge,
   LayoutDashboard,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useBoundStore } from '../store/useBoundStore';
 import { ROLES_LABELS } from '../config/modulos';
 import { useAvatarGradient } from '../utils/avatarTheme';
+import { useTheme } from '../hooks/useTheme';
 import NotificacionesDropdown from '../modules/Notificaciones/components/NotificacionesDropdown';
 
 /**
@@ -37,6 +40,7 @@ const Topbar = ({ onOpenPalette }) => {
 
   const rol      = user?.rol ?? 'visor';
   const gradient = useAvatarGradient(rol);
+  const { theme, toggle: toggleTheme } = useTheme();
 
   // Atajo de teclado: Ctrl+Shift+S navega a Sincronización
   useEffect(() => {
@@ -61,7 +65,7 @@ const Topbar = ({ onOpenPalette }) => {
           <span>Gestor Pinca</span>
           <ChevronRight size={12} className="mx-1 opacity-60" />
         </div>
-        <h1 className="text-base font-semibold text-content-inverse tracking-tight truncate">
+        <h1 className="text-base font-semibold text-content-on-dark tracking-tight truncate">
           {activeTitle}
         </h1>
       </div>
@@ -71,7 +75,7 @@ const Topbar = ({ onOpenPalette }) => {
         {/* Búsqueda global Cmd+K */}
         <button
           onClick={(e) => { e.currentTarget.blur(); onOpenPalette?.(); }}
-          className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs text-content-tertiary bg-surface-sidebar-hover/80 hover:bg-surface-sidebar-hover hover:text-content-inverse rounded-full border border-surface-sidebar-hover transition-colors focus:outline-none focus-visible:outline-none"
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs text-content-tertiary bg-surface-sidebar-hover/80 hover:bg-surface-sidebar-hover hover:text-content-on-dark rounded-full border border-surface-sidebar-hover transition-colors focus:outline-none focus-visible:outline-none"
           title="Buscar (Ctrl+K)"
         >
           <Search size={13} />
@@ -82,7 +86,7 @@ const Topbar = ({ onOpenPalette }) => {
         </button>
         <button
           onClick={(e) => { e.currentTarget.blur(); onOpenPalette?.(); }}
-          className="md:hidden p-2 hover:bg-surface-sidebar-hover rounded-full transition-colors text-content-muted hover:text-content-inverse focus:outline-none focus-visible:outline-none"
+          className="md:hidden p-2 hover:bg-surface-sidebar-hover rounded-full transition-colors text-content-muted hover:text-content-on-dark focus:outline-none focus-visible:outline-none"
           title="Buscar (Ctrl+K)"
         >
           <Search size={16} />
@@ -90,10 +94,19 @@ const Topbar = ({ onOpenPalette }) => {
 
         <button
           onClick={() => navigate('/sincronizacion')}
-          className="p-2 hover:bg-surface-sidebar-hover rounded-full transition-colors text-content-muted hover:text-content-inverse"
+          className="p-2 hover:bg-surface-sidebar-hover rounded-full transition-colors text-content-muted hover:text-content-on-dark"
           title="Sincronización (Ctrl+Shift+S)"
         >
           <GitMerge size={16} />
+        </button>
+
+        <button
+          onClick={toggleTheme}
+          className="p-2 hover:bg-surface-sidebar-hover rounded-full transition-colors text-content-muted hover:text-content-on-dark"
+          title={theme === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+          aria-label="Alternar tema"
+        >
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
 
         <NotificacionesDropdown />
@@ -109,7 +122,7 @@ const Topbar = ({ onOpenPalette }) => {
             {getInitials(user?.nombre, user?.username)}
           </div>
           <div className="hidden sm:block">
-            <p className="text-xs font-medium text-content-inverse leading-none">
+            <p className="text-xs font-medium text-content-on-dark leading-none">
               {user?.nombre || user?.username || '—'}
             </p>
             <p className="text-[9px] text-content-muted font-bold uppercase tracking-wider leading-none mt-1">

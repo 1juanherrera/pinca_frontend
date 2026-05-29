@@ -196,7 +196,7 @@ const EmpresaTab = () => {
                 value={form.locale ?? 'es-CO'}
                 disabled={!esAdmin}
                 onChange={(e) => setField('locale', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 disabled:bg-surface-muted bg-white"
+                className="w-full px-3 py-2 text-sm border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 disabled:bg-surface-muted bg-surface-base"
               >
                 {LOCALE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
@@ -209,7 +209,7 @@ const EmpresaTab = () => {
                 value={form.moneda ?? 'COP'}
                 disabled={!esAdmin}
                 onChange={(e) => setField('moneda', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 disabled:bg-surface-muted bg-white"
+                className="w-full px-3 py-2 text-sm border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 disabled:bg-surface-muted bg-surface-base"
               >
                 {MONEDA_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>

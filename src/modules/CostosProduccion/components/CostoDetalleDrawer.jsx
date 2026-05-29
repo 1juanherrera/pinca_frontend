@@ -32,7 +32,7 @@ const HeroCosto = ({ total, precioVenta, margen, estado, volumenBase }) => {
               Vinculá un proveedor a cada materia prima desde Sincronización para ver el costo final.
             </p>
             {volumenBase > 0 && (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill bg-white/60 border border-semantic-warning/20">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill bg-surface-base/60 border border-semantic-warning/20">
                 <Layers size={10} className="text-semantic-warning-fg" />
                 <span className="text-[10px] font-bold text-content-secondary uppercase tracking-wider">
                   Esta receta rinde{' '}
@@ -47,25 +47,25 @@ const HeroCosto = ({ total, precioVenta, margen, estado, volumenBase }) => {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-content-primary to-content-secondary text-white p-5">
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-content-primary to-content-secondary text-content-inverse p-5">
       <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary opacity-10 rounded-full -mr-12 -mt-12" />
       <div className="relative flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] uppercase tracking-widest font-bold text-white/60 mb-1">
+          <p className="text-[10px] uppercase tracking-widest font-bold text-content-inverse/60 mb-1">
             Costo por galón
           </p>
           <p className="text-3xl font-bold tabular-nums tracking-tight">
             {fmt(total)}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-pill bg-white/10 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-pill bg-content-inverse/10 backdrop-blur-sm">
               <CheckCircle2 size={11} className="text-brand-primary" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white">Listo para costear</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-content-inverse">Listo para costear</span>
             </div>
             {volumenBase > 0 && (
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill bg-brand-primary/20 backdrop-blur-sm">
                 <Layers size={10} className="text-brand-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-white">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-content-inverse">
                   Rinde <span className="tabular-nums text-brand-primary">{volumenBase}</span> gal por receta
                 </span>
               </div>
@@ -73,13 +73,13 @@ const HeroCosto = ({ total, precioVenta, margen, estado, volumenBase }) => {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-[10px] uppercase tracking-widest font-bold text-white/60 mb-1">
+          <p className="text-[10px] uppercase tracking-widest font-bold text-content-inverse/60 mb-1">
             Precio sugerido
           </p>
           <p className="text-2xl font-bold tabular-nums text-brand-primary">
             {fmt(precioVenta)}
           </p>
-          <p className="text-[10px] text-white/60 mt-1">
+          <p className="text-[10px] text-content-inverse/60 mt-1">
             por galón · margen {margen}%
           </p>
         </div>
@@ -238,15 +238,15 @@ const MargenRealAlert = ({ precioManual, costoTotal, margenObjetivo }) => {
           </p>
           <p className="text-xs text-content-secondary mt-1">{mensaje}</p>
           <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
-            <div className="bg-white/60 rounded-lg px-2.5 py-1.5">
+            <div className="bg-surface-base/60 rounded-lg px-2.5 py-1.5">
               <p className="text-content-tertiary uppercase text-[9px] tracking-wider">Precio manual</p>
               <p className="font-bold tabular-nums text-content-primary">{fmt(precioManual)}</p>
             </div>
-            <div className="bg-white/60 rounded-lg px-2.5 py-1.5">
+            <div className="bg-surface-base/60 rounded-lg px-2.5 py-1.5">
               <p className="text-content-tertiary uppercase text-[9px] tracking-wider">Costo total</p>
               <p className="font-bold tabular-nums text-content-primary">{fmt(costoTotal)}</p>
             </div>
-            <div className="bg-white/60 rounded-lg px-2.5 py-1.5">
+            <div className="bg-surface-base/60 rounded-lg px-2.5 py-1.5">
               <p className="text-content-tertiary uppercase text-[9px] tracking-wider">Utilidad / unidad</p>
               <p className="font-bold tabular-nums text-content-primary">{fmt(precioManual - costoTotal)}</p>
             </div>
@@ -416,15 +416,15 @@ const CostoDetalleDrawer = ({ isOpen, onClose, productoId }) => {
                       {cuello.codigo && <span className="text-content-muted font-mono ml-1.5">({cuello.codigo})</span>}
                     </p>
                     <div className="mt-2.5 grid grid-cols-3 gap-2 text-[11px]">
-                      <div className="bg-white/60 rounded-lg px-2.5 py-1.5">
+                      <div className="bg-surface-base/60 rounded-lg px-2.5 py-1.5">
                         <p className="text-content-tertiary uppercase text-[9px] tracking-wider">Stock actual</p>
                         <p className="font-bold tabular-nums text-content-primary">{Number(cuello.stock_kg).toFixed(2)} kg</p>
                       </div>
-                      <div className="bg-white/60 rounded-lg px-2.5 py-1.5">
+                      <div className="bg-surface-base/60 rounded-lg px-2.5 py-1.5">
                         <p className="text-content-tertiary uppercase text-[9px] tracking-wider">Req. por tanda</p>
                         <p className="font-bold tabular-nums text-content-primary">{Number(cuello.requerido_por_tanda_kg).toFixed(2)} kg</p>
                       </div>
-                      <div className="bg-white/60 rounded-lg px-2.5 py-1.5">
+                      <div className="bg-surface-base/60 rounded-lg px-2.5 py-1.5">
                         <p className="text-content-tertiary uppercase text-[9px] tracking-wider">Tandas posibles</p>
                         <p className="font-bold tabular-nums text-content-primary">{Number(cuello.tandas).toFixed(2)}</p>
                       </div>
@@ -447,17 +447,17 @@ const CostoDetalleDrawer = ({ isOpen, onClose, productoId }) => {
                 </p>
               </div>
               <div className="grid grid-cols-4 gap-2">
-                <div className="text-center px-2 py-2 bg-white rounded-lg">
+                <div className="text-center px-2 py-2 bg-surface-base rounded-lg">
                   <p className="text-[9px] uppercase tracking-wider text-content-tertiary font-semibold">MP</p>
                   <p className="text-xs font-bold tabular-nums text-semantic-info-fg mt-0.5">{fmt(lote.mpLote)}</p>
                 </div>
-                <div className="text-center px-2 py-2 bg-white rounded-lg">
+                <div className="text-center px-2 py-2 bg-surface-base rounded-lg">
                   <p className="text-[9px] uppercase tracking-wider text-content-tertiary font-semibold">Emp + MO</p>
                   <p className="text-xs font-bold tabular-nums text-semantic-warning-fg mt-0.5">{fmt(lote.indirLote)}</p>
                 </div>
                 <div className="text-center px-2 py-2 bg-content-primary rounded-lg">
-                  <p className="text-[9px] uppercase tracking-wider text-white/70 font-semibold">Costo</p>
-                  <p className="text-xs font-bold tabular-nums text-white mt-0.5">{fmt(lote.totalLote)}</p>
+                  <p className="text-[9px] uppercase tracking-wider text-content-inverse/70 font-semibold">Costo</p>
+                  <p className="text-xs font-bold tabular-nums text-content-inverse mt-0.5">{fmt(lote.totalLote)}</p>
                 </div>
                 <div className="text-center px-2 py-2 bg-semantic-success-subtle rounded-lg">
                   <p className="text-[9px] uppercase tracking-wider text-semantic-success-fg font-semibold">Venta</p>
@@ -602,9 +602,9 @@ const CostoDetalleDrawer = ({ isOpen, onClose, productoId }) => {
                 </tbody>
                 {/* Total fila */}
                 {p.estado === 'completo' && (
-                  <tfoot className="bg-content-primary text-white">
+                  <tfoot className="bg-content-primary text-content-inverse">
                     <tr className="text-xs font-bold">
-                      <td colSpan={4} className="px-3 py-2.5 text-right uppercase tracking-wider text-[10px] text-white/60">
+                      <td colSpan={4} className="px-3 py-2.5 text-right uppercase tracking-wider text-[10px] text-content-inverse/60">
                         Total materia prima (receta completa)
                       </td>
                       <td className="px-3 py-2.5 text-right tabular-nums">
@@ -644,7 +644,7 @@ const CostoDetalleDrawer = ({ isOpen, onClose, productoId }) => {
               </div>
               <ul className="space-y-1 ml-12">
                 {p.mps_faltantes.map((mp) => (
-                  <li key={mp.id} className="flex items-center justify-between gap-3 px-3 py-2 bg-white/60 rounded-lg text-xs">
+                  <li key={mp.id} className="flex items-center justify-between gap-3 px-3 py-2 bg-surface-base/60 rounded-lg text-xs">
                     <div className="min-w-0">
                       <p className="font-bold text-content-primary truncate">{mp.nombre}</p>
                       {mp.codigo && <p className="text-[10px] text-content-tertiary font-mono">{mp.codigo}</p>}
@@ -682,7 +682,7 @@ const CostoDetalleDrawer = ({ isOpen, onClose, productoId }) => {
                 {p.proveedores_usados.map((prov) => (
                   <div
                     key={prov.id_proveedor}
-                    className="inline-flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-pill bg-white border border-border-base shadow-sm"
+                    className="inline-flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-pill bg-surface-base border border-border-base shadow-sm"
                   >
                     <div className="w-6 h-6 rounded-full bg-brand-subtle flex items-center justify-center shrink-0">
                       <Truck size={11} className="text-brand-primary-active" />

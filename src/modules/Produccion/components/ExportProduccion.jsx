@@ -423,13 +423,13 @@ const ExportProduccionContent = ({ preparacion, closeModal }) => {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-content-primary/60 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-overlay backdrop-blur-sm">
         <div className="w-full max-w-6xl h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
 
           <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 bg-content-primary rounded-xl flex items-center justify-center">
-                <Download size={16} className="text-white" />
+                <Download size={16} className="text-content-inverse" />
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-content-primary">Vista previa — ORD-{String(preparacion.id_preparaciones).padStart(4, '0')}</h2>
@@ -440,7 +440,7 @@ const ExportProduccionContent = ({ preparacion, closeModal }) => {
               <button
                 onClick={() => setModo('ESTANDAR')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${modo === 'ESTANDAR'
-                  ? 'bg-content-primary border-content-primary text-white'
+                  ? 'bg-content-primary border-content-primary text-content-inverse'
                   : 'bg-white border-border-base text-content-tertiary hover:border-border-strong'
                   }`}
               >
@@ -488,7 +488,7 @@ const ExportProduccionContent = ({ preparacion, closeModal }) => {
               onClick={handleDownload}
               disabled={isExporting || isLoadingDetail}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95
-                ${done ? 'bg-semantic-success text-white' : 'bg-content-primary text-white hover:bg-content-secondary disabled:opacity-50 disabled:pointer-events-none'}`}
+                ${done ? 'bg-semantic-success text-white' : 'bg-brand-primary text-content-on-brand hover:bg-brand-primary-hover disabled:opacity-50 disabled:pointer-events-none'}`}
             >
               {done ? <><CheckCircle2 size={16} /> Descargado</>
                 : isExporting ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando PDF...</>

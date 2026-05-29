@@ -38,12 +38,12 @@ const RentabilidadDetalleProd = ({ orden, onClose }) => {
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 z-40 bg-content-primary/40 backdrop-blur-sm"
+        className="fixed inset-0 z-40 bg-surface-overlay backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 z-50 w-full max-w-lg bg-white shadow-2xl border-l border-border-base/80 flex flex-col">
+      <div className="fixed inset-y-0 right-0 z-50 w-full max-w-lg bg-surface-base shadow-2xl border-l border-border-base/80 flex flex-col">
 
         {/* Header */}
         <div className="flex items-start justify-between px-6 py-5 border-b border-border-subtle shrink-0">

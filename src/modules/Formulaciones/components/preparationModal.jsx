@@ -153,7 +153,7 @@ const MateriasPanel = ({ formulaciones, titulo }) => {
         <div className="flex items-center gap-2">
           <FlaskConical size={13} className="text-content-muted" />
           <p className="text-[10px] font-black uppercase tracking-widest text-content-muted">Materias primas</p>
-          <span className="bg-white/10 text-content-muted text-[9px] font-bold px-1.5 py-0.5 rounded-md">{formulaciones.length}</span>
+          <span className="bg-content-inverse/10 text-content-muted text-[9px] font-bold px-1.5 py-0.5 rounded-md">{formulaciones.length}</span>
         </div>
         <p className="text-[9px] font-bold text-content-tertiary uppercase tracking-widest">{titulo}</p>
       </div>
@@ -279,7 +279,7 @@ const IndirectCostSelector = ({ selected, onChange }) => {
           ))}
 
           {/* Formulario para agregar */}
-          <div className="p-3 bg-white flex flex-col gap-2">
+          <div className="p-3 bg-surface-base flex flex-col gap-2">
             <input
               value={form.nombre}
               onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))}
@@ -291,7 +291,7 @@ const IndirectCostSelector = ({ selected, onChange }) => {
               <select
                 value={form.categoria}
                 onChange={e => setForm(p => ({ ...p, categoria: e.target.value }))}
-                className="text-xs border border-border-base rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-white"
+                className="text-xs border border-border-base rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-surface-base"
               >
                 {CATS_CI.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
@@ -310,7 +310,7 @@ const IndirectCostSelector = ({ selected, onChange }) => {
             <button
               type="button" onClick={agregar}
               disabled={!form.nombre.trim() || !form.valor_aplicado}
-              className="flex items-center justify-center gap-1.5 w-full py-1.5 text-xs font-semibold bg-content-primary text-white rounded-lg hover:bg-content-secondary disabled:opacity-40 transition-colors"
+              className="flex items-center justify-center gap-1.5 w-full py-1.5 text-xs font-semibold bg-content-primary text-content-inverse rounded-lg hover:bg-content-secondary disabled:opacity-40 transition-colors"
             >
               <Plus size={11} /> Agregar costo
             </button>
@@ -587,7 +587,7 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
           <button
             onClick={() => setShowDisponibilidad(true)}
             disabled={isCreating || crearRequisiciones.isPending || cantidad <= 0 || hasAnyDeficit}
-            className="flex items-center justify-center gap-2 w-full bg-content-primary hover:bg-content-secondary disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl py-3 text-xs font-bold tracking-wide transition-all active:scale-[0.98]"
+            className="flex items-center justify-center gap-2 w-full bg-content-primary hover:bg-content-secondary disabled:opacity-40 disabled:cursor-not-allowed text-content-inverse rounded-xl py-3 text-xs font-bold tracking-wide transition-all active:scale-[0.98]"
           >
             {(isCreating || crearRequisiciones.isPending)
               ? <><Loader2 size={13} className="animate-spin" /> Guardando…</>
@@ -747,7 +747,7 @@ const CombinacionForm = ({
               className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-left transition-all
                 ${modoSegunda === 'sugerida'
                   ? 'bg-semantic-success-subtle border-semantic-success/20 ring-1 ring-semantic-success/50'
-                  : 'bg-white border-border-base hover:border-border-strong'}`}
+                  : 'bg-surface-base border-border-base hover:border-border-strong'}`}
             >
               <Sparkles size={13} className={modoSegunda === 'sugerida' ? 'text-semantic-success' : 'text-content-muted'} />
               <div className="flex-1 min-w-0">
@@ -767,7 +767,7 @@ const CombinacionForm = ({
               className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-left transition-all
                 ${modoSegunda === 'manual'
                   ? 'bg-semantic-info-subtle border-semantic-info/20 ring-1 ring-semantic-info/30'
-                  : 'bg-white border-border-base hover:border-border-strong'}`}
+                  : 'bg-surface-base border-border-base hover:border-border-strong'}`}
             >
               <Split size={13} className={modoSegunda === 'manual' ? 'text-semantic-info' : 'text-content-muted'} />
               <div className="flex-1 min-w-0">
@@ -797,7 +797,7 @@ const CombinacionForm = ({
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left transition-all
                         ${seleccionada
                           ? `${cfg2.bg} ${cfg2.border} ring-1 ${cfg2.ring}`
-                          : 'bg-white border-border-base hover:border-border-strong'}`}
+                          : 'bg-surface-base border-border-base hover:border-border-strong'}`}
                     >
                       <div className={`w-7 h-7 rounded-lg ${cfg2.bg} flex items-center justify-center shrink-0`}>
                         <cfg2.icon size={13} className={cfg2.color} />
@@ -840,7 +840,7 @@ const CombinacionForm = ({
           <button
             onClick={() => setShowDisponibilidad(true)}
             disabled={creando || crearRequisiciones.isPending || !ordenesActivas || (modoSegunda === 'manual' && !segundaUnidad)}
-            className="flex items-center justify-center gap-2 w-full bg-content-primary hover:bg-content-secondary disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl py-3 text-xs font-bold tracking-wide transition-all active:scale-[0.98]"
+            className="flex items-center justify-center gap-2 w-full bg-content-primary hover:bg-content-secondary disabled:opacity-40 disabled:cursor-not-allowed text-content-inverse rounded-xl py-3 text-xs font-bold tracking-wide transition-all active:scale-[0.98]"
           >
             {(creando || crearRequisiciones.isPending)
               ? <><Loader2 size={13} className="animate-spin" /> Creando órdenes…</>
@@ -909,7 +909,7 @@ const CombinacionForm = ({
                   const formulacionesEscaladas = escalarFormulaciones(formulaciones, o.volumenCubierto, volumen);
                   const cfg = UNIT_CONFIG[o.unidad.nombre] ?? { icon: Package, color: 'text-content-secondary', bg: 'bg-surface-muted', border: 'border-border-subtle' };
                   return (
-                    <div key={o.unidad.id_unidad} className="bg-white border border-border-subtle rounded-xl overflow-hidden">
+                    <div key={o.unidad.id_unidad} className="bg-surface-base border border-border-subtle rounded-xl overflow-hidden">
                       <div className={`flex items-center gap-2 px-4 py-2 ${cfg.bg} border-b ${cfg.border}`}>
                         <span className="text-[9px] font-black text-content-muted">ORDEN {i + 1}</span>
                         <cfg.icon size={11} className={cfg.color} />
@@ -1045,14 +1045,14 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
     : 'Preparación por unidades';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-content-primary/60 backdrop-blur-sm">
-      <div className="w-full max-w-7xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-overlay backdrop-blur-sm">
+      <div className="w-full max-w-7xl bg-surface-base rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-content-primary flex items-center justify-center shadow-md shadow-content-primary/20">
-              <Stamp size={18} className="text-white" />
+              <Stamp size={18} className="text-content-inverse" />
             </div>
             <div>
               <h2 className="text-base font-semibold text-content-primary tracking-tight leading-none">{titulo}</h2>
@@ -1092,11 +1092,11 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
           <>
             {/* KPIs */}
             <div className="grid grid-cols-4 gap-3 px-6 py-4 border-b border-border-subtle bg-surface-subtle/50 shrink-0">
-              <div className="bg-white border border-border-base rounded-xl px-3 py-3 shadow-sm">
+              <div className="bg-surface-base border border-border-base rounded-xl px-3 py-3 shadow-sm">
                 <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest mb-1 flex items-center gap-1"><Boxes size={9} /> Volumen</p>
                 <p className="text-sm font-semibold text-content-primary tabular-nums">{volumen} <span className="text-[10px] font-normal text-content-muted">gal</span></p>
               </div>
-              <div className="bg-white border border-border-base rounded-xl px-3 py-3 shadow-sm">
+              <div className="bg-surface-base border border-border-base rounded-xl px-3 py-3 shadow-sm">
                 <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest mb-1 flex items-center gap-1"><FlaskConical size={9} /> Costo / Gal</p>
                 <p className="text-sm font-semibold text-content-primary tabular-nums">{formatCOP(costoGalon)}</p>
               </div>
@@ -1106,7 +1106,7 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
               </div>
               <div className="bg-content-primary border border-content-primary rounded-xl px-3 py-3 shadow-sm">
                 <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest mb-1 flex items-center gap-1"><Layers size={9} className="text-content-muted" /> Markup</p>
-                <p className="text-sm font-semibold text-white tabular-nums">{costos?.porcentaje_utilidad ?? 0}%</p>
+                <p className="text-sm font-semibold text-content-inverse tabular-nums">{costos?.porcentaje_utilidad ?? 0}%</p>
               </div>
             </div>
 
@@ -1123,7 +1123,7 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
                     <button
                       key={u.id_unidad}
                       onClick={() => handleSelectUnit(u)}
-                      className={`w-full text-left flex items-center gap-3 bg-white border rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition-all active:scale-[0.99]
+                      className={`w-full text-left flex items-center gap-3 bg-surface-base border rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition-all active:scale-[0.99]
                         ${selected ? `ring-2 ${cfg.ring} ${cfg.border} shadow-md` : `${cfg.border} hover:border-border-strong`}`}
                     >
                       <div className={`w-9 h-9 rounded-xl ${cfg.bg} flex items-center justify-center shrink-0`}>

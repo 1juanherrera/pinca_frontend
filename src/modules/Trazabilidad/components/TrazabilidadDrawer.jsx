@@ -13,7 +13,7 @@ const DescargarPDFButton = ({ payload }) => {
     <button
       type="button"
       onClick={() => openDrawer('EXPORT_MODAL_TRAZ', payload)}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-white bg-content-primary hover:bg-content-secondary rounded-lg transition-all active:scale-95"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-content-inverse bg-content-primary hover:bg-content-secondary rounded-lg transition-all active:scale-95"
       title="Descargar hoja de trazabilidad (PDF)"
     >
       <Download size={12} /> Hoja PDF

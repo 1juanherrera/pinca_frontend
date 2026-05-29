@@ -26,7 +26,7 @@ const ScoreCard = ({ score, issuesActivos, totalChecks, isLoading }) => {
 
   return (
     <div className={cn('relative overflow-hidden rounded-2xl p-5 text-white', TONE.bg)}>
-      <div className="absolute top-0 right-0 w-40 h-40 bg-white opacity-10 rounded-full -mr-16 -mt-16" />
+      <div className="absolute top-0 right-0 w-40 h-40 bg-surface-base opacity-10 rounded-full -mr-16 -mt-16" />
       <div className="relative flex items-center justify-between gap-6 flex-wrap">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
@@ -60,7 +60,7 @@ const IssueSection = ({ title, icon: Icon, items, render, onAction, actionLabel,
   const isEmpty = !items || items.length === 0;
 
   return (
-    <div className="bg-white border border-border-base rounded-2xl shadow-card overflow-hidden">
+    <div className="bg-surface-base border border-border-base rounded-2xl shadow-card overflow-hidden">
       <div className="px-4 py-3 flex items-center justify-between border-b border-border-subtle">
         <div className="flex items-center gap-3 min-w-0">
           <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0', TONE.iconBg)}>
@@ -439,7 +439,7 @@ const SaludSistemaPage = ({ embedded = false, onNavigate }) => {
         )}>
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/60 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-surface-base/60 flex items-center justify-center">
                 <Truck size={18} className="text-content-secondary" />
               </div>
               <div>

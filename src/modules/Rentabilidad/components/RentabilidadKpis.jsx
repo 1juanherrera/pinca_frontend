@@ -35,7 +35,7 @@ const valueFontClass = (raw) => {
 const KpiCard = ({ label, icon: Icon, value, sub, theme }) => {
   const t = THEME[theme];
   return (
-    <div className="bg-white border border-border-base/70 rounded-xl shadow-sm px-3 py-3 hover:shadow-md transition-shadow overflow-hidden">
+    <div className="bg-surface-base border border-border-base/70 rounded-xl shadow-sm px-3 py-3 hover:shadow-md transition-shadow overflow-hidden">
       <div className="flex items-start justify-between gap-2 mb-1.5">
         <p className="text-[11px] font-medium text-content-tertiary leading-tight truncate min-w-0 pt-1">{label}</p>
         <div className={`w-8 h-8 ${t.iconBg} rounded-full flex items-center justify-center shrink-0`}>
@@ -103,7 +103,7 @@ const RentabilidadKpis = ({
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         {CARDS.map((c) => (
-          <div key={c.key} className="bg-white border border-border-base/70 rounded-xl h-24 animate-pulse" />
+          <div key={c.key} className="bg-surface-base border border-border-base/70 rounded-xl h-24 animate-pulse" />
         ))}
       </div>
     );

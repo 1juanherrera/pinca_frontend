@@ -41,7 +41,7 @@ const RentabilidadIndirectosPanel = ({ lista, porCategoria, totalMensual, isLoad
 
       {/* Tabla de ítems */}
       {lista.length > 0 ? (
-        <div className="bg-white border border-border-base/70 rounded-xl overflow-hidden">
+        <div className="bg-surface-base border border-border-base/70 rounded-xl overflow-hidden">
           <table className="w-full text-xs">
             <thead className="bg-surface-subtle border-b border-border-subtle">
               <tr>
@@ -84,7 +84,7 @@ const RentabilidadIndirectosPanel = ({ lista, porCategoria, totalMensual, isLoad
 
       {/* Total */}
       {lista.length > 0 && (
-        <div className="bg-content-primary text-white rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
+        <div className="bg-content-primary text-content-inverse rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
           <span className="text-content-muted">{lista.length} ítem(s) activos</span>
           <div className="text-right">
             <p className="text-content-muted font-normal text-[10px]">Total mensual</p>

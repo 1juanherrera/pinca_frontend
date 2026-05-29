@@ -130,7 +130,7 @@ const CatalogoTab = () => {
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold border rounded-lg transition-all ${
               row.item_general_nombre
                 ? 'text-semantic-success-fg border-semantic-success/20 hover:bg-semantic-success hover:text-white hover:border-semantic-success'
-                : 'text-content-tertiary border-border-base hover:bg-content-primary hover:text-white hover:border-content-primary'
+                : 'text-content-tertiary border-border-base hover:bg-content-primary hover:text-content-inverse hover:border-content-primary'
             }`}
             title={row.item_general_nombre ? 'Editar vínculo' : 'Vincular a ítem'}
           >
@@ -141,7 +141,7 @@ const CatalogoTab = () => {
           {/* Editar item_proveedor */}
           <button
             onClick={(e) => { e.stopPropagation(); openDrawer('ITEM_PROVEEDOR_FORM', row); }}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-white hover:border-content-primary transition-all active:scale-95"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all active:scale-95"
             title="Editar producto"
           >
             <Edit size={12} />
@@ -169,7 +169,7 @@ const CatalogoTab = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="bg-white border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
+      <div className="bg-surface-base border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
         <SearchFilterBar
           search={search}
           onSearch={setSearch}
