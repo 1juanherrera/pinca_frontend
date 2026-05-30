@@ -153,7 +153,7 @@ const PagosPage = () => {
           icon={Wallet}
           breadcrumbs={[
             { label: 'Facturación' },
-            { label: 'Pagos', path: '/pagos_cliente' },
+            { label: 'Pagos', path: '/pagos' },
           ]}
         />
         <Button variant="primary" onClick={() => openDrawer('PAGO_FORM')} icon={Plus}>

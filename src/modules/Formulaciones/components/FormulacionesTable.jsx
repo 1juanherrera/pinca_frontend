@@ -186,6 +186,22 @@ export const FormulacionesTable = ({
         };
     };
 
+    // Último precio = costo de la última recepción (capa más reciente) de la MP.
+    // Es informativo, ADICIONAL al costo promedio ponderado. Puede venir en la
+    // fila de la formulación, en el nodo materia, o en la opción de proveedor.
+    const getUltimoPrecio = (formulacion) => {
+        const mpId = formulacion.item_general_id;
+        const materia = materiasOpciones[mpId];
+        const opcion = getOpcionEfectiva(mpId);
+        const val =
+            formulacion?.ultimo_precio ??
+            materia?.ultimo_precio ??
+            opcion?.ultimo_precio ??
+            null;
+        const num = Number(val);
+        return Number.isFinite(num) && num > 0 ? num : null;
+    };
+
     // Total unificado y conteo de ingredientes sin proveedor. Inlineado para que
     // el compilador pueda memoizar sin depender de closures (`getCostoOverride`).
     const { totalUnificado, sinProveedor } = useMemo(() => {
@@ -328,6 +344,12 @@ export const FormulacionesTable = ({
                             <th className="px-3 py-2 text-center text-xs font-medium text-content-secondary uppercase tracking-wider">
                                 <div className="flex items-center justify-center gap-1">
                                     <DollarSign size={14} className="text-content-muted" />
+                                    Último precio
+                                </div>
+                            </th>
+                            <th className="px-3 py-2 text-center text-xs font-medium text-content-secondary uppercase tracking-wider">
+                                <div className="flex items-center justify-center gap-1">
+                                    <DollarSign size={14} className="text-content-muted" />
                                     Costo Total
                                 </div>
                             </th>
@@ -349,6 +371,7 @@ export const FormulacionesTable = ({
                                 </td>
                                 <td className="px-3 py-3"><div className="h-3 bg-surface-strong rounded w-12 mx-auto" /></td>
                                 <td className="px-3 py-3"><div className="h-3 bg-surface-strong rounded w-12 mx-auto" /></td>
+                                <td className="px-3 py-3"><div className="h-3 bg-surface-strong rounded w-16 mx-auto" /></td>
                                 <td className="px-3 py-3"><div className="h-3 bg-surface-strong rounded w-16 mx-auto" /></td>
                                 <td className="px-3 py-3"><div className="h-3 bg-surface-strong rounded w-16 mx-auto" /></td>
                             </tr>
@@ -471,6 +494,16 @@ export const FormulacionesTable = ({
                                 })()}
                                 </td>
 
+                                {/* ÚLTIMO PRECIO (informativo, capa más reciente) */}
+                                <td className="px-3 py-2 whitespace-nowrap text-center">
+                                {(() => {
+                                    const ultimoPrecio = getUltimoPrecio(formulacion);
+                                    return ultimoPrecio
+                                        ? <span className="text-sm font-medium text-content-secondary">{fmtCOP(ultimoPrecio)}</span>
+                                        : <span className="text-sm text-content-muted">—</span>;
+                                })()}
+                                </td>
+
                                 {/* COSTO TOTAL */}
                                 <td className="px-3 py-2 whitespace-nowrap text-center">
                                 {(() => {
@@ -523,7 +556,7 @@ export const FormulacionesTable = ({
                             })
                         ) : (
                             <tr>
-                            <td colSpan="6" className="text-center py-10 text-content-muted text-xs uppercase font-bold tracking-widest bg-surface-subtle">
+                            <td colSpan="7" className="text-center py-10 text-content-muted text-xs uppercase font-bold tracking-widest bg-surface-subtle">
                                 No hay componentes disponibles en esta formulación.
                             </td>
                             </tr>

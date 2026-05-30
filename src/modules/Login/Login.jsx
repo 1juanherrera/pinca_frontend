@@ -82,7 +82,7 @@ export const Login = () => {
   return (
     <div className="flex min-h-screen bg-surface-subtle text-content-primary">
       {/* ───────────────────── Panel izquierdo — branding inmersivo ───────────────────── */}
-      <div className="relative hidden w-[55%] flex-col justify-between overflow-hidden bg-surface-sidebar p-12 text-content-inverse lg:flex">
+      <div className="relative hidden w-[55%] flex-col justify-between overflow-hidden bg-surface-sidebar p-12 text-content-on-dark lg:flex">
         {/* Orbes de pintura flotantes */}
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -left-20 -top-24 h-96 w-96 rounded-full bg-brand-primary/30 blur-3xl animate-login-blob" />
@@ -128,7 +128,7 @@ export const Login = () => {
           </h1>
 
           <p
-            className="text-sm leading-relaxed text-content-muted animate-login-rise"
+            className="text-sm leading-relaxed text-content-on-dark-muted animate-login-rise"
             style={{ animationDelay: '320ms' }}
           >
             Pinturas Industriales del Caribe S.A.S. — inventario, producción, cartera y
@@ -150,8 +150,8 @@ export const Login = () => {
               <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-primary/15 text-brand-primary ring-1 ring-brand-primary/20 transition-colors group-hover:bg-brand-primary group-hover:text-brand-on-primary">
                 <Icon size={16} />
               </span>
-              <p className="text-sm font-semibold text-content-inverse">{label}</p>
-              <p className="mt-0.5 text-xs leading-snug text-content-muted">{desc}</p>
+              <p className="text-sm font-semibold text-content-on-dark">{label}</p>
+              <p className="mt-0.5 text-xs leading-snug text-content-on-dark-muted">{desc}</p>
             </div>
           ))}
         </div>
@@ -166,7 +166,7 @@ export const Login = () => {
         <div className="relative w-full max-w-md">
           {/* Logo letras (branding también en móvil) */}
           <div className="mb-8 flex justify-center animate-login-rise">
-            <img src={PincaLetters} alt="Pinca" className="h-12 w-auto" />
+            <img src={PincaLetters} alt="Pinca" className="h-12 w-auto dark:brightness-0 dark:invert" />
           </div>
 
           {/* Card del formulario */}

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ShoppingCart, Plus, ClipboardList, History, Sparkles } from 'lucide-react';
+import { ShoppingCart, Plus, ClipboardList, History, Sparkles, Calculator } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import { Button }    from '../../shared/Button';
 import PageTabs      from '../../shared/PageTabs';
@@ -10,12 +10,14 @@ import OrdenForm     from './components/OrdenForm';
 import OrdenDrawer   from './components/OrdenDrawer';
 import OrdenesTab from './components/OrdenesTab';
 import ExportOrdenCompra from './components/ExportOrdenCompra';
+import CalculadoraProrrateo from './components/CalculadoraProrrateo';
 import RequisicionesMrpTab from './components/RequisicionesMrpTab';
 import { useRequisiciones } from '../Produccion/api/useRequisiciones';
 
 const ComprasPage = () => {
   const [tab,          setTab]          = useState('ordenes');
   const [ordenSelected, setOrdenSelected] = useState(null);
+  const [calcOpen,     setCalcOpen]     = useState(false);
 
   const { openDrawer } = useBoundStore();
   // Contador para el badge del tab MRP (sin trigger refetch del listado completo del tab)
@@ -43,15 +45,24 @@ const ComprasPage = () => {
           ]}
         />
 
-        {tab === 'ordenes' && (
+        <div className="flex items-center gap-2">
           <Button
-            variant="black"
-            onClick={() => openDrawer('ORDEN_COMPRA_FORM')}
-            icon={Plus}
+            variant="secondary"
+            onClick={() => setCalcOpen(true)}
+            icon={Calculator}
           >
-            Nueva Orden
+            Simular prorrateo
           </Button>
-        )}
+          {tab === 'ordenes' && (
+            <Button
+              variant="black"
+              onClick={() => openDrawer('ORDEN_COMPRA_FORM')}
+              icon={Plus}
+            >
+              Nueva Orden
+            </Button>
+          )}
+        </div>
       </div>
 
       <PageTabs tabs={tabs} value={tab} onChange={setTab} size="lg" />
@@ -69,6 +80,7 @@ const ComprasPage = () => {
       <OrdenForm />
       <ExportOrdenCompra />
       <ConfirmModal />
+      <CalculadoraProrrateo isOpen={calcOpen} onClose={() => setCalcOpen(false)} />
 
       <OrdenDrawer
         ordenId={ordenSelected?.id_orden}

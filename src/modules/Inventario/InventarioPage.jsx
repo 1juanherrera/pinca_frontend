@@ -28,7 +28,7 @@ const InventarioPage = () => {
           icon={Store}
           breadcrumbs={[
             { label: 'Administración' },
-            { label: 'Sedes', path: '/' },
+            { label: 'Sedes', path: '/sedes' },
             { label: sedeName || 'Sede', path: items?.instalaciones_id ? `/instalaciones/bodegas/${items.instalaciones_id}` : '#' },
             { label: isLoadingItems ? '' : (items?.nombre || 'Bodega'), path: `/inventario/bodega/${id_bodega}` },
           ]}

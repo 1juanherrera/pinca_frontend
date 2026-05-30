@@ -67,7 +67,7 @@ const BodegaPage = () => {
           icon={Building2}
           breadcrumbs={[
             { label: 'Administración' },
-            { label: 'Sedes', path: '/' },
+            { label: 'Sedes', path: '/sedes' },
             { label: bodegasInstalacion?.nombre || '', path: `/instalaciones/bodegas/${id}` },
           ]}
         />

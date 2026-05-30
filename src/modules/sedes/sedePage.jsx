@@ -25,7 +25,7 @@ const SedePage = () => {
           icon={Building2}
           breadcrumbs={[
             { label: "Administración" },
-            { label: "Sedes", path: "/" }
+            { label: "Sedes", path: "/sedes" }
           ]}
         />
 

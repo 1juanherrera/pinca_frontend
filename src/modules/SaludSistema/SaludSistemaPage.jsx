@@ -415,7 +415,7 @@ const SaludSistemaPage = ({ embedded = false, onNavigate }) => {
           icon={HeartPulse}
           breadcrumbs={[
             { label: 'Análisis' },
-            { label: 'Salud del Sistema', path: '/salud-sistema' },
+            { label: 'Salud del Sistema' },
           ]}
         />
         <Button variant="secondary" icon={RefreshCw} onClick={() => refetch()} disabled={isLoading}>
