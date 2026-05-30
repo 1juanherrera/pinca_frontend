@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { inventarioKeys } from '../../Inventario/api/inventarioKeys';
 import toast from 'react-hot-toast';
 import { proveedorKeys } from './ProveedorKeys';
@@ -10,18 +11,18 @@ export const useProveedores = () => {
   // ── GET: Lista de proveedores ─────────────────────────────────────────
   const queryProveedores = useQuery({
     queryKey: proveedorKeys.lists(),
-    queryFn:  () => apiClient.get('/proveedores'),
+    queryFn:  () => apiClient.get(API_ROUTES.PROVEEDORES),
   });
 
   // ── GET: Catálogo de item_proveedor con JOIN proveedor + item_general ──
   const queryCatalogo = useQuery({
     queryKey: proveedorKeys.catalogoList(),
-    queryFn:  () => apiClient.get('/item_proveedores'),
+    queryFn:  () => apiClient.get(API_ROUTES.ITEM_PROVEEDORES.LIST),
   });
 
   // ── CREATE proveedor ──────────────────────────────────────────────────
   const createMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/proveedores', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.PROVEEDORES, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: proveedorKeys.lists() });
       toast.success('Proveedor creado correctamente');
@@ -31,7 +32,7 @@ export const useProveedores = () => {
 
   // ── UPDATE proveedor ──────────────────────────────────────────────────
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/proveedores/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(`${API_ROUTES.PROVEEDORES}/${id}`, data),
     onSuccess: (_response, { id, data }) => {
       queryClient.setQueryData(proveedorKeys.lists(), (old) => {
         if (!Array.isArray(old)) return old;
@@ -47,7 +48,7 @@ export const useProveedores = () => {
 
   // ── DELETE proveedor ──────────────────────────────────────────────────
   const deleteMutation = useMutation({
-    mutationFn: (id) => apiClient.delete(`/proveedores/${id}`),
+    mutationFn: (id) => apiClient.delete(`${API_ROUTES.PROVEEDORES}/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: proveedorKeys.lists() });
       toast.success('Proveedor eliminado correctamente');
@@ -57,7 +58,7 @@ export const useProveedores = () => {
 
   // ── CREATE item_proveedor ─────────────────────────────────────────────
   const createItemMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/item_proveedores', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.ITEM_PROVEEDORES.CREATE, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: proveedorKeys.catalogoList() });
       toast.success('Producto agregado al catálogo');
@@ -67,7 +68,7 @@ export const useProveedores = () => {
 
   // ── UPDATE item_proveedor ─────────────────────────────────────────────
   const updateItemMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/item_proveedores/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.ITEM_PROVEEDORES.UPDATE(id), data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: proveedorKeys.catalogoList() });
       toast.success('Producto actualizado correctamente');
@@ -77,7 +78,7 @@ export const useProveedores = () => {
 
   // ── DELETE item_proveedor ─────────────────────────────────────────────
   const deleteItemMutation = useMutation({
-    mutationFn: (id) => apiClient.delete(`/item_proveedores/${id}`),
+    mutationFn: (id) => apiClient.delete(API_ROUTES.ITEM_PROVEEDORES.DELETE(id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: proveedorKeys.catalogoList() });
       toast.success('Producto eliminado del catálogo');
@@ -87,7 +88,7 @@ export const useProveedores = () => {
 
   // ── VINCULAR item_proveedor con item_general ──────────────────────────
   const vincularMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.patch(`/item_proveedores/${id}/vincular`, data),
+    mutationFn: ({ id, data }) => apiClient.patch(API_ROUTES.ITEM_PROVEEDORES.VINCULAR(id), data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: proveedorKeys.catalogoList() });
       // Si se ingresó al inventario también refrescamos las bodegas

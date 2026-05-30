@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { clienteKeys } from './clienteKeys';
 import toast from 'react-hot-toast';
 
@@ -9,20 +10,20 @@ export const useClientes = (id = null) => {
   // 1. Query: Lista de todos los clientes
   const queryClientes = useQuery({
     queryKey: clienteKeys.lists(),
-    queryFn: () => apiClient.get('/clientes'),
+    queryFn: () => apiClient.get(API_ROUTES.CLIENTES),
   });
 
   // 2. Query: Información específica de UN cliente
   const queryInfo = useQuery({
     queryKey: clienteKeys.detail(id),
-    queryFn: () => apiClient.get(`/clientes/${id}`),
+    queryFn: () => apiClient.get(`${API_ROUTES.CLIENTES}/${id}`),
     enabled: !!id,
   });
 
   // --- MUTACIONES --- //
 
   const createMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/clientes', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.CLIENTES, data),
     onSuccess: (response, variables) => {
       const nuevoCliente = response?.data || { ...variables, id_clientes: Date.now().toString() };
 
@@ -40,7 +41,7 @@ export const useClientes = (id = null) => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/clientes/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(`${API_ROUTES.CLIENTES}/${id}`, data),
     onSuccess: (response, variables) => {
       queryClient.setQueryData(clienteKeys.lists(), (oldData) => {
         if (!Array.isArray(oldData)) return oldData;
@@ -61,7 +62,7 @@ export const useClientes = (id = null) => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (idToDelete) => apiClient.delete(`/clientes/${idToDelete}`),
+    mutationFn: (idToDelete) => apiClient.delete(`${API_ROUTES.CLIENTES}/${idToDelete}`),
     onSuccess: (response, idToDelete) => {
       queryClient.setQueryData(clienteKeys.lists(), (oldData) => {
         if (!Array.isArray(oldData)) return oldData;

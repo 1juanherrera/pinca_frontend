@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { facturaKeys } from './facturaKeys';
 import apiClient from '../../../../api/apiClient';
+import { API_ROUTES } from '../../../../api/apiRoutes';
 
 /**
  * useFacturas(id?)
@@ -15,41 +16,41 @@ export const useFactura = (id = null) => {
   // ── 1. Lista de todas las facturas ──────────────────────────────────────
   const queryFacturas = useQuery({
     queryKey: facturaKeys.lists(),
-    queryFn:  () => apiClient.get('/facturas'),
+    queryFn:  () => apiClient.get(API_ROUTES.FACTURAS.LIST),
   });
 
   // ── 2. Cabecera de UNA factura ───────────────────────────────────────────
   const queryInfo = useQuery({
     queryKey: facturaKeys.detail(id),
-    queryFn:  () => apiClient.get(`/facturas/${id}`),
+    queryFn:  () => apiClient.get(API_ROUTES.FACTURAS.DETAIL(id)),
     enabled:  !!id,
   });
 
   // ── 3. Ítems / líneas de la factura ─────────────────────────────────────
   const queryDetalle = useQuery({
     queryKey: facturaKeys.detalle(id),
-    queryFn:  () => apiClient.get(`/facturas/${id}/detalle`),
+    queryFn:  () => apiClient.get(API_ROUTES.FACTURAS.DETALLE(id)),
     enabled:  !!id,
   });
 
   // ── 4. Abonos / pagos vinculados a la factura ────────────────────────────
   const queryAbonos = useQuery({
     queryKey: facturaKeys.abonos(id),
-    queryFn:  () => apiClient.get(`/facturas/${id}/abonos`),
+    queryFn:  () => apiClient.get(API_ROUTES.FACTURAS.ABONOS(id)),
     enabled:  !!id,
   });
 
   // ── 5. Remisión vinculada ────────────────────────────────────────────────
   const queryRemision = useQuery({
     queryKey: facturaKeys.remision(id),
-    queryFn:  () => apiClient.get(`/facturas/${id}/remision`),
+    queryFn:  () => apiClient.get(API_ROUTES.FACTURAS.REMISION(id)),
     enabled:  !!id,
   });
 
   // ── MUTACIONES ───────────────────────────────────────────────────────────
 
   const createMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/facturas', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.FACTURAS.CREATE, data),
     onSuccess: (response, variables) => {
       const nueva = response?.data || { ...variables, id_facturas: Date.now() };
 
@@ -65,7 +66,7 @@ export const useFactura = (id = null) => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/facturas/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.FACTURAS.UPDATE(id), data),
     onSuccess: (response, variables) => {
       // Actualiza el ítem en la lista
       queryClient.setQueryData(facturaKeys.lists(), (old) => {
@@ -87,7 +88,7 @@ export const useFactura = (id = null) => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (idToDelete) => apiClient.delete(`/facturas/${idToDelete}`),
+    mutationFn: (idToDelete) => apiClient.delete(API_ROUTES.FACTURAS.DELETE(idToDelete)),
     onSuccess: (_, idToDelete) => {
       queryClient.setQueryData(facturaKeys.lists(), (old) => {
         if (!Array.isArray(old)) return old;
@@ -102,7 +103,7 @@ export const useFactura = (id = null) => {
 
   // Cambiar estado de factura (Pendiente → Pagada, Anulada, etc.)
   const cambiarEstadoMutation = useMutation({
-    mutationFn: ({ id, estado }) => apiClient.patch(`/facturas/${id}/estado`, { estado }),
+    mutationFn: ({ id, estado }) => apiClient.patch(API_ROUTES.FACTURAS.ESTADO(id), { estado }),
     onSuccess: (response, variables) => {
       queryClient.setQueryData(facturaKeys.lists(), (old) => {
         if (!Array.isArray(old)) return old;

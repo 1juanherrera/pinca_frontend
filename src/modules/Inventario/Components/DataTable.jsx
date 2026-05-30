@@ -36,6 +36,10 @@ const DataTable = () => {
 
   const id_bodega   = useBoundStore(state => state.activeBodegaId);
   const openConfirm = useBoundStore(state => state.openConfirm);
+  const user        = useBoundStore(state => state.user);
+  // El backend devuelve 403 al visor en traspaso/ajuste-manual/remove-from-bodega.
+  // Ocultamos esas acciones para no mostrar botones que van a fallar.
+  const puedeEditarStock = user?.rol !== 'visor';
 
   const { isLoadingItems, items, isFetching, traspasoAsync, isTrashing,
           removeFromBodegaAsync, ajusteManualAsync, isAjustando } = useInventario(
@@ -154,34 +158,40 @@ const DataTable = () => {
 
                       <td className="px-3 py-1.5">
                         <div className="flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => openConfirm({
-                              title:   'Eliminar item',
-                              message: `¿Eliminar "${getNombre(item)}" de esta bodega?`,
-                              onConfirm: async () => await removeFromBodegaAsync({
-                                itemId:   getId(item),
-                                bodegaId: id_bodega,
-                              }),
-                            })}
-                            title="Eliminar"
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-colors"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                          <button
-                            onClick={() => setItemTraspaso(item)}
-                            title="Traspasar a otra bodega"
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-info hover:text-white hover:border-semantic-info transition-colors"
-                          >
-                            <ArrowRightLeft size={12} />
-                          </button>
-                          <button
-                            onClick={() => setItemAjuste(item)}
-                            title="Ajuste manual (rotura, derrame, conteo)"
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-warning hover:text-white hover:border-semantic-warning transition-colors"
-                          >
-                            <Wrench size={12} />
-                          </button>
+                          {puedeEditarStock ? (
+                            <>
+                              <button
+                                onClick={() => openConfirm({
+                                  title:   'Eliminar item',
+                                  message: `¿Eliminar "${getNombre(item)}" de esta bodega?`,
+                                  onConfirm: async () => await removeFromBodegaAsync({
+                                    itemId:   getId(item),
+                                    bodegaId: id_bodega,
+                                  }),
+                                })}
+                                title="Eliminar"
+                                className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-colors"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                              <button
+                                onClick={() => setItemTraspaso(item)}
+                                title="Traspasar a otra bodega"
+                                className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-info hover:text-white hover:border-semantic-info transition-colors"
+                              >
+                                <ArrowRightLeft size={12} />
+                              </button>
+                              <button
+                                onClick={() => setItemAjuste(item)}
+                                title="Ajuste manual (rotura, derrame, conteo)"
+                                className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-warning hover:text-white hover:border-semantic-warning transition-colors"
+                              >
+                                <Wrench size={12} />
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-content-muted text-xs">—</span>
+                          )}
                         </div>
                       </td>
                     </tr>

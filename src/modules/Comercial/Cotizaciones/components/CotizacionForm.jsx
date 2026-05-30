@@ -3,7 +3,7 @@
  * Con select de cliente, bodega y selector de ítems del inventario.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { X, Plus, Trash2, Save, Search, ChevronDown, User, Package, Warehouse, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useBoundStore }   from '../../../../store/useBoundStore';
@@ -36,14 +36,21 @@ const fmtCOP = (v) =>
 const SearchSelect = ({ placeholder, value, onChange, options = [], loading = false, renderOption, renderValue }) => {
   const [open,   setOpen]   = useState(false);
   const [search, setSearch] = useState('');
+  // Debounce del término: el input se mantiene instantáneo, pero el filtro
+  // (que recorre Object.values de 100+ opciones) corre ~200ms tras teclear.
+  const [debounced, setDebounced] = useState('');
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(search), 200);
+    return () => clearTimeout(t);
+  }, [search]);
 
   const filtered = useMemo(() => {
-    if (!search) return options;
-    const q = search.toLowerCase();
+    if (!debounced) return options;
+    const q = debounced.toLowerCase();
     return options.filter((o) =>
       Object.values(o).some((v) => String(v ?? '').toLowerCase().includes(q))
     );
-  }, [options, search]);
+  }, [options, debounced]);
 
   return (
     <div className="relative">

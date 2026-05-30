@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { bodegaKeys } from './bodegaKeys';
 import toast from 'react-hot-toast';
 
@@ -9,20 +10,20 @@ export const useBodegas = (id = null) => {
   // 1. Query: Lista de todas las bodegas
   const queryBodegas = useQuery({
     queryKey: bodegaKeys.lists(),
-    queryFn: () => apiClient.get('/bodegas'),
+    queryFn: () => apiClient.get(API_ROUTES.BODEGAS.LIST),
   });
 
   // 2. Query: Información específica de UNA bodega
   const queryInfo = useQuery({
     queryKey: bodegaKeys.detail(id),
-    queryFn: () => apiClient.get(`/instalaciones/bodegas/${id}`),
+    queryFn: () => apiClient.get(API_ROUTES.INSTALACIONES.BODEGAS(id)),
     enabled: !!id,
   });
 
   // --- MUTACIONES --- //
 
   const createMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/bodegas', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.BODEGAS.LIST, data),
     onSuccess: (response, variables) => { 
       
       // MAGIA DE CREACIÓN: Inyectamos la nueva bodega directo en la memoria
@@ -51,7 +52,7 @@ export const useBodegas = (id = null) => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/bodegas/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.BODEGAS.DETAIL(id), data),
     onSuccess: (response, variables) => {
       
       // MAGIA DE EDICIÓN: Buscamos y actualizamos la tarjeta sin recargar la página
@@ -84,7 +85,7 @@ export const useBodegas = (id = null) => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (idToDelete) => apiClient.delete(`/bodegas/${idToDelete}`),
+    mutationFn: (idToDelete) => apiClient.delete(API_ROUTES.BODEGAS.DETAIL(idToDelete)),
     onSuccess: (response, idToDelete) => { 
       
       // MAGIA DE ELIMINACIÓN: Filtramos y quitamos la tarjeta en 0ms

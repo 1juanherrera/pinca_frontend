@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import toast from 'react-hot-toast';
 import { instalacionesKeys } from './InstalacionesKeys';
 
@@ -9,20 +10,20 @@ export const useInstalaciones = (id = null) => {
   // 1. Query: Lista de todas las instalaciones
   const queryinstalaciones = useQuery({
     queryKey: instalacionesKeys.lists(),
-    queryFn: () => apiClient.get('/instalaciones'),
+    queryFn: () => apiClient.get(API_ROUTES.INSTALACIONES.LIST),
   });
 
   // 2. Query: Información específica de UNA instalación
   const queryInfo = useQuery({
     queryKey: instalacionesKeys.detail(id),
-    queryFn: () => apiClient.get(`/instalaciones/${id}`),
+    queryFn: () => apiClient.get(API_ROUTES.INSTALACIONES.DETAIL(id)),
     enabled: !!id,
   });
 
   // --- MUTACIONES ---
 
   const createMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/instalaciones', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.INSTALACIONES.LIST, data),
     onSuccess: (response, variables) => {
       // MAGIA: Inyectamos la nueva sede en la lista principal instantáneamente
       queryClient.setQueryData(instalacionesKeys.lists(), (oldData) => {
@@ -43,7 +44,7 @@ export const useInstalaciones = (id = null) => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/instalaciones/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.INSTALACIONES.DETAIL(id), data),
     onSuccess: (response, variables) => {
       // MAGIA: Actualizamos la sede en la lista principal
       queryClient.setQueryData(instalacionesKeys.lists(), (oldData) => {
@@ -71,7 +72,7 @@ export const useInstalaciones = (id = null) => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (idToDelete) => apiClient.delete(`/instalaciones/${idToDelete}`),
+    mutationFn: (idToDelete) => apiClient.delete(API_ROUTES.INSTALACIONES.DETAIL(idToDelete)),
     onSuccess: (response, idToDelete) => {
       // MAGIA: Filtramos la sede eliminada de la lista en 0ms
       queryClient.setQueryData(instalacionesKeys.lists(), (oldData) => {

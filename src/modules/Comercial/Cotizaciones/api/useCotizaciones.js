@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cotizacionKeys } from './cotizacionKeys';
 import toast from 'react-hot-toast';
 import apiClient from '../../../../api/apiClient';
+import { API_ROUTES } from '../../../../api/apiRoutes';
 import { facturaKeys } from '../../Facturacion/api/facturaKeys';
 
 /**
@@ -18,28 +19,28 @@ export const useCotizaciones = (id = null, clienteId = null) => {
   const queryCotizaciones = useQuery({
     queryKey: clienteId ? cotizacionKeys.byCliente(clienteId) : cotizacionKeys.lists(),
     queryFn:  () => clienteId
-      ? apiClient.get(`/cotizaciones?cliente_id=${clienteId}`)
-      : apiClient.get('/cotizaciones'),
+      ? apiClient.get(API_ROUTES.COTIZACIONES.BY_CLIENT(clienteId))
+      : apiClient.get(API_ROUTES.COTIZACIONES.LIST),
   });
 
   // ── 2. Detalle de UNA cotización ─────────────────────────────────────────
   const queryInfo = useQuery({
     queryKey: cotizacionKeys.detail(id),
-    queryFn:  () => apiClient.get(`/cotizaciones/${id}`),
+    queryFn:  () => apiClient.get(API_ROUTES.COTIZACIONES.DETAIL(id)),
     enabled:  !!id,
   });
 
   // ── 3. Ítems de la cotización ────────────────────────────────────────────
   const queryDetalle = useQuery({
     queryKey: cotizacionKeys.detalle(id),
-    queryFn:  () => apiClient.get(`/cotizaciones/${id}/detalle`),
+    queryFn:  () => apiClient.get(API_ROUTES.COTIZACIONES.DETALLE(id)),
     enabled:  !!id,
   });
 
   // ── MUTACIONES ───────────────────────────────────────────────────────────
 
   const createMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/cotizaciones', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.COTIZACIONES.CREATE, data),
     onSuccess: (response, variables) => {
       const nueva = response?.data || { ...variables, id_cotizaciones: Date.now() };
 
@@ -55,7 +56,7 @@ export const useCotizaciones = (id = null, clienteId = null) => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/cotizaciones/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.COTIZACIONES.UPDATE(id), data),
     onSuccess: (response, variables) => {
       queryClient.setQueryData(cotizacionKeys.lists(), (old) => {
         if (!Array.isArray(old)) return old;
@@ -75,7 +76,7 @@ export const useCotizaciones = (id = null, clienteId = null) => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (idToDelete) => apiClient.delete(`/cotizaciones/${idToDelete}`),
+    mutationFn: (idToDelete) => apiClient.delete(API_ROUTES.COTIZACIONES.DELETE(idToDelete)),
     onSuccess: (_, idToDelete) => {
       queryClient.setQueryData(cotizacionKeys.lists(), (old) => {
         if (!Array.isArray(old)) return old;
@@ -91,7 +92,7 @@ export const useCotizaciones = (id = null, clienteId = null) => {
   // Cambiar estado (Enviada, Aceptada, Rechazada, Vencida)
   const cambiarEstadoMutation = useMutation({
     mutationFn: ({ id, estado }) =>
-      apiClient.patch(`/cotizaciones/${id}/estado`, { estado }),
+      apiClient.patch(API_ROUTES.COTIZACIONES.ESTADO(id), { estado }),
     onSuccess: (response, variables) => {
       const updateFn = (old) => {
         if (!Array.isArray(old)) return old;
@@ -112,7 +113,7 @@ export const useCotizaciones = (id = null, clienteId = null) => {
   // ── ACCIÓN ESPECIAL: Convertir cotización → Factura ──────────────────────
   const convertirMutation = useMutation({
     mutationFn: (cotizacionId) =>
-      apiClient.post(`/cotizaciones/${cotizacionId}/convertir`),
+      apiClient.post(API_ROUTES.COTIZACIONES.CONVERTIR(cotizacionId)),
     onSuccess: (response, cotizacionId) => {
       const nuevaFactura = response?.data;
 

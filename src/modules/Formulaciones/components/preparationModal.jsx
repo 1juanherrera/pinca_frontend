@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   X, Stamp, FlaskConical, TrendingUp, Package, ArrowRight, Layers,
   Cylinder, GlassWater, TestTube, Pipette, CheckCircle2, ChevronRight,
@@ -344,21 +344,23 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
   const cfg      = UNIT_CONFIG[unidad.nombre] ?? { icon: Package, color: 'text-content-secondary', bg: 'bg-surface-muted', border: 'border-border-base' };
   const cantidad = calcularCantidad(volumen, escala);
 
-  const handleModoChange = (itemId, modo) => {
+  // Callbacks memoizados (deps estables vía setState funcional) para que
+  // CapasStockPanel pueda incluirlas en deps de sus useEffect sin re-render en cascada.
+  const handleModoChange = useCallback((itemId, modo) => {
     setCapasConfig(prev => ({
       ...prev,
       [itemId]: { ...prev[itemId], modo, capas: [], seleccionManual: {} },
     }));
-  };
+  }, []);
 
-  const handleBodegaChange = (itemId, bodegaId) => {
+  const handleBodegaChange = useCallback((itemId, bodegaId) => {
     setCapasConfig(prev => ({
       ...prev,
       [itemId]: { ...prev[itemId], bodega_id: bodegaId },
     }));
-  };
+  }, []);
 
-  const handleProveedorChange = (itemId, proveedorId) => {
+  const handleProveedorChange = useCallback((itemId, proveedorId) => {
     setCapasConfig(prev => {
       const current = prev[itemId] || {};
       return {
@@ -371,13 +373,13 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
         },
       };
     });
-  };
+  }, []);
 
-  const handleDeficitChange = (itemId, hasDeficit) => {
+  const handleDeficitChange = useCallback((itemId, hasDeficit) => {
     setDeficits(prev => ({ ...prev, [itemId]: hasDeficit }));
-  };
+  }, []);
 
-  const handleSeleccionChange = (itemId, capasArr, modo) => {
+  const handleSeleccionChange = useCallback((itemId, capasArr, modo) => {
     setCapasConfig(prev => {
       const seleccionManual = {};
       capasArr.forEach(c => { seleccionManual[c.capa_id] = c.cantidad; });
@@ -386,13 +388,13 @@ const ConfirmSubForm = ({ unidad, item, volumen, formulaciones = [], onBack, onS
         [itemId]: { ...prev[itemId], modo, capas: capasArr, seleccionManual },
       };
     });
-  };
+  }, []);
 
   const hasAnyDeficit = Object.values(deficits).some(Boolean);
 
-  const handleCostoChange = (itemId, data) => {
+  const handleCostoChange = useCallback((itemId, data) => {
     setCostosData(prev => ({ ...prev, [itemId]: data }));
-  };
+  }, []);
 
   // Comparación Costo Real (selección) vs Costo Teórico (promedio inventario)
   const varCostos = useMemo(() => {

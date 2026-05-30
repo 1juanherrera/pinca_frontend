@@ -1,8 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import cn from '../utils/cn';
 import { useBoundStore } from '../store/useBoundStore';
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 const SIZE_CLASSES = {
   sm:  'max-w-sm',
@@ -30,6 +33,7 @@ const Drawer = ({
   dirtyMessage = 'Tenés cambios sin guardar. ¿Cerrar igual?',
 }) => {
   const openConfirm = useBoundStore((s) => s.openConfirm);
+  const panelRef = useRef(null);
 
   // Wrapper de cierre: si el form está "dirty", pide confirmación antes
   // de descartar. Para cierres programáticos (post-submit) la página
@@ -57,6 +61,48 @@ const Drawer = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, closeOnEsc, onClose, isDirty]);
 
+  // Autofocus al abrir + focus-trap (Tab/Shift+Tab) + restauración de foco al cerrar
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    const node = panelRef.current;
+    const getFocusable = () =>
+      node
+        ? Array.from(node.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+            (el) => el.offsetParent !== null || el === document.activeElement
+          )
+        : [];
+
+    const focusables = getFocusable();
+    if (focusables.length > 0) focusables[0].focus();
+    else node?.focus();
+
+    const onKeyDown = (e) => {
+      if (e.key !== 'Tab') return;
+      const items = getFocusable();
+      if (items.length === 0) { e.preventDefault(); node?.focus(); return; }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey) {
+        if (active === first || !node?.contains(active)) { e.preventDefault(); last.focus(); }
+      } else if (active === last || !node?.contains(active)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    node?.addEventListener('keydown', onKeyDown);
+    return () => {
+      node?.removeEventListener('keydown', onKeyDown);
+      previouslyFocused?.focus?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const sizeClass = SIZE_CLASSES[size] ?? SIZE_CLASSES.md;
@@ -70,6 +116,8 @@ const Drawer = ({
       />
 
       <div
+        ref={panelRef}
+        tabIndex={-1}
         className={cn(
           'fixed inset-y-0 right-0 z-[101] w-full flex flex-col',
           'bg-surface-base border-l border-border-base shadow-xl',

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { pagoKeys } from './pagoKeys';
 import toast from 'react-hot-toast';
 import { facturaKeys } from '../../Comercial/Facturacion/api/facturaKeys';
@@ -23,16 +24,16 @@ export const usePagos = ({ clienteId = null, facturaId = null } = {}) => {
         ? pagoKeys.byCliente(clienteId)
         : pagoKeys.lists(),
     queryFn: () => {
-      if (facturaId) return apiClient.get(`/facturas/${facturaId}/abonos`);
-      if (clienteId) return apiClient.get(`/pagos_cliente?cliente_id=${clienteId}`);
-      return apiClient.get('/pagos_cliente');
+      if (facturaId) return apiClient.get(API_ROUTES.FACTURAS.ABONOS(facturaId));
+      if (clienteId) return apiClient.get(API_ROUTES.PAGOS.BY_CLIENT(clienteId));
+      return apiClient.get(API_ROUTES.PAGOS.LIST);
     },
   });
 
   // ── MUTACIONES ───────────────────────────────────────────────────────────
 
   const createMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/pagos_cliente', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.PAGOS.CREATE, data),
     onSuccess: (response, variables) => {
       const nuevo = response?.data || { ...variables, id_pagos_cliente: Date.now() };
 
@@ -63,7 +64,7 @@ export const usePagos = ({ clienteId = null, facturaId = null } = {}) => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/pagos_cliente/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(`${API_ROUTES.PAGOS.LIST}/${id}`, data),
     onSuccess: (response, variables) => {
       queryClient.setQueryData(pagoKeys.lists(), (old) => {
         if (!Array.isArray(old)) return old;
@@ -80,7 +81,7 @@ export const usePagos = ({ clienteId = null, facturaId = null } = {}) => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (idToDelete) => apiClient.delete(`/pagos_cliente/${idToDelete}`),
+    mutationFn: (idToDelete) => apiClient.delete(API_ROUTES.PAGOS.DELETE(idToDelete)),
     onSuccess: (_, idToDelete) => {
       queryClient.setQueryData(pagoKeys.lists(), (old) => {
         if (!Array.isArray(old)) return old;

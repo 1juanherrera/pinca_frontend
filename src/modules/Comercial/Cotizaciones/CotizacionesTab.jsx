@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import {
-  ClipboardList, Send, CheckCircle2, ArrowRight, Eye, Trash2, Download, CircleAlert, Plus, FileSpreadsheet
+  ClipboardList, Send, CheckCircle2, ArrowRight, Eye, Trash2, Download, CircleAlert, Plus, FileSpreadsheet, Ban, X
 } from 'lucide-react';
 import { exportCotizacionesExcel } from './components/ExportCotizacionExcel';
 import { Button } from '../../../shared/Button';
@@ -34,6 +35,21 @@ const CotizacionesTab = () => {
   const [filters,  setFilters]  = useState({ estado: '' });
   const [selected, setSelected] = useState(null);
 
+  // ─── Selección múltiple (bulk actions) — patrón de FacturasTable ─────────
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  const toggleSelected = useCallback((id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
   const metrics = useMemo(() => {
     const list = Array.isArray(cotizaciones) ? cotizaciones : [];
     return {
@@ -63,7 +79,80 @@ const CotizacionesTab = () => {
   const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
   const pagination = useClientPagination(sorted, 20);
 
+  // Select-all sobre las filas visibles (página actual).
+  const visibleIds = useMemo(
+    () => pagination.paginated.map((r) => r.id_cotizaciones).filter(Boolean),
+    [pagination.paginated],
+  );
+  const allVisibleSelected  = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+  const someVisibleSelected = visibleIds.some((id) => selectedIds.has(id));
+
+  const toggleSelectAllVisible = useCallback(() => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) visibleIds.forEach((id) => next.delete(id));
+      else                    visibleIds.forEach((id) => next.add(id));
+      return next;
+    });
+  }, [allVisibleSelected, visibleIds]);
+
+  // ─── Bulk action: cambiar estado a Rechazada ────────────────────────────
+  // cambiarEstado es .mutate (no devuelve promesa); lo envolvemos con sus
+  // callbacks per-call para poder usar Promise.allSettled sin tocar el hook.
+  const runBulkRechazar = useCallback(async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    setBulkLoading(true);
+    const results = await Promise.allSettled(
+      ids.map((id) => new Promise((resolve, reject) =>
+        cambiarEstado({ id, estado: 'Rechazada' }, { onSuccess: resolve, onError: reject }),
+      )),
+    );
+    const ok   = results.filter((r) => r.status === 'fulfilled').length;
+    const fail = results.length - ok;
+    setBulkLoading(false);
+    clearSelection();
+    if (fail === 0)      toast.success(`${ok} cotización(es) rechazada(s)`);
+    else if (ok === 0)   toast.error(`No se pudo rechazar ninguna (${fail} con error)`);
+    else                 toast.success(`${ok} actualizadas, ${fail} con error`);
+  }, [selectedIds, cambiarEstado, clearSelection]);
+
+  const handleBulkRechazarClick = useCallback(() => {
+    if (selectedIds.size === 0) return;
+    openConfirm({
+      title:   'Rechazar cotizaciones seleccionadas',
+      message: `¿Marcar como Rechazadas ${selectedIds.size} cotización(es)?`,
+      variant: 'danger',
+      onConfirm: runBulkRechazar,
+    });
+  }, [selectedIds.size, openConfirm, runBulkRechazar]);
+
 const columns = useMemo(() => [
+    {
+      key:      '__select',
+      label: (
+        <input
+          type="checkbox"
+          checked={allVisibleSelected}
+          ref={(el) => { if (el) el.indeterminate = !allVisibleSelected && someVisibleSelected; }}
+          onChange={toggleSelectAllVisible}
+          aria-label="Seleccionar todas las visibles"
+          className="cursor-pointer accent-content-primary"
+        />
+      ),
+      className: 'w-10',
+      sortable: false,
+      render: (_, row) => (
+        <input
+          type="checkbox"
+          checked={selectedIds.has(row.id_cotizaciones)}
+          onClick={(e) => e.stopPropagation()}
+          onChange={() => toggleSelected(row.id_cotizaciones)}
+          aria-label={`Seleccionar cotización ${row.numero}`}
+          className="cursor-pointer accent-content-primary"
+        />
+      ),
+    },
     {
       key:       'numero',
       label:     'Código',
@@ -190,7 +279,9 @@ const columns = useMemo(() => [
         </div>
       ),
     },
-  ], [openConfirm, openDrawer, removeAsync, convertir]);
+  ], [openConfirm, openDrawer, removeAsync, convertir,
+    selectedIds, allVisibleSelected, someVisibleSelected,
+    toggleSelected, toggleSelectAllVisible]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -200,6 +291,40 @@ const columns = useMemo(() => [
         <FlowCard label="Aprobadas"      value={metrics.aprobadas}          icon={CheckCircle2}  tone="success" />
         <FlowCard label="Monto Aprobado" value={fmt(metrics.montoAprobado)} icon={CheckCircle2}  tone="success" />
       </div>
+
+      {/* ── Barra flotante de bulk actions ───────────────────────────────── */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-content-primary text-content-inverse rounded-xl shadow-lift">
+          <div className="flex items-center gap-3 text-xs">
+            <span className="inline-flex items-center justify-center min-w-8 h-6 px-2 rounded-pill bg-brand-primary text-brand-on-primary font-bold tabular-nums">
+              {selectedIds.size}
+            </span>
+            <span className="font-medium">
+              {selectedIds.size === 1 ? 'cotización seleccionada' : 'cotizaciones seleccionadas'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="danger"
+              icon={Ban}
+              loading={bulkLoading}
+              onClick={handleBulkRechazarClick}
+            >
+              Cambiar estado a Rechazada
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={X}
+              onClick={clearSelection}
+              className="!text-content-inverse hover:!bg-white/10"
+            >
+              Limpiar selección
+            </Button>
+          </div>
+        </div>
+      )}
 
       <TableShell
         header={

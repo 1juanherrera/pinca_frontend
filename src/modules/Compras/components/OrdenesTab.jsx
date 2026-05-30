@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
-import { ShoppingCart, CheckCircle2, XCircle, Send, Pencil, Trash2, VariableIcon, Download, Plus, FileSpreadsheet } from 'lucide-react';
+import { useState, useMemo, useCallback } from 'react';
+import toast from 'react-hot-toast';
+import { ShoppingCart, CheckCircle2, XCircle, Send, Pencil, Trash2, VariableIcon, Download, Plus, FileSpreadsheet, Ban, X } from 'lucide-react';
 import { Button } from '../../../shared/Button';
 import { exportOrdenesCompraExcel } from './ExportOrdenCompraExcel';
 import ERPTable        from '../../../shared/ERPTable';
@@ -29,6 +30,21 @@ const OrdenesTab = ({ onVerDetalle }) => {
   const [search,  setSearch]  = useState('');
   const [filters, setFilters] = useState({ estado: '' });
 
+  // ─── Selección múltiple (bulk actions) — patrón de FacturasTable ─────────
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  const toggleSelected = useCallback((id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
   const metrics = useMemo(() => {
     const list = Array.isArray(ordenes) ? ordenes : [];
     return {
@@ -55,7 +71,76 @@ const OrdenesTab = ({ onVerDetalle }) => {
   const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
   const pagination = useClientPagination(sorted, 20);
 
+  // Select-all sobre las filas visibles (página actual).
+  const visibleIds = useMemo(
+    () => pagination.paginated.map((r) => r.id_orden).filter(Boolean),
+    [pagination.paginated],
+  );
+  const allVisibleSelected  = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+  const someVisibleSelected = visibleIds.some((id) => selectedIds.has(id));
+
+  const toggleSelectAllVisible = useCallback(() => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) visibleIds.forEach((id) => next.delete(id));
+      else                    visibleIds.forEach((id) => next.add(id));
+      return next;
+    });
+  }, [allVisibleSelected, visibleIds]);
+
+  // ─── Bulk action: cambiar estado a Cancelada ────────────────────────────
+  const runBulkCancelar = useCallback(async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    setBulkLoading(true);
+    const results = await Promise.allSettled(
+      ids.map((id) => cambiarEstadoAsync({ id, estado: 'Cancelada' })),
+    );
+    const ok   = results.filter((r) => r.status === 'fulfilled').length;
+    const fail = results.length - ok;
+    setBulkLoading(false);
+    clearSelection();
+    if (fail === 0)      toast.success(`${ok} orden(es) cancelada(s)`);
+    else if (ok === 0)   toast.error(`No se pudo cancelar ninguna (${fail} con error)`);
+    else                 toast.success(`${ok} actualizadas, ${fail} con error`);
+  }, [selectedIds, cambiarEstadoAsync, clearSelection]);
+
+  const handleBulkCancelarClick = useCallback(() => {
+    if (selectedIds.size === 0) return;
+    openConfirm({
+      title:   'Cancelar órdenes seleccionadas',
+      message: `¿Marcar como Canceladas ${selectedIds.size} orden(es)?`,
+      variant: 'danger',
+      onConfirm: runBulkCancelar,
+    });
+  }, [selectedIds.size, openConfirm, runBulkCancelar]);
+
   const columns = useMemo(() => [
+    {
+      key:      '__select',
+      label: (
+        <input
+          type="checkbox"
+          checked={allVisibleSelected}
+          ref={(el) => { if (el) el.indeterminate = !allVisibleSelected && someVisibleSelected; }}
+          onChange={toggleSelectAllVisible}
+          aria-label="Seleccionar todas las visibles"
+          className="cursor-pointer accent-content-primary"
+        />
+      ),
+      className: 'w-10',
+      sortable: false,
+      render: (_, row) => (
+        <input
+          type="checkbox"
+          checked={selectedIds.has(row.id_orden)}
+          onClick={(e) => e.stopPropagation()}
+          onChange={() => toggleSelected(row.id_orden)}
+          aria-label={`Seleccionar orden ${row.numero}`}
+          className="cursor-pointer accent-content-primary"
+        />
+      ),
+    },
     {
       key:       'numero',
       label:     'Número',
@@ -204,7 +289,9 @@ const OrdenesTab = ({ onVerDetalle }) => {
         </div>
       ),
     },
-  ], [openConfirm, openDrawer, removeAsync, cambiarEstadoAsync, onVerDetalle, ivaPct]);
+  ], [openConfirm, openDrawer, removeAsync, cambiarEstadoAsync, onVerDetalle, ivaPct,
+    selectedIds, allVisibleSelected, someVisibleSelected,
+    toggleSelected, toggleSelectAllVisible]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -214,6 +301,40 @@ const OrdenesTab = ({ onVerDetalle }) => {
         <FlowCard label="Recibidas"      value={metrics.recibidas} icon={CheckCircle2}  tone="success" />
         <FlowCard label="Canceladas"     value={metrics.canceladas} icon={XCircle}      tone="danger"  />
       </div>
+
+      {/* ── Barra flotante de bulk actions ───────────────────────────────── */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-content-primary text-content-inverse rounded-xl shadow-lift">
+          <div className="flex items-center gap-3 text-xs">
+            <span className="inline-flex items-center justify-center min-w-8 h-6 px-2 rounded-pill bg-brand-primary text-brand-on-primary font-bold tabular-nums">
+              {selectedIds.size}
+            </span>
+            <span className="font-medium">
+              {selectedIds.size === 1 ? 'orden seleccionada' : 'órdenes seleccionadas'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="danger"
+              icon={Ban}
+              loading={bulkLoading}
+              onClick={handleBulkCancelarClick}
+            >
+              Cambiar estado a Cancelada
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={X}
+              onClick={clearSelection}
+              className="!text-content-inverse hover:!bg-white/10"
+            >
+              Limpiar selección
+            </Button>
+          </div>
+        </div>
+      )}
 
       <TableShell
         header={

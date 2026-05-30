@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient'; // Ajusta tus rutas
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { itemKeys } from './itemKeys';
 import toast from 'react-hot-toast';
 import { inventarioKeys } from './inventarioKeys';
@@ -11,13 +12,13 @@ export const useItem = (id = null, fetchFormulacion = true) => {
   // 1. Query: Lista de todos los ítems (Inventario General)
   const queryItems = useQuery({
     queryKey: itemKeys.lists(),
-    queryFn: () => apiClient.get('/item_general'),
+    queryFn: () => apiClient.get(API_ROUTES.ITEMS.GENERAL),
   });
 
 const queryFormulacion = useQuery({
   queryKey: ['formulaciones', id],
   queryFn: async () => {
-    const response = await apiClient.get(`/formulaciones/${id}`);
+    const response = await apiClient.get(`${API_ROUTES.FORMULACIONES}/${id}`);
     return response;
   },
   enabled: !!id && fetchFormulacion, // Solo se ejecuta si hay un ID y fetchFormulacion es true
@@ -26,7 +27,7 @@ const queryFormulacion = useQuery({
   // 2. Query: Detalle de UN ítem (Para el modo Editar del Modal)
   const queryInfo = useQuery({
     queryKey: itemKeys.detail(id),
-    queryFn: () => apiClient.get(`/item_general/${id}`),
+    queryFn: () => apiClient.get(API_ROUTES.ITEMS.DETAIL(id)),
     enabled: !!id, // Solo se ejecuta si le pasas un ID
   });
 
@@ -34,18 +35,18 @@ const queryFormulacion = useQuery({
   const queryMateriasPrimas = useQuery({
     queryKey: itemKeys.materiasPrimas(),
     // Ajusta esta ruta según tu backend (ej. /items?tipo=1 o /items/materias-primas)
-    queryFn: () => apiClient.get('/item_general'), 
+    queryFn: () => apiClient.get(API_ROUTES.ITEMS.GENERAL),
   });
 
   const queryUnidades = useQuery({
     queryKey: itemKeys.unidades(),
-    queryFn: () => apiClient.get('/unidades'),
+    queryFn: () => apiClient.get(API_ROUTES.UNIDADES),
   });
 
   // --- MUTACIONES CON ACTUALIZACIÓN OPTIMISTA (La Fórmula Definitiva) ---
 
   const createMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/item_general', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.ITEMS.GENERAL, data),
     onSuccess: (response, variables) => {
       toast.success('Ítem registrado correctamente');
       
@@ -62,7 +63,7 @@ const queryFormulacion = useQuery({
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/item_general/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.ITEMS.DETAIL(id), data),
     
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: inventarioKeys.all });
@@ -133,7 +134,7 @@ const queryFormulacion = useQuery({
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (idToDelete) => apiClient.delete(`/item_general/${idToDelete}`),
+    mutationFn: (idToDelete) => apiClient.delete(API_ROUTES.ITEMS.DETAIL(idToDelete)),
     onSuccess: () => {
       // 1. Actualización Optimista en el Inventario
       // Como el inventario está paginado por bodega, invalidamos la raíz para que afecte a todas las páginas

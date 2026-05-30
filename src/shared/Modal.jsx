@@ -1,8 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import cn from '../utils/cn';
 import { useBoundStore } from '../store/useBoundStore';
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 const SIZE_CLASSES = {
   sm:   'max-w-sm',
@@ -45,6 +48,7 @@ export const Modal = ({
   dirtyMessage = 'Tenés cambios sin guardar. ¿Cerrar igual?',
 }) => {
   const openConfirm = useBoundStore((s) => s.openConfirm);
+  const panelRef = useRef(null);
 
   const requestClose = () => {
     if (!isDirty) { onClose?.(); return; }
@@ -70,6 +74,49 @@ export const Modal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, closeOnEsc, onClose, isDirty]);
 
+  // Autofocus al abrir + focus-trap (Tab/Shift+Tab) + restauración de foco al cerrar
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    const node = panelRef.current;
+    const getFocusable = () =>
+      node
+        ? Array.from(node.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+            (el) => el.offsetParent !== null || el === document.activeElement
+          )
+        : [];
+
+    // Enfoca el primer focusable (o el panel mismo)
+    const focusables = getFocusable();
+    if (focusables.length > 0) focusables[0].focus();
+    else node?.focus();
+
+    const onKeyDown = (e) => {
+      if (e.key !== 'Tab') return;
+      const items = getFocusable();
+      if (items.length === 0) { e.preventDefault(); node?.focus(); return; }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey) {
+        if (active === first || !node?.contains(active)) { e.preventDefault(); last.focus(); }
+      } else if (active === last || !node?.contains(active)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    node?.addEventListener('keydown', onKeyDown);
+    return () => {
+      node?.removeEventListener('keydown', onKeyDown);
+      previouslyFocused?.focus?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const sizeCls = SIZE_CLASSES[size] ?? SIZE_CLASSES.md;
@@ -83,6 +130,8 @@ export const Modal = ({
       aria-modal="true"
     >
       <div
+        ref={panelRef}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className={cn(
           'relative flex flex-col w-full bg-surface-base rounded-2xl shadow-2xl',

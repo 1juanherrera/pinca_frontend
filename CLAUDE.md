@@ -1817,3 +1817,32 @@ Arreglado en 8 archivos (`ExportFactura`, `ExportOrdenCompra`, `ExportCotizacion
 ---
 
 > **Snapshot al cierre 2026-05-29 (tarde)**: Frontend con botones de modal Export legibles en dark, mutación optimista de inventario con rollback, fallback de error en catálogo, SummaryCard eliminado. Build limpio, lint 0 errors, 34/34 tests. Backlog: recharts chunk, apiRoutes hardcoded, focus-trap, ocultar acciones por rol.
+
+---
+
+## 27. Sesión 2026-05-30 — Lote de mejoras DEV (perf/a11y/UX)
+
+Tanda del backlog que no requería decisión del cliente. Build limpio, ESLint 0 errors / 12 warnings (bajó de 13), 34/34 tests.
+
+### Estructura / performance
+- **recharts en chunk propio**: `vite.config.js` separó `vendor-ui: ['lucide-react']` + `vendor-charts: ['recharts']`. `vendor-ui` bajó de ~426 KB a **43.8 KB**; `vendor-charts` (383 KB) ahora solo carga en Dashboard/Rentabilidad/CostosProduccion, no en el path inicial.
+- **9 hooks migrados a `API_ROUTES`** (~55 callsites): `useBodegas`, `useClientes`, `useCotizaciones`, `useFactura`, `useRemisiones`, `useItem`, `usePago`, `useProveedores`, `useInstalaciones`. Namespaces nuevos en `apiRoutes.js`: `CATEGORIAS`, `COTIZACIONES`, `FACTURAS`, `REMISIONES`, `ITEM_PROVEEDORES`. URLs idénticas (solo cambió la fuente literal→constante). **Pendiente**: quedan ~15 hooks con rutas sin namespace (Cartera, Configuracion, Movimientos, Auditoria, etc.).
+
+### A11y
+- **Focus-trap en `Modal.jsx` y `Drawer.jsx`**: al abrir guarda el foco previo y enfoca el primer focusable; Tab/Shift+Tab quedan atrapados dentro del panel; al cerrar restaura el foco. Conserva Escape, dirty-guard, backdrop, scroll-lock.
+
+### UX funcional
+- **`CapasStockPanel`**: las 6 callbacks del padre (`preparationModal` → `ConfirmSubForm`) se envolvieron en `useCallback` y se incluyeron en las deps de los 3 effects → cierra los warnings ESLint reales sin loop.
+- **Acciones de inventario ocultas al visor**: `DataTable` (botones Eliminar/Traspasar/Ajustar por fila) e `InventarioGlobalPage` (botón Ajustar) solo se muestran si `user.rol !== 'visor'`. Espejo del RBAC backend (el visor recibía 403).
+- **Bulk actions replicadas** en `CotizacionesTab` (batch → Rechazada) y `OrdenesTab` (batch → Cancelada), copiando el patrón de `FacturasTable` (Set + barra flotante + `Promise.allSettled` + `openConfirm`). Cotizaciones envuelve `cambiarEstado` (mutate sin promesa) en Promise per-call.
+- **Debounce en selects grandes**: el `SearchSelect` inline de `CotizacionForm` y `RemisionForm` (picker de cliente, 100+ opciones) ahora debouncea el filtro ~200ms (input instantáneo, filtro tras pausa). `ItemGeneralSearch` ya traía su propio debounce. `FacturaForm` no usa selects grandes.
+
+### Coupling backend (esta sesión)
+- Backend agregó `POST /facturas/bulk/cambiar-estado` (admin-only). Hoy el frontend usa N requests paralelos (`Promise.allSettled`) en Facturas/Cotizaciones/OCs; se puede migrar Facturas a ese endpoint dedicado cuando convenga (pendiente).
+
+### ⚠️ Nota de entorno (importante)
+El proyecto vive en una carpeta sincronizada por **Google Drive**, que **revierte/corrompe archivos del working tree** sin que git lo note (mtime de DrvFs). En esta sesión, 2 archivos de test (`StatusBadge.test.jsx`, `useClientPagination.test.js`) aparecieron "fallando" porque Drive los había revertido a versiones viejas en disco mientras git tenía la versión buena. Se resolvió con `git checkout HEAD -- <archivos>` + limpiar `node_modules/.vite`. **Recomendación firme: mover el repo fuera de Google Drive y sincronizar entre máquinas con git.** Si un test/archivo "falla sin razón", sospechar de Drive primero.
+
+---
+
+> **Snapshot al cierre 2026-05-30**: recharts code-split (vendor-ui 426→44 KB), 9 hooks en API_ROUTES, focus-trap en Modal/Drawer, acciones de inventario ocultas al visor, bulk en Cotizaciones/OCs, debounce en pickers de cliente. Build limpio, lint 0 errors, 34/34 tests. Backlog: ~15 hooks más a API_ROUTES, migrar Facturas al endpoint bulk, decisiones de UX del cliente.

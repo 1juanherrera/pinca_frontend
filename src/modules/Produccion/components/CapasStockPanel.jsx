@@ -217,7 +217,7 @@ const CapasStockPanel = ({
       }));
       onSeleccionChange(itemGeneralId, capasArr, 'FIFO');
     }
-  }, [fifoAsignacion, modo]);
+  }, [fifoAsignacion, modo, itemGeneralId, onSeleccionChange]);
 
   // Notificar al padre sobre déficit con proveedor seleccionado
   useEffect(() => {
@@ -225,7 +225,7 @@ const CapasStockPanel = ({
       const hayDeficit = proveedorId ? deficitEfectivo > 0.001 : false;
       onDeficitChange(itemGeneralId, hayDeficit);
     }
-  }, [deficitEfectivo, proveedorId, itemGeneralId]);
+  }, [deficitEfectivo, proveedorId, itemGeneralId, onDeficitChange]);
 
   // Propagar costo real vs teórico al padre para el reporte de variación
   useEffect(() => {
@@ -233,7 +233,7 @@ const CapasStockPanel = ({
     const costoReal    = costoPonderadoSeleccion > 0 ? costoPonderadoSeleccion : costoPromedio;
     const costoTeorico = costoPromedio;
     onCostoChange(itemGeneralId, { real: costoReal, teorico: costoTeorico });
-  }, [costoPonderadoSeleccion, costoPromedio, itemGeneralId]);
+  }, [costoPonderadoSeleccion, costoPromedio, itemGeneralId, onCostoChange]);
 
   const handleCantidadChange = (capaId, cantidad) => {
     if (!onSeleccionChange) return;

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useInventarioGlobal } from './api/useInventarioGlobal';
 import { useInventario } from '../Inventario/api/useInventario';
+import { useBoundStore } from '../../store/useBoundStore';
 import AjusteModal from '../Inventario/Components/AjusteModal';
 import HeaderSection from '../../shared/HeaderSection';
 import PageTabs from '../../shared/PageTabs';
@@ -394,6 +395,9 @@ const InventarioGlobalPage = ({ embedded = false }) => {
   const { items, isLoading, isError, refetch, totalValor, totalItems, sinStock, stockCritico } =
     useInventarioGlobal(tipoActivo);
   const { ajusteManualAsync, isAjustando } = useInventario();
+  const user = useBoundStore((s) => s.user);
+  // El visor recibe 403 en ajuste-manual; ocultamos el botón de ajuste.
+  const puedeEditarStock = user?.rol !== 'visor';
   const criticoDias = useConfigValue('stock_critico_dias', 10);
   const empresaInfo = useEmpresaInfo();
   const { data: logoB64Data } = useEmpresaLogoBase64();
@@ -552,7 +556,7 @@ const InventarioGlobalPage = ({ embedded = false }) => {
                     key={item.id_item_general}
                     item={item}
                     index={(safePage - 1) * perPage + index}
-                    onAjustar={(it, bodega) => setAjusteData({ item: it, bodega })}
+                    onAjustar={puedeEditarStock ? (it, bodega) => setAjusteData({ item: it, bodega }) : undefined}
                   />
                 ))}
               </tbody>

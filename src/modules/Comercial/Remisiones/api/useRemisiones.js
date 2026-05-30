@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { remisionKeys } from './remisionKeys';
 import toast from 'react-hot-toast';
 import apiClient from '../../../../api/apiClient';
+import { API_ROUTES } from '../../../../api/apiRoutes';
 import { facturaKeys } from '../../Facturacion/api/facturaKeys';
 /**
  * useRemisiones(id?, options?)
@@ -22,30 +23,30 @@ export const useRemisiones = (id = null, { clienteId = null, facturaId = null } 
         ? remisionKeys.byCliente(clienteId)
         : remisionKeys.lists(),
     queryFn: () => {
-      if (facturaId) return apiClient.get(`/remisiones?factura_id=${facturaId}`);
-      if (clienteId) return apiClient.get(`/remisiones?cliente_id=${clienteId}`);
-      return apiClient.get('/remisiones');
+      if (facturaId) return apiClient.get(API_ROUTES.REMISIONES.BY_FACTURA(facturaId));
+      if (clienteId) return apiClient.get(API_ROUTES.REMISIONES.BY_CLIENT(clienteId));
+      return apiClient.get(API_ROUTES.REMISIONES.LIST);
     },
   });
 
   // ── 2. Detalle de UNA remisión ───────────────────────────────────────────
   const queryInfo = useQuery({
     queryKey: remisionKeys.detail(id),
-    queryFn:  () => apiClient.get(`/remisiones/${id}`),
+    queryFn:  () => apiClient.get(API_ROUTES.REMISIONES.DETAIL(id)),
     enabled:  !!id,
   });
 
   // ── 3. Ítems despachados ─────────────────────────────────────────────────
   const queryDetalle = useQuery({
     queryKey: remisionKeys.detalle(id),
-    queryFn:  () => apiClient.get(`/remisiones/${id}/detalle`),
+    queryFn:  () => apiClient.get(API_ROUTES.REMISIONES.DETALLE(id)),
     enabled:  !!id,
   });
 
   // ── MUTACIONES ───────────────────────────────────────────────────────────
 
   const createMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/remisiones', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.REMISIONES.CREATE, data),
     onSuccess: (response, variables) => {
       const nueva = response?.data || { ...variables, id_remisiones: Date.now() };
 
@@ -61,7 +62,7 @@ export const useRemisiones = (id = null, { clienteId = null, facturaId = null } 
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/remisiones/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.REMISIONES.UPDATE(id), data),
     onSuccess: (response, variables) => {
       queryClient.setQueryData(remisionKeys.lists(), (old) => {
         if (!Array.isArray(old)) return old;
@@ -81,7 +82,7 @@ export const useRemisiones = (id = null, { clienteId = null, facturaId = null } 
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (idToDelete) => apiClient.delete(`/remisiones/${idToDelete}`),
+    mutationFn: (idToDelete) => apiClient.delete(API_ROUTES.REMISIONES.DELETE(idToDelete)),
     onSuccess: (_, idToDelete) => {
       queryClient.setQueryData(remisionKeys.lists(), (old) => {
         if (!Array.isArray(old)) return old;
@@ -97,7 +98,7 @@ export const useRemisiones = (id = null, { clienteId = null, facturaId = null } 
   // Cambiar estado (Pendiente → Facturada | Anulada)
   const cambiarEstadoMutation = useMutation({
     mutationFn: ({ id, estado }) =>
-      apiClient.patch(`/remisiones/${id}/estado`, { estado }),
+      apiClient.patch(API_ROUTES.REMISIONES.ESTADO(id), { estado }),
     onSuccess: (response, variables) => {
       const updateFn = (old) => {
         if (!Array.isArray(old)) return old;
@@ -118,7 +119,7 @@ export const useRemisiones = (id = null, { clienteId = null, facturaId = null } 
   // ── ACCIÓN ESPECIAL: Convertir remisión → Factura ────────────────────────
   const convertirMutation = useMutation({
     mutationFn: (remisionId) =>
-      apiClient.post(`/remisiones/${remisionId}/convertir`),
+      apiClient.post(API_ROUTES.REMISIONES.CONVERTIR(remisionId)),
     onSuccess: (response, remisionId) => {
       const nuevaFactura = response?.data;
 
