@@ -5,4 +5,6 @@ export const sincKeys = {
   pendientes: () => [...sincKeys.all, 'pendientes'],
   duplicados: (threshold) => [...sincKeys.all, 'duplicados', threshold ?? 70],
   huerfanos:  () => [...sincKeys.all, 'huerfanos'],
+  clusters:   (filters) => [...sincKeys.all, 'clusters', filters ?? {}],
+  cluster:    (id) => [...sincKeys.all, 'cluster', id],
 };

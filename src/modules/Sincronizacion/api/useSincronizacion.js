@@ -63,3 +63,75 @@ export const useSincMerge = () => {
     },
   });
 };
+
+/* ───────────────── Deduplicación asistida por IA ───────────────── */
+
+const buildClustersUrl = (filters = {}) => {
+  const params = new URLSearchParams();
+  if (filters.estado)    params.set('estado', filters.estado);
+  if (filters.confianza) params.set('confianza', filters.confianza);
+  if (filters.tipo != null && filters.tipo !== '') params.set('tipo', String(filters.tipo));
+  const qs = params.toString();
+  return qs ? `${API_ROUTES.SINCRONIZACION.IA.CLUSTERS}?${qs}` : API_ROUTES.SINCRONIZACION.IA.CLUSTERS;
+};
+
+export const useSincClusters = (filters = {}) =>
+  useQuery({
+    queryKey: sincKeys.clusters(filters),
+    queryFn:  () => apiClient.get(buildClustersUrl(filters)),
+    staleTime: STALE_5MIN,
+    keepPreviousData: true,
+  });
+
+const invalidateAll = (queryClient) => queryClient.invalidateQueries({ queryKey: sincKeys.all });
+
+export const useClasificarIA = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data = {}) => apiClient.post(API_ROUTES.SINCRONIZACION.IA.CLASIFICAR, data),
+    onSuccess: (res) => {
+      toast.success(res?.detalle?.clusters_creados != null
+        ? `${res.detalle.clusters_creados} grupo(s) propuesto(s)`
+        : 'Clasificación completada');
+      invalidateAll(queryClient);
+    },
+  });
+};
+
+export const useActualizarCluster = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => apiClient.patch(API_ROUTES.SINCRONIZACION.IA.CLUSTER(id), data),
+    onSuccess: () => invalidateAll(queryClient),
+  });
+};
+
+export const useMoverItemCluster = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, rol }) => apiClient.patch(API_ROUTES.SINCRONIZACION.IA.MOVER_ITEM(id), { rol }),
+    onSuccess: () => invalidateAll(queryClient),
+  });
+};
+
+export const useFusionarCluster = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => apiClient.post(API_ROUTES.SINCRONIZACION.IA.FUSIONAR(id)),
+    onSuccess: () => {
+      toast.success('Grupo fusionado correctamente');
+      invalidateAll(queryClient);
+    },
+  });
+};
+
+export const useDescartarCluster = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => apiClient.post(API_ROUTES.SINCRONIZACION.IA.DESCARTAR(id)),
+    onSuccess: () => {
+      toast.success('Grupo descartado');
+      invalidateAll(queryClient);
+    },
+  });
+};

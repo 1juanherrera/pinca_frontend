@@ -13,23 +13,29 @@ import { Button } from '../../shared/Button';
 import { INPUT_BASE } from '../../shared/Form/styles';
 import cn from '../../utils/cn';
 
-/* Campo con icono a la izquierda y slot opcional a la derecha (toggle de contraseña). */
+/* Campo con icono a la izquierda y slot opcional a la derecha (toggle de contraseña).
+   El input va primero en el DOM (clase `peer`) para que el icono pueda reaccionar al
+   foco con `peer-focus:` — el icono se tiñe de marca y el anillo de foco es amarillo. */
 const Field = ({ id, icon: Icon, rightSlot, error, className = '', ...props }) => (
   <div className="relative">
-    <Icon
-      size={16}
-      className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-content-muted"
-    />
     <input
       id={id}
       className={cn(
         INPUT_BASE,
-        'h-11 rounded-xl pl-10',
+        'peer h-11 rounded-xl pl-10',
         rightSlot ? 'pr-11' : 'pr-3',
+        !error && 'focus:border-brand-primary! focus:ring-brand-primary/25!',
         error && 'border-semantic-danger focus:border-semantic-danger focus:ring-semantic-danger/20',
         className,
       )}
       {...props}
+    />
+    <Icon
+      size={16}
+      className={cn(
+        'pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors',
+        error ? 'text-semantic-danger' : 'text-content-muted peer-focus:text-brand-primary-active',
+      )}
     />
     {rightSlot}
   </div>
@@ -48,8 +54,12 @@ export const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
+  const [capsLock, setCapsLock] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Detecta Bloq Mayús mientras se escribe la contraseña (evita logins fallidos a ciegas).
+  const handleCapsLock = (e) => setCapsLock(e.getModifierState?.('CapsLock') ?? false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,8 +82,14 @@ export const Login = () => {
       }
       setAuth(res.token, res.usuario);
       navigate('/', { replace: true });
-    } catch {
-      setError('Error de conexión. Intenta de nuevo.');
+    } catch (err) {
+      // Surface the real backend message (rate-limit 429 "Espera N minutos",
+      // validación 400, etc.) en vez de un genérico que lo oculta.
+      setError(
+        err?.response?.data?.msg
+        || err?.response?.data?.message
+        || 'No pudimos conectar con el servidor. Intenta de nuevo.',
+      );
     } finally {
       setLoading(false);
     }
@@ -82,16 +98,20 @@ export const Login = () => {
   return (
     <div className="flex min-h-screen bg-surface-subtle text-content-primary">
       {/* ───────────────────── Panel izquierdo — branding inmersivo ───────────────────── */}
-      <div className="relative hidden w-[55%] flex-col justify-between overflow-hidden bg-surface-sidebar p-12 text-content-on-dark lg:flex">
-        {/* Orbes de pintura flotantes */}
-        <div className="pointer-events-none absolute inset-0">
+      <div className="relative hidden w-[55%] flex-col overflow-hidden bg-surface-sidebar p-12 text-content-on-dark lg:flex">
+        {/* Atmósfera de "pintura": orbes flotantes + pincelada diagonal */}
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute -left-20 -top-24 h-96 w-96 rounded-full bg-brand-primary/30 blur-3xl animate-login-blob" />
           <div className="absolute -right-24 top-1/3 h-[28rem] w-[28rem] rounded-full bg-brand-primary-hover/20 blur-3xl animate-login-blob-slow" />
           <div className="absolute -bottom-28 left-1/4 h-80 w-80 rounded-full bg-brand-primary-active/25 blur-3xl animate-login-blob" />
+          {/* Pincelada — barrido diagonal de color que cruza el panel */}
+          <div className="absolute left-1/2 top-1/2 h-44 w-[150%] -translate-x-1/2 -translate-y-1/2 -rotate-[14deg] rounded-full bg-gradient-to-r from-transparent via-brand-primary/15 to-transparent blur-2xl" />
         </div>
+
 
         {/* Grilla de puntos sutil */}
         <div
+          aria-hidden="true"
           className="absolute inset-0 opacity-[0.05]"
           style={{
             backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)',
@@ -99,16 +119,17 @@ export const Login = () => {
           }}
         />
 
-        {/* Top — logo con halo + mensaje principal */}
-        <div className="relative">
-          <div className="animate-login-rise">
-            <div className="relative inline-block">
-              <div className="absolute inset-0 rounded-3xl bg-brand-primary/40 blur-2xl" />
-              <img src={PincaLogo} alt="Pinca" className="relative h-28 w-auto drop-shadow-2xl" />
-            </div>
+        {/* Logo con halo — anclado arriba */}
+        <div className="relative animate-login-rise">
+          <div className="relative inline-block">
+            <div className="absolute inset-0 rounded-3xl bg-brand-primary/40 blur-2xl" aria-hidden="true" />
+            <img src={PincaLogo} alt="Pinca" className="relative h-28 w-auto drop-shadow-2xl" />
           </div>
+        </div>
 
-          <div className="mt-8 max-w-lg space-y-6">
+        {/* Mensaje principal — centrado verticalmente en el espacio libre entre el logo y las cards */}
+        <div className="relative flex flex-1 flex-col justify-center py-8">
+          <div className="max-w-lg space-y-6">
           <span
             className="inline-flex items-center gap-2 rounded-pill border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-wider text-brand-primary backdrop-blur animate-login-rise"
             style={{ animationDelay: '120ms' }}
@@ -160,11 +181,15 @@ export const Login = () => {
       {/* ───────────────────── Panel derecho — formulario ───────────────────── */}
       <div className="relative flex w-full items-center justify-center px-6 py-10 lg:w-[45%]">
         {/* Glow de marca sutil al fondo */}
-        <div className="pointer-events-none absolute right-0 top-0 h-72 w-72 rounded-full bg-brand-primary/10 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-0 left-0 h-72 w-72 rounded-full bg-brand-primary/5 blur-3xl" />
+        <div className="pointer-events-none absolute right-0 top-0 h-72 w-72 rounded-full bg-brand-primary/10 blur-3xl" aria-hidden="true" />
+        <div className="pointer-events-none absolute bottom-0 left-0 h-72 w-72 rounded-full bg-brand-primary/5 blur-3xl" aria-hidden="true" />
 
         <div className="relative w-full max-w-md">
-          {/* Logo letras (branding también en móvil) */}
+          {/* Logo letras (branding también en móvil).
+              El asset es NEGRO: en light se muestra tal cual (negro sobre fondo claro),
+              y solo en dark lo invertimos a blanco (brightness-0 → negro puro → invert → blanco).
+              ⚠️ NO quitar el prefijo `dark:` — sin él el filtro se aplica también en light
+              y el logo queda blanco sobre fondo blanco (invisible). */}
           <div className="mb-8 flex justify-center animate-login-rise">
             <img src={PincaLetters} alt="Pinca" className="h-12 w-auto dark:brightness-0 dark:invert" />
           </div>
@@ -209,6 +234,9 @@ export const Login = () => {
                   type={showPwd ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onKeyUp={handleCapsLock}
+                  onKeyDown={handleCapsLock}
+                  onBlur={() => setCapsLock(false)}
                   disabled={loading}
                   autoComplete="current-password"
                   placeholder="••••••••"
@@ -224,10 +252,20 @@ export const Login = () => {
                     </button>
                   }
                 />
+                {capsLock && (
+                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-semantic-warning-fg" role="status">
+                    <AlertCircle size={12} className="shrink-0" />
+                    Bloq Mayús está activado
+                  </p>
+                )}
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 rounded-xl border border-semantic-danger/15 bg-semantic-danger-subtle px-3 py-2.5 text-xs text-semantic-danger-fg animate-in fade-in">
+                <div
+                  role="alert"
+                  aria-live="assertive"
+                  className="flex items-center gap-2 rounded-xl border border-semantic-danger/15 bg-semantic-danger-subtle px-3 py-2.5 text-xs text-semantic-danger-fg animate-in fade-in"
+                >
                   <AlertCircle size={14} className="shrink-0" />
                   {error}
                 </div>
@@ -244,6 +282,21 @@ export const Login = () => {
                 Iniciar sesión
               </Button>
             </form>
+          </div>
+
+          {/* Resumen de features — solo en móvil (en desktop viven en el panel izquierdo) */}
+          <div className="mt-6 grid grid-cols-3 gap-2 lg:hidden">
+            {FEATURES.map(({ icon: Icon, label }) => (
+              <div
+                key={label}
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-border-base bg-surface-base/60 px-2 py-3 text-center backdrop-blur-sm"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-primary/15 text-brand-primary-active">
+                  <Icon size={15} />
+                </span>
+                <p className="text-[11px] font-medium leading-tight text-content-secondary">{label}</p>
+              </div>
+            ))}
           </div>
 
           <p className="mt-6 text-center text-xs text-content-tertiary">

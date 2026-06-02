@@ -157,6 +157,16 @@ export const API_ROUTES = {
     DUPLICADOS: '/sincronizacion/duplicados',
     HUERFANOS:  '/sincronizacion/huerfanos',
     MERGE:      '/sincronizacion/merge',
+    IA: {
+      CLASIFICAR: '/sincronizacion/ia/clasificar',
+      CLUSTERS:   '/sincronizacion/ia/clusters',
+      CLUSTER:    (id) => `/sincronizacion/ia/clusters/${id}`,
+      FUSIONAR:   (id) => `/sincronizacion/ia/clusters/${id}/fusionar`,
+      DESCARTAR:  (id) => `/sincronizacion/ia/clusters/${id}/descartar`,
+      MOVER_ITEM: (id) => `/sincronizacion/ia/cluster-items/${id}`,
+      VERIFICAR:  (keepId) => `/sincronizacion/ia/verificar/${keepId}`,
+      REVERTIR:   (id) => `/sincronizacion/ia/auditoria/${id}/revertir`,
+    },
   },
   ORDENES_COMPRA: {
     LIST:               '/ordenes_compra',

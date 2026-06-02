@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  GitMerge, LayoutDashboard, Table2, Link2, Copy, Ban,
+  GitMerge, LayoutDashboard, Table2, Link2, Copy, Ban, Sparkles,
 } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import PageTabs from '../../shared/PageTabs';
@@ -10,14 +10,16 @@ import MaestroTab from './components/MaestroTab';
 import PendientesTab from './components/PendientesTab';
 import DuplicadosTab from './components/DuplicadosTab';
 import HuerfanosTab from './components/HuerfanosTab';
+import SugerenciasIATab from './components/SugerenciasIATab';
 import { useSincStats } from './api/useSincronizacion';
 
 const TABS_BASE = [
-  { key: 'dashboard',  label: 'Dashboard',   icon: LayoutDashboard },
-  { key: 'maestro',    label: 'Maestro',     icon: Table2 },
-  { key: 'pendientes', label: 'Pendientes',  icon: Link2 },
-  { key: 'duplicados', label: 'Duplicados',  icon: Copy },
-  { key: 'huerfanos',  label: 'Huérfanos',   icon: Ban },
+  { key: 'dashboard',   label: 'Dashboard',     icon: LayoutDashboard },
+  { key: 'sugerencias', label: 'Sugerencias IA', icon: Sparkles },
+  { key: 'maestro',     label: 'Maestro',       icon: Table2 },
+  { key: 'pendientes',  label: 'Pendientes',    icon: Link2 },
+  { key: 'duplicados',  label: 'Duplicados',    icon: Copy },
+  { key: 'huerfanos',   label: 'Huérfanos',     icon: Ban },
 ];
 
 const SincronizacionPage = () => {
@@ -50,11 +52,12 @@ const SincronizacionPage = () => {
       <PageTabs tabs={tabs} value={tab} onChange={setTab} size="lg" />
 
       <div className="pt-1">
-        {tab === 'dashboard'  && <DashboardTab />}
-        {tab === 'maestro'    && <MaestroTab />}
-        {tab === 'pendientes' && <PendientesTab />}
-        {tab === 'duplicados' && <DuplicadosTab />}
-        {tab === 'huerfanos'  && <HuerfanosTab />}
+        {tab === 'dashboard'   && <DashboardTab />}
+        {tab === 'sugerencias' && <SugerenciasIATab />}
+        {tab === 'maestro'     && <MaestroTab />}
+        {tab === 'pendientes'  && <PendientesTab />}
+        {tab === 'duplicados'  && <DuplicadosTab />}
+        {tab === 'huerfanos'   && <HuerfanosTab />}
       </div>
     </div>
   );

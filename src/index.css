@@ -5,6 +5,13 @@
 /* Importamos Tailwind v4 */
 @import "tailwindcss";
 
+/* Dark mode basado en CLASE (html.dark), no en @media (prefers-color-scheme).
+   Sin esto, Tailwind v4 hace que las utilidades `dark:` sigan el tema del SISTEMA
+   OPERATIVO, lo que choca con nuestro toggle por clase (useTheme → html.dark):
+   con el SO en oscuro, `dark:` se aplicaba aunque la app estuviera en light
+   (p.ej. el logo del login quedaba blanco sobre fondo blanco). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ─────────────────────────────────────────────────────────────────────────────
    PINCA 2.0 — DESIGN TOKENS
    Estilo: ERP profesional + elegante (inspirado en Torre Control).
