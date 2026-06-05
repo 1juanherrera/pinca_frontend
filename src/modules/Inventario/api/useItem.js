@@ -146,6 +146,14 @@ const queryFormulacion = useQuery({
       
       toast.success('Ítem eliminado correctamente');
     },
+    onError: (e) => {
+      // Muestra el motivo real del backend (409: stock activo, usado en fórmulas, etc.)
+      toast.error(
+        e?.response?.data?.msg
+        || e?.response?.data?.message
+        || 'No se pudo eliminar el ítem.',
+      );
+    },
   });
 
   return {

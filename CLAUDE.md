@@ -2,10 +2,13 @@
 
 > Este archivo es la **fuente de verdad** para cualquier Claude que retome este proyecto. Está organizado para leerse en orden de necesidad: contexto rápido arriba, detalles técnicos abajo.
 
-## 1. Estado actual (snapshot 2026-05-29)
+## 1. Estado actual (snapshot 2026-06-05)
 
-> **Última sesión**: 2026-05-29 (tarde) — fixes de auditoría: botones de modal Export visibles en dark, rollback en mutación optimista de `useItem`, fallback de error en `useCatalogo`, `SummaryCard` muerto eliminado. Ver §26.
-> **Anterior (misma fecha)**: Dark mode foundation + virtualización + bulk actions + Vitest + ESLint 0 errors. Ver §25.
+> **Última sesión**: 2026-06-05 — toast con motivo real (409 del backend) al eliminar ítem en `useItem`. Ver §30.
+> **Anterior**: 2026-06-02 — pestaña "Sugerencias IA" en Sincronización (dedup de MP por identidad química) + mejoras de Login (dark por clase, a11y, Bloq Mayús). Ver §29.
+> **2026-05-30 (tarde)**: breadcrumbs arreglados (0 rotos), Login dark mode, `CalculadoraProrrateo` pre-OC, columna "Último precio" en formulaciones, **revert** de ocultar-acciones-por-rol (política por módulo). Ver §28.
+> **2026-05-30 (mañana)**: recharts code-split, focus-trap, bulk en Cotizaciones/OCs, debounce. Ver §27.
+> **2026-05-29**: dark mode foundation + virtualización + bulk actions + Vitest (§25) y fixes de auditoría (§26).
 >
 > **Sesiones anteriores**: §24 (2026-05-27 refresh token UX + Excel), §23 (2026-05-25 tarde code-splitting), §22 (2026-05-25 mediodía), §21 (audit), §20 (2026-05-21).
 
@@ -1846,3 +1849,62 @@ El proyecto vive en una carpeta sincronizada por **Google Drive**, que **reviert
 ---
 
 > **Snapshot al cierre 2026-05-30**: recharts code-split (vendor-ui 426→44 KB), 9 hooks en API_ROUTES, focus-trap en Modal/Drawer, acciones de inventario ocultas al visor, bulk en Cotizaciones/OCs, debounce en pickers de cliente. Build limpio, lint 0 errors, 34/34 tests. Backlog: ~15 hooks más a API_ROUTES, migrar Facturas al endpoint bulk, decisiones de UX del cliente.
+
+---
+
+## 28. Sesión 2026-05-30 (tarde) — Breadcrumbs + Login dark + CalculadoraProrrateo + último precio + rol-revert
+
+Commit `e1debcb`. Segunda tanda del día, coordinada con backend (commit backend `5559b75`).
+
+### Breadcrumbs verificados contra rutas reales (0 rotos)
+
+- "Sedes" apuntaba a `/` (Panel Principal) → ahora `/sedes`.
+- "Pagos" apuntaba a `/pagos_cliente` (inexistente) → `/pagos`.
+- "Salud del Sistema" tenía link muerto → texto plano.
+
+### Login dark mode
+
+El panel izquierdo usaba tokens que flipean (texto invisible en dark) → `content-on-dark`/`-muted` estables. Logo de letras con `dark:invert`.
+
+### `CalculadoraProrrateo.jsx` (nueva — cierra decisión de UX)
+
+Simulación **pura** de prorrateo pre-OC: no crea inventario ni toca OCs, solo muestra los números. Abierta desde el header de Compras. Era la "Opción 2" de la decisión de UX en `PENDIENTES.md` — resuelta.
+
+### Columna "Último precio" en `FormulacionesTable` (cierra decisión de UX)
+
+Lee `ultimo_precio` que el backend ahora devuelve por ingrediente (costo de la capa activa más reciente). Columna extra — el promedio ponderado sigue siendo el principal.
+
+### ⚠️ REVERT: ocultar-acciones-por-rol en inventario
+
+La sesión 05-30 (mañana) ocultaba botones de mutación al `visor`. El cliente definió la política RBAC como **control por módulo, no por rol** → revertido. Desde 2026-06-03 el backend tiene `RbacFilter` (visor = solo lectura global): si un visor intenta mutar recibe 403 con mensaje claro. La UI muestra los botones; el backend es la garantía.
+
+---
+
+## 29. Sesión 2026-06-02 — UI de deduplicación IA + mejoras de Login
+
+Commit `a594040`. Acompaña la feature backend de dedup IA (backend commit `4b11872`).
+
+### Pestaña "Sugerencias IA" en Sincronización
+
+`src/modules/Sincronizacion/components/SugerenciasIATab.jsx` (nuevo, ~320 líneas):
+- Grupos de duplicados por **identidad química** con razonamiento del modelo y nivel de confianza.
+- Nombre base editable, selección del item "keep", preview de costo combinado.
+- **Fusión en lote** N→1 (con confirmación) + descartar grupo.
+- Hooks nuevos en `useSincronizacion.js` + keys + rutas IA en `apiRoutes.js` (namespace de `/sincronizacion/ia/*`).
+- ⚠️ Desde 06-03 todos los endpoints mutadores de IA son **admin-only** en backend — un operador recibe 403.
+
+### Login
+
+- **Fix dark mode estructural**: `@custom-variant dark` por **clase** en `index.css` (antes el `dark:` variant respondía al `prefers-color-scheme` del SO en vez de a `html.dark` — el toggle de la app no afectaba esos estilos).
+- Centrado robusto del branding, resumen de features en móvil, foco de inputs con color de marca.
+- A11y: `role=alert` en errores, `aria-hidden` en decorativos, aviso de Bloq Mayús activado.
+
+---
+
+## 30. Sesión 2026-06-05 — Toast con motivo real al eliminar ítem
+
+`src/modules/Inventario/api/useItem.js` — el `deleteMutation` no tenía `onError`: cuando el backend rechazaba el delete, el usuario solo veía el toast genérico. Ahora muestra el motivo real del backend (`e.response.data.msg`), que desde 06-03 es un **409 descriptivo** (`ItemController::delete` chequea stock activo, uso en fórmulas, fórmulas propias y sugiere usar el merge de Sincronización).
+
+---
+
+> **Snapshot al cierre 2026-06-05**: Frontend con dedup IA operativa (SugerenciasIATab), calculadora de prorrateo pre-OC, columna último precio, Login pulido en dark + a11y, errores de delete accionables. Política RBAC definitiva: por módulo (backend `RbacFilter` garantiza visor read-only). Build limpio, 34/34 tests. Backlog: ~15 hooks a API_ROUTES, migrar Facturas al endpoint bulk, notificaciones real-time, verificación visual final de dark mode, toggle costo real/lista (única decisión UX restante).
