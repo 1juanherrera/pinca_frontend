@@ -39,7 +39,7 @@ const buildColumns = (moraCriticaDias, moraWarningDias) => [
     align: 'center',
     render: (v) => {
       const d = Number(v);
-      const tone = d > moraCriticaDias ? 'danger' : d > moraWarningDias ? 'warning' : 'warning';
+      const tone = d > moraCriticaDias ? 'danger' : d > moraWarningDias ? 'warning' : 'info';
       return <StatusBadge tone={tone} label={`${d}d`} dot={false} size="sm" />;
     },
   },

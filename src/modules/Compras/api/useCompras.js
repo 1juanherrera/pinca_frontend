@@ -66,7 +66,7 @@ export const useCompras = (id = null) => {
       queryClient.invalidateQueries({ queryKey: inventarioKeys.all });
       // Refrescar el lote sugerido — la próxima recepción ya tendrá capas con
       // este código, así que el endpoint lo reusará.
-      queryClient.invalidateQueries({ queryKey: ['ordenes_compra', idOrden, 'lote-sugerido'] });
+      queryClient.invalidateQueries({ queryKey: ['ordenes_compra', idOrden?.toString(), 'lote-sugerido'] });
       toast.success('Producto recibido correctamente');
     },
     onError: () => toast.error('Error al recibir el producto'),
@@ -87,7 +87,7 @@ export const useCompras = (id = null) => {
       queryClient.invalidateQueries({ queryKey: comprasKeys.detail(idOrden?.toString()) });
       queryClient.invalidateQueries({ queryKey: comprasKeys.lists() });
       queryClient.invalidateQueries({ queryKey: inventarioKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['ordenes_compra', idOrden, 'lote-sugerido'] });
+      queryClient.invalidateQueries({ queryKey: ['ordenes_compra', idOrden?.toString(), 'lote-sugerido'] });
       toast.success('Lote recibido con costo prorrateado');
     },
     onError: () => toast.error('Error al recibir el lote prorrateado'),

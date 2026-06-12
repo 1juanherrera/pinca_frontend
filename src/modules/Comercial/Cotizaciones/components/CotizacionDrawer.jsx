@@ -34,7 +34,8 @@ const InfoRow = ({ label, value, mono }) => (
 const ESTADOS_DISPONIBLES = ['Borrador', 'Enviada', 'Aprobada', 'Rechazada', 'Expirada'];
 
 const CotizacionDrawer = ({ cotizacionId, isOpen, onClose, onCambiarEstado, onConvertir }) => {
-  const { cotizacionDetalle, detalle, isLoadingDetalle, isCambiandoEstado } = useCotizaciones(cotizacionId);
+  // El hook expone los ítems como `items` (no `detalle`); aliasamos para no romper el resto del JSX.
+  const { cotizacionDetalle, items: detalle, isLoadingDetalle, isCambiandoEstado } = useCotizaciones(cotizacionId);
   const { openConfirm, openDrawer } = useBoundStore();
 
   const c = cotizacionDetalle;

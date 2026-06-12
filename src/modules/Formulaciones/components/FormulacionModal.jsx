@@ -171,10 +171,12 @@ const IngredientCard = ({
           {unidad === 'g' && (
             <input
               type="number"
-              step="1"
+              step="0.001"
               min="0"
               tabIndex={tabBase}
-              value={parseFloat(quantity) > 0 ? Math.round(parseFloat(quantity) * 1000) : ''}
+              // toFixed(3) en vez de Math.round: quita el ruido de float SIN truncar cantidades
+              // sub-gramo (Math.round volvía 0.5 g → 1 g, corrompiendo la receta al cambiar de unidad).
+              value={parseFloat(quantity) > 0 ? Number((parseFloat(quantity) * 1000).toFixed(3)) : ''}
               onChange={(e) => setValue(`materias_primas.${index}.cantidad`, (parseFloat(e.target.value) || 0) / 1000)}
               placeholder="0 g"
               className={`w-full text-sm font-bold text-center rounded-lg px-2 py-1.5 border focus:outline-none focus:ring-1 focus:ring-brand-primary/30 tabular-nums transition-colors ${
@@ -409,15 +411,21 @@ const FormulacionModalInner = ({ onClose, itemId = null }) => {
       toast.error('Agrega al menos una materia prima');
       return;
     }
+    // Peso total de la receta para derivar el % real de cada ingrediente (debe sumar 100).
+    // Antes se enviaba `porcentaje: 0` fijo → toda fórmula quedaba sin composición porcentual.
+    const pesoTotalPayload = data.materias_primas.reduce((s, mp) => s + (parseFloat(mp.cantidad) || 0), 0);
     const payload = {
       item_general_id: Number(data.item_general_id),
       nombre:          data.nombre || 'PREPARACION',
       descripcion:     data.descripcion || null,
-      materias_primas: data.materias_primas.map(mp => ({
-        materia_prima_id: Number(mp.materia_prima_id),
-        cantidad:         parseFloat(mp.cantidad) || 0,
-        porcentaje:       0,
-      })),
+      materias_primas: data.materias_primas.map(mp => {
+        const cant = parseFloat(mp.cantidad) || 0;
+        return {
+          materia_prima_id: Number(mp.materia_prima_id),
+          cantidad:         cant,
+          porcentaje:       pesoTotalPayload > 0 ? Number(((cant / pesoTotalPayload) * 100).toFixed(4)) : 0,
+        };
+      }),
     };
     try {
       if (formulacion?.formulacion_id) {

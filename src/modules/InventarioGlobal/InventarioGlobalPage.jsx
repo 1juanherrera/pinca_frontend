@@ -562,7 +562,7 @@ const InventarioGlobalPage = ({ embedded = false }) => {
                     Valor total ({filtrados.length} ítems):
                   </td>
                   <td className="px-3 py-2 text-right text-content-primary">
-                    {fmt(filtrados.reduce((s, i) => s + i.valor_inventario, 0))}
+                    {fmt(filtrados.reduce((s, i) => s + (i.valor_inventario || 0), 0))}
                   </td>
                   <td colSpan={2} />
                 </tr>

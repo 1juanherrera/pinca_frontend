@@ -193,8 +193,9 @@ const OrdenesTab = ({ onVerDetalle }) => {
       align:     'right',
       className: 'w-32',
       render: (_, row) => {
+        // Usa el total_con_iva real de la OC; el cálculo con ivaPct de config es solo fallback.
         const sub = Number(row.total ?? 0);
-        const totalConIva = Math.round(sub * (1 + ivaPct / 100));
+        const totalConIva = row.total_con_iva ?? Math.round(sub * (1 + (row.iva_pct ?? ivaPct) / 100));
         return <AmountDisplay value={totalConIva} />;
       },
     },

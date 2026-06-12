@@ -54,7 +54,7 @@ export const useUpdateConfig = () => {
       qc.invalidateQueries({ queryKey: configuracionKeys.all });
     },
     onError: (e) => {
-      toast.error(e?.response?.data?.messages?.error || 'Error al actualizar configuración');
+      toast.error(e?.response?.data?.messages?.error || e?.response?.data?.msg || 'Error al actualizar configuración');
     },
   });
 };
@@ -71,7 +71,7 @@ export const useBulkUpdateConfig = () => {
       qc.invalidateQueries({ queryKey: configuracionKeys.all });
     },
     onError: (e) => {
-      toast.error(e?.response?.data?.messages?.error || 'Error al actualizar configuraciones');
+      toast.error(e?.response?.data?.messages?.error || e?.response?.data?.msg || 'Error al actualizar configuraciones');
     },
   });
 };

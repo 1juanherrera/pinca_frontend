@@ -12,7 +12,10 @@ export const formatCOP = (value) => {
 
 export const formatFecha = (isoString) => {
   if (!isoString) return '—';
-  return new Date(isoString + 'T00:00:00').toLocaleDateString('es-CO', {
+  // Toma solo YYYY-MM-DD aunque venga con hora; evita "Invalid Date" al concatenar T00:00:00.
+  const d = new Date(String(isoString).slice(0, 10) + 'T00:00:00');
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('es-CO', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

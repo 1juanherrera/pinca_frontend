@@ -51,9 +51,11 @@ export const useGananciasVentas = ({ desde, hasta } = {}) => {
               costoTotal += costoUnitario * cantidad;
             }
             
-            const totalVenta = parseFloat(factura.total) || 0;
-            const ganancia = totalVenta - costoTotal;
-            const margenPorcentaje = totalVenta > 0 ? ((ganancia / totalVenta) * 100) : 0;
+            // Ganancia/margen sobre la base SIN IVA: el costo es ex-IVA, así que la venta también
+            // debe ser el subtotal. Usar `total` (con IVA) inflaba la ganancia por el monto del IVA.
+            const ventaBase = parseFloat(factura.subtotal) || parseFloat(factura.total) || 0;
+            const ganancia = ventaBase - costoTotal;
+            const margenPorcentaje = ventaBase > 0 ? ((ganancia / ventaBase) * 100) : 0;
             
             return {
               ...factura,
@@ -64,18 +66,16 @@ export const useGananciasVentas = ({ desde, hasta } = {}) => {
             };
           } catch (error) {
             console.warn(`Error calculando costos para factura ${factura.numero}:`, error);
-            // Si no podemos calcular el costo, asumimos ganancia = 30% del total de venta (estimación conservadora)
-            const totalVenta = parseFloat(factura.total) || 0;
-            const gananciasEstimada = totalVenta * 0.3;
-            const costoEstimado = totalVenta - gananciasEstimada;
-            
+            // NO inventar ganancia: si no podemos obtener el costo real, marcamos la factura como
+            // costo desconocido (ganancia/margen null) en vez de fabricar un 30% que falsea los KPIs.
+            // Aporta 0 a ganancias/costos (conservador) y se excluye del cálculo de mejor/peor margen.
             return {
               ...factura,
-              costo_total: costoEstimado,
-              ganancia: gananciasEstimada,
-              margen_porcentaje: 30,
+              costo_total: null,
+              ganancia: null,
+              margen_porcentaje: null,
               items_count: 0,
-              estimado: true
+              costo_desconocido: true
             };
           }
         })
@@ -85,7 +85,10 @@ export const useGananciasVentas = ({ desde, hasta } = {}) => {
       const totalGanancias = ventasConGanancia.reduce((sum, v) => sum + (v.ganancia || 0), 0);
       const totalVentas = ventasConGanancia.reduce((sum, v) => sum + (parseFloat(v.total) || 0), 0);
       const totalCostos = ventasConGanancia.reduce((sum, v) => sum + (v.costo_total || 0), 0);
-      const margenPromedio = totalVentas > 0 ? ((totalGanancias / totalVentas) * 100) : 0;
+      // Margen promedio sobre la base sin IVA (coherente con la ganancia ex-IVA por factura).
+      const totalVentasBase = ventasConGanancia.reduce(
+        (sum, v) => sum + (parseFloat(v.subtotal) || parseFloat(v.total) || 0), 0);
+      const margenPromedio = totalVentasBase > 0 ? ((totalGanancias / totalVentasBase) * 100) : 0;
 
       // Agrupar ventas por día para gráficos
       const ventasPorDia = ventasConGanancia.reduce((acc, venta) => {
@@ -140,7 +143,7 @@ export const useGananciasVentas = ({ desde, hasta } = {}) => {
         .sort((a, b) => b.total_ganancias - a.total_ganancias)[0] || null;
       
       // Mejor y peor margen
-      const ventasConMargen = ventasConGanancia.filter(v => v.margen_porcentaje !== undefined);
+      const ventasConMargen = ventasConGanancia.filter(v => v.margen_porcentaje != null);
       const mejorMargen = ventasConMargen.sort((a, b) => b.margen_porcentaje - a.margen_porcentaje)[0] || null;
       const peorMargen = ventasConMargen.sort((a, b) => a.margen_porcentaje - b.margen_porcentaje)[0] || null;
 

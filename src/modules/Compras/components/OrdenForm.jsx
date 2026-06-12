@@ -194,7 +194,12 @@ const OrdenForm = () => {
                 placeholder="Selecciona..."
                 options={proveedorOpciones}
                 value={field.value}
-                onChange={field.onChange}
+                onChange={(v) => {
+                  // Si cambia el proveedor con líneas cargadas, limpiarlas: pertenecen al proveedor
+                  // anterior (sus item_proveedor_id no son válidos para el nuevo). Evita OCs corruptas.
+                  if (v !== field.value && lineas.length > 0) setLineas([]);
+                  field.onChange(v);
+                }}
                 error={errors.proveedor_id?.message}
               />
             )}

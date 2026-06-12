@@ -683,9 +683,12 @@ const CombinacionForm = ({
           fecha_fin:       fechaFin    || null,
           observaciones:   observaciones.trim() || null,
           detalle,
+          // Mismo shape que el form simple (buildPayload): IndirectCostSelector produce
+          // {nombre, categoria, valor_aplicado} — NO `costos_indirectos_id` (era undefined → no se guardaban).
           costos_indirectos: idx === 0 ? selectedCostos.map(c => ({
-            costos_indirectos_id: c.costos_indirectos_id,
-            valor_aplicado:       c.valor_aplicado,
+            nombre:         c.nombre,
+            categoria:      c.categoria,
+            valor_aplicado: c.valor_aplicado,
           })) : [],
         });
         creadas.push(data);

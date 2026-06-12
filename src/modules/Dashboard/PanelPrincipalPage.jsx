@@ -210,7 +210,12 @@ const PanelPrincipalPage = () => {
         />
         <FlowCard
           icon={TrendingUp}
-          tone={rentabilidad?.margen_pct >= margenObjetivoPct ? 'success' : rentabilidad?.margen_pct >= margenMinimoPct ? 'warning' : 'danger'}
+          tone={
+            rentabilidad?.margen_pct == null ? 'neutral'             // sin datos: no pintar rojo (falsa alarma)
+              : rentabilidad.margen_pct >= margenObjetivoPct ? 'success'
+              : rentabilidad.margen_pct >= margenMinimoPct ? 'warning'
+              : 'danger'
+          }
           label="Margen del mes"
           value={fmtPct(rentabilidad?.margen_pct)}
           sub={`Util. ${fmtCOPCompact(rentabilidad?.utilidad)}`}

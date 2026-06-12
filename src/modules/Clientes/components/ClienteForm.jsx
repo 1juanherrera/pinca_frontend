@@ -40,8 +40,8 @@ const ClienteForm = () => {
           plazo_pago:       String(payload.plazo_pago ?? plazoDefault),
           telefono:         payload.telefono         || '',
           email:            payload.email            || '',
-          tipo:             String(payload.tipo)     || '2',
-          estado:           String(payload.estado)   || '1',
+          tipo:             String(payload.tipo ?? '2'),
+          estado:           String(payload.estado ?? '1'),
         });
       } else {
         reset({

@@ -72,18 +72,21 @@ export const fmt = (v) =>
 export const formatLetterDate = (dateString) => {
   if (!dateString) return "—";
 
-  const date = new Date(`${dateString}T00:00:00`);
-  
+  // Normaliza: toma solo YYYY-MM-DD aunque venga con hora ("2026-06-12 10:30:00" o ISO completo).
+  const date = new Date(`${String(dateString).slice(0, 10)}T00:00:00`);
+  if (isNaN(date.getTime())) return "—"; // fecha inválida: no crashear el render
+
   const options = { month: 'short', day: '2-digit', year: 'numeric' };
   let formatted = date.toLocaleDateString('es-ES', options);
 
   // Corregido: quitamos el escape innecesario del punto
-  formatted = formatted.replace(/[.,]/g, ""); 
-  
+  formatted = formatted.replace(/[.,]/g, "");
+
   // Para que el formato sea "Mes Día Año" exacto como pediste
   // Reordenamos las partes: [día, mes, año] -> [mes, día, año]
   const partes = formatted.split(" ");
+  if (partes.length < 3) return formatted; // formato inesperado del locale: devolver sin reordenar
   const mesCapitalizado = partes[1].charAt(0).toUpperCase() + partes[1].slice(1);
-  
+
   return `${mesCapitalizado} ${partes[0]} ${partes[2]}`;
 };

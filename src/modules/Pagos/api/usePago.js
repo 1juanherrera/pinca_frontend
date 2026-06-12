@@ -4,6 +4,7 @@ import { API_ROUTES } from '../../../api/apiRoutes';
 import { pagoKeys } from './pagoKeys';
 import toast from 'react-hot-toast';
 import { facturaKeys } from '../../Comercial/Facturacion/api/facturaKeys';
+import { carteraKeys } from '../../Cartera/api/carteraKeys';
 
 
 /**
@@ -59,6 +60,10 @@ export const usePagos = ({ clienteId = null, facturaId = null } = {}) => {
       if (variables.clientes_id) {
         queryClient.invalidateQueries({ queryKey: pagoKeys.byCliente(variables.clientes_id) });
       }
+
+      // Refresca el módulo Cartera (dashboard/aging/estado de cuenta) — antes quedaba stale
+      // al registrar un pago desde Pagos.
+      queryClient.invalidateQueries({ queryKey: carteraKeys.all });
     },
     onError: () => toast.error('Error al registrar el pago'),
   });
@@ -76,6 +81,7 @@ export const usePagos = ({ clienteId = null, facturaId = null } = {}) => {
       toast.success('Pago actualizado exitosamente');
       queryClient.invalidateQueries({ queryKey: pagoKeys.all });
       queryClient.invalidateQueries({ queryKey: facturaKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: carteraKeys.all });
     },
     onError: () => toast.error('Error al actualizar el pago'),
   });
@@ -93,6 +99,7 @@ export const usePagos = ({ clienteId = null, facturaId = null } = {}) => {
       // El saldo de facturas cambia al borrar un pago
       queryClient.invalidateQueries({ queryKey: facturaKeys.lists() });
       queryClient.invalidateQueries({ queryKey: facturaKeys.details() });
+      queryClient.invalidateQueries({ queryKey: carteraKeys.all });
     },
     onError: () => toast.error('Error al eliminar el pago'),
   });

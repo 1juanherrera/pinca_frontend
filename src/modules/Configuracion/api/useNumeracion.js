@@ -22,7 +22,7 @@ export const useUpdateNumeracion = () => {
       toast.success('Serie actualizada');
       qc.invalidateQueries({ queryKey: KEYS.all });
     },
-    onError: (e) => toast.error(e?.response?.data?.messages?.error || 'Error al actualizar serie'),
+    onError: (e) => toast.error(e?.response?.data?.messages?.error || e?.response?.data?.msg || 'Error al actualizar serie'),
   });
 };
 
@@ -34,6 +34,6 @@ export const useCreateNumeracion = () => {
       toast.success('Nueva serie creada');
       qc.invalidateQueries({ queryKey: KEYS.all });
     },
-    onError: (e) => toast.error(e?.response?.data?.messages?.error || 'Error al crear serie'),
+    onError: (e) => toast.error(e?.response?.data?.messages?.error || e?.response?.data?.msg || 'Error al crear serie'),
   });
 };

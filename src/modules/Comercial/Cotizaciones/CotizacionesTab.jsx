@@ -237,7 +237,7 @@ const columns = useMemo(() => [
             <FileSpreadsheet size={12} />
           </button>
 
-          {row.estado === 'Aceptada' && !row.facturas_id && (
+          {row.estado === 'Aprobada' && !row.facturas_id && (
             <button
               onClick={(e) => {
                 e.stopPropagation();

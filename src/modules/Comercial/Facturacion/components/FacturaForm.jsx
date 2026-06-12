@@ -100,9 +100,13 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
   };
 
   const subtotal  = items.reduce((acc, it) => acc + Number(it.precio_unitario) * Number(it.cantidad), 0);
-  const baseIva   = subtotal - Number(form.descuento);
-  const impuestos = ivaActivo ? Math.round(baseIva * ivaPct / 100) : Number(form.impuestos);
-  const total     = subtotal - Number(form.descuento) + impuestos - Number(form.retencion);
+  const descuento = Number(form.descuento) || 0;
+  const retencion = Number(form.retencion) || 0;
+  // clamp: un descuento mayor al subtotal no debe producir IVA/total negativos. `|| 0` evita NaN
+  // cuando el campo está vacío/intermedio (antes se enviaba NaN en el payload).
+  const baseIva   = Math.max(0, subtotal - descuento);
+  const impuestos = ivaActivo ? Math.round(baseIva * ivaPct / 100) : (Number(form.impuestos) || 0);
+  const total     = subtotal - descuento + impuestos - retencion;
 
   const handleSubmit = async () => {
     clearAll();

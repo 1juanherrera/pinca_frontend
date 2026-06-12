@@ -64,6 +64,7 @@ const RegistrarPagoContent = ({ factura, onClose }) => {
   };
 
   const handleSubmit = async () => {
+    if (isRegistrando) return; // guard de doble submit — evita registrar el pago dos veces
     const { valid, errors: errs } = validarPago({
       ...form,
       facturas_id:     factura.id_facturas,

@@ -204,12 +204,14 @@ const OrdenDrawer = ({ ordenId, isOpen, onClose }) => {
                   <span className="text-xs font-semibold text-content-secondary tabular-nums">{fmt(orden.total)}</span>
                 </div>
                 <div className="px-4 py-2 flex items-center justify-between border-t border-border-subtle">
-                  <span className="text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">IVA ({ivaPct}%)</span>
-                  <span className="text-xs font-semibold text-content-secondary tabular-nums">{fmt(Math.round(Number(orden.total ?? 0) * (ivaPct / 100)))}</span>
+                  {/* IVA real de la OC (iva_pct/iva_monto/total_con_iva del backend); config solo como fallback.
+                      Una OC creada con IVA 0% o 5% ya no se muestra inflada al 19%. */}
+                  <span className="text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">IVA ({orden.iva_pct ?? ivaPct}%)</span>
+                  <span className="text-xs font-semibold text-content-secondary tabular-nums">{fmt(orden.iva_monto ?? Math.round(Number(orden.total ?? 0) * ((orden.iva_pct ?? ivaPct) / 100)))}</span>
                 </div>
                 <div className="px-4 py-3 flex items-center justify-between border-t border-border-base">
                   <span className="text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Total (IVA incluido)</span>
-                  <span className="text-sm font-bold text-content-primary tabular-nums">{fmt(Math.round(Number(orden.total ?? 0) * (1 + ivaPct / 100)))}</span>
+                  <span className="text-sm font-bold text-content-primary tabular-nums">{fmt(orden.total_con_iva ?? Math.round(Number(orden.total ?? 0) * (1 + (orden.iva_pct ?? ivaPct) / 100)))}</span>
                 </div>
               </div>
             </div>

@@ -42,7 +42,10 @@ const columns = [
     label: 'Utilidad',
     align: 'right',
     render: (v, row) => {
-      const utilidad = (row.total ?? 0) - (row.costo_total ?? 0);
+      // Comparar base contra base: el costo es sin IVA, así que la venta también debe ser el
+      // subtotal (sin IVA). Usar `total` (con IVA) inflaba la utilidad por el monto del IVA.
+      const ventaBase = row.subtotal ?? row.total ?? 0;
+      const utilidad = ventaBase - (row.costo_total ?? 0);
       const isPositive = utilidad >= 0;
       return (
         <span className={`text-xs  tabular-nums font-semibold ${isPositive ? 'text-semantic-success-fg' : 'text-semantic-danger-fg'}`}>
@@ -56,9 +59,10 @@ const columns = [
     label: 'Margen %',
     align: 'right',
     render: (v, row) => {
-      const total = row.total ?? 0;
+      // Margen sobre base sin IVA (ver nota en Utilidad): venta = subtotal, no total.
+      const ventaBase = row.subtotal ?? row.total ?? 0;
       const costo = row.costo_total ?? 0;
-      const margen = total > 0 ? ((total - costo) / total * 100) : 0;
+      const margen = ventaBase > 0 ? ((ventaBase - costo) / ventaBase * 100) : 0;
       const isPositive = margen >= 0;
       return (
         <span className={`text-xs  tabular-nums font-bold ${isPositive ? 'text-semantic-success-fg' : 'text-semantic-danger-fg'}`}>

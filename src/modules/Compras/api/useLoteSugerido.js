@@ -13,7 +13,7 @@ import { API_ROUTES } from '../../../api/apiRoutes';
  */
 export const useLoteSugerido = (ordenId) =>
   useQuery({
-    queryKey: ['ordenes_compra', ordenId, 'lote-sugerido'],
+    queryKey: ['ordenes_compra', ordenId?.toString(), 'lote-sugerido'],
     queryFn:  () => apiClient.get(API_ROUTES.ORDENES_COMPRA.LOTE_SUGERIDO(ordenId)),
     enabled:  !!ordenId,
     staleTime: 60 * 1000, // 1 min — el código no cambia salvo que se reciba otra línea

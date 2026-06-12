@@ -14,7 +14,7 @@ export const useInventarioGlobal = (tipo = null) => {
     staleTime: 1000 * 60 * 2,
   });
 
-  const totalValor    = data.reduce((s, i) => s + i.valor_inventario, 0);
+  const totalValor    = data.reduce((s, i) => s + (i.valor_inventario || 0), 0);
   const totalItems    = data.length;
   const sinStock      = data.filter((i) => i.stock_total === 0).length;
   const stockCritico  = data.filter((i) => i.dias_restantes !== null && i.dias_restantes < stockCriticoDias).length;

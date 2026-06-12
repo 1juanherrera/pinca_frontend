@@ -146,9 +146,10 @@ const NotasCreditoDrawer = ({ facturaId, clienteId, numeroFactura, saldoPendient
     });
   };
 
+  // Coherente con el resto del componente, que decide por 'Anulada' (no por la cadena exacta 'Activa').
   const totalActivas = notas
-    .filter((n) => n.estado === 'Activa')
-    .reduce((acc, n) => acc + Number(n.monto), 0);
+    .filter((n) => n.estado !== 'Anulada')
+    .reduce((acc, n) => acc + (Number(n.monto) || 0), 0);
 
   return (
     <DetailDrawer
