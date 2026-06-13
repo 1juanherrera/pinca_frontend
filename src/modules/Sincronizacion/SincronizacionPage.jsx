@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  GitMerge, LayoutDashboard, Table2, Link2, Copy, Ban, Sparkles,
+  GitMerge, LayoutDashboard, Table2, Link2, Copy, Ban, Sparkles, Repeat,
 } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import PageTabs from '../../shared/PageTabs';
@@ -11,6 +11,7 @@ import PendientesTab from './components/PendientesTab';
 import DuplicadosTab from './components/DuplicadosTab';
 import HuerfanosTab from './components/HuerfanosTab';
 import SugerenciasIATab from './components/SugerenciasIATab';
+import ReemplazarTab from './components/ReemplazarTab';
 import { useSincStats } from './api/useSincronizacion';
 
 const TABS_BASE = [
@@ -20,6 +21,7 @@ const TABS_BASE = [
   { key: 'pendientes',  label: 'Pendientes',    icon: Link2 },
   { key: 'duplicados',  label: 'Duplicados',    icon: Copy },
   { key: 'huerfanos',   label: 'Huérfanos',     icon: Ban },
+  { key: 'reemplazar',  label: 'Reemplazar',    icon: Repeat },
 ];
 
 const SincronizacionPage = () => {
@@ -58,6 +60,7 @@ const SincronizacionPage = () => {
         {tab === 'pendientes'  && <PendientesTab />}
         {tab === 'duplicados'  && <DuplicadosTab />}
         {tab === 'huerfanos'   && <HuerfanosTab />}
+        {tab === 'reemplazar'  && <ReemplazarTab />}
       </div>
     </div>
   );

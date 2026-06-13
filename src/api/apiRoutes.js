@@ -157,6 +157,10 @@ export const API_ROUTES = {
     DUPLICADOS: '/sincronizacion/duplicados',
     HUERFANOS:  '/sincronizacion/huerfanos',
     MERGE:      '/sincronizacion/merge',
+    USO_FORMULAS:       (id, toId) => `/sincronizacion/uso-formulas/${id}${toId ? `?to=${toId}` : ''}`,
+    REEMPLAZAR_FORMULA: '/sincronizacion/reemplazar-formula',
+    REEMPLAZOS:         '/sincronizacion/reemplazos',
+    REVERTIR_REEMPLAZO: (id) => `/sincronizacion/reemplazos/${id}/revertir`,
     IA: {
       CLASIFICAR: '/sincronizacion/ia/clasificar',
       CLUSTERS:   '/sincronizacion/ia/clusters',

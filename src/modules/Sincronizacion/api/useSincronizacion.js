@@ -135,3 +135,51 @@ export const useDescartarCluster = () => {
     },
   });
 };
+
+// ── Reemplazo manual de materia prima en fórmulas (buscar y reemplazar) ──────
+export const useUsoEnFormulas = (itemId, toId) =>
+  useQuery({
+    queryKey: [...sincKeys.usoFormulas(itemId), toId ?? null],
+    queryFn:  () => apiClient.get(API_ROUTES.SINCRONIZACION.USO_FORMULAS(itemId, toId)),
+    enabled:  !!itemId,
+    staleTime: 30 * 1000,
+  });
+
+export const useReemplazarFormula = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    // data: { from_item_id, to_item_id, formulacion_ids? }
+    mutationFn: (data) => apiClient.post(API_ROUTES.SINCRONIZACION.REEMPLAZAR_FORMULA, data),
+    onSuccess: (res) => {
+      toast.success(res?.msg ?? 'Reemplazo aplicado');
+      queryClient.invalidateQueries({ queryKey: sincKeys.all });
+      // El BOM y el catálogo cambiaron → refrescar formulaciones, catálogo y costos.
+      queryClient.invalidateQueries({ queryKey: ['formulaciones'] });
+      queryClient.invalidateQueries({ queryKey: ['catalogo'] });
+      queryClient.invalidateQueries({ queryKey: ['costos-produccion'] });
+    },
+    onError: (e) => toast.error(e?.response?.data?.msg || e?.response?.data?.messages?.error || 'Error al reemplazar'),
+  });
+};
+
+export const useHistorialReemplazos = () =>
+  useQuery({
+    queryKey: [...sincKeys.all, 'reemplazos'],
+    queryFn:  () => apiClient.get(API_ROUTES.SINCRONIZACION.REEMPLAZOS),
+    staleTime: 30 * 1000,
+  });
+
+export const useRevertirReemplazo = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => apiClient.post(API_ROUTES.SINCRONIZACION.REVERTIR_REEMPLAZO(id)),
+    onSuccess: (res) => {
+      toast.success(res?.msg ?? 'Reemplazo deshecho');
+      queryClient.invalidateQueries({ queryKey: sincKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['formulaciones'] });
+      queryClient.invalidateQueries({ queryKey: ['catalogo'] });
+      queryClient.invalidateQueries({ queryKey: ['costos-produccion'] });
+    },
+    onError: (e) => toast.error(e?.response?.data?.msg || e?.response?.data?.messages?.error || 'Error al deshacer'),
+  });
+};

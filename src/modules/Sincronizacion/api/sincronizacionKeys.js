@@ -7,4 +7,5 @@ export const sincKeys = {
   huerfanos:  () => [...sincKeys.all, 'huerfanos'],
   clusters:   (filters) => [...sincKeys.all, 'clusters', filters ?? {}],
   cluster:    (id) => [...sincKeys.all, 'cluster', id],
+  usoFormulas:(id) => [...sincKeys.all, 'uso-formulas', id],
 };
