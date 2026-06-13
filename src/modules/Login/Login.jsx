@@ -102,10 +102,10 @@ export const Login = () => {
         {/* Atmósfera de "pintura": orbes flotantes + pincelada diagonal */}
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute -left-20 -top-24 h-96 w-96 rounded-full bg-brand-primary/30 blur-3xl animate-login-blob" />
-          <div className="absolute -right-24 top-1/3 h-[28rem] w-[28rem] rounded-full bg-brand-primary-hover/20 blur-3xl animate-login-blob-slow" />
+          <div className="absolute -right-24 top-1/3 h-112 w-md rounded-full bg-brand-primary-hover/20 blur-3xl animate-login-blob-slow" />
           <div className="absolute -bottom-28 left-1/4 h-80 w-80 rounded-full bg-brand-primary-active/25 blur-3xl animate-login-blob" />
           {/* Pincelada — barrido diagonal de color que cruza el panel */}
-          <div className="absolute left-1/2 top-1/2 h-44 w-[150%] -translate-x-1/2 -translate-y-1/2 -rotate-[14deg] rounded-full bg-gradient-to-r from-transparent via-brand-primary/15 to-transparent blur-2xl" />
+          <div className="absolute left-1/2 top-1/2 h-44 w-[150%] -translate-x-1/2 -translate-y-1/2 -rotate-14 rounded-full bg-linear-to-r from-transparent via-brand-primary/15 to-transparent blur-2xl" />
         </div>
 
 
@@ -123,7 +123,7 @@ export const Login = () => {
         <div className="relative animate-login-rise">
           <div className="relative inline-block">
             <div className="absolute inset-0 rounded-3xl bg-brand-primary/40 blur-2xl" aria-hidden="true" />
-            <img src={PincaLogo} alt="Pinca" className="relative h-28 w-auto drop-shadow-2xl" />
+            <img src={PincaLogo} alt="Pinca" className="relative h-42 w-auto drop-shadow-2xl" />
           </div>
         </div>
 
@@ -142,7 +142,7 @@ export const Login = () => {
             style={{ animationDelay: '220ms' }}
           >
             Color, control y{' '}
-            <span className="bg-gradient-to-r from-brand-primary via-white to-brand-primary bg-clip-text text-transparent animate-login-shimmer">
+            <span className="bg-linear-to-r from-brand-primary via-white to-brand-primary bg-clip-text text-transparent animate-login-shimmer">
               precisión
             </span>{' '}
             en cada proceso.
