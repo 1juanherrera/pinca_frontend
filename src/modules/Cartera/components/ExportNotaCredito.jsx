@@ -199,7 +199,7 @@ const ExportNotaCreditoContent = ({ nota, closeModal }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[110] bg-black/60 flex items-center justify-center p-4" onClick={closeModal}>
+    <div className="fixed inset-0 z-110 bg-black/60 flex items-center justify-center p-4" onClick={closeModal}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between">
           <div>
