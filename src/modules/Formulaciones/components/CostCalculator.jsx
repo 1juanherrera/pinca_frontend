@@ -4,6 +4,8 @@ import { formatNumber } from '../utils/handlers';
 import { Button, ButtonSquare } from '../../../shared/Button';
 import { useBoundStore } from '../../../store/useBoundStore';
 
+const fmtRaw = (n) => new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(Number(n) || 0);
+
 export const CostCalculator = ({
   productDetail,
   selectedProductData,
@@ -13,6 +15,7 @@ export const CostCalculator = ({
   setNuevoVolumen,
   recalculatedData,
   isRecalculating,
+  totalUnificadoMP = null,
 }) => {
   const [inputVolumen, setInputVolumen] = useState('');
   const { openDrawer } = useBoundStore();
@@ -114,7 +117,7 @@ export const CostCalculator = ({
               <div className="mt-3 p-2 bg-semantic-success-subtle border border-semantic-success/20 flex justify-center items-center rounded-md text-center font-semibold animate-in fade-in slide-in-from-top-1">
                 <CheckSquare size={16} className="text-semantic-success-fg" />
                 <p className="text-sm ml-2 text-semantic-success-fg">
-                  Costo total: $ {formatNumber(proyectado?.total_costo_materia_prima)}
+                  Costo total: $ {totalUnificadoMP != null ? fmtRaw(totalUnificadoMP) : formatNumber(proyectado?.total_costo_materia_prima)}
                 </p>
               </div>
             )}
@@ -146,7 +149,7 @@ export const CostCalculator = ({
                 <Button
                   onClick={() => {
                     if (!puedePreparar) return;
-                    openDrawer('PREPARATION_FORM', { productDetail, recalculatedData });
+                    openDrawer('PREPARATION_FORM', { productDetail, recalculatedData, totalUnificadoMP });
                   }}
                   disabled={!puedePreparar}
                   children="PREPARAR"
@@ -200,7 +203,7 @@ export const CostCalculator = ({
               <div className="space-y-1 text-xs">
                 <div className="flex justify-between">
                   <span className="text-content-tertiary">T/Costos:</span>
-                  <span className="font-bold text-content-secondary">$ {formatNumber(original?.total_costo_materia_prima)}</span>
+                  <span className="font-bold text-content-secondary">$ {totalUnificadoMP != null ? fmtRaw(totalUnificadoMP / (parseFloat(recalculatedData?.item?.factor_volumen) || 1)) : formatNumber(original?.total_costo_materia_prima)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-tertiary">Cantidad:</span>
@@ -220,7 +223,7 @@ export const CostCalculator = ({
               <div className="space-y-1 text-xs">
                 <div className="flex justify-between">
                   <span className="text-semantic-success-fg font-medium">T/Costos:</span>
-                  <span className="font-bold text-semantic-success-fg">$ {formatNumber(proyectado?.total_costo_materia_prima)}</span>
+                  <span className="font-bold text-semantic-success-fg">$ {totalUnificadoMP != null ? fmtRaw(totalUnificadoMP) : formatNumber(proyectado?.total_costo_materia_prima)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-semantic-success-fg font-medium">Cantidad:</span>

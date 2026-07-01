@@ -129,6 +129,7 @@ export const FormulacionesTable = ({
     onEdit,
     onClone,
     isLoading = false,
+    onTotalUnificado,
 }) => {
     const dataToShow = recalculatedData || productDetail;
     const proveedorMap = {};
@@ -236,6 +237,11 @@ export const FormulacionesTable = ({
         }
         return { totalUnificado: total.toFixed(2), sinProveedor: sinProv };
     }, [seleccionPorIngrediente, dataToShow, materiasOpciones, recalculatedData, costMode]);
+
+    // Notificar al padre cuando cambie el total unificado (para el modal de preparación).
+    useEffect(() => {
+        if (onTotalUnificado) onTotalUnificado(totalUnificado ? parseFloat(totalUnificado) : null);
+    }, [totalUnificado, onTotalUnificado]);
 
     // Empty state: sin producto seleccionado. Se evalúa DESPUÉS de los hooks
     // para no romper las reglas de hooks (orden estable en cada render).

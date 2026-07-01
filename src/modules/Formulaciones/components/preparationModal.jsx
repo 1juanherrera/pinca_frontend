@@ -1001,6 +1001,7 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
 
   const productDetail    = payload?.productDetail;
   const recalculatedData = payload?.recalculatedData;
+  const totalUnificadoMP = payload?.totalUnificadoMP ?? null;  // Total MP con precios de proveedor seleccionados
   const item             = productDetail?.item;
   const costos           = productDetail?.costos;
 
@@ -1010,7 +1011,15 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
   );
 
   const precioGalon = useMemo(() => parseCOP(recalculatedData?.recalculados?.precio_venta ?? costos?.precio_venta), [recalculatedData, costos]);
-  const costoGalon  = useMemo(() => parseCOP(recalculatedData?.recalculados?.total ?? costos?.total), [recalculatedData, costos]);
+  // Si el usuario seleccionó proveedores en la tabla, usar totalUnificadoMP / volumen
+  // como costo por galón (refleja precios de proveedor reales).
+  // De lo contrario, usar el costo calculado por el backend (promedio ponderado de capas).
+  const costoGalon  = useMemo(() => {
+    if (totalUnificadoMP != null && volumen > 0) {
+      return totalUnificadoMP / volumen;
+    }
+    return parseCOP(recalculatedData?.recalculados?.total ?? costos?.total);
+  }, [totalUnificadoMP, volumen, recalculatedData, costos]);
 
   const rows = useMemo(() =>
     unidades.map(u => {

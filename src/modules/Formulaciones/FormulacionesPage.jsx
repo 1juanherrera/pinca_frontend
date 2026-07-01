@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import KpiCard from "./components/KpiCard";
 import { ProductSelect } from "./components/ProductSelect";
 import { CostCalculator } from "./components/CostCalculator";
@@ -26,6 +26,7 @@ const FormulacionesPage = () => {
   const [clonarFrom,       setClonarFrom]       = useState(null);
 
   const [seleccionPorIngrediente, setSeleccionPorIngrediente] = useState({});
+  const [totalUnificadoMP, setTotalUnificadoMP] = useState(null);
 
   // Modo de cálculo del costo en la tabla:
   //   - 'real':  promedio ponderado de las capas (lo que ya pagué — incluye prorrateo).
@@ -44,9 +45,24 @@ const FormulacionesPage = () => {
     opcionesIngredientes,
   } = useFormulaciones(selectedId, nuevoVolumen, null, selectedProveedorId);
 
-  // La lógica de qué precio usar (capas vs proveedor más barato vs override
-  // manual) la resuelve `FormulacionesTable` en base a `costMode` y
-  // `seleccionPorIngrediente`. Acá ya no auto-poblamos selección al cargar.
+  // Auto-seleccionar el proveedor más barato por ingrediente cuando cargan las opciones.
+  // opciones ya vienen ordenadas precio_por_kg ASC desde el backend → opciones[0] es el más barato.
+  // Solo se ejecuta cuando cambia el producto o se recargan las opciones; no pisa cambios manuales
+  // del usuario porque el useEffect depende de opcionesIngredientes (referencia nueva solo cuando
+  // el backend responde con datos nuevos).
+  useEffect(() => {
+    if (!opcionesIngredientes?.materias) return;
+    const autoSeleccion = {};
+    Object.entries(opcionesIngredientes.materias).forEach(([mpId, matInfo]) => {
+      const opciones = matInfo?.opciones;
+      if (opciones?.length > 0) {
+        autoSeleccion[mpId] = opciones[0].id_item_proveedor;
+      }
+    });
+    if (Object.keys(autoSeleccion).length > 0) {
+      setSeleccionPorIngrediente(autoSeleccion);
+    }
+  }, [opcionesIngredientes]);
 
   const selectedProductData = formulaciones.find(
     (f) => String(f.id_item_general) === String(selectedId)
@@ -93,6 +109,7 @@ const FormulacionesPage = () => {
         productDetail={costosBase}
         recalculatedData={costosRecalculados}
         isLoading={isLoading}
+        totalUnificadoMP={totalUnificadoMP}
       />
 
       {/* Buscador Maestro */}
@@ -103,7 +120,8 @@ const FormulacionesPage = () => {
           setSelectedId(id);
           setNuevoVolumen("");
           setSelectedProveedorId(null);
-          setSeleccionPorIngrediente({});
+          setSeleccionPorIngrediente({});  // se repoblará automáticamente al cargar opcionesIngredientes
+          setTotalUnificadoMP(null);
         }}
         loading={isLoading}
         onClearSelection={() => {
@@ -125,6 +143,7 @@ const FormulacionesPage = () => {
             recalculatedData={costosRecalculados}
             isRecalculating={isRecalculating}
             handleRecalcular={() => {}}
+            totalUnificadoMP={totalUnificadoMP}
           />
           <ProductSpecificationsTable
             selectedProductData={selectedProductData}
@@ -189,6 +208,7 @@ const FormulacionesPage = () => {
             onEdit={(itemId) => { setEditItemId(itemId); setModalFormulacion(true); }}
             onClone={(prod) => setClonarFrom(prod)}
             isLoading={isCalculating}
+            onTotalUnificado={setTotalUnificadoMP}
           />
           <CostProductsTable
             selectedProductData={selectedProductData}
@@ -196,6 +216,7 @@ const FormulacionesPage = () => {
             recalculatedData={costosRecalculados}
             costosProveedor={costosProveedor}
             isLoading={isCalculating}
+            totalUnificadoMP={totalUnificadoMP}
           />
         </div>
       </div>

@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import PageTabs from '../../shared/PageTabs';
+import ConfirmModal from '../../shared/ConfirmModal';
 import { useBoundStore } from '../../store/useBoundStore';
 import DashboardTab from './components/DashboardTab';
 import MaestroTab from './components/MaestroTab';
@@ -62,6 +63,7 @@ const SincronizacionPage = () => {
         {tab === 'huerfanos'   && <HuerfanosTab />}
         {tab === 'reemplazar'  && <ReemplazarTab />}
       </div>
+      <ConfirmModal />
     </div>
   );
 };

@@ -86,7 +86,7 @@ const DuplicadosTab = () => {
 
     openConfirm({
       title:   'Unificar materias primas',
-      message: `Se moverán los proveedores de "${remove.nombre}" hacia "${keep.nombre}". El item removido quedará marcado como [MERGED]. Esta acción NO afecta inventario ni formulaciones.`,
+      message: `Se moverán los proveedores de "${remove.nombre}" hacia "${keep.nombre}". Las formulaciones que usen "${remove.nombre}" pasarán a usar "${keep.nombre}". El item removido quedará marcado como [MERGED]. Esta acción NO afecta inventario.`,
       variant: 'warning',
       onConfirm: async () => {
         await mergeAsync({ keep_id: keep.id_item_general, remove_id: remove.id_item_general });

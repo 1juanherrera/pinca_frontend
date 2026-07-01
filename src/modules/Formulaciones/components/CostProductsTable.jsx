@@ -19,9 +19,42 @@ export const CostProductsTable = ({
     recalculatedData,
     costosProveedor = null,
     isLoading = false,
+    totalUnificadoMP = null,   // total MP con precios de proveedor seleccionados (número)
 }) => {
 
     const openDrawer = useBoundStore(state => state.openDrawer);
+
+    // Parsea valor formateado COP ("1.234.567") → número
+    const parseCOP = (val) => {
+        if (val == null || val === '') return 0;
+        if (typeof val === 'number') return val;
+        return parseFloat(String(val).replace(/\./g, '').replace(',', '.')) || 0;
+    };
+    const fmtCOP = (n) =>
+        new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(n) || 0);
+    const fmtNum = (n) =>
+        new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(Number(n) || 0);
+
+    // Costo total por galón usando proveedores seleccionados en la tabla
+    const costoTotalConProv = (() => {
+        if (totalUnificadoMP == null) return null;
+        const costos = productDetail?.costos;
+        if (!costos) return null;
+        const volumen = parseFloat(productDetail?.item?.volumen_base) || 1;
+        const overhead = parseCOP(costos.envase)
+            + parseCOP(costos.etiqueta)
+            + parseCOP(costos.bandeja)
+            + parseCOP(costos.plastico)
+            + parseCOP(costos.costo_mod);
+        return (totalUnificadoMP / volumen) + overhead;
+    })();
+
+    // costo_mp_galon con proveedores
+    const costoMPGalonConProv = (() => {
+        if (totalUnificadoMP == null) return null;
+        const volumen = parseFloat(productDetail?.item?.volumen_base) || 1;
+        return totalUnificadoMP / volumen;
+    })();
 
     if (!selectedProductData) {
         return (
@@ -41,7 +74,6 @@ export const CostProductsTable = ({
 
     const COST_DEFINITIONS = {
         costo_mp_galon: { label: 'COSTO MP/GALÓN', icon: <FlaskConical className="text-semantic-info" size={14} /> },
-        costo_mg_kg:    { label: 'COSTO MG/KG',    icon: <FlaskConical className="text-semantic-info" size={14} /> },
         costo_mod:      { label: 'COSTO MOD',       icon: <Briefcase className="text-semantic-success" size={14} /> },
         envase:         { label: 'ENVASE',          icon: <Box className="text-semantic-warning" size={14} /> },
         etiqueta:       { label: 'ETIQUETA',        icon: <Tag className="text-semantic-danger" size={14} /> },
@@ -136,6 +168,11 @@ export const CostProductsTable = ({
                                     .filter(([key]) => COST_DEFINITIONS[key])
                                     .map(([key, value]) => {
                                         const { label, icon } = COST_DEFINITIONS[key];
+                                        const mpGalonOverride = key === 'costo_mp_galon' && costoMPGalonConProv != null;
+                                        const originalValue = mpGalonOverride ? fmtNum(costoMPGalonConProv) : value;
+                                        const recalcValue = mpGalonOverride
+                                            ? fmtNum(costoMPGalonConProv)
+                                            : (recalculatedData?.recalculados?.[key] ?? value);
                                         return (
                                             <tr key={key} className="hover:bg-semantic-success-subtle/30 transition-colors">
                                                 <td className="px-3 py-2 whitespace-nowrap">
@@ -150,12 +187,12 @@ export const CostProductsTable = ({
                                                 </td>
                                                 <td className="whitespace-nowrap text-center">
                                                     <div className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-content-muted">
-                                                        $ {value || '-'}
+                                                        $ {originalValue || '-'}
                                                     </div>
                                                 </td>
                                                 <td className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-content-muted">
-                                                    <div className={`text-xs font-bold ${value ? 'text-semantic-success-fg' : 'text-content-muted'}`}>
-                                                        $ {value || '-'}
+                                                    <div className={`text-xs font-bold ${recalcValue ? 'text-semantic-success-fg' : 'text-content-muted'}`}>
+                                                        $ {recalcValue || '-'}
                                                     </div>
                                                 </td>
                                                 {costosProveedor && (
@@ -187,13 +224,24 @@ export const CostProductsTable = ({
                             <td className="px-3 py-3 whitespace-nowrap text-center">
                                 {isLoading
                                     ? <div className="h-3 w-16 bg-surface-strong rounded animate-pulse mx-auto" />
-                                    : <div className="text-xs font-semibold text-content-muted">$ {productDetail?.costos?.total || 0}</div>
+                                    : <div className="text-xs font-semibold text-content-muted">
+                                        {costoTotalConProv != null
+                                            ? `$ ${fmtNum(costoTotalConProv)}`
+                                            : `$ ${productDetail?.costos?.total || 0}`}
+                                    </div>
                                 }
                             </td>
                             <td className="px-3 py-3 whitespace-nowrap text-center">
                                 {isLoading
                                     ? <div className="h-4 w-20 bg-surface-strong rounded animate-pulse mx-auto" />
-                                    : <div className="text-lg font-bold text-semantic-success-fg tracking-tighter">$ {recalculatedData?.recalculados?.total || '-'}</div>
+                                    : <div className="text-lg font-bold text-semantic-success-fg tracking-tighter">
+                                        {costoTotalConProv != null
+                                            ? `$ ${fmtNum(costoTotalConProv)}`
+                                            : (recalculatedData?.recalculados?.total
+                                                ? `$ ${recalculatedData.recalculados.total}`
+                                                : <span className="text-sm text-content-muted">-</span>)
+                                        }
+                                    </div>
                                 }
                             </td>
                             {costosProveedor && (
@@ -220,11 +268,18 @@ export const CostProductsTable = ({
                             </td>
                             <td className="whitespace-nowrap text-center">
                                 <div className="px-3 py-3 whitespace-nowrap text-center text-xs opacity-70">
-                                    $ {productDetail?.costos?.precio_venta || '-'}
+                                    {costoTotalConProv != null
+                                        ? `$ ${fmtNum(costoTotalConProv * (1 + (parseFloat(productDetail?.costos?.porcentaje_utilidad) || 50) / 100))}`
+                                        : `$ ${productDetail?.costos?.precio_venta || '-'}`}
                                 </div>
                             </td>
                             <td className="text-lg font-bold tracking-tighter text-center">
-                                $ {recalculatedData?.recalculados?.precio_venta || '-'}
+                                {costoTotalConProv != null
+                                    ? `$ ${fmtNum(costoTotalConProv * (1 + (parseFloat(productDetail?.costos?.porcentaje_utilidad) || 50) / 100))}`
+                                    : (recalculatedData?.recalculados?.precio_venta
+                                        ? `$ ${recalculatedData.recalculados.precio_venta}`
+                                        : <span className="opacity-50">-</span>)
+                                }
                             </td>
                             {costosProveedor && (
                                 <td className="text-lg font-bold tracking-tighter text-center text-semantic-warning">

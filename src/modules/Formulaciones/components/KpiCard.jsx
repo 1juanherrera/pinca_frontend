@@ -1,23 +1,27 @@
 import { statsData, themeClasses } from '../utils/KpiCardList';
 
-const KpiCard = ({ formulaciones = [], productDetail = null, recalculatedData = null, isLoading = false }) => {
+const KpiCard = ({ formulaciones = [], productDetail = null, recalculatedData = null, isLoading = false, totalUnificadoMP = null }) => {
+
+    const fmtCOP = (n) =>
+        new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(Number(n) || 0);
 
     const getDynamicValue = (label) => {
         switch (label.toLowerCase()) {
-            case 'productos': 
+            case 'productos':
                 return formulaciones.length || 0;
 
-            case 'componentes': 
+            case 'componentes':
                 return productDetail?.formulaciones?.length || 0;
 
             case 'costo total': {
-                const costo = recalculatedData 
-                    ? recalculatedData?.recalculados?.total_costo_materia_prima 
+                if (totalUnificadoMP != null) return `$ ${fmtCOP(totalUnificadoMP)}`;
+                const costo = recalculatedData
+                    ? recalculatedData?.recalculados?.total_costo_materia_prima
                     : productDetail?.costos?.total_costo_materia_prima;
                 return costo ? `$ ${costo}` : '$ 0.00';
-            } 
+            }
 
-            default: 
+            default:
                 return 0;
         }
     };

@@ -3,7 +3,7 @@ import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form';
 import {
   FlaskConical, X, PlusCircle, Trash2, Search, PackagePlus, Truck,
   AlertTriangle, ShoppingCart, Package, TrendingUp, CheckCircle2,
-  Layers, DollarSign,
+  Layers, DollarSign, Droplets,
 } from 'lucide-react';
 import { Link } from 'react-router';
 import { useFormulaciones } from '../api/useFormulaciones';
@@ -294,7 +294,7 @@ const FormulacionModalInner = ({ onClose, itemId = null }) => {
   const { register, control, handleSubmit, reset, setValue, formState: { errors } } = useForm({
     defaultValues: {
       item_general_id: itemId ? String(itemId) : '',
-      nombre: '', descripcion: '', materias_primas: [],
+      nombre: '', descripcion: '', volumen: '', materias_primas: [],
     },
   });
 
@@ -311,6 +311,7 @@ const FormulacionModalInner = ({ onClose, itemId = null }) => {
         item_general_id: String(formulacion.item.id),
         nombre:          formulacion.nombre ?? formulacion.item.nombre ?? '',
         descripcion:     formulacion.descripcion ?? '',
+        volumen:         formulacion.item.volumen_base || '',
         materias_primas: (formulacion.materias_primas ?? []).map(mp => ({
           materia_prima_id: String(mp.materia_prima_id),
           nombre:           mp.nombre,
@@ -418,6 +419,7 @@ const FormulacionModalInner = ({ onClose, itemId = null }) => {
       item_general_id: Number(data.item_general_id),
       nombre:          data.nombre || 'PREPARACION',
       descripcion:     data.descripcion || null,
+      volumen:         parseFloat(data.volumen) || null,
       materias_primas: data.materias_primas.map(mp => {
         const cant = parseFloat(mp.cantidad) || 0;
         return {
@@ -435,7 +437,7 @@ const FormulacionModalInner = ({ onClose, itemId = null }) => {
       }
       if (continuar) {
         setSaveAndContinue(false);
-        reset({ item_general_id: '', nombre: '', descripcion: '', materias_primas: [] });
+        reset({ item_general_id: '', nombre: '', descripcion: '', volumen: '', materias_primas: [] });
         setCostosData({});
         setProveedores({});
         setTimeout(() => searchInputRef.current?.focus(), 100);
@@ -629,6 +631,25 @@ const FormulacionModalInner = ({ onClose, itemId = null }) => {
                 placeholder="PREPARACIÓN ESMALTE BLANCO"
                 registration={register('nombre')}
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="relative">
+                <FormInput
+                  label="Volumen base (galones)"
+                  type="number"
+                  placeholder="Ej: 370"
+                  registration={register('volumen', { min: { value: 0.01, message: 'Debe ser mayor a 0' } })}
+                  error={errors.volumen?.message}
+                />
+                <span className="absolute right-3 top-[34px] text-content-muted text-[10px] font-bold pointer-events-none">gal</span>
+              </div>
+              <div className="flex items-end pb-1">
+                <p className="text-[10px] text-content-muted leading-relaxed flex items-start gap-1.5">
+                  <Droplets size={12} className="text-semantic-info shrink-0 mt-0.5" />
+                  Galones que produce esta fórmula. Se usa para calcular el costo por galón (Costo MP / Volumen).
+                </p>
+              </div>
             </div>
 
             <FormTextarea
