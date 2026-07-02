@@ -7,6 +7,9 @@ import { fmt } from '../../../utils/formatters';
 import AmountDisplay from '../../../shared/AmountDisplay';
 import StatusBadge from '../../../shared/StatusBadge';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
+import useClientPagination from '../../../hooks/useClientPagination';
+import { getPaginationRange } from '../../Inventario/services/pagination';
+import cn from '../../../utils/cn';
 
 // Paletas para avatares (intencionalmente coloridas; identifican proveedores).
 const PALETTES = [
@@ -15,7 +18,7 @@ const PALETTES = [
   'bg-semantic-success',
   'bg-semantic-warning',
   'bg-semantic-danger',
-  'bg-content-primary',
+  'bg-semantic-info',
 ];
 
 const getInitials = (name = '') =>
@@ -47,7 +50,6 @@ const ProveedoresTable = ({
 }) => {
   const PAGE_SIZE = useConfigValue('page_size_default', 20);
   const [search, setSearch] = useState(initialSearch);
-  const [page, setPage] = useState(1);
 
   const [productoFilter, setProductoFilter] = useState(null);
   const [productoSearch, setProductoSearch] = useState('');
@@ -112,8 +114,8 @@ const ProveedoresTable = ({
     );
   }, [proveedores, search, productoFilter, comparacionData]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pagination = useClientPagination(filtered, PAGE_SIZE);
+  const { paginated, currentPage, totalPages, totalItems, setCurrentPage, perPage, setPerPage } = pagination;
   const mejorCosto = comparacionData?.length > 0 ? comparacionData[0]._costoKg : null;
   const isComparison = !!productoFilter;
   const colCount = 6;
@@ -128,7 +130,7 @@ const ProveedoresTable = ({
           <input
             type="text"
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
             placeholder="Buscar proveedor..."
             className="w-full pl-8 pr-8 py-1.5 text-xs bg-surface-base border border-border-base rounded-lg focus:ring-1 focus:ring-border-focus/15 focus:border-border-focus outline-none transition-all duration-150 placeholder:text-content-muted disabled:opacity-30 disabled:cursor-not-allowed"
             disabled={isComparison}
@@ -159,7 +161,7 @@ const ProveedoresTable = ({
               <Filter size={12} />
               <span className="max-w-48 truncate">{productoFilter.nombre}</span>
               <button
-                onClick={() => { setProductoFilter(null); setPage(1); }}
+                onClick={() => { setProductoFilter(null); setCurrentPage(1); }}
                 className="ml-0.5 hover:bg-content-secondary rounded p-0.5 transition-colors duration-150"
               >
                 <X size={12} />
@@ -197,7 +199,7 @@ const ProveedoresTable = ({
                         setShowDropdown(false);
                         setProductoSearch('');
                         setSearch('');
-                        setPage(1);
+                        setCurrentPage(1);
                       }}
                       className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-surface-subtle transition-colors duration-100 text-left border-b border-border-subtle last:border-0"
                     >
@@ -416,23 +418,61 @@ const ProveedoresTable = ({
       </div>
 
       {/* ── Paginación ── */}
-      {filtered.length > PAGE_SIZE && (
-        <div className="flex items-center justify-between px-4 py-2.5 border-t border-border-subtle bg-surface-subtle">
-          <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest tabular-nums">
-            {filtered.length} registros · Pág. {page} de {totalPages}
-          </span>
+      {totalItems > 0 && (
+        <div className="px-3 py-2 bg-surface-subtle border-t border-border-base flex items-center justify-between">
+          <div className="hidden sm:flex items-center gap-4">
+            <div className="text-xs text-content-tertiary">
+              Mostrando{' '}
+              <span className="text-content-primary font-semibold tabular-nums">{paginated.length}</span>{' '}
+              de{' '}
+              <span className="text-content-primary font-semibold tabular-nums">{totalItems}</span>{' '}
+              {isComparison ? 'opciones' : 'proveedores'}
+            </div>
+            <div className="flex items-center gap-2 border-l border-border-base pl-4">
+              <span className="text-xs text-content-tertiary">Filas:</span>
+              <select
+                value={perPage}
+                onChange={(e) => setPerPage(Number(e.target.value))}
+                className="bg-surface-base border border-border-base text-content-primary text-xs font-medium rounded-md focus:ring-2 focus:ring-border-focus/15 focus:border-border-focus block px-2 py-1 outline-none transition-colors"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="p-1.5 rounded-lg text-content-muted hover:bg-surface-muted hover:text-content-secondary disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-150"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="p-1.5 border border-border-base rounded-md bg-surface-base hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft size={14} />
             </button>
+            <div className="flex items-center gap-1">
+              {getPaginationRange(currentPage, totalPages).map((page, index) => (
+                <button
+                  key={index}
+                  onClick={() => typeof page === 'number' && setCurrentPage(page)}
+                  disabled={page === '...'}
+                  className={cn(
+                    'min-w-7 h-7 flex items-center justify-center rounded-md text-[11px] font-semibold transition-colors',
+                    page === currentPage
+                      ? 'bg-content-primary text-content-inverse'
+                      : page === '...'
+                        ? 'text-content-muted cursor-default'
+                        : 'bg-surface-base border border-border-base text-content-secondary hover:border-border-strong hover:text-content-primary',
+                  )}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
             <button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="p-1.5 rounded-lg text-content-muted hover:bg-surface-muted hover:text-content-secondary disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-150"
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage >= totalPages}
+              className="p-1.5 border border-border-base rounded-md bg-surface-base hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRight size={14} />
             </button>

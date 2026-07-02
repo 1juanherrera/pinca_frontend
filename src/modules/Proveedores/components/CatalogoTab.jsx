@@ -2,11 +2,13 @@ import { useMemo, useState } from 'react';
 import { Link2, Link, Trash2, Edit, Plus } from 'lucide-react';
 import ERPTable        from '../../../shared/ERPTable';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
+import TableShell      from '../../../shared/TableShell';
 import AmountDisplay   from '../../../shared/AmountDisplay';
 import StatusBadge     from '../../../shared/StatusBadge';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { useProveedores } from '../api/useProveedores';
 import useTableSort from '../../../hooks/useTableSorts';
+import useClientPagination from '../../../hooks/useClientPagination';
 import VincularModal from './VincularModal';
 
 const STATUS_OPTIONS = [
@@ -44,6 +46,7 @@ const CatalogoTab = () => {
   }, [catalogo, search, filters]);
 
   const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
+  const pagination = useClientPagination(sorted, 20);
 
   const columns = useMemo(() => [
     {
@@ -169,31 +172,35 @@ const CatalogoTab = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="bg-surface-base border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
-        <SearchFilterBar
-          search={search}
-          onSearch={setSearch}
-          placeholder="Buscar por nombre, código o proveedor..."
-          values={filters}
-          onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
-          statusKey="disponible"
-          statusOptions={STATUS_OPTIONS}
-          allLabel="Todos"
-        />
-      </div>
-
-      <ERPTable
-        columns={columns}
-        data={sorted}
+      <TableShell
+        header={
+          <SearchFilterBar
+            search={search}
+            onSearch={setSearch}
+            placeholder="Buscar por nombre, código o proveedor..."
+            values={filters}
+            onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+            statusKey="disponible"
+            statusOptions={STATUS_OPTIONS}
+            allLabel="Todos"
+          />
+        }
+        pagination={pagination}
         isLoading={isLoadingCatalogo}
-        emptyMessage="No hay productos en el catálogo"
-        emptySubMessage="Agrega productos desde el botón superior"
-        sortBy={sortBy}
-        sortDir={sortDir}
-        onSort={handleSort}
-      />
+      >
+        <ERPTable
+          columns={columns}
+          data={pagination.paginated}
+          isLoading={isLoadingCatalogo}
+          emptyMessage="No hay productos en el catálogo"
+          emptySubMessage="Agrega productos desde el botón superior"
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSort={handleSort}
+          borderless
+        />
+      </TableShell>
 
-      {/* Modal vincular */}
       {itemVincular && (
         <VincularModal
           item={itemVincular}

@@ -2,10 +2,11 @@
 
 > Este archivo es la **fuente de verdad** para cualquier Claude que retome este proyecto. Está organizado para leerse en orden de necesidad: contexto rápido arriba, detalles técnicos abajo.
 
-## 1. Estado actual (snapshot 2026-06-05)
+## 1. Estado actual (snapshot 2026-07-02)
 
-> **Última sesión**: 2026-06-05 — toast con motivo real (409 del backend) al eliminar ítem en `useItem`. Ver §30.
-> **Anterior**: 2026-06-02 — pestaña "Sugerencias IA" en Sincronización (dedup de MP por identidad química) + mejoras de Login (dark por clase, a11y, Bloq Mayús). Ver §29.
+> **Última sesión**: 2026-07-02 — paginación en CatalogoTab (TableShell) y ProveedoresTable (getPaginationRange) + auditoría MP (54/57 resueltas). Ver §31.
+> **Anterior**: 2026-06-05 — toast con motivo real (409 del backend) al eliminar ítem en `useItem`. Ver §30.
+> **2026-06-02**: pestaña "Sugerencias IA" en Sincronización (dedup de MP por identidad química) + mejoras de Login (dark por clase, a11y, Bloq Mayús). Ver §29.
 > **2026-05-30 (tarde)**: breadcrumbs arreglados (0 rotos), Login dark mode, `CalculadoraProrrateo` pre-OC, columna "Último precio" en formulaciones, **revert** de ocultar-acciones-por-rol (política por módulo). Ver §28.
 > **2026-05-30 (mañana)**: recharts code-split, focus-trap, bulk en Cotizaciones/OCs, debounce. Ver §27.
 > **2026-05-29**: dark mode foundation + virtualización + bulk actions + Vitest (§25) y fixes de auditoría (§26).
@@ -1908,3 +1909,37 @@ Commit `a594040`. Acompaña la feature backend de dedup IA (backend commit `4b11
 ---
 
 > **Snapshot al cierre 2026-06-05**: Frontend con dedup IA operativa (SugerenciasIATab), calculadora de prorrateo pre-OC, columna último precio, Login pulido en dark + a11y, errores de delete accionables. Política RBAC definitiva: por módulo (backend `RbacFilter` garantiza visor read-only). Build limpio, 34/34 tests. Backlog: ~15 hooks a API_ROUTES, migrar Facturas al endpoint bulk, notificaciones real-time, verificación visual final de dark mode, toggle costo real/lista (única decisión UX restante).
+
+---
+
+## 31. Sesión 2026-07-02 — Paginación en Proveedores + Auditoría MP
+
+### Paginación en módulo Proveedores
+
+Dos componentes paginados usando el patrón `useClientPagination` + `TableShell`/`getPaginationRange`:
+
+**`CatalogoTab.jsx`** — refactorizado para usar `TableShell` como wrapper:
+- Importa `useClientPagination` y `TableShell`.
+- `SearchFilterBar` pasa como `header` prop de `TableShell`.
+- `ERPTable` renderiza con `borderless` y `data={pagination.paginated}`.
+- Footer de paginación automático via `TableShell` (números de página, selector 10/20/50/100, conteo "Mostrando X de Y").
+
+**`ProveedoresTable.jsx`** — paginación mejorada (ya tenía paginación básica prev/next):
+- Reemplazado estado manual `page`/`setPage` por `useClientPagination(filtered, PAGE_SIZE)`.
+- Footer rediseñado con `getPaginationRange` (botones de página numéricos), selector de filas por página (10/20/50/100), conteo "Mostrando X de Y proveedores/opciones".
+- Importa `getPaginationRange` de `Inventario/services/pagination` y `cn` de utils.
+- Auto-reset de página al cambiar filtros/búsqueda (gestionado por el hook).
+
+Build limpio (~1m 8s).
+
+### Auditoría de materias primas (datos, no código)
+
+Sesión de auditoría directa en DB para vincular MPs usadas en formulaciones a sus proveedores correctos:
+- **Estado final**: 3 MP sin proveedor (de 57 originales, 54 resueltas).
+- MP restantes: EDAPLAN 915 (6 fórmulas), CELITE 499 (2 fórmulas), RESINA MALEICA AL 60% (1 fórmula).
+- Vinculación relevante esta sesión: ANTIPIEL (AQUATERRA S.A.S.) → ADIMON 84 (`item_general` id 86).
+- Excel de seguimiento: `C:\Users\juans\Downloads\Auditoria_MP_v3.xlsx` (3 hojas: MP sin proveedor, Posibles duplicados, MP con proveedor sin fórmula).
+
+---
+
+> **Snapshot al cierre 2026-07-02**: Paginación completa en Proveedores (CatalogoTab con TableShell, ProveedoresTable con getPaginationRange). Auditoría MP al 94.7% (54/57 resueltas, 3 restantes). Build limpio.
