@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { FlaskConical, Beaker, Scale, DollarSign, Truck, ChevronDown, X, Pencil, Copy, AlertTriangle } from 'lucide-react';
+import { FlaskConical, Beaker, Scale, DollarSign, Truck, ChevronDown, X, Pencil, Copy, AlertTriangle, Layers, ClipboardList } from 'lucide-react';
 
 const fmtCOP = (v) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(v) || 0);
@@ -220,6 +220,8 @@ export const FormulacionesTable = ({
         let total = 0;
         let sinProv = 0;
         for (const f of dataToShow.formulaciones) {
+            // Las instrucciones/fases no cuentan como ingrediente en los totales.
+            if ((f.tipo ?? 'ingrediente') !== 'ingrediente') continue;
             const opcion = resolveOpcion(f.item_general_id);
             if (opcion) {
                 const cantidad = recalculatedData
@@ -391,6 +393,27 @@ export const FormulacionesTable = ({
                             const tieneProveedor = !!seleccionPorIngrediente[mpId];
                             const esAgua = (formulacion.materia_prima_nombre || '').toUpperCase().trim() === 'AGUA';
 
+                            // Fila de instrucción o fase: banda a lo ancho, no es un ingrediente.
+                            if ((formulacion.tipo ?? 'ingrediente') !== 'ingrediente') {
+                                const esFase = formulacion.tipo === 'fase';
+                                return (
+                                    <tr key={`linea-${index}`}>
+                                        <td colSpan="7" className={`px-4 py-2 ${esFase
+                                            ? 'bg-content-secondary text-content-inverse'
+                                            : 'bg-semantic-info-subtle/60 text-semantic-info-fg border-y border-semantic-info/15'}`}>
+                                            <div className="flex items-center gap-2">
+                                                {esFase
+                                                    ? <Layers size={13} className="shrink-0" />
+                                                    : <ClipboardList size={13} className="shrink-0" />}
+                                                <span className={`text-xs ${esFase ? 'font-bold uppercase tracking-wide' : 'font-medium italic'}`}>
+                                                    {formulacion.texto || (esFase ? 'Fase' : 'Instrucción')}
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            }
+
                             return (
                             <tr key={`formulacion-row-${index}`} className={`transition-colors ${costoOverride ? 'bg-semantic-warning-subtle/40 hover:bg-semantic-warning-subtle/70' : 'hover:bg-surface-subtle'}`}>
                                 <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-content-primary">
@@ -414,6 +437,11 @@ export const FormulacionesTable = ({
                                         <span className="text-xs text-semantic-info-fg font-medium">
                                             {formulacion.materia_prima_codigo || 'Sin código'}
                                         </span>
+                                        {formulacion.nota && (
+                                            <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-muted text-content-secondary border border-border-base">
+                                                {formulacion.nota}
+                                            </span>
+                                        )}
                                         {opciones.length > 0 && onSeleccionIngrediente ? (
                                             <IngredienteProveedorSelect
                                                 opciones={opciones}
