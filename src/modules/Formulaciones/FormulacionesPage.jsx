@@ -135,7 +135,7 @@ const FormulacionesPage = () => {
       {/* Main Body */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
 
-        <div className="lg:col-span-4 flex flex-col gap-4">
+        <div className="lg:col-span-3 flex flex-col gap-4">
           <CostCalculator
             productDetail={costosBase}
             selectedProductData={selectedProductData}
@@ -152,7 +152,7 @@ const FormulacionesPage = () => {
           />
         </div>
 
-        <div className="lg:col-span-8 flex flex-col gap-4">
+        <div className="lg:col-span-9 flex flex-col gap-4">
           {/* Toggle: Costo real (capas) vs Costo lista (proveedor) ─────────
               Decide qué fuente de precio usa la tabla por default. El usuario
               puede igual sobreescribir un ingrediente individual seleccionando

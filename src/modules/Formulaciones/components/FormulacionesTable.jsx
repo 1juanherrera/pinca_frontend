@@ -227,7 +227,8 @@ export const FormulacionesTable = ({
                   : f.cantidad;
                 total += Number(cantidad) * opcion.precio_por_kg;
             } else {
-                sinProv++;
+                const esAguaCalc = (f.materia_prima_nombre || '').toUpperCase().trim() === 'AGUA';
+                if (!esAguaCalc) sinProv++;
                 total += Number(
                   recalculatedData
                     ? (f.costo_total_materia_recalculado ?? f.costo_total_materia)
@@ -388,6 +389,7 @@ export const FormulacionesTable = ({
                             const mpId = formulacion.item_general_id;
                             const opciones = materiasOpciones[mpId]?.opciones ?? [];
                             const tieneProveedor = !!seleccionPorIngrediente[mpId];
+                            const esAgua = (formulacion.materia_prima_nombre || '').toUpperCase().trim() === 'AGUA';
 
                             return (
                             <tr key={`formulacion-row-${index}`} className={`transition-colors ${costoOverride ? 'bg-semantic-warning-subtle/40 hover:bg-semantic-warning-subtle/70' : 'hover:bg-surface-subtle'}`}>
@@ -398,8 +400,8 @@ export const FormulacionesTable = ({
                                 {/* MATERIA PRIMA + SELECTOR PROVEEDOR */}
                                 <td className="px-3 py-2">
                                 <div className="flex items-center">
-                                    <div className={`shrink-0 h-7 w-7 rounded-full bg-surface-base flex items-center justify-center shadow-inner ${tieneProveedor ? 'border border-semantic-info/20' : 'border border-semantic-warning/40'}`}>
-                                    {tieneProveedor
+                                    <div className={`shrink-0 h-7 w-7 rounded-full bg-surface-base flex items-center justify-center shadow-inner ${tieneProveedor || esAgua ? 'border border-semantic-info/20' : 'border border-semantic-warning/40'}`}>
+                                    {tieneProveedor || esAgua
                                         ? <Beaker className="h-4 w-4 text-semantic-info-fg" />
                                         : <AlertTriangle className="h-3.5 w-3.5 text-semantic-warning-fg" />
                                     }
@@ -418,6 +420,10 @@ export const FormulacionesTable = ({
                                                 selectedId={seleccionPorIngrediente[mpId] ?? null}
                                                 onSelect={(ipId) => handleSelectProveedor(mpId, ipId)}
                                             />
+                                        ) : esAgua ? (
+                                            <span className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-semantic-info-subtle text-semantic-info-fg border border-semantic-info/20">
+                                                Costo interno
+                                            </span>
                                         ) : onSeleccionIngrediente && (
                                             <span className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-semantic-danger-subtle text-semantic-danger-fg border border-semantic-danger/20">
                                                 <AlertTriangle size={9} /> Sin proveedor

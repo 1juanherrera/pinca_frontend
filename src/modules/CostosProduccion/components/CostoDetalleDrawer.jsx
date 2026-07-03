@@ -548,7 +548,11 @@ const CostoDetalleDrawer = ({ isOpen, onClose, productoId }) => {
 
                       {/* Proveedor */}
                       <td className="px-3 py-2.5">
-                        {mp.proveedor_nombre ? (
+                        {mp.costo_interno ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-semantic-info-subtle text-semantic-info-fg border border-semantic-info/20">
+                            <Droplets size={10} /> Costo interno
+                          </span>
+                        ) : mp.proveedor_nombre ? (
                           <div className="flex items-center gap-1.5 min-w-0">
                             <Truck size={10} className="text-content-tertiary shrink-0" />
                             <div className="min-w-0">

@@ -992,10 +992,11 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
   const payload      = useBoundStore(state => state.drawerPayload);
   const closeDrawer  = useBoundStore(state => state.closeDrawer);
 
-  const [selectedUnit,  setSelectedUnit]  = useState(null);
-  const [showForm,      setShowForm]      = useState(false);
-  const [modo,          setModo]          = useState(null); // 'single' | 'combinacion'
-  const [preparaciones, setPreparaciones] = useState(null);
+  const [selectedUnit,    setSelectedUnit]    = useState(null);
+  const [showForm,        setShowForm]        = useState(false);
+  const [modo,            setModo]            = useState(null); // 'single' | 'combinacion'
+  const [preparaciones,   setPreparaciones]   = useState(null);
+  const [escalaOverrides, setEscalaOverrides] = useState({});
 
   const isOpen = activeDrawer === 'PREPARATION_FORM';
 
@@ -1004,6 +1005,14 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
   const totalUnificadoMP = payload?.totalUnificadoMP ?? null;  // Total MP con precios de proveedor seleccionados
   const item             = productDetail?.item;
   const costos           = productDetail?.costos;
+
+  const effectiveUnidades = useMemo(() =>
+    unidades.map(u => {
+      const override = escalaOverrides[u.id_unidad];
+      return override != null ? { ...u, escala: String(override) } : u;
+    }),
+    [unidades, escalaOverrides]
+  );
 
   const volumen = useMemo(() =>
     recalculatedData?.item?.volumen_nuevo ?? productDetail?.item?.volumen_base ?? 0,
@@ -1022,32 +1031,38 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
   }, [totalUnificadoMP, volumen, recalculatedData, costos]);
 
   const rows = useMemo(() =>
-    unidades.map(u => {
+    effectiveUnidades.map(u => {
       const escala   = parseFloat(u.escala);
       const cantidad = calcularCantidad(volumen, escala);
       return { ...u, escala, cantidad, costo: costoGalon * escala, precio: precioGalon * escala, esEntero: esEntero(cantidad) };
     }),
-    [unidades, volumen, costoGalon, precioGalon]
+    [effectiveUnidades, volumen, costoGalon, precioGalon]
   );
 
   const combinacionSugerida = useMemo(() =>
-    selectedUnit ? calcularCombinacion(volumen, unidades) : [],
-    [selectedUnit, volumen, unidades]
+    selectedUnit ? calcularCombinacion(volumen, effectiveUnidades) : [],
+    [selectedUnit, volumen, effectiveUnidades]
   );
 
   const tieneResiduo = useMemo(() => {
     if (!selectedUnit) return false;
-    return !esEntero(calcularCantidad(volumen, parseFloat(selectedUnit.escala)));
-  }, [selectedUnit, volumen]);
+    const esc = escalaOverrides[selectedUnit.id_unidad] ?? parseFloat(selectedUnit.escala);
+    return !esEntero(calcularCantidad(volumen, esc));
+  }, [selectedUnit, volumen, escalaOverrides]);
 
   const formulaciones = recalculatedData?.formulaciones ?? productDetail?.formulaciones ?? [];
 
   const handleClose = () => {
     closeDrawer();
-    setTimeout(() => { setSelectedUnit(null); setShowForm(false); setModo(null); setPreparaciones(null); }, 250);
+    setTimeout(() => { setSelectedUnit(null); setShowForm(false); setModo(null); setPreparaciones(null); setEscalaOverrides({}); }, 250);
   };
 
-  const handleSelectUnit    = (u) => { setSelectedUnit(u); setShowForm(false); setModo(null); };
+  const handleSelectUnit = (u) => {
+    const esc = escalaOverrides[u.id_unidad];
+    setSelectedUnit(esc != null ? { ...u, escala: String(esc) } : u);
+    setShowForm(false);
+    setModo(null);
+  };
   const handleSuccess       = (data) => { setPreparaciones(Array.isArray(data) ? data : [data]); setShowForm(false); };
 
   if (!isOpen) return null;
@@ -1093,7 +1108,7 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
         {/* Form: combinación */}
         {!preparaciones && showForm && modo === 'combinacion' && selectedUnit && (
           <CombinacionForm
-            unidadPrincipal={selectedUnit} unidades={unidades}
+            unidadPrincipal={selectedUnit} unidades={effectiveUnidades}
             item={item} volumen={volumen} formulaciones={formulaciones}
             combinacionSugerida={combinacionSugerida}
             onBack={() => { setShowForm(false); setModo(null); }}
@@ -1145,7 +1160,21 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
                       </div>
                       <div className="w-28 shrink-0">
                         <p className={`text-xs font-semibold uppercase tracking-tight leading-none ${cfg.color}`}>{u.nombre}</p>
-                        <p className="text-[10px] text-content-muted font-medium mt-0.5">{u.escala === 1 ? '1 gal/envase' : `${u.escala} gal/envase`}</p>
+                        <div className="flex items-center gap-0.5 mt-0.5">
+                          <input
+                            type="number"
+                            value={escalaOverrides[u.id_unidad] ?? parseFloat(unidades.find(o => o.id_unidad === u.id_unidad)?.escala ?? u.escala)}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value);
+                              if (!isNaN(val) && val > 0) setEscalaOverrides(prev => ({ ...prev, [u.id_unidad]: val }));
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            step="any"
+                            min="0.001"
+                            className="w-12 text-[10px] text-content-secondary font-medium bg-surface-muted border border-border-base rounded px-1 py-0.5 tabular-nums text-center focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary"
+                          />
+                          <span className="text-[10px] text-content-muted font-medium">gal</span>
+                        </div>
                       </div>
                       <div className={`flex-1 flex items-center gap-1.5 ${cfg.bg} rounded-lg px-3 py-1.5`}>
                         <Boxes size={11} className={cfg.color} />
