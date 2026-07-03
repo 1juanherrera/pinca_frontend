@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 
 export const movimientosKeys = {
@@ -20,7 +20,7 @@ export const useMovimientos = (filters = {}) => {
       // apiClient ya extrae response.data en el interceptor → devuelve {data, meta} directo.
       return await apiClient.get(`/movimientos?${params.toString()}`);
     },
-    keepPreviousData: true,
+    placeholderData: keepPreviousData, // v5: conserva la página previa al paginar (antes era no-op)
     staleTime: 30 * 1000,
   });
 

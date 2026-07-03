@@ -51,6 +51,14 @@ const ProveedoresTable = ({
   const PAGE_SIZE = useConfigValue('page_size_default', 20);
   const [search, setSearch] = useState(initialSearch);
 
+  // Re-sincronizar el buscador cuando cambia initialSearch (navegación Cmd+K con ?q=).
+  // Snapshot en render: solo dispara al cambiar la prop, no mientras el usuario teclea.
+  const [lastInitial, setLastInitial] = useState(initialSearch);
+  if (initialSearch !== lastInitial) {
+    setLastInitial(initialSearch);
+    setSearch(initialSearch);
+  }
+
   const [productoFilter, setProductoFilter] = useState(null);
   const [productoSearch, setProductoSearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);

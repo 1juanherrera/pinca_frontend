@@ -284,6 +284,7 @@ const DataTable = () => {
 
       {itemTraspaso && (
         <TraspasoModal
+          key={itemTraspaso.id_item_general}
           item={itemTraspaso}
           bodegas={bodegas}
           id_bodega={id_bodega}
@@ -298,6 +299,7 @@ const DataTable = () => {
 
       {itemAjuste && (
         <AjusteModal
+          key={itemAjuste.id_item_general}
           item={itemAjuste}
           bodegaId={id_bodega}
           onClose={() => setItemAjuste(null)}

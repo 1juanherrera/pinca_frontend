@@ -18,7 +18,13 @@ const Stat = ({ label, value, isMejor }) => (
 const PorProductoView = ({ onHistorial }) => {
   const { grupos } = useComparadorPorItem();
   const [search, setSearch] = useState('');
-  const [selectedGrupo, setSelectedGrupo] = useState(null);
+  // Guardar solo el nombre del grupo seleccionado y derivar el objeto de `grupos`
+  // en render: si el comparador refetchea (cambian precios), la vista muestra los
+  // datos frescos en vez de un snapshot congelado al momento de seleccionar.
+  const [selectedNombre, setSelectedNombre] = useState(null);
+  const selectedGrupo = selectedNombre
+    ? (grupos.find((g) => g.nombre === selectedNombre) ?? null)
+    : null;
 
   const filteredGrupos = useMemo(() => {
     if (!search || search.length < 2) return [];
@@ -29,7 +35,7 @@ const PorProductoView = ({ onHistorial }) => {
   }, [grupos, search]);
 
   const selectGrupo = (grupo) => {
-    setSelectedGrupo(grupo);
+    setSelectedNombre(grupo.nombre);
     setSearch('');
   };
 
@@ -73,7 +79,7 @@ const PorProductoView = ({ onHistorial }) => {
           </div>
           {selectedGrupo && (
             <button
-              onClick={() => setSelectedGrupo(null)}
+              onClick={() => setSelectedNombre(null)}
               className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-semantic-danger border border-semantic-danger/15 bg-semantic-danger-subtle rounded-xl hover:bg-semantic-danger-subtle transition whitespace-nowrap"
             >
               <X size={14} /> Limpiar

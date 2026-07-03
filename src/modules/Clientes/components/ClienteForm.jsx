@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Save } from 'lucide-react';
 import Drawer from '../../../shared/Drawer';
@@ -28,8 +28,16 @@ const ClienteForm = () => {
   const { create, update, isCreating, isUpdating } = useClientes();
   const isSaving = isCreating || isUpdating;
 
+  // plazoDefault viene de useConfigValue (async). Se lee vía ref para NO meterlo
+  // en las deps del effect de reset: si la config resolvía mientras se escribía un
+  // cliente nuevo, el reset se re-disparaba y borraba lo tecleado. El ref se
+  // sincroniza en un effect (no en render) para no violar react-hooks/refs.
+  const plazoDefaultRef = useRef(plazoDefault);
+  useEffect(() => { plazoDefaultRef.current = plazoDefault; }, [plazoDefault]);
+
   useEffect(() => {
     if (isDrawerOpen) {
+      const plazo = plazoDefaultRef.current;
       if (payload) {
         reset({
           nombre_encargado: payload.nombre_encargado || '',
@@ -37,7 +45,7 @@ const ClienteForm = () => {
           numero_documento: payload.numero_documento || '',
           direccion:        payload.direccion        || '',
           ciudad:           payload.ciudad           || '',
-          plazo_pago:       String(payload.plazo_pago ?? plazoDefault),
+          plazo_pago:       String(payload.plazo_pago ?? plazo),
           telefono:         payload.telefono         || '',
           email:            payload.email            || '',
           tipo:             String(payload.tipo ?? '2'),
@@ -50,7 +58,7 @@ const ClienteForm = () => {
           numero_documento: '',
           direccion:        '',
           ciudad:           '',
-          plazo_pago:       plazoDefault,
+          plazo_pago:       plazo,
           telefono:         '',
           email:            '',
           tipo:             '2',
@@ -58,7 +66,7 @@ const ClienteForm = () => {
         });
       }
     }
-  }, [isDrawerOpen, payload, reset, plazoDefault]);
+  }, [isDrawerOpen, payload, reset]);
 
   const onSubmit = (data) => {
     if (payload) {

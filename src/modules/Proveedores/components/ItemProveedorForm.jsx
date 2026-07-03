@@ -228,6 +228,11 @@ const ItemProveedorForm = () => {
 
   const isDrawerOpen = activeDrawer === 'ITEM_PROVEEDOR_FORM';
 
+  // Modo edición SOLO si el payload trae un id_item_proveedor real. El portafolio
+  // del proveedor abre este form para CREAR con `{ proveedor_id }` (payload truthy
+  // pero sin id): antes eso disparaba modo edición y el PUT salía con id undefined.
+  const isEditing = !!payload?.id_item_proveedor;
+
   // Defaults vienen de Configuración del Sistema (admin los puede ajustar).
   const ivaDefault         = useConfigValue('iva_default', 19);
   const aplicarIvaDefault  = useConfigValue('aplicar_iva_por_default', true);
@@ -278,14 +283,15 @@ const ItemProveedorForm = () => {
   useEffect(() => {
     if (!isDrawerOpen) return;
 
+    const editing    = !!payload?.id_item_proveedor; // derivado de payload (dep del effect)
     const precioUnit = payload?.precio_unitario ?? 0;
     const precioIva  = payload?.precio_con_iva  ?? 0;
     let ivaAct = aplicarIvaDefault, ivaPct = ivaDefault;
 
-    if (payload && precioUnit > 0 && precioIva > precioUnit) {
+    if (editing && precioUnit > 0 && precioIva > precioUnit) {
       const pctDetectado = Math.round((precioIva / precioUnit - 1) * 100);
       ivaPct = pctDetectado > 0 ? pctDetectado : ivaDefault;
-    } else if (payload) {
+    } else if (editing) {
       ivaAct = false;
     }
 
@@ -394,7 +400,7 @@ const ItemProveedorForm = () => {
 
     const cb = wasKeepOpen ? handleResetKeepProvider : handleClose;
 
-    if (payload) {
+    if (isEditing) {
       updateItem({ id: payload.id_item_proveedor, data: body }, { onSuccess: cb });
     } else {
       createItem(body, { onSuccess: cb });
@@ -424,9 +430,9 @@ const ItemProveedorForm = () => {
       isOpen={isDrawerOpen}
       onClose={handleClose}
       size="xl"
-      title={payload ? 'Editar Producto' : 'Nuevo Producto'}
+      title={isEditing ? 'Editar Producto' : 'Nuevo Producto'}
       description={
-        payload
+        isEditing
           ? 'Modifica los datos del producto en el catálogo.'
           : 'Agrega un nuevo producto al catálogo del proveedor.'
       }
@@ -437,7 +443,7 @@ const ItemProveedorForm = () => {
             Cancelar
           </button>
           {/* Solo en modo creación: Guardar y crear otro */}
-          {!payload && (
+          {!isEditing && (
             <button
               type="submit"
               form="item-proveedor-form"
@@ -454,10 +460,10 @@ const ItemProveedorForm = () => {
             {isSaving ? (
               <span className="flex items-center gap-2">
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                {payload ? 'Actualizando' : 'Guardando'}
+                {isEditing ? 'Actualizando' : 'Guardando'}
               </span>
             ) : (
-              <><Save size={18} /> {payload ? 'Actualizar' : 'Guardar'}</>
+              <><Save size={18} /> {isEditing ? 'Actualizar' : 'Guardar'}</>
             )}
           </button>
         </>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import KpiCard from "./components/KpiCard";
 import { ProductSelect } from "./components/ProductSelect";
 import { CostCalculator } from "./components/CostCalculator";
@@ -47,22 +47,23 @@ const FormulacionesPage = () => {
 
   // Auto-seleccionar el proveedor más barato por ingrediente cuando cargan las opciones.
   // opciones ya vienen ordenadas precio_por_kg ASC desde el backend → opciones[0] es el más barato.
-  // Solo se ejecuta cuando cambia el producto o se recargan las opciones; no pisa cambios manuales
-  // del usuario porque el useEffect depende de opcionesIngredientes (referencia nueva solo cuando
-  // el backend responde con datos nuevos).
-  useEffect(() => {
-    if (!opcionesIngredientes?.materias) return;
+  // Patrón "snapshot en render" (en vez de useEffect): re-siembra la selección SOLO cuando
+  // opcionesIngredientes cambia de referencia (nuevo producto / recarga del backend). No pisa
+  // los cambios manuales del usuario entre recargas. Mismo comportamiento que el useEffect previo,
+  // sin el warning react-hooks/set-state-in-effect.
+  const [lastOpciones, setLastOpciones] = useState(null);
+  if (opcionesIngredientes?.materias && opcionesIngredientes !== lastOpciones) {
+    setLastOpciones(opcionesIngredientes);
     const autoSeleccion = {};
     Object.entries(opcionesIngredientes.materias).forEach(([mpId, matInfo]) => {
-      const opciones = matInfo?.opciones;
-      if (opciones?.length > 0) {
-        autoSeleccion[mpId] = opciones[0].id_item_proveedor;
+      if (matInfo?.opciones?.length > 0) {
+        autoSeleccion[mpId] = matInfo.opciones[0].id_item_proveedor;
       }
     });
     if (Object.keys(autoSeleccion).length > 0) {
       setSeleccionPorIngrediente(autoSeleccion);
     }
-  }, [opcionesIngredientes]);
+  }
 
   const selectedProductData = formulaciones.find(
     (f) => String(f.id_item_general) === String(selectedId)
@@ -137,6 +138,7 @@ const FormulacionesPage = () => {
 
         <div className="lg:col-span-3 flex flex-col gap-4">
           <CostCalculator
+            key={selectedId}
             productDetail={costosBase}
             selectedProductData={selectedProductData}
             setNuevoVolumen={setNuevoVolumen}

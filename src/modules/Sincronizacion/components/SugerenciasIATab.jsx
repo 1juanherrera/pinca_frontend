@@ -125,6 +125,15 @@ const ClusterCard = ({ cluster }) => {
     cluster.nombre_base_aprobado || cluster.nombre_base_propuesto || cluster.identidad_quimica || '',
   );
 
+  // Re-sembrar el nombre si cambia el valor aprobado en el servidor (p. ej. tras
+  // guardar, que refetchea). Snapshot en render: solo dispara al cambiar la prop,
+  // no mientras el usuario teclea (la prop es estable durante la edición).
+  const [lastAprobado, setLastAprobado] = useState(cluster.nombre_base_aprobado);
+  if (cluster.nombre_base_aprobado !== lastAprobado) {
+    setLastAprobado(cluster.nombre_base_aprobado);
+    setNombre(cluster.nombre_base_aprobado || cluster.nombre_base_propuesto || cluster.identidad_quimica || '');
+  }
+
   const keepId = cluster.keep_id_aprobado || cluster.keep_id_sugerido || null;
   const items = useMemo(() => cluster.items ?? [], [cluster.items]);
   const aFusionar = items.filter((it) => it.rol === 'merge' && it.item_general_id !== keepId);

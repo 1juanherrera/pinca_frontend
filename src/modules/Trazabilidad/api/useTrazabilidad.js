@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { API_ROUTES } from '../../../api/apiRoutes';
 
@@ -30,5 +30,5 @@ export const useLotesAutocomplete = (q) =>
     queryKey: trazaKeys.autocomplete(q),
     queryFn:  () => apiClient.get(API_ROUTES.TRAZABILIDAD.LOTES_SEARCH(q)),
     staleTime: 60 * 1000,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData, // v5: conserva resultados mientras se teclea
   });

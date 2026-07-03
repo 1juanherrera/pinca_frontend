@@ -563,16 +563,26 @@ const EmpresaTab = () => {
   });
 
   const [form, setForm] = useState(null);
+  const [seededData, setSeededData] = useState(null); // última `data` sembrada
 
-  // Sincronizar el draft con la data del backend en el render — evita
-  // setState-in-effect. Si form está vacío, lo inicializamos con data.
-  if (data && !form) {
+  // Sembrar/re-sembrar el draft desde el servidor en render (sin setState-in-effect
+  // ni refs). Re-siembra cuando la data del backend cambia de referencia y el usuario
+  // NO tiene ediciones sin guardar (form === seededData). Al editar, form pasa a ser
+  // otra referencia y deja de re-sembrarse (protege lo tecleado). Tras guardar,
+  // onSuccess pone form=null → re-siembra con lo que devuelve el backend (refleja su
+  // normalización). Antes se sembraba una sola vez y quedaba pegado el buffer local.
+  if (data && data !== seededData && (form === null || form === seededData)) {
+    setSeededData(data);
     setForm(data);
   }
 
   const { mutate: save, isPending } = useMutation({
     mutationFn: (body) => apiClient.put(API_ROUTES.EMPRESA.UPDATE, body),
-    onSuccess: () => { toast.success('Datos de empresa actualizados'); qc.invalidateQueries({ queryKey: ['empresa'] }); },
+    onSuccess: () => {
+      toast.success('Datos de empresa actualizados');
+      setForm(null); setSeededData(null); // fuerza re-seed desde la data refrescada
+      qc.invalidateQueries({ queryKey: ['empresa'] });
+    },
     onError:   () => toast.error('Error al guardar'),
   });
 
@@ -638,9 +648,15 @@ const ModulosMatrix = () => {
   const { mutate: updatePermisos, isPending } = useUpdatePermisos();
   const [draft, setDraft] = useState(null);
   const [dirty, setDirty] = useState({});
+  const [seededPermisos, setSeededPermisos] = useState(null);
 
-  // Inicializar el draft sin useEffect — patrón "derive from props in render".
-  if (permisos && !draft) {
+  // Sembrar/re-sembrar el draft desde el servidor en render (sin setState-in-effect
+  // ni refs). Re-siembra cuando `permisos` cambia de referencia (p. ej. tras guardar,
+  // que invalida la query) SOLO si no hay filas con cambios sin guardar → refleja la
+  // verdad del servidor sin pisar ediciones en curso de otros roles.
+  const anyDirty = Object.values(dirty).some(Boolean);
+  if (permisos && permisos !== seededPermisos && !anyDirty) {
+    setSeededPermisos(permisos);
     setDraft(permisos);
   }
   if (isLoading) return <p className="text-xs text-content-muted">Cargando…</p>;

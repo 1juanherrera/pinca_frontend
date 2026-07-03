@@ -50,7 +50,10 @@ const InventarioPage = () => {
         </span>
       </div>
 
-      <DataTable />
+      {/* key={id_bodega} fuerza el remonte al cambiar de bodega: resetea página,
+          búsqueda, filtros y modales internos de DataTable, y descarta el
+          placeholderData de la bodega anterior (evita mostrar su inventario). */}
+      <DataTable key={id_bodega} />
     </div>
   );
 };

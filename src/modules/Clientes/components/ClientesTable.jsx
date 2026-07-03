@@ -43,6 +43,15 @@ const ClientesTable = ({
   const [search, setSearch] = useState(initialSearch);
   const [page,   setPage]   = useState(1);
 
+  // Re-sincronizar el buscador cuando cambia initialSearch (navegación Cmd+K con ?q=).
+  // Snapshot en render: solo dispara al cambiar la prop, no mientras el usuario teclea.
+  const [lastInitial, setLastInitial] = useState(initialSearch);
+  if (initialSearch !== lastInitial) {
+    setLastInitial(initialSearch);
+    setSearch(initialSearch);
+    setPage(1);
+  }
+
   const filtered = useMemo(() => {
     if (!search) return clientes;
     const q = search.toLowerCase();

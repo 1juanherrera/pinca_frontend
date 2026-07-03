@@ -18,6 +18,15 @@ const CatalogoTable = ({ items = [], isLoading, onSelect, initialSearch = '' }) 
   const [tipoFilter, setTipoFilter] = useState('all');
   const [page, setPage]             = useState(1);
 
+  // Re-sincronizar el buscador cuando cambia initialSearch (navegación Cmd+K con ?q=).
+  // Snapshot en render: solo dispara al cambiar la prop, no mientras el usuario teclea.
+  const [lastInitial, setLastInitial] = useState(initialSearch);
+  if (initialSearch !== lastInitial) {
+    setLastInitial(initialSearch);
+    setSearch(initialSearch);
+    setPage(1);
+  }
+
   const filtered = useMemo(() => {
     let result = items;
     if (tipoFilter !== 'all') result = result.filter(i => Number(i.tipo) === Number(tipoFilter));

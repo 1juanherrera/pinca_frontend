@@ -86,7 +86,13 @@ const OrdenForm = () => {
         });
         setLineas([]);
       }
-      setConIva(false);
+      // Resetear el estado local del buscador de productos (si no, al abrir otra
+      // OC arrastra el texto/panel de la anterior). conIva se deriva del payload:
+      // una OC creada con IVA debe mostrarse "Con IVA" al editarla (antes forzaba
+      // siempre "Sin IVA"). Si el payload no trae info de IVA, cae a false.
+      setSearchItem('');
+      setShowSearch(false);
+      setConIva(payload ? (Number(payload.iva_monto) > 0 || Number(payload.iva_pct) > 0) : false);
     }
   }, [isDrawerOpen, payload, reset]);
 

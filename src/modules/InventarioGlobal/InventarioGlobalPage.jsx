@@ -639,6 +639,7 @@ const InventarioGlobalPage = ({ embedded = false }) => {
 
       {ajusteData && (
         <AjusteModal
+          key={ajusteData.item.id_item_general}
           item={{
             id_item_general: ajusteData.item.id_item_general,
             nombre:          ajusteData.item.nombre,

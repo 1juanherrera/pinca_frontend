@@ -31,6 +31,14 @@ const parseLista = (raw) => {
 const PrecioComparacion = ({ item, precioActual }) => {
   const [expandido, setExpandido] = useState(false);
 
+  // Colapsar la lista de proveedores al cambiar de item (el componente no se
+  // remonta al cambiar `value` en el padre). Snapshot en render.
+  const [lastItemId, setLastItemId] = useState(item?.id_item_general);
+  if (item?.id_item_general !== lastItemId) {
+    setLastItemId(item?.id_item_general);
+    setExpandido(false);
+  }
+
   const costo     = parseFloat(item.costo_unitario ?? 0);
   const precioMin = parseFloat(item.precio_min ?? 0);
   const precioMax = parseFloat(item.precio_max ?? 0);

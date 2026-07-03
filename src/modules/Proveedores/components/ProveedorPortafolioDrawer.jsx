@@ -17,6 +17,14 @@ const ProveedorPortafolioDrawer = ({ proveedor, onClose }) => {
   const { openDrawer, openConfirm } = useBoundStore();
   const [itemVincular, setItemVincular] = useState(null);
 
+  // Limpiar el ítem a vincular si cambia el proveedor por debajo (el drawer es
+  // singleton). Snapshot en render: solo dispara al cambiar de proveedor.
+  const [lastProv, setLastProv] = useState(proveedor?.id_proveedor);
+  if (proveedor?.id_proveedor !== lastProv) {
+    setLastProv(proveedor?.id_proveedor);
+    setItemVincular(null);
+  }
+
   const items = useMemo(() => {
     if (!proveedor) return [];
     return catalogo

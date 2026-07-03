@@ -26,7 +26,15 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
     queryKey: formulacionKeys.recalculate(id, volumen),
     queryFn:  () => apiClient.get(`/formulaciones/recalcular_costos/${id}/${volumen}`),
     enabled:  !!id && !!volumen,
-    placeholderData: (previousData) => previousData,
+    // Mantener los datos previos SOLO si sigue siendo el mismo producto
+    // (evita el parpadeo al cambiar el volumen). Si cambia el producto, NO
+    // conservar el placeholder: de lo contrario la tabla seguiría mostrando la
+    // fórmula del producto anterior (dataToShow = recalculatedData || productDetail).
+    // La key de recalculate es ['formulaciones','recalculate', id, volumen] → id en índice 2.
+    placeholderData: (previousData, previousQuery) => {
+      const prevId = previousQuery?.queryKey?.[2];
+      return String(prevId) === String(id) ? previousData : undefined;
+    },
   });
 
   // Proveedores disponibles para la formulación del producto seleccionado

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import apiClient from '../../../api/apiClient';
 import { API_ROUTES } from '../../../api/apiRoutes';
@@ -29,7 +29,7 @@ export const useSincMaestro = (filters = {}) =>
     queryKey: sincKeys.maestro(filters),
     queryFn:  () => apiClient.get(buildMaestroUrl(filters)),
     staleTime: STALE_5MIN,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
 export const useSincPendientes = () =>
@@ -80,7 +80,7 @@ export const useSincClusters = (filters = {}) =>
     queryKey: sincKeys.clusters(filters),
     queryFn:  () => apiClient.get(buildClustersUrl(filters)),
     staleTime: STALE_5MIN,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
 const invalidateAll = (queryClient) => queryClient.invalidateQueries({ queryKey: sincKeys.all });

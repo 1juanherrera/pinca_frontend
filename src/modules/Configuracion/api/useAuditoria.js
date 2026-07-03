@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 
 const buildQs = (filters = {}) => {
@@ -15,7 +15,7 @@ export const useLoginAttempts = (filters) =>
     queryKey:  ['auditoria', 'login-attempts', filters],
     queryFn:   () => apiClient.get(`/auditoria/login-attempts${buildQs(filters)}`),
     staleTime: 30 * 1000,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
 export const useMovimientosAudit = (filters) =>
@@ -23,5 +23,5 @@ export const useMovimientosAudit = (filters) =>
     queryKey:  ['auditoria', 'movimientos', filters],
     queryFn:   () => apiClient.get(`/auditoria/movimientos${buildQs(filters)}`),
     staleTime: 30 * 1000,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });

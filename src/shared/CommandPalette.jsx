@@ -11,7 +11,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
   Search, X, Package, Users, Truck, FileText, FileMinus, FileSignature,
   ShoppingBag, Receipt, ArrowRight, Command,
@@ -66,7 +66,7 @@ const useGlobalSearch = (q) =>
     queryFn:  () => apiClient.get(API_ROUTES.SEARCH(q, 5)),
     enabled:  !!q && q.length >= 2,
     staleTime: 30 * 1000,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
 // Wrapper que monta el body sólo cuando isOpen — así el state interno se resetea
