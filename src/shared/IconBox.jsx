@@ -18,7 +18,7 @@ const TONE = {
   success: { subtle: 'bg-semantic-success-subtle text-semantic-success-fg',         solid: 'bg-semantic-success text-white',             outline: 'bg-transparent text-semantic-success-fg border border-semantic-success/40' },
   warning: { subtle: 'bg-semantic-warning-subtle text-semantic-warning-fg',         solid: 'bg-semantic-warning text-white',             outline: 'bg-transparent text-semantic-warning-fg border border-semantic-warning/40' },
   danger:  { subtle: 'bg-semantic-danger-subtle text-semantic-danger-fg',           solid: 'bg-semantic-danger text-white',              outline: 'bg-transparent text-semantic-danger-fg border border-semantic-danger/40' },
-  neutral: { subtle: 'bg-surface-muted text-content-secondary',                     solid: 'bg-content-secondary text-content-inverse',  outline: 'bg-transparent text-content-tertiary border border-border-base' },
+  neutral: { subtle: 'bg-surface-muted text-content-secondary',                     solid: 'bg-content-secondary dark:bg-surface-strong text-content-inverse dark:text-content-primary',  outline: 'bg-transparent text-content-tertiary border border-border-base' },
   dark:    { subtle: 'bg-content-primary/10 text-content-primary',                  solid: 'bg-content-primary text-content-inverse',    outline: 'bg-transparent text-content-primary border border-content-primary/40' },
 };
 

@@ -332,6 +332,12 @@ input[type="number"] { -moz-appearance: textfield; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* Header oscuro de tablas/paneles (Formulaciones): gris oscuro FIJO + texto claro
+   en AMBOS modos. Antes usaban bg-content-secondary, que en dark se volvia #D4D4D8
+   (gris claro llamativo). El texto anidado con .text-content-inverse se fuerza a claro. */
+.tbl-header { background-color: #3f3f46; color: #fafafa; }
+.tbl-header .text-content-inverse { color: #fafafa; }
+
 /* ─────────────────────────────────────────────────────────────────────────────
    ANIMATIONS (reemplaza tailwindcss-animate)
    ───────────────────────────────────────────────────────────────────────────── */

@@ -63,7 +63,7 @@ const VARIANT_CLASSES = {
   red:     'bg-semantic-danger hover:brightness-95 text-white border-transparent shadow-xs',
   amber:   'bg-brand-primary hover:bg-brand-primary-hover text-content-on-brand border-transparent shadow-xs',
   orange:  'bg-semantic-warning hover:brightness-95 text-white border-transparent shadow-xs',
-  zinc:    'bg-content-secondary hover:bg-content-primary text-content-inverse border-transparent shadow-xs',
+  zinc:    'bg-content-secondary dark:bg-surface-strong hover:bg-content-primary dark:hover:bg-surface-muted text-content-inverse dark:text-content-primary border-transparent shadow-xs',
 };
 
 /**

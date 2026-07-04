@@ -85,7 +85,7 @@ export const CostProductsTable = ({
         <div className="bg-surface-base rounded-lg shadow-sm overflow-hidden border border-border-base/60">
 
             {/* Header */}
-            <div className="bg-content-secondary text-content-inverse px-4 py-3">
+            <div className="tbl-header px-4 py-3">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className={`${compact ? 'text-base' : 'text-lg'} font-semibold flex items-center gap-2 tracking-tight`}>
@@ -252,7 +252,7 @@ export const CostProductsTable = ({
                                 </td>
                             )}
                         </tr>
-                        <tr className="bg-content-secondary font-semibold text-content-inverse">
+                        <tr className="tbl-header font-semibold">
                             <td className="px-3 py-3 whitespace-nowrap">
                                 <div className="flex items-center">
                                     <div className="shrink-0 mr-3">

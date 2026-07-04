@@ -55,7 +55,7 @@ const TONE = {
     subtle:  'bg-surface-strong text-content-primary border-border-strong',
     solid:   'bg-content-primary text-content-inverse border-content-primary',
     outline: 'bg-transparent text-content-tertiary border-border-base',
-    dot:     'bg-content-secondary',
+    dot:     'bg-content-secondary dark:bg-content-tertiary',
   },
 };
 

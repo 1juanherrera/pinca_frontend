@@ -267,7 +267,7 @@ export const FormulacionesTable = ({
     return (
         <div className="bg-surface-base rounded-lg shadow-sm overflow-visible border border-border-base/60">
             {/* Header */}
-            <div className="bg-content-secondary text-content-inverse px-4 py-3 rounded-t-lg">
+            <div className="tbl-header px-4 py-3 rounded-t-lg">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className={`${compact ? 'text-base' : 'text-lg'} font-semibold flex items-center gap-2`}>
@@ -399,7 +399,7 @@ export const FormulacionesTable = ({
                                 return (
                                     <tr key={`linea-${index}`}>
                                         <td colSpan="7" className={`px-4 py-2 ${esFase
-                                            ? 'bg-content-secondary text-content-inverse'
+                                            ? 'tbl-header'
                                             : 'bg-semantic-info-subtle/60 text-semantic-info-fg border-y border-semantic-info/15'}`}>
                                             <div className="flex items-center gap-2">
                                                 {esFase

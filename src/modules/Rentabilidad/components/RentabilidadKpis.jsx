@@ -19,7 +19,7 @@ const THEME = {
   green:   { iconBg: 'bg-semantic-success-subtle',   iconText: 'text-semantic-success-fg',   value: 'text-semantic-success-fg',   bar: 'bg-semantic-success'   },
   emerald: { iconBg: 'bg-semantic-success-subtle', iconText: 'text-semantic-success-fg', value: 'text-semantic-success-fg', bar: 'bg-semantic-success' },
   teal:    { iconBg: 'bg-semantic-info-subtle',    iconText: 'text-semantic-info-fg',    value: 'text-semantic-info-fg',    bar: 'bg-semantic-info'    },
-  zinc:    { iconBg: 'bg-surface-muted',   iconText: 'text-content-secondary',    value: 'text-content-primary',    bar: 'bg-content-secondary'    },
+  zinc:    { iconBg: 'bg-surface-muted',   iconText: 'text-content-secondary',    value: 'text-content-primary',    bar: 'bg-content-secondary dark:bg-surface-strong'    },
 };
 
 /** Escala tipográfica del valor según su largo, para que números grandes

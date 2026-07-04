@@ -100,7 +100,7 @@ export const ProductSpecificationsTable = ({
     return (
         <div className="bg-surface-base rounded-lg shadow-sm overflow-hidden border border-border-base/60">
             {/* Header con Degradado Teal Original */}
-            <div className="bg-content-secondary text-content-inverse px-4 py-3">
+            <div className="tbl-header px-4 py-3">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="text-lg font-semibold flex items-center gap-2 tracking-tight">
