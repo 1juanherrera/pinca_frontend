@@ -1943,3 +1943,34 @@ Sesión de auditoría directa en DB para vincular MPs usadas en formulaciones a 
 ---
 
 > **Snapshot al cierre 2026-07-02**: Paginación completa en Proveedores (CatalogoTab con TableShell, ProveedoresTable con getPaginationRange). Auditoría MP al 94.7% (54/57 resueltas, 3 restantes). Build limpio.
+
+---
+
+## 32. Sesión 2026-07-03 — Bug "entidad anterior" + Formulaciones (orden/instrucciones/repetidos) + dark header
+
+Sesión grande, coordinada con backend. 3 commits: `141add0` (fix), `15f2127` (feat formulaciones), `5667eb6` (style dark). **No se pudo compilar desde WSL** (node_modules con binarios de Windows) — validado con ESLint; **build/pruebas van en Windows** (`npm run dev`).
+
+### Fix: bug "muestra datos de la entidad anterior al cambiar de selección" (`141add0`)
+Origen: `useFormulaciones.js` tenía `placeholderData:(prev)=>prev` en la query de recálculo por volumen → al cambiar de producto conservaba la fórmula anterior (`dataToShow = recalculatedData || productDetail`). Fix: `placeholderData` solo conserva si es el MISMO producto (compara `id` en el índice 2 de la queryKey).
+Auditoría de 6 agentes → misma clase de bug en todo el front. Corregidos **5 MEDIO** + **~15 BAJO**:
+- **Inventario**: `<DataTable key={id_bodega}>` (no reseteaba filtros/página al cambiar bodega).
+- **ItemProveedorForm**: crear-desde-portafolio estaba ROTO (abría en modo edición con `if(payload)` → PUT id undefined). Ahora `isEditing = !!payload?.id_item_proveedor`.
+- **ClienteForm**: `plazoDefault` en deps del reset borraba lo tecleado → se lee vía ref sincronizado en effect.
+- **OrdenForm**: reset del buscador + `conIva` derivado del payload.
+- **UserPanel** (EmpresaTab/ModulosMatrix): re-seed por estado (seededData/seededPermisos) tras guardar.
+- BAJO: `keepPreviousData:true` (no-op en v5) → `placeholderData: keepPreviousData` en useMovimientos/useAuditoria/useTrazabilidad/useSincronizacion/CommandPalette; buscadores sembrados solo al montar (Clientes/Proveedores/Catalogo tables) con snapshot de `initialSearch`; `key` defensivo en Ajuste/TraspasoModal; PorProductoView deriva grupo por id; ItemGeneralSearch resetea `expandido`; useLoteSugerido key con `.toString()`; etc.
+- **Auto-selección proveedor más barato** (`FormulacionesPage`): reescrita de `useEffect` a snapshot-en-render (quita el warning `set-state-in-effect`, MISMO comportamiento — sigue auto-seleccionando `opciones[0]`).
+> ⚠️ Lint del proyecto: `react-hooks/refs` y `set-state-in-effect` son **ERROR** (config React Compiler). No acceder/mutar refs en render; usar estado o snapshot-en-render.
+
+### Feat: Formulaciones — orden, instrucciones/notas, ingredientes repetidos (`15f2127`)
+Acompaña 3 migraciones backend (ver backend CLAUDE.md 2026-07-03). En `FormulacionModal.jsx` + `FormulacionesTable.jsx`:
+- **Orden de proceso**: botones ▲▼ por ingrediente (via `move` de `useFieldArray`); el payload envía `orden`. La tabla respeta el orden del backend.
+- **Instrucciones/fases**: botón "+ Agregar paso / instrucción" (append `{tipo:'instruccion', texto}`); en la tabla se muestran como **banda a lo ancho** (íconos ClipboardList/Layers), excluidas de los totales.
+- **Nota por ingrediente**: input opcional (ej. "pH"); en la tabla es un **chip** bajo el nombre.
+- **Ingredientes repetidos**: `agregarMateriaPrima` permite el mismo insumo 2× (aviso no bloqueante). El modelo de línea ahora lleva `tipo/texto/nota/orden`.
+- Backend expone `tipo/texto/nota/orden` en `calculate_costs`/`getFormulacionConMateriasPrimas`/etc.
+
+### Style: headers de tablas en dark mode (`5667eb6`)
+En dark, `content-secondary` = `#D4D4D8` (claro) y varios headers lo usaban como `bg` → banda clara llamativa. Nueva clase **`.tbl-header`** en `index.css` (gris `#3f3f46` + texto claro, FIJO en ambos modos; regla `.tbl-header .text-content-inverse` para el texto anidado). Aplicada a los headers de Formulaciones (FormulacionesTable + banda de fase, CostCalculator, CostProductsTable + fila total, ProductSpecificationsTable). Además override `dark:bg-surface-strong`/`content-tertiary` en `Button` variante `zinc`, `IconBox` sólido neutral, `StatusBadge` dot y KPI bar `zinc` de Rentabilidad. **Modo claro sin cambios.**
+
+> Contexto/handoff completo de la sesión (incl. re-cargue de fórmulas): `PROYECTO_PINCA/HANDOFF_2026-07-03.md`.
