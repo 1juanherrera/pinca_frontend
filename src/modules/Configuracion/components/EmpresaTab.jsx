@@ -6,7 +6,7 @@ import { useBoundStore } from '../../../store/useBoundStore';
 import { useEmpresa, useUpdateEmpresa, useUploadLogo, useDeleteLogo } from '../api/useEmpresa';
 
 // Base URL del backend (sin /api). El logo_path viene como /uploads/empresa/x.png
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api').replace(/\/api\/?$/, '');
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3009/api').replace(/\/api\/?$/, '');
 
 const FIELDS = [
   { key: 'razon_social', label: 'Razón social', placeholder: 'PINTURAS INDUSTRIALES DEL CARIBE S.A.S' },

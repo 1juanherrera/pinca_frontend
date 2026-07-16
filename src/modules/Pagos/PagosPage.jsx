@@ -7,7 +7,7 @@ import { useBoundStore } from '../../store/useBoundStore';
 import HeaderSection from '../../shared/HeaderSection';
 import { Button } from '../../shared/Button';
 import ConfirmModal from '../../shared/ConfirmModal';
-import ERPTable from '../../shared/ERPTable';
+import ERPTable from '../../shared/ErpTable';
 import StatusBadge from '../../shared/StatusBadge';
 import FlowCard from '../../shared/FlowCard';
 import SearchFilterBar from '../../shared/SearchFilterBar';

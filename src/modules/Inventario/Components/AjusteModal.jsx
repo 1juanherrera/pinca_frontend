@@ -44,9 +44,9 @@ const AjusteModal = ({ item, bodegaId, onClose, onConfirm, isSubmitting }) => {
 
   return (
     <div className="fixed inset-0 bg-surface-overlay backdrop-blur-[2px] flex items-center justify-center z-120 p-4">
-      <div className="bg-surface-base rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-border-base">
+      <div className="bg-surface-base rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden border border-border-base">
 
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-semantic-warning-subtle">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-semantic-warning-subtle shrink-0">
           <div className="flex items-center gap-2">
             <Wrench size={16} className="text-semantic-warning-fg" />
             <h2 className="text-sm font-bold text-content-primary uppercase tracking-wide">
@@ -59,7 +59,7 @@ const AjusteModal = ({ item, bodegaId, onClose, onConfirm, isSubmitting }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4 flex-1 min-h-0 overflow-y-auto">
           {/* Item info */}
           <div className="bg-surface-subtle border border-border-base rounded-lg px-3 py-2.5">
             <p className="text-xs font-bold text-content-primary uppercase leading-none">

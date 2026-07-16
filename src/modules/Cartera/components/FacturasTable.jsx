@@ -4,7 +4,7 @@ import {
   DollarSign, AlertCircle, Phone, FileMinus, User, X, Ban,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import ERPTable from '../../../shared/ERPTable';
+import ERPTable from '../../../shared/ErpTable';
 import StatusBadge from '../../../shared/StatusBadge';
 import FlowCard from '../../../shared/FlowCard';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
@@ -321,7 +321,7 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
 
       {/* ── Barra flotante de bulk actions ───────────────────────────────── */}
       {selected.size > 0 && (
-        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-content-primary text-content-inverse rounded-xl shadow-lift">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-content-primary text-content-inverse rounded-xl shadow-lift">
           <div className="flex items-center gap-3 text-xs">
             <span className="inline-flex items-center justify-center min-w-8 h-6 px-2 rounded-pill bg-brand-primary text-brand-on-primary font-bold tabular-nums">
               {selected.size}

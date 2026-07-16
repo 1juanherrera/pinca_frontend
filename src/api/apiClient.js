@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
+// Fallback coherente con empresaInfo/EmpresaTab (mismo backend Nest). En prod,
+// VITE_API_BASE_URL se hornea en build; el fallback solo aplica en dev sin .env.
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3009/api',
   headers: {
     'Content-Type': 'application/json',
   },

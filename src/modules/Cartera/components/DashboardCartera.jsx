@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { DollarSign, AlertTriangle, TrendingUp, Users, TriangleAlert } from 'lucide-react';
-import ERPTable    from '../../../shared/ERPTable';
+import ERPTable    from '../../../shared/ErpTable';
 import StatusBadge from '../../../shared/StatusBadge';
 import FlowCard    from '../../../shared/FlowCard';
 import { fmt, formatLetterDate } from '../../../utils/formatters';

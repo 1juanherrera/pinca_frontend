@@ -483,7 +483,7 @@ const CostoDetalleDrawer = ({ isOpen, onClose, productoId }) => {
               )}
             </div>
 
-            <div className="border border-border-base rounded-xl overflow-hidden">
+            <div className="border border-border-base rounded-xl overflow-x-auto">
               <table className="w-full text-xs">
                 <thead className="bg-surface-muted/60">
                   <tr className="text-[10px] font-bold uppercase tracking-wider text-content-tertiary">

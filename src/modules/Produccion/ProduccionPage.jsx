@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Factory, RefreshCw } from 'lucide-react';
 import { usePreparaciones } from '../Formulaciones/api/usePreparaciones';
-import { ProduccionKPIs } from './components/ProduccionKPIs';
+import { ProduccionKPIs } from './components/ProduccionKpis';
 import { ProduccionFilters } from './components/ProduccionFilters';
 import { ProduccionDetailModal } from './components/ProduccionDetailModal';
 import { ProduccionTable } from './components/ProduccionTable';

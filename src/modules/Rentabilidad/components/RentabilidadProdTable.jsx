@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import ERPTable    from '../../../shared/ERPTable';
+import ERPTable    from '../../../shared/ErpTable';
 import StatusBadge from '../../../shared/StatusBadge';
 import { fmt }     from '../../../utils/formatters';
 

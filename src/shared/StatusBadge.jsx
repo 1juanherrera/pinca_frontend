@@ -110,7 +110,7 @@ const SIZE = {
   md: {
     cls:   'h-6 px-2.5 text-[11px] gap-1.5',
     minW:  'min-w-[100px]',
-    fixW:  'w-[100px]',
+    fixW:  'w-[115px]',
     icon:  12,
     dot:   'w-1.5 h-1.5',
   },

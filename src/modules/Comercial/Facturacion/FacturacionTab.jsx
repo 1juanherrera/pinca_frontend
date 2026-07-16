@@ -1,19 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   CircleAlert, DollarSign, Clock, CheckCircle2, Eye, Trash2, Receipt, Download,
 } from 'lucide-react';
 import { useBoundStore }  from '../../../store/useBoundStore';
-import ERPTable           from '../../../shared/ERPTable';
+import ERPTable           from '../../../shared/ErpTable';
 import StatusBadge        from '../../../shared/StatusBadge';
 import FlowCard           from '../../../shared/FlowCard';
 import SearchFilterBar    from '../../../shared/SearchFilterBar';
 import AmountDisplay      from '../../../shared/AmountDisplay';
 import FacturaDrawer      from './components/FacturaDrawer';
 import { fmt }            from '../../../utils/formatters';
-import { useFactura }     from './api/useFactura';
-import useTableSort       from '../../../hooks/useTableSorts';
+import { useFacturasPaginated } from './api/useFactura';
 import TableShell      from '../../../shared/TableShell';
-import useClientPagination from '../../../hooks/useClientPagination';
 
 const STATUS_OPTIONS = [
   { value: 'Pendiente', label: 'Pendiente', dot: 'bg-semantic-warning'   },
@@ -23,41 +21,48 @@ const STATUS_OPTIONS = [
 ];
 
 const FacturacionTab = () => {
-  const { facturas, isLoadingFacturas, removeAsync } = useFactura();
   const { openConfirm, openDrawer } = useBoundStore();
 
-  const [search,   setSearch]   = useState('');
-  const [filters,  setFilters]  = useState({ estado: '' });
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [filters, setFilters] = useState({ estado: '' });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [selected, setSelected] = useState(null);
 
-  const metrics = useMemo(() => {
-    const list = Array.isArray(facturas) ? facturas : [];
-    return {
-      total:     list.length,
-      pendiente: list.filter((f) => f.estado === 'Pendiente').length,
-      pagada:    list.filter((f) => f.estado === 'Pagada').length,
-      vencida:   list.filter((f) => f.estado === 'Vencida').length,
-      montoPendiente: list
-        .filter((f) => f.estado === 'Pendiente')
-        .reduce((acc, f) => acc + Number(f.saldo_pendiente || 0), 0),
-    };
-  }, [facturas]);
+  // Debounce de búsqueda → vuelve a la página 1 (setState async en timeout = lint-safe).
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  const filtered = useMemo(() => {
-    const list = Array.isArray(facturas) ? facturas : [];
-    return list.filter((f) => {
-      const q = search.toLowerCase();
-      const matchSearch =
-        !q ||
-        f.numero?.toLowerCase().includes(q) ||
-        f.cliente_id?.toString().includes(q);
-      const matchEstado = !filters.estado || f.estado === filters.estado;
-      return matchSearch && matchEstado;
-    });
-  }, [facturas, search, filters]);
+  const hookFilters = useMemo(
+    () => ({ page, limit, estado: filters.estado || undefined, q: debouncedSearch || undefined }),
+    [page, limit, filters.estado, debouncedSearch],
+  );
+  // Paginación SERVER-SIDE: solo llega la página actual + KPIs globales (stats) + meta.
+  const { facturas, meta, stats, isLoading, isFetching, removeAsync } = useFacturasPaginated(hookFilters);
 
-  const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
-  const pagination = useClientPagination(sorted, 20);
+  const metrics = {
+    total:          stats.total,
+    pendiente:      stats.pendiente,
+    pagada:         stats.pagada,
+    vencida:        stats.vencida,
+    montoPendiente: stats.monto_pendiente,
+  };
+
+  // Adaptador del meta server-side al shape que consume TableShell.
+  const pagination = {
+    paginated:      facturas,
+    currentPage:    meta.page,
+    perPage:        meta.limit,
+    totalItems:     meta.total,
+    totalPages:     meta.pages,
+    setCurrentPage: setPage,
+    setPerPage:     (n) => { setLimit(n); setPage(1); },
+  };
+
+  const onFilterChange = (key, val) => { setFilters((prev) => ({ ...prev, [key]: val })); setPage(1); };
 
   const columns = useMemo(() => [
     {
@@ -186,25 +191,22 @@ const FacturacionTab = () => {
             onSearch={setSearch}
             placeholder="Buscar por número o cliente..."
             values={filters}
-            onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+            onChange={onFilterChange}
             statusOptions={STATUS_OPTIONS}
           />
         }
         pagination={pagination}
-        isLoading={isLoadingFacturas}
+        isLoading={isLoading}
       >
       <ERPTable
         columns={columns}
-        data={pagination.paginated}
-        isLoading={isLoadingFacturas}
+        data={facturas}
+        isLoading={isLoading || isFetching}
         variant="default"
         borderless
         emptyMessage="No se encontraron facturas"
         emptySubMessage="Las facturas generadas aparecerán aquí"
         onRowClick={(row) => setSelected(row)}
-        sortBy={sortBy}
-        sortDir={sortDir}
-        onSort={handleSort}
       />
       </TableShell>
 

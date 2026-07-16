@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { CheckCircle2 } from 'lucide-react';
-import ERPTable        from '../../../shared/ERPTable';
+import ERPTable        from '../../../shared/ErpTable';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay   from '../../../shared/AmountDisplay';
 import TableShell from '../../../shared/TableShell';

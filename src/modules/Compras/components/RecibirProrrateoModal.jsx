@@ -165,7 +165,7 @@ const RecibirProrrateoModal = ({ orden, onClose, onConfirm, isSubmitting }) => {
 
           {/* Tabla líneas */}
           <div className="px-6 py-4 overflow-y-auto flex-1">
-            <div className="rounded-xl border border-border-subtle overflow-hidden">
+            <div className="rounded-xl border border-border-subtle overflow-x-auto">
               <table className="w-full text-xs">
                 <thead className="bg-surface-muted border-b border-border-base">
                   <tr className="text-content-tertiary">

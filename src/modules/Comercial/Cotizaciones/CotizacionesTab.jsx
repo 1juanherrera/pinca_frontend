@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import {
   ClipboardList, Send, CheckCircle2, ArrowRight, Eye, Trash2, Download, CircleAlert, Plus, FileSpreadsheet, Ban, X
@@ -6,7 +6,7 @@ import {
 import { exportCotizacionesExcel } from './components/ExportCotizacionExcel';
 import { Button } from '../../../shared/Button';
 import { useBoundStore }    from '../../../store/useBoundStore';
-import ERPTable             from '../../../shared/ERPTable';
+import ERPTable             from '../../../shared/ErpTable';
 import StatusBadge          from '../../../shared/StatusBadge';
 import FlowCard             from '../../../shared/FlowCard';
 import SearchFilterBar      from '../../../shared/SearchFilterBar';
@@ -14,30 +14,67 @@ import AmountDisplay        from '../../../shared/AmountDisplay';
 import CotizacionDrawer     from './components/CotizacionDrawer';
 import ExportCotizacion     from './components/ExportCotizacion';
 import { fmt }              from '../../../utils/formatters';
-import { useCotizaciones }  from './api/useCotizaciones';
-import useTableSort         from '../../../hooks/useTableSorts';
+import { useCotizacionesPaginated } from './api/useCotizaciones';
 import TableShell        from '../../../shared/TableShell';
-import useClientPagination from '../../../hooks/useClientPagination';
 
+// Enum real de cotizaciones.estado: Borrador, Enviada, Aceptada, Rechazada,
+// Vencida, Convertida. (Antes decía 'Aprobada'/'Expirada' → no matcheaba nunca.)
 const STATUS_OPTIONS = [
-  { value: 'Borrador',  label: 'Borrador',  dot: 'bg-content-muted'    },
-  { value: 'Enviada',   label: 'Enviada',   dot: 'bg-semantic-info'    },
-  { value: 'Aprobada',  label: 'Aprobada',  dot: 'bg-semantic-success' },
-  { value: 'Rechazada', label: 'Rechazada', dot: 'bg-semantic-danger/80'     },
-  { value: 'Expirada',  label: 'Expirada',  dot: 'bg-semantic-warning'   },
+  { value: 'Borrador',   label: 'Borrador',   dot: 'bg-content-muted'      },
+  { value: 'Enviada',    label: 'Enviada',    dot: 'bg-semantic-info'      },
+  { value: 'Aceptada',   label: 'Aceptada',   dot: 'bg-semantic-success'   },
+  { value: 'Rechazada',  label: 'Rechazada',  dot: 'bg-semantic-danger/80' },
+  { value: 'Vencida',    label: 'Vencida',    dot: 'bg-semantic-warning'   },
+  { value: 'Convertida', label: 'Convertida', dot: 'bg-brand-primary'      },
 ];
 
 const CotizacionesTab = () => {
-  const { cotizaciones, isLoadingCotizaciones, removeAsync, cambiarEstado, convertir } = useCotizaciones();
   const { openConfirm, openDrawer } = useBoundStore();
 
-  const [search,   setSearch]   = useState('');
-  const [filters,  setFilters]  = useState({ estado: '' });
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [filters, setFilters] = useState({ estado: '' });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [selected, setSelected] = useState(null);
 
-  // ─── Selección múltiple (bulk actions) — patrón de FacturasTable ─────────
+  // ─── Selección múltiple (bulk actions) ──────────────────────────────────
   const [selectedIds, setSelectedIds] = useState(() => new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+
+  // Debounce de búsqueda → vuelve a página 1 (setState async en timeout = lint-safe).
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const hookFilters = useMemo(
+    () => ({ page, limit, estado: filters.estado || undefined, q: debouncedSearch || undefined }),
+    [page, limit, filters.estado, debouncedSearch],
+  );
+  // Paginación SERVER-SIDE: solo llega la página + KPIs globales (stats) + meta.
+  const { cotizaciones, meta, stats, isLoading, isFetching, removeAsync, cambiarEstado, convertir } =
+    useCotizacionesPaginated(hookFilters);
+
+  const metrics = {
+    total:         stats.total,
+    enviadas:      stats.enviadas,
+    aprobadas:     stats.aprobadas,
+    montoAprobado: stats.monto_aprobado,
+  };
+
+  // Adaptador del meta server-side al shape que consume TableShell.
+  const pagination = {
+    paginated:      cotizaciones,
+    currentPage:    meta.page,
+    perPage:        meta.limit,
+    totalItems:     meta.total,
+    totalPages:     meta.pages,
+    setCurrentPage: setPage,
+    setPerPage:     (n) => { setLimit(n); setPage(1); },
+  };
+
+  const onFilterChange = (key, val) => { setFilters((prev) => ({ ...prev, [key]: val })); setPage(1); };
 
   const toggleSelected = useCallback((id) => {
     setSelectedIds((prev) => {
@@ -50,39 +87,10 @@ const CotizacionesTab = () => {
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
-  const metrics = useMemo(() => {
-    const list = Array.isArray(cotizaciones) ? cotizaciones : [];
-    return {
-      total:         list.length,
-      enviadas:      list.filter((c) => c.estado === 'Enviada').length,
-      aprobadas:     list.filter((c) => c.estado === 'Aprobada').length,
-      montoAprobado: list
-        .filter((c) => c.estado === 'Aprobada')
-        .reduce((acc, c) => acc + Number(c.total || 0), 0),
-    };
-  }, [cotizaciones]);
-
-  const filtered = useMemo(() => {
-    const list = Array.isArray(cotizaciones) ? cotizaciones : [];
-    return list.filter((c) => {
-      const q = search.toLowerCase();
-      const matchSearch =
-        !q ||
-        c.numero?.toLowerCase().includes(q) ||
-        c.nombre_empresa?.toLowerCase().includes(q) ||
-        c.nombre_encargado?.toLowerCase().includes(q);
-      const matchEstado = !filters.estado || c.estado === filters.estado;
-      return matchSearch && matchEstado;
-    });
-  }, [cotizaciones, search, filters]);
-
-  const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
-  const pagination = useClientPagination(sorted, 20);
-
-  // Select-all sobre las filas visibles (página actual).
+  // Select-all sobre las filas visibles (página actual del server).
   const visibleIds = useMemo(
-    () => pagination.paginated.map((r) => r.id_cotizaciones).filter(Boolean),
-    [pagination.paginated],
+    () => cotizaciones.map((r) => r.id_cotizaciones).filter(Boolean),
+    [cotizaciones],
   );
   const allVisibleSelected  = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
   const someVisibleSelected = visibleIds.some((id) => selectedIds.has(id));
@@ -237,7 +245,7 @@ const columns = useMemo(() => [
             <FileSpreadsheet size={12} />
           </button>
 
-          {row.estado === 'Aprobada' && !row.facturas_id && (
+          {row.estado === 'Aceptada' && !row.facturas_id && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -294,7 +302,7 @@ const columns = useMemo(() => [
 
       {/* ── Barra flotante de bulk actions ───────────────────────────────── */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-content-primary text-content-inverse rounded-xl shadow-lift">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-content-primary text-content-inverse rounded-xl shadow-lift">
           <div className="flex items-center gap-3 text-xs">
             <span className="inline-flex items-center justify-center min-w-8 h-6 px-2 rounded-pill bg-brand-primary text-brand-on-primary font-bold tabular-nums">
               {selectedIds.size}
@@ -335,7 +343,7 @@ const columns = useMemo(() => [
                 onSearch={setSearch}
                 placeholder="Buscar por número, empresa o encargado..."
                 values={filters}
-                onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+                onChange={onFilterChange}
                 statusOptions={STATUS_OPTIONS}
               />
             </div>
@@ -343,20 +351,20 @@ const columns = useMemo(() => [
               variant="secondary"
               size="sm"
               icon={FileSpreadsheet}
-              onClick={() => exportCotizacionesExcel(filtered, 'cotizaciones')}
-              disabled={!filtered.length}
+              onClick={() => exportCotizacionesExcel(cotizaciones, 'cotizaciones')}
+              disabled={!cotizaciones.length}
             >
               Excel
             </Button>
           </div>
         }
         pagination={pagination}
-        isLoading={isLoadingCotizaciones}
+        isLoading={isLoading}
       >
         <ERPTable
           columns={columns}
-          data={pagination.paginated}
-          isLoading={isLoadingCotizaciones}
+          data={cotizaciones}
+          isLoading={isLoading || isFetching}
           variant="default"
           borderless
           EmptyIcon={ClipboardList}
@@ -368,9 +376,6 @@ const columns = useMemo(() => [
             </Button>
           }
           onRowClick={(row) => setSelected(row)}
-          sortBy={sortBy}
-          sortDir={sortDir}
-          onSort={handleSort}
         />
       </TableShell>
 
@@ -381,7 +386,7 @@ const columns = useMemo(() => [
         onCambiarEstado={(id, estado) => cambiarEstado({ id, estado })}
         onConvertir={(id) => convertir(id)}
       />
-      <ExportCotizacion data={filtered} filename="cotizaciones" />
+      <ExportCotizacion data={cotizaciones} filename="cotizaciones" />
     </div>
   );
 };

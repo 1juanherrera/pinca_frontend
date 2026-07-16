@@ -1,8 +1,64 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { facturaKeys } from './facturaKeys';
 import apiClient from '../../../../api/apiClient';
 import { API_ROUTES } from '../../../../api/apiRoutes';
+
+/**
+ * useFacturasPaginated(filters) — lista de facturas PAGINADA server-side.
+ *
+ * El backend, cuando recibe `page`, devuelve `{ data, meta, stats }` en vez del
+ * array completo (retrocompatible: sin `page` sigue devolviendo el array). Esto
+ * evita traer miles de facturas al navegador. `stats` = KPIs globales para las
+ * FlowCards; `meta` = { total (filtrado), page, limit, pages } para el paginador.
+ *
+ * filters: { page, limit, estado, q }  — se mandan como query params.
+ */
+export const useFacturasPaginated = (filters = {}) => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: facturaKeys.list(filters),
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') params.append(k, v);
+      });
+      return await apiClient.get(`${API_ROUTES.FACTURAS.LIST}?${params.toString()}`);
+    },
+    placeholderData: keepPreviousData, // conserva la página previa al cambiar de página
+    staleTime: 30 * 1000,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => apiClient.delete(API_ROUTES.FACTURAS.DELETE(id)),
+    onSuccess: () => {
+      toast.success('Factura eliminada exitosamente');
+      queryClient.invalidateQueries({ queryKey: facturaKeys.lists() });
+    },
+    onError: () => toast.error('Error al eliminar la factura'),
+  });
+
+  const cambiarEstadoMutation = useMutation({
+    mutationFn: ({ id, estado }) => apiClient.patch(API_ROUTES.FACTURAS.ESTADO(id), { estado }),
+    onSuccess: (_, variables) => {
+      toast.success(`Factura marcada como ${variables.estado}`);
+      queryClient.invalidateQueries({ queryKey: facturaKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: facturaKeys.details() });
+    },
+    onError: () => toast.error('Error al cambiar el estado'),
+  });
+
+  return {
+    facturas: query.data?.data ?? [],
+    meta: query.data?.meta ?? { total: 0, page: 1, limit: 20, pages: 1 },
+    stats: query.data?.stats ?? { total: 0, pendiente: 0, pagada: 0, vencida: 0, monto_pendiente: 0 },
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    removeAsync: deleteMutation.mutateAsync,
+    cambiarEstadoAsync: cambiarEstadoMutation.mutateAsync,
+  };
+};
 
 /**
  * useFacturas(id?)

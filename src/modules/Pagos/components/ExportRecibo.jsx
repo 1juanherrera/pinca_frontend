@@ -1,227 +1,126 @@
 /**
- * ExportRecibo — comprobante de pago/abono recibido del cliente.
- * Documento corto (1 página) con datos del pago, factura asociada y firma.
+ * ExportRecibo — comprobante de pago/abono con la plantilla compartida DocPdf.
+ * Se abre via openDrawer('EXPORT_MODAL_RECIBO', pago).
  */
-import { useState } from 'react';
-import { X, Download, CheckCircle2 } from 'lucide-react';
+import { useState, lazy, Suspense } from 'react';
+import { X, Download, CheckCircle2, Loader2, Receipt, FileText } from 'lucide-react';
 import { useBoundStore } from '../../../store/useBoundStore';
 import logoFallback from '../../../assets/pincaicono.png';
-import { fmt } from '../../../utils/formatters';
-import { useEmpresaInfo, useEmpresaLogoUrl, EMPRESA_FALLBACK } from '../../../utils/empresaInfo';
+import { useEmpresaInfo } from '../../../utils/empresaInfo';
 import { useEmpresaLogoBase64 } from '../../Configuracion/api/useEmpresa';
-import { PINCA_COLORS, drawPdfHeader, drawPdfFooter } from '../../../utils/pdfHeader';
+import { fmt, downloadDocPdf } from '../../../shared/pdf/DocPdf';
+import { downloadDocTicket } from '../../../shared/pdf/DocTicket';
 
-const PdfTemplate = ({ pago, empresa: EMPRESA = EMPRESA_FALLBACK, logoUrl = logoFallback }) => {
-  const logo = logoUrl;
-  return (
-    <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#18181b', background: '#fff', width: '794px', boxSizing: 'border-box' }}>
-      <div style={{ background: '#18181b', padding: '14px 36px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid #FBBF24' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ background: '#fff', borderRadius: '6px', padding: '4px' }}>
-            <img src={logo} alt="Pinca" style={{ height: '54px', objectFit: 'contain' }} />
-          </div>
-          <div style={{ color: '#fff' }}>
-            <div style={{ fontWeight: '800', fontSize: '14px' }}>{EMPRESA.nombre}</div>
-            <div style={{ fontSize: '9px', color: '#e4e4e7', lineHeight: 1.5, marginTop: '4px' }}>
-              <div>{EMPRESA.nit}</div>
-              <div>{EMPRESA.direccion} · {EMPRESA.ciudad}</div>
-              <div>{EMPRESA.telefono} · {EMPRESA.web}</div>
-            </div>
-          </div>
-        </div>
-        <div style={{ background: '#FBBF24', color: '#78350f', padding: '12px 18px', borderRadius: '8px', minWidth: '180px', textAlign: 'right' }}>
-          <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase' }}>Recibo de pago</div>
-          <div style={{ fontSize: '18px', fontWeight: '800', marginTop: '4px' }}>{pago.numero_referencia ?? `#${pago.id_pagos_cliente}`}</div>
-          <div style={{ fontSize: '9px', marginTop: '2px' }}>Fecha: {pago.fecha_pago ?? '—'}</div>
-        </div>
-      </div>
+const DocPdfPreview = lazy(() => import('../../../shared/pdf/DocPdfPreview'));
 
-      <div style={{ padding: '32px 36px' }}>
-        {/* Caja del monto */}
-        <div style={{ background: '#FBBF24', borderRadius: '12px', padding: '24px', textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{ fontSize: '11px', fontWeight: '700', color: '#78350f', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Monto recibido
-          </div>
-          <div style={{ fontSize: '32px', fontWeight: '800', color: '#18181b', marginTop: '6px' }}>
-            {fmt(pago.monto)}
-          </div>
-          <div style={{ fontSize: '10px', color: '#78350f', marginTop: '4px', textTransform: 'uppercase' }}>
-            {pago.tipo === 'pago_total' ? 'Pago total' : pago.tipo === 'abono' ? 'Abono parcial' : pago.tipo}
-          </div>
-        </div>
+const tipoLabel = (t) => t === 'pago_total' ? 'PAGO TOTAL' : t === 'abono' ? 'ABONO PARCIAL' : (t || '');
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-          <div>
-            <div style={{ fontSize: '9px', fontWeight: '700', color: '#71717a', textTransform: 'uppercase', borderBottom: '2px solid #FBBF24', paddingBottom: '4px', marginBottom: '8px', width: '70px' }}>Cliente</div>
-            <div style={{ fontSize: '11px', lineHeight: 1.7 }}>
-              <div><span style={{ color: '#71717a' }}>Empresa:</span> <strong>{pago.nombre_empresa ?? '—'}</strong></div>
-              <div><span style={{ color: '#71717a' }}>Encargado:</span> <strong>{pago.nombre_encargado ?? '—'}</strong></div>
-              {pago.numero_documento && <div><span style={{ color: '#71717a' }}>NIT:</span> <strong>{pago.numero_documento}</strong></div>}
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: '9px', fontWeight: '700', color: '#71717a', textTransform: 'uppercase', borderBottom: '2px solid #FBBF24', paddingBottom: '4px', marginBottom: '8px', width: '110px' }}>Detalle del pago</div>
-            <div style={{ fontSize: '11px', lineHeight: 1.7 }}>
-              <div><span style={{ color: '#71717a' }}>Método:</span> <strong>{pago.metodo_pago ?? '—'}</strong></div>
-              <div><span style={{ color: '#71717a' }}>Referencia:</span> <strong>{pago.numero_referencia ?? '—'}</strong></div>
-              <div><span style={{ color: '#71717a' }}>Factura asociada:</span> <strong>{pago.factura_numero ?? `#${pago.facturas_id ?? '—'}`}</strong></div>
-            </div>
-          </div>
-        </div>
-
-        {pago.observaciones && (
-          <div style={{ marginTop: '20px', padding: '10px 12px', background: '#fafafa', borderLeft: '3px solid #FBBF24', fontSize: '10px', color: '#52525b' }}>
-            <div style={{ fontWeight: 700, color: '#71717a', marginBottom: '4px', textTransform: 'uppercase', fontSize: '9px' }}>Observaciones</div>
-            {pago.observaciones}
-          </div>
-        )}
-
-        <div style={{ marginTop: '60px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '36px' }}>
-          <div style={{ borderTop: '1px solid #71717a', paddingTop: '6px', textAlign: 'center', fontSize: '10px', color: '#71717a' }}>Recibido por (Pinca)</div>
-          <div style={{ borderTop: '1px solid #71717a', paddingTop: '6px', textAlign: 'center', fontSize: '10px', color: '#71717a' }}>Cliente / Pagador</div>
-        </div>
-      </div>
-    </div>
-  );
-};
+const buildConfig = (pago, EMPRESA, logo) => ({
+  titulo: 'RECIBO DE PAGO',
+  numero: pago.numero_referencia ?? `PG-${pago.id_pagos_cliente}`,
+  fecha: pago.fecha_pago,
+  empresa: EMPRESA,
+  logo,
+  campos: [
+    ['Cliente:', pago.nombre_empresa],
+    ['NIT:', pago.numero_documento],
+    ['Encargado:', pago.nombre_encargado],
+    ['Método:', pago.metodo_pago],
+    ['Referencia:', pago.numero_referencia],
+    ['Factura:', pago.factura_numero ?? `#${pago.facturas_id ?? '—'}`],
+  ],
+  monto: { label: 'MONTO RECIBIDO', value: fmt(pago.monto), sub: tipoLabel(pago.tipo) },
+  observaciones: pago.observaciones,
+  firmas: ['Recibido por (Pinca)', 'Cliente / Pagador'],
+});
 
 const ExportReciboContent = ({ pago, closeModal }) => {
   const EMPRESA = useEmpresaInfo();
-  const logoUrl = useEmpresaLogoUrl();
   const { data: logoB64Data } = useEmpresaLogoBase64();
+  const previewLogo = logoB64Data?.logo || logoFallback;
   const [isExporting, setIsExporting] = useState(false);
-  const [done,        setDone]        = useState(false);
+  const [done, setDone] = useState(false);
+  const [formato, setFormato] = useState('carta');
 
-  const downloadCarta = async (doc, autoTable, logoBase64) => {
-    const W = 210, M = 14;
-    const { INK, MUTED, BRAND } = PINCA_COLORS;
-
-    const numeroDoc = pago.numero_referencia ?? `PG-${pago.id_pagos_cliente}`;
-    drawPdfHeader(doc, {
-      logoBase64, empresa: EMPRESA, tituloDoc: 'RECIBO DE PAGO',
-      numeroDoc, fecha: pago.fecha_pago, W, M,
-    });
-
-    let y = 44;
-
-    // Caja amarilla con monto
-    doc.setFillColor(...BRAND);
-    doc.roundedRect(M, y, W - M * 2, 28, 3, 3, 'F');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(120, 53, 15);
-    doc.text('MONTO RECIBIDO', W / 2, y + 7, { align: 'center' });
-    doc.setFontSize(22); doc.setTextColor(...INK);
-    doc.text(fmt(pago.monto), W / 2, y + 17, { align: 'center' });
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 53, 15);
-    const tipoLabel = pago.tipo === 'pago_total' ? 'PAGO TOTAL' : pago.tipo === 'abono' ? 'ABONO PARCIAL' : (pago.tipo ?? '');
-    doc.text(tipoLabel, W / 2, y + 24, { align: 'center' });
-    y += 38;
-
-    // Bloques
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(...MUTED);
-    doc.text('CLIENTE', M, y); doc.text('DETALLE DEL PAGO', M + 90, y);
-    doc.setFillColor(...BRAND); doc.rect(M, y + 1, 14, 0.6, 'F'); doc.rect(M + 90, y + 1, 14, 0.6, 'F');
-    y += 6;
-
-    [
-      ['Empresa',   pago.nombre_empresa  ?? '—'],
-      ['Encargado', pago.nombre_encargado?? '—'],
-      ['NIT',       pago.numero_documento?? '—'],
-    ].forEach(([k, v], i) => {
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...MUTED);
-      doc.text(k, M, y + i * 5.5);
-      doc.setFont('helvetica', 'bold'); doc.setTextColor(...INK);
-      doc.text(doc.splitTextToSize(String(v), 65)[0], M + 22, y + i * 5.5);
-    });
-    [
-      ['Método',     pago.metodo_pago        ?? '—'],
-      ['Referencia', pago.numero_referencia  ?? '—'],
-      ['Factura',    pago.factura_numero     ?? `#${pago.facturas_id ?? '—'}`],
-    ].forEach(([k, v], i) => {
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...MUTED);
-      doc.text(k, M + 90, y + i * 5.5);
-      doc.setFont('helvetica', 'bold'); doc.setTextColor(...INK);
-      doc.text(String(v), M + 115, y + i * 5.5);
-    });
-    y += 22;
-
-    if (pago.observaciones) {
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(...MUTED);
-      doc.text('OBSERVACIONES', M, y);
-      doc.setFillColor(...BRAND); doc.rect(M, y + 1, 14, 0.6, 'F');
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...INK);
-      doc.text(doc.splitTextToSize(pago.observaciones, W - M * 2), M, y + 6);
-      y += 14;
-    }
-
-    // Firmas
-    y += 30;
-    const firmaW = (W - M * 2 - 16) / 2;
-    doc.setDrawColor(...MUTED); doc.setLineWidth(0.3);
-    doc.line(M, y, M + firmaW, y);
-    doc.line(M + firmaW + 16, y, W - M, y);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(...MUTED);
-    doc.text('Recibido por (Pinca)',  M + firmaW / 2,            y + 4, { align: 'center' });
-    doc.text('Cliente / Pagador',     M + firmaW + 16 + firmaW / 2, y + 4, { align: 'center' });
-
-    drawPdfFooter(doc, { empresa: EMPRESA, tituloDoc: 'RECIBO', numeroDoc, W, M });
-    doc.save(`recibo_${numeroDoc}.pdf`);
-  };
+  const config = buildConfig(pago, EMPRESA, previewLogo);
 
   const handleDownload = async () => {
     setIsExporting(true);
     try {
-      const { jsPDF } = await import('jspdf');
-      const autoTable = (await import('jspdf-autotable')).default;
-      const logoBase64 = logoB64Data?.logo ?? await fetch(logoFallback).then(r => r.blob()).then(b => new Promise(res => {
-        const reader = new FileReader();
-        reader.onload = () => res(reader.result);
-        reader.readAsDataURL(b);
-      }));
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      await downloadCarta(doc, autoTable, logoBase64);
-      setDone(true); setTimeout(() => setDone(false), 1500);
-    } catch (e) { console.error(e); } finally { setIsExporting(false); }
+      const dl = formato === 'tiquete' ? downloadDocTicket : downloadDocPdf;
+      await dl(config, `recibo_${config.numero}`);
+      setDone(true);
+      setTimeout(() => { setDone(false); closeModal(); }, 1200);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-[110] bg-black/60 flex items-center justify-center p-4" onClick={closeModal}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-bold text-content-primary">Exportar recibo de pago</h2>
-            <p className="text-[11px] text-content-tertiary mt-0.5">{pago.numero_referencia ?? '—'} · {pago.nombre_empresa ?? 'Cliente'}</p>
+    <>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[110]" onClick={closeModal} />
+      <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+        <div className="w-full max-w-4xl h-[88vh] bg-surface-elevated rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-content-primary rounded-xl flex items-center justify-center">
+                <Receipt size={16} className="text-content-inverse" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-content-primary">Vista previa — {config.numero}</h2>
+                <p className="text-xs text-content-muted">{pago.nombre_empresa}</p>
+              </div>
+            </div>
+            <button onClick={closeModal} className="p-1.5 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-lg transition-colors">
+              <X size={18} />
+            </button>
           </div>
-          <button onClick={closeModal} className="text-content-tertiary hover:text-content-primary"><X size={18} /></button>
-        </div>
 
-        <div className="flex-1 overflow-y-auto bg-surface-subtle p-6">
-          <div className="mx-auto" style={{ transform: 'scale(0.85)', transformOrigin: 'top center' }}>
-            <PdfTemplate pago={pago} empresa={EMPRESA} logoUrl={logoUrl} />
+          <div className="flex-1 min-h-0 flex flex-col bg-surface-muted">
+            <Suspense fallback={<div className="flex-1 flex items-center justify-center gap-3 text-content-muted"><Loader2 size={20} className="animate-spin" /><span className="text-sm font-medium">Generando vista previa…</span></div>}>
+              <DocPdfPreview {...config} formato={formato} />
+            </Suspense>
           </div>
-        </div>
 
-        <div className="px-5 py-4 border-t border-border-subtle bg-surface-subtle flex items-center justify-between">
-          <p className="text-xs text-content-muted">Monto: <strong>{fmt(pago.monto)}</strong></p>
-          <button
-            onClick={handleDownload}
-            disabled={isExporting}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95
-              ${done ? 'bg-semantic-success text-white' : 'bg-brand-primary text-content-on-brand hover:bg-brand-primary-hover disabled:opacity-50'}`}
-          >
-            {done ? <><CheckCircle2 size={16} /> Descargado</>
-              : isExporting ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando…</>
-              : <><Download size={16} /> Descargar PDF</>}
-          </button>
+          <div className="px-5 py-4 border-t border-border-subtle bg-surface-subtle flex flex-wrap items-center justify-between gap-3 shrink-0">
+            <p className="text-xs text-content-muted shrink-0">Monto: <span className="font-semibold text-content-secondary">{fmt(pago.monto)}</span></p>
+
+            <div className="flex items-center gap-0.5 bg-surface-strong/60 rounded-lg p-0.5 shrink-0">
+              <button
+                onClick={() => setFormato('carta')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${formato === 'carta' ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
+              >
+                <FileText size={12} /> Carta
+              </button>
+              <button
+                onClick={() => setFormato('tiquete')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${formato === 'tiquete' ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
+              >
+                <Receipt size={12} /> Tiquete
+              </button>
+            </div>
+
+            <button
+              onClick={handleDownload}
+              disabled={isExporting}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 shrink-0
+                ${done ? 'bg-semantic-success text-white' : 'bg-brand-primary text-content-on-brand hover:bg-brand-primary-hover disabled:opacity-50 disabled:pointer-events-none'}`}
+            >
+              {done ? <><CheckCircle2 size={16} /> Descargado</>
+                : isExporting ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando...</>
+                : <><Download size={16} /> Descargar PDF</>}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
 const ExportRecibo = () => {
   const activeDrawer = useBoundStore((s) => s.activeDrawer);
-  const payload      = useBoundStore((s) => s.drawerPayload);
-  const closeDrawer  = useBoundStore((s) => s.closeDrawer);
+  const payload = useBoundStore((s) => s.drawerPayload);
+  const closeDrawer = useBoundStore((s) => s.closeDrawer);
   if (activeDrawer !== 'EXPORT_MODAL_RECIBO' || !payload) return null;
   return <ExportReciboContent key={payload.id_pagos_cliente} pago={payload} closeModal={closeDrawer} />;
 };

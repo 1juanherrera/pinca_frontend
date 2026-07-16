@@ -1,6 +1,8 @@
 export const remisionKeys = {
   all:     ['remisiones'],
   lists:   () => [...remisionKeys.all, 'list'],
+  // Lista paginada server-side; prefijo de lists() → invalidar lists() la refresca.
+  list:    (filters) => [...remisionKeys.lists(), { filters }],
   details: () => [...remisionKeys.all, 'detail'],
   detail:  (id) => [...remisionKeys.details(), id?.toString()],
 

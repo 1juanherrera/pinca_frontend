@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link2, Link, Trash2, Edit, Plus } from 'lucide-react';
-import ERPTable        from '../../../shared/ERPTable';
+import ERPTable        from '../../../shared/ErpTable';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import TableShell      from '../../../shared/TableShell';
 import AmountDisplay   from '../../../shared/AmountDisplay';

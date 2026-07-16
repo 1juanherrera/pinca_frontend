@@ -1,9 +1,71 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { cotizacionKeys } from './cotizacionKeys';
 import toast from 'react-hot-toast';
 import apiClient from '../../../../api/apiClient';
 import { API_ROUTES } from '../../../../api/apiRoutes';
 import { facturaKeys } from '../../Facturacion/api/facturaKeys';
+
+/**
+ * useCotizacionesPaginated(filters) — lista PAGINADA server-side (patrón de
+ * useFacturasPaginated). El backend, con `page`, devuelve { data, meta, stats }.
+ * `stats` = KPIs globales para las FlowCards; `meta` = paginador.
+ * filters: { page, limit, estado, q }
+ */
+export const useCotizacionesPaginated = (filters = {}) => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: cotizacionKeys.list(filters),
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') params.append(k, v);
+      });
+      return await apiClient.get(`${API_ROUTES.COTIZACIONES.LIST}?${params.toString()}`);
+    },
+    placeholderData: keepPreviousData,
+    staleTime: 30 * 1000,
+  });
+
+  const invalidarListas = () => {
+    queryClient.invalidateQueries({ queryKey: cotizacionKeys.lists() });
+  };
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => apiClient.delete(API_ROUTES.COTIZACIONES.DELETE(id)),
+    onSuccess: () => { toast.success('Cotización eliminada exitosamente'); invalidarListas(); },
+    onError: () => toast.error('Error al eliminar la cotización'),
+  });
+
+  const cambiarEstadoMutation = useMutation({
+    mutationFn: ({ id, estado }) => apiClient.patch(API_ROUTES.COTIZACIONES.ESTADO(id), { estado }),
+    onSuccess: (_, v) => { toast.success(`Cotización marcada como ${v.estado}`); invalidarListas(); },
+    onError: () => toast.error('Error al cambiar el estado'),
+  });
+
+  const convertirMutation = useMutation({
+    mutationFn: (cotizacionId) => apiClient.post(API_ROUTES.COTIZACIONES.CONVERTIR(cotizacionId)),
+    onSuccess: () => {
+      toast.success('Cotización convertida a factura');
+      invalidarListas();
+      queryClient.invalidateQueries({ queryKey: facturaKeys.lists() });
+    },
+    onError: () => toast.error('Error al convertir la cotización'),
+  });
+
+  return {
+    cotizaciones: query.data?.data ?? [],
+    meta: query.data?.meta ?? { total: 0, page: 1, limit: 20, pages: 1 },
+    stats: query.data?.stats ?? { total: 0, enviadas: 0, aprobadas: 0, monto_aprobado: 0 },
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    removeAsync: deleteMutation.mutateAsync,
+    cambiarEstado: cambiarEstadoMutation.mutate,
+    cambiarEstadoAsync: cambiarEstadoMutation.mutateAsync,
+    convertir: convertirMutation.mutate,
+    convertirAsync: convertirMutation.mutateAsync,
+  };
+};
 
 /**
  * useCotizaciones(id?, clienteId?)

@@ -23,7 +23,7 @@ const SuministroTab = ({ proveedores = [], stockPorBodega = [] }) => {
             Este ítem no tiene proveedores vinculados
           </div>
         ) : (
-          <div className="border border-border-base rounded-xl overflow-hidden">
+          <div className="border border-border-base rounded-xl overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-surface-subtle border-b border-border-base">

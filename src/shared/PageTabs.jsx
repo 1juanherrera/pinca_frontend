@@ -37,7 +37,7 @@ const PageTabs = ({
 
   if (variant === 'pill') {
     return (
-      <div className={cn('inline-flex items-center gap-1 p-1 bg-surface-muted rounded-md', className)}>
+      <div className={cn('inline-flex items-center gap-1 p-1 bg-surface-muted rounded-md overflow-x-auto no-scrollbar max-w-full', className)}>
         {tabs.map((t) => {
           const Icon = t.icon;
           const active = value === t.key;
@@ -48,7 +48,7 @@ const PageTabs = ({
               disabled={t.disabled}
               onClick={() => onChange?.(t.key)}
               className={cn(
-                'inline-flex items-center gap-1.5 rounded-sm font-medium transition-colors',
+                'inline-flex items-center gap-1.5 rounded-sm font-medium transition-colors shrink-0 whitespace-nowrap',
                 s.wrapper,
                 active
                   ? 'bg-surface-base text-content-primary shadow-xs'

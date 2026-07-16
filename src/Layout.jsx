@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import Sidebar from './Shared/Sidebar';
-import Topbar from './Shared/Topbar';
-import UserPanel from './Shared/UserPanel';
+import Sidebar from './shared/Sidebar';
+import Topbar from './shared/Topbar';
+import UserPanel from './shared/UserPanel';
 import CommandPalette from './shared/CommandPalette';
 import ForceChangePasswordModal from './shared/ForceChangePasswordModal';
 import SessionExpiryModal from './shared/SessionExpiryModal';

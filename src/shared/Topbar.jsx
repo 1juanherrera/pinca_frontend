@@ -65,7 +65,7 @@ const Topbar = ({ onOpenPalette }) => {
           <span>Gestor Pinca</span>
           <ChevronRight size={12} className="mx-1 opacity-60" />
         </div>
-        <h1 className="text-base font-semibold text-content-on-dark tracking-tight truncate">
+        <h1 className="text-base font-semibold text-content-on-dark tracking-tight truncate min-w-0">
           {activeTitle}
         </h1>
       </div>

@@ -105,7 +105,7 @@ const DataTable = () => {
                       <td className="px-3 py-1.5">
                         <span className="text-xs text-content-tertiary font-mono font-medium">{getCodigo(item)}</span>
                       </td>
-                      <td className="px-3 py-1.5 font-medium text-content-primary text-xs">{getNombre(item)}</td>
+                      <td className="px-3 py-1.5 font-medium text-content-primary text-xs max-w-[260px] truncate" title={getNombre(item)}>{getNombre(item)}</td>
                       <td className="px-3 py-1.5 text-center">
                         <span className="text-xs font-semibold text-content-secondary tabular-nums">
                           {item.cantidad ?? '—'}
@@ -129,7 +129,7 @@ const DataTable = () => {
                         })()}
                       </td>
 
-                      <td className="px-3 py-1.5.5 text-center">
+                      <td className="px-3 py-1.5 text-center">
                         <StatusBadge
                           estado={getTipoLabel(item.tipo)}
                           dot={false}
@@ -138,7 +138,7 @@ const DataTable = () => {
                         />
                       </td>
 
-                      <td className="px-3 py-1.5.5 text-center">
+                      <td className="px-3 py-1.5 text-center">
                         {item.unidad ? (
                           <StatusBadge tone="neutral" label={item.unidad} dot={false} size="sm" />
                         ) : (
@@ -188,7 +188,7 @@ const DataTable = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="10" className="px-3 py-1.56 text-center">
+                    <td colSpan="10" className="px-3 py-6 text-center">
                       <div className="flex flex-col items-center justify-center text-content-tertiary h-40">
                         <span className="text-sm font-medium">No hay items para mostrar en este inventario.</span>
                         <span className="text-xs text-content-muted mt-1">

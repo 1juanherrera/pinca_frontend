@@ -1,7 +1,7 @@
 import { useEmpresa } from '../modules/Configuracion/api/useEmpresa';
 import logoFallback from '../assets/pincaicono.png';
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api').replace(/\/api\/?$/, '');
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3009/api').replace(/\/api\/?$/, '');
 
 /**
  * Shape esperado por los componentes de Export PDF / encabezados de reporte.

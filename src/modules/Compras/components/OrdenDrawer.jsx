@@ -86,10 +86,10 @@ const OrdenDrawer = ({ ordenId, isOpen, onClose }) => {
             </div>
 
             {/* Estado + acciones */}
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <StatusBadge estado={orden.estado} size="sm" dot={false} />
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-end gap-2">
                 <Button
                   size="sm" variant="secondary" icon={Download}
                   onClick={() => openDrawer('EXPORT_MODAL_OC', orden)}

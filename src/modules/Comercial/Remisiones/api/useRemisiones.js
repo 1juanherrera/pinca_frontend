@@ -1,9 +1,68 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { remisionKeys } from './remisionKeys';
 import toast from 'react-hot-toast';
 import apiClient from '../../../../api/apiClient';
 import { API_ROUTES } from '../../../../api/apiRoutes';
 import { facturaKeys } from '../../Facturacion/api/facturaKeys';
+
+/**
+ * useRemisionesPaginated(filters) — lista PAGINADA server-side (patrón de facturas).
+ * Con `page`, el backend devuelve { data, meta, stats }. stats = KPIs globales.
+ * filters: { page, limit, estado, q }
+ */
+export const useRemisionesPaginated = (filters = {}) => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: remisionKeys.list(filters),
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') params.append(k, v);
+      });
+      return await apiClient.get(`${API_ROUTES.REMISIONES.LIST}?${params.toString()}`);
+    },
+    placeholderData: keepPreviousData,
+    staleTime: 30 * 1000,
+  });
+
+  const invalidar = () => queryClient.invalidateQueries({ queryKey: remisionKeys.lists() });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => apiClient.delete(API_ROUTES.REMISIONES.DELETE(id)),
+    onSuccess: () => { toast.success('Remisión eliminada exitosamente'); invalidar(); },
+    onError: () => toast.error('Error al eliminar la remisión'),
+  });
+
+  const cambiarEstadoMutation = useMutation({
+    mutationFn: ({ id, estado }) => apiClient.patch(API_ROUTES.REMISIONES.ESTADO(id), { estado }),
+    onSuccess: (_, v) => { toast.success(`Remisión marcada como ${v.estado}`); invalidar(); },
+    onError: () => toast.error('Error al cambiar el estado'),
+  });
+
+  const convertirMutation = useMutation({
+    mutationFn: (remisionId) => apiClient.post(API_ROUTES.REMISIONES.CONVERTIR(remisionId)),
+    onSuccess: () => {
+      toast.success('Remisión convertida a factura');
+      invalidar();
+      queryClient.invalidateQueries({ queryKey: facturaKeys.lists() });
+    },
+    onError: () => toast.error('Error al convertir la remisión'),
+  });
+
+  return {
+    remisiones: query.data?.data ?? [],
+    meta: query.data?.meta ?? { total: 0, page: 1, limit: 20, pages: 1 },
+    stats: query.data?.stats ?? { total: 0, pendientes: 0, facturadas: 0, anuladas: 0 },
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    removeAsync: deleteMutation.mutateAsync,
+    cambiarEstado: cambiarEstadoMutation.mutate,
+    cambiarEstadoAsync: cambiarEstadoMutation.mutateAsync,
+    convertir: convertirMutation.mutate,
+    convertirAsync: convertirMutation.mutateAsync,
+  };
+};
 /**
  * useRemisiones(id?, options?)
  *

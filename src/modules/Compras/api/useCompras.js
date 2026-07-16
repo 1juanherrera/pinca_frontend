@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { API_ROUTES } from '../../../api/apiRoutes';
-import { comprasKeys } from './comprasKeys';
+import { comprasKeys } from './ComprasKeys';
 import { inventarioKeys } from '../../Inventario/api/inventarioKeys';
 import toast from 'react-hot-toast';
 

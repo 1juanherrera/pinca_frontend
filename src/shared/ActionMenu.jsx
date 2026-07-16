@@ -34,7 +34,7 @@ const ActionMenu = ({ items = [], trigger, align = 'right' }) => {
       ...(align === 'right'
         ? { right: `${window.innerWidth - r.right}px` }
         : { left: `${r.left}px` }),
-      zIndex: 9999,
+      zIndex: 120,
     });
     setOpen(true);
   };

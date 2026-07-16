@@ -1,59 +1,67 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
-  Truck, Package, CheckCircle2, Clock, MapPin, Eye, Trash2, ArrowRight, Download,
+  Truck, Package, Clock, MapPin, Eye, Trash2, ArrowRight, Download, Ban,
 } from 'lucide-react';
 import { useBoundStore }   from '../../../store/useBoundStore';
-import ERPTable            from '../../../shared/ERPTable';
+import ERPTable            from '../../../shared/ErpTable';
 import StatusBadge         from '../../../shared/StatusBadge';
 import FlowCard            from '../../../shared/FlowCard';
 import SearchFilterBar     from '../../../shared/SearchFilterBar';
 import RemisionDrawer      from './components/RemisionDrawer';
-import { useRemisiones }   from './api/useRemisiones';
-import useTableSort        from '../../../hooks/useTableSorts';
+import { useRemisionesPaginated } from './api/useRemisiones';
 import TableShell       from '../../../shared/TableShell';
-import useClientPagination from '../../../hooks/useClientPagination';
 
+// Enum real de remisiones.estado: Pendiente, Facturada, Anulada.
+// (Antes decía 'Entregada' → no matcheaba nunca.)
 const STATUS_OPTIONS = [
-  { value: 'Pendiente', label: 'Pendiente', dot: 'bg-semantic-warning'   },
-  { value: 'Entregada', label: 'Entregada', dot: 'bg-semantic-success' },
-  { value: 'Anulada',   label: 'Anulada',   dot: 'bg-semantic-danger/80'     },
+  { value: 'Pendiente', label: 'Pendiente', dot: 'bg-semantic-warning'    },
+  { value: 'Facturada', label: 'Facturada', dot: 'bg-semantic-success'    },
+  { value: 'Anulada',   label: 'Anulada',   dot: 'bg-semantic-danger/80'  },
 ];
 
 const RemisionesTab = () => {
-  const { remisiones, isLoadingRemisiones, removeAsync, cambiarEstado, convertir } = useRemisiones();
   const { openConfirm, openDrawer } = useBoundStore();
 
-  const [search,   setSearch]   = useState('');
-  const [filters,  setFilters]  = useState({ estado: '' });
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [filters, setFilters] = useState({ estado: '' });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [selected, setSelected] = useState(null);
 
-  const metrics = useMemo(() => {
-    const list = Array.isArray(remisiones) ? remisiones : [];
-    return {
-      total:      list.length,
-      pendientes: list.filter((r) => r.estado === 'Pendiente').length,
-      entregadas: list.filter((r) => r.estado === 'Entregada').length,
-      conFactura: list.filter((r) => !!r.facturas_id).length,
-    };
-  }, [remisiones]);
+  // Debounce de búsqueda → vuelve a página 1 (setState async en timeout = lint-safe).
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  const filtered = useMemo(() => {
-    const list = Array.isArray(remisiones) ? remisiones : [];
-    return list.filter((r) => {
-      const q = search.toLowerCase();
-      const matchSearch =
-        !q ||
-        r.numero?.toLowerCase().includes(q) ||
-        r.nombre_empresa?.toLowerCase().includes(q) ||
-        r.nombre_encargado?.toLowerCase().includes(q) ||
-        r.direccion_entrega?.toLowerCase().includes(q);
-      const matchEstado = !filters.estado || r.estado === filters.estado;
-      return matchSearch && matchEstado;
-    });
-  }, [remisiones, search, filters]);
+  const hookFilters = useMemo(
+    () => ({ page, limit, estado: filters.estado || undefined, q: debouncedSearch || undefined }),
+    [page, limit, filters.estado, debouncedSearch],
+  );
+  // Paginación SERVER-SIDE: solo llega la página + KPIs globales (stats) + meta.
+  const { remisiones, meta, stats, isLoading, isFetching, removeAsync, cambiarEstado, convertir } =
+    useRemisionesPaginated(hookFilters);
 
-  const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
-  const pagination = useClientPagination(sorted, 20);
+  const metrics = {
+    total:      stats.total,
+    pendientes: stats.pendientes,
+    facturadas: stats.facturadas,
+    anuladas:   stats.anuladas,
+  };
+
+  // Adaptador del meta server-side al shape que consume TableShell.
+  const pagination = {
+    paginated:      remisiones,
+    currentPage:    meta.page,
+    perPage:        meta.limit,
+    totalItems:     meta.total,
+    totalPages:     meta.pages,
+    setCurrentPage: setPage,
+    setPerPage:     (n) => { setLimit(n); setPage(1); },
+  };
+
+  const onFilterChange = (key, val) => { setFilters((prev) => ({ ...prev, [key]: val })); setPage(1); };
 
   const columns = useMemo(() => [
     {
@@ -180,8 +188,8 @@ const RemisionesTab = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         <FlowCard label="Total"      value={metrics.total}      icon={Package}      tone="neutral" />
         <FlowCard label="Pendientes" value={metrics.pendientes} icon={Clock}        tone="warning" />
-        <FlowCard label="Entregadas" value={metrics.entregadas} icon={CheckCircle2} tone="success" />
-        <FlowCard label="Facturadas" value={metrics.conFactura} icon={Truck}        tone="info"    />
+        <FlowCard label="Facturadas" value={metrics.facturadas} icon={Truck}        tone="success" />
+        <FlowCard label="Anuladas"   value={metrics.anuladas}   icon={Ban}          tone="danger"  />
       </div>
 
       <TableShell
@@ -191,25 +199,22 @@ const RemisionesTab = () => {
             onSearch={setSearch}
             placeholder="Buscar por número, cliente o dirección..."
             values={filters}
-            onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+            onChange={onFilterChange}
             statusOptions={STATUS_OPTIONS}
           />
         }
         pagination={pagination}
-        isLoading={isLoadingRemisiones}
+        isLoading={isLoading}
       >
         <ERPTable
           columns={columns}
-          data={pagination.paginated}
-          isLoading={isLoadingRemisiones}
+          data={remisiones}
+          isLoading={isLoading || isFetching}
           variant="default"
           borderless
           emptyMessage="No se encontraron remisiones"
           emptySubMessage="Las remisiones generadas aparecerán aquí"
           onRowClick={(row) => setSelected(row)}
-          sortBy={sortBy}
-          sortDir={sortDir}
-          onSort={handleSort}
         />
       </TableShell>
 

@@ -60,7 +60,7 @@ const FlowCard = ({
         <IconBox icon={icon} tone={tone} variant="subtle" size="md" />
 
         <div className="flex flex-col items-end text-right min-w-0">
-          <span className="text-2xl font-bold text-content-primary leading-none tabular-nums">
+          <span className="text-2xl font-bold text-content-primary leading-none tabular-nums truncate max-w-full" title={typeof value === 'string' || typeof value === 'number' ? String(value) : undefined}>
             {value}
           </span>
           {sub && (

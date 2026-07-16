@@ -290,7 +290,7 @@ export const FormulacionesTable = ({
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="text-right">
-                            <div className="text-xs text-content-inverse overflow-hidden truncate w-40">
+                            <div className="text-xs text-content-inverse overflow-hidden truncate max-w-40">
                                 vol: {recalculatedData ? recalculatedData?.item?.volumen_nuevo : productDetail?.item?.volumen_base || 0}
                             </div>
                             <div className="text-xs text-content-inverse">
@@ -430,7 +430,7 @@ export const FormulacionesTable = ({
                                     }
                                     </div>
                                     <div className="ml-3 min-w-0">
-                                    <div className="text-xs font-semibold text-content-primary uppercase tracking-tight">
+                                    <div className="text-xs font-semibold text-content-primary uppercase tracking-tight truncate" title={formulacion.materia_prima_nombre || 'Sin nombre'}>
                                         {formulacion.materia_prima_nombre || 'Sin nombre'}
                                     </div>
                                     <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
@@ -438,7 +438,7 @@ export const FormulacionesTable = ({
                                             {formulacion.materia_prima_codigo || 'Sin código'}
                                         </span>
                                         {formulacion.nota && (
-                                            <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-muted text-content-secondary border border-border-base">
+                                            <span className="inline-flex items-center max-w-[160px] truncate text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-muted text-content-secondary border border-border-base" title={formulacion.nota}>
                                                 {formulacion.nota}
                                             </span>
                                         )}
