@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
+import usePageSize from '../../../hooks/usePageSize';
 import { Users, Package, FileSpreadsheet, Eye } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import StatusBadge from '../../../shared/StatusBadge';
@@ -22,7 +23,7 @@ const MaestroTab = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [cobertura, setCobertura] = useState('');
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = usePageSize();
   const [selected, setSelected]   = useState(null);
 
   // Debounce de búsqueda → vuelve a página 1.

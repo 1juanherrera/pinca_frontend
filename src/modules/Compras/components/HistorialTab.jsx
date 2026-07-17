@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import usePageSize from '../../../hooks/usePageSize';
 import { CheckCircle2 } from 'lucide-react';
 import ERPTable        from '../../../shared/ErpTable';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
@@ -11,7 +12,7 @@ const HistorialTab = ({ onVerDetalle }) => {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = usePageSize();
   const ivaPct = useConfigValue('iva_default', 19);
 
   // Debounce de búsqueda → vuelve a página 1.

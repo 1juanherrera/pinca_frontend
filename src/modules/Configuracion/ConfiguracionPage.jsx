@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Settings, Receipt, AlertTriangle, FileDigit, Layers, ShieldCheck, Building2,
-  Lock, DollarSign,
+  Lock, DollarSign, Rows3,
 } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import PageTabs from '../../shared/PageTabs';
@@ -14,12 +14,14 @@ import AuditoriaTab   from './components/AuditoriaTab';
 import EmpresaTab     from './components/EmpresaTab';
 import SeguridadTab   from './components/SeguridadTab';
 import FinancieroTab  from './components/FinancieroTab';
+import PaginacionTab  from './components/PaginacionTab';
 
 const TABS = [
   { key: 'empresa',     label: 'Empresa',     icon: Building2 },
   { key: 'tributaria',  label: 'Tributaria',  icon: Receipt },
   { key: 'financiero',  label: 'Financiero',  icon: DollarSign },
   { key: 'umbrales',    label: 'Umbrales',    icon: AlertTriangle },
+  { key: 'paginacion',  label: 'Paginación',  icon: Rows3 },
   { key: 'numeracion',  label: 'Numeración',  icon: FileDigit },
   { key: 'catalogos',   label: 'Catálogos',   icon: Layers },
   { key: 'seguridad',   label: 'Seguridad',   icon: Lock },
@@ -61,6 +63,7 @@ const ConfiguracionPage = () => {
         {tab === 'financiero' && <FinancieroTab />}
         {tab === 'seguridad'  && <SeguridadTab />}
         {tab === 'umbrales' && <UmbralesTab />}
+        {tab === 'paginacion' && <PaginacionTab />}
         {tab === 'numeracion' && <NumeracionTab />}
         {tab === 'catalogos' && <CatalogosTab />}
         {tab === 'auditoria' && <AuditoriaTab />}

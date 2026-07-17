@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Factory, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Factory, RefreshCw } from 'lucide-react';
+import TablePager from '../../shared/TablePager';
+import usePageSize from '../../hooks/usePageSize';
 import { usePreparacionesPaginated } from '../Formulaciones/api/usePreparaciones';
 import { ProduccionKPIs } from './components/ProduccionKpis';
 import { ProduccionFilters } from './components/ProduccionFilters';
@@ -39,7 +41,7 @@ const ProduccionPage = () => {
   const [selectedRow,     setSelectedRow]     = useState(null);
   const [trazaPrepId,     setTrazaPrepId]     = useState(null);
   const [page,            setPage]            = useState(1);
-  const [limit,           setLimit]           = useState(50);
+  const [limit, setLimit] = usePageSize();
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
   // Debounce de la búsqueda → vuelve a página 1.
@@ -155,29 +157,17 @@ const ProduccionPage = () => {
         />
 
         {/* ── Paginador server-side ── */}
-        {meta.pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-2.5 border-t border-border-base bg-surface-subtle">
-            <span className="text-[10px] font-medium text-content-tertiary uppercase tracking-wide">
-              {meta.total} órdenes · Página {meta.page} de {meta.pages}
-              {isFetching && ' · actualizando…'}
-            </span>
-            <div className="flex items-center gap-0.5">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={meta.page <= 1}
-                className="p-1 rounded-sm text-content-tertiary hover:bg-surface-muted disabled:opacity-30 transition-colors"
-              >
-                <ChevronLeft size={14} />
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(meta.pages, p + 1))}
-                disabled={meta.page >= meta.pages}
-                className="p-1 rounded-sm text-content-tertiary hover:bg-surface-muted disabled:opacity-30 transition-colors"
-              >
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          </div>
+        {meta.total > 0 && (
+          <TablePager
+            page={meta.page}
+            totalPages={meta.pages}
+            totalItems={meta.total}
+            itemLabel="órdenes"
+            onPageChange={setPage}
+            limit={limit}
+            onLimitChange={(n) => { setLimit(n); setPage(1); }}
+            isFetching={isFetching}
+          />
         )}
       </div>
 

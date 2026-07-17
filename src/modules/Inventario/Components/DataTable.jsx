@@ -9,6 +9,7 @@ import { useBoundStore } from '../../../store/useBoundStore';
 import { NavTabs } from './NavTabs';
 import { formatoPesoColombiano } from '../../../utils/formatters';
 import { useState } from 'react';
+import usePageSize from '../../../hooks/usePageSize';
 import { SkeletonRow } from '../../../shared/Skeletons';
 import { useInventario } from '../api/useInventario';
 import ConfirmModal from '../../../shared/ConfirmModal';
@@ -28,7 +29,7 @@ const getTipoLabel = (tipo) => {
 
 const DataTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [perPage,     setPerPage]     = useState(10);
+  const [perPage,     setPerPage]     = usePageSize();
   const [searchTerm,  setSearchTerm]  = useState('');
   const [tipoFilter,  setTipoFilter]  = useState('');
   const [itemTraspaso, setItemTraspaso] = useState(null);

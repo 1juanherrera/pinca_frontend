@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import usePageSize from '../../../hooks/usePageSize';
 import {
   Truck, Package, Clock, MapPin, Eye, Trash2, ArrowRight, Download, Ban,
 } from 'lucide-react';
@@ -26,7 +27,7 @@ const RemisionesTab = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filters, setFilters] = useState({ estado: '' });
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = usePageSize();
   const [selected, setSelected] = useState(null);
 
   // Debounce de búsqueda → vuelve a página 1 (setState async en timeout = lint-safe).

@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import usePageSize from '../../../hooks/usePageSize';
 import toast from 'react-hot-toast';
 import {
   ClipboardList, Send, CheckCircle2, ArrowRight, Eye, Trash2, Download, CircleAlert, Plus, FileSpreadsheet, Ban, X
@@ -35,7 +36,7 @@ const CotizacionesTab = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filters, setFilters] = useState({ estado: '' });
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = usePageSize();
   const [selected, setSelected] = useState(null);
 
   // ─── Selección múltiple (bulk actions) ──────────────────────────────────

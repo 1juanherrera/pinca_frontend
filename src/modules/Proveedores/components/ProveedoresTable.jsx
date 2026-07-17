@@ -6,7 +6,7 @@ import {
 import { fmt } from '../../../utils/formatters';
 import AmountDisplay from '../../../shared/AmountDisplay';
 import StatusBadge from '../../../shared/StatusBadge';
-import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
+import usePageSize from '../../../hooks/usePageSize';
 import useClientPagination from '../../../hooks/useClientPagination';
 import { getPaginationRange } from '../../Inventario/services/pagination';
 import { useProveedores, useProveedoresPaginated } from '../api/useProveedores';
@@ -47,11 +47,10 @@ const ProveedoresTable = ({
   onPortafolio,
   initialSearch = '',
 }) => {
-  const PAGE_SIZE = useConfigValue('page_size_default', 20);
   const [search, setSearch] = useState(initialSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [serverPage, setServerPage] = useState(1);
-  const [limit, setLimit] = useState(PAGE_SIZE);
+  const [limit, setLimit] = usePageSize();
 
   // Re-sincronizar el buscador cuando cambia initialSearch (navegación Cmd+K con ?q=).
   const [lastInitial, setLastInitial] = useState(initialSearch);

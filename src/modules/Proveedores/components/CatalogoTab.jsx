@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
+import usePageSize from '../../../hooks/usePageSize';
 import { Link2, Link, Trash2, Edit, Plus } from 'lucide-react';
 import ERPTable        from '../../../shared/ErpTable';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
@@ -29,7 +30,7 @@ const CatalogoTab = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filters,       setFilters]       = useState({ disponible: '' });
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = usePageSize();
   const [itemVincular,  setItemVincular]  = useState(null);
 
   // Debounce de búsqueda → vuelve a página 1.

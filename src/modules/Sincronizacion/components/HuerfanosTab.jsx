@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import usePageSize from '../../../hooks/usePageSize';
 import { Ban, Calendar, Boxes } from 'lucide-react';
 import StatusBadge from '../../../shared/StatusBadge';
 import ErpTable from '../../../shared/ErpTable';
@@ -17,7 +18,7 @@ const formatDate = (d) => {
 
 const HuerfanosTab = () => {
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = usePageSize();
   // Paginación SERVER-SIDE.
   const { items, meta, isLoading, isFetching } = useSincHuerfanos({ page, limit });
 

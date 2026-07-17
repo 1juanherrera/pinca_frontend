@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import {
-  Search, X, ChevronLeft, ChevronRight,
+  Search, X,
   Pencil, Trash2, Users,
 } from 'lucide-react';
 import StatusBadge from '../../../shared/StatusBadge';
+import TablePager from '../../../shared/TablePager';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 import { useClientesPaginated } from '../api/useClientes';
 
@@ -42,6 +43,9 @@ const ClientesTable = ({
   const [search, setSearch] = useState(initialSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [page,   setPage]   = useState(1);
+  const [limitOverride, setLimitOverride] = useState(null);
+  const limit = limitOverride ?? Number(PAGE_SIZE) ?? 20;
+  const handlePerPage = (n) => { setLimitOverride(n); setPage(1); };
 
   // Re-sincronizar el buscador cuando cambia initialSearch (navegación Cmd+K con ?q=).
   const [lastInitial, setLastInitial] = useState(initialSearch);
@@ -60,7 +64,7 @@ const ClientesTable = ({
   // Paginación SERVER-SIDE.
   const { clientes, meta, isLoading, isFetching } = useClientesPaginated({
     page,
-    limit: PAGE_SIZE,
+    limit,
     q: debouncedSearch || undefined,
   });
 
@@ -194,28 +198,17 @@ const ClientesTable = ({
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-2.5 border-t border-border-subtle bg-surface-subtle">
-          <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest tabular-nums">
-            {meta.total} registros · Pág. {meta.page} de {totalPages}
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="p-1.5 rounded-lg text-content-muted hover:bg-surface-muted hover:text-content-secondary disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-150"
-            >
-              <ChevronLeft size={14} />
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="p-1.5 rounded-lg text-content-muted hover:bg-surface-muted hover:text-content-secondary disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-150"
-            >
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
+      {meta.total > 0 && (
+        <TablePager
+          page={meta.page}
+          totalPages={totalPages}
+          totalItems={meta.total}
+          itemLabel="clientes"
+          onPageChange={setPage}
+          limit={limit}
+          onLimitChange={handlePerPage}
+          isFetching={isFetching}
+        />
       )}
     </div>
   );

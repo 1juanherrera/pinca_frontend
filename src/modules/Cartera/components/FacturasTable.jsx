@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import usePageSize from '../../../hooks/usePageSize';
 import {
   CreditCard, Clock, CheckCircle2, Receipt,
   DollarSign, AlertCircle, Phone, FileMinus, User, X, Ban,
@@ -39,7 +40,7 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filters, setFilters] = useState({ estado: '', sector: '' });
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = usePageSize();
 
   // Debounce de búsqueda → vuelve a página 1.
   useEffect(() => {

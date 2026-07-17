@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
+import usePageSize from '../../hooks/usePageSize';
 import {
   Wallet, Plus, TrendingUp, CreditCard,
-  Banknote, Eye, Trash2, Download, ChevronLeft, ChevronRight,
+  Banknote, Eye, Trash2, Download,
 } from 'lucide-react';
 import { useBoundStore } from '../../store/useBoundStore';
 import HeaderSection from '../../shared/HeaderSection';
@@ -12,6 +13,7 @@ import StatusBadge from '../../shared/StatusBadge';
 import FlowCard from '../../shared/FlowCard';
 import SearchFilterBar from '../../shared/SearchFilterBar';
 import AmountDisplay from '../../shared/AmountDisplay';
+import TablePager from '../../shared/TablePager';
 import PagoForm from './components/PagoForm';
 import PagoDrawer from './components/PagoDrawer';
 import ExportRecibo from './components/ExportRecibo';
@@ -41,7 +43,7 @@ const PagosPage = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filters, setFilters] = useState({ tipo: '', metodo_pago: '' });
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = usePageSize();
   const [selected, setSelected] = useState(null);
 
   // Debounce de búsqueda → vuelve a página 1.
@@ -217,29 +219,17 @@ const PagosPage = () => {
       />
 
       {/* ── Paginador server-side ── */}
-      {meta.pages > 1 && (
-        <div className="flex items-center justify-between px-1 py-1">
-          <span className="text-[10px] font-medium text-content-tertiary uppercase tracking-wide">
-            {meta.total} pagos · Página {meta.page} de {meta.pages}
-            {isFetching && ' · actualizando…'}
-          </span>
-          <div className="flex items-center gap-0.5">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={meta.page <= 1}
-              className="p-1 rounded-sm text-content-tertiary hover:bg-surface-muted disabled:opacity-30 transition-colors"
-            >
-              <ChevronLeft size={14} />
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(meta.pages, p + 1))}
-              disabled={meta.page >= meta.pages}
-              className="p-1 rounded-sm text-content-tertiary hover:bg-surface-muted disabled:opacity-30 transition-colors"
-            >
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
+      {meta.total > 0 && (
+        <TablePager
+          page={meta.page}
+          totalPages={meta.pages}
+          totalItems={meta.total}
+          itemLabel="pagos"
+          onPageChange={setPage}
+          limit={limit}
+          onLimitChange={(n) => { setLimit(n); setPage(1); }}
+          isFetching={isFetching}
+        />
       )}
 
       {/* ── Modales ── */}

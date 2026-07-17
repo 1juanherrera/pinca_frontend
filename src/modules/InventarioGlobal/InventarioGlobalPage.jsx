@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import usePageSize from '../../hooks/usePageSize';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 import {
@@ -388,7 +389,7 @@ const InventarioGlobalPage = ({ embedded = false }) => {
   const [busqueda,    setBusqueda]    = useState('');
   const [soloStock,   setSoloStock]   = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [perPage,     setPerPage]     = useState(20);
+  const [perPage,     setPerPage]     = usePageSize();
   const [ajusteData,  setAjusteData]  = useState(null); // { item, bodega }
 
   const { items, isLoading, isError, refetch, totalValor, totalItems, sinStock, stockCritico } =

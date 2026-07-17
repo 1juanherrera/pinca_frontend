@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import usePageSize from '../../../hooks/usePageSize';
 import toast from 'react-hot-toast';
 import { ShoppingCart, CheckCircle2, XCircle, Send, Pencil, Trash2, VariableIcon, Download, Plus, FileSpreadsheet, Ban, X } from 'lucide-react';
 import { Button } from '../../../shared/Button';
@@ -28,7 +29,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filters, setFilters] = useState({ estado: '' });
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = usePageSize();
 
   // ─── Selección múltiple (bulk actions) — patrón de FacturasTable ─────────
   const [selectedIds, setSelectedIds] = useState(() => new Set());

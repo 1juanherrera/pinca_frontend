@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Truck, Plus, Search, BarChart2, LayoutList, LayoutGrid, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Truck, Plus, Search, BarChart2, LayoutList, LayoutGrid, X } from 'lucide-react';
 import HeaderSection   from '../../shared/HeaderSection';
+import TablePager      from '../../shared/TablePager';
 import { Button }      from '../../shared/Button';
 import PageTabs        from '../../shared/PageTabs';
 import { SkeletonCard } from '../../shared/Skeletons';
@@ -182,28 +183,14 @@ const ProveedoresPage = () => {
           </div>
 
           {/* ── Paginador cards ── */}
-          {cardMeta.pages > 1 && (
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest tabular-nums">
-                {cardMeta.total} proveedores · Pág. {cardMeta.page} de {cardMeta.pages}
-              </span>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setCardPage((p) => Math.max(1, p - 1))}
-                  disabled={cardMeta.page <= 1}
-                  className="p-1.5 rounded-lg text-content-muted hover:bg-surface-muted disabled:opacity-25 transition-all"
-                >
-                  <ChevronLeft size={14} />
-                </button>
-                <button
-                  onClick={() => setCardPage((p) => Math.min(cardMeta.pages, p + 1))}
-                  disabled={cardMeta.page >= cardMeta.pages}
-                  className="p-1.5 rounded-lg text-content-muted hover:bg-surface-muted disabled:opacity-25 transition-all"
-                >
-                  <ChevronRight size={14} />
-                </button>
-              </div>
-            </div>
+          {cardMeta.total > 0 && (
+            <TablePager
+              page={cardMeta.page}
+              totalPages={cardMeta.pages}
+              totalItems={cardMeta.total}
+              itemLabel="proveedores"
+              onPageChange={setCardPage}
+            />
           )}
         </>
       )}

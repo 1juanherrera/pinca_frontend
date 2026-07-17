@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Package, Layers, Beaker, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
+import { Package, Layers, Beaker, Search, X } from 'lucide-react';
 import { fmt } from '../../../utils/formatters';
 import PageTabs from '../../../shared/PageTabs';
 import StatusBadge from '../../../shared/StatusBadge';
+import TablePager from '../../../shared/TablePager';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 import { useCatalogoPaginated } from '../api/useCatalogo';
 import cn from '../../../utils/cn';
@@ -14,11 +15,16 @@ const TIPO_CONFIG = {
 };
 
 const CatalogoTable = ({ onSelect, initialSearch = '' }) => {
-  const PAGE_SIZE = useConfigValue('page_size_default', 25);
+  // Default de filas por página: viene de Configuración → Paginación
+  // (page_size_default). El usuario puede sobreescribirlo con el selector de abajo.
+  const configPageSize = useConfigValue('page_size_default', 20);
   const [search, setSearch]                 = useState(initialSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [tipoFilter, setTipoFilter]         = useState('all');
   const [page, setPage]                     = useState(1);
+  const [limitOverride, setLimitOverride]   = useState(null);
+  const limit = limitOverride ?? Number(configPageSize) ?? 20;
+  const handlePerPage = (n) => { setLimitOverride(n); setPage(1); };
 
   // Re-sincronizar el buscador cuando cambia initialSearch (navegación Cmd+K con ?q=).
   const [lastInitial, setLastInitial] = useState(initialSearch);
@@ -37,7 +43,7 @@ const CatalogoTable = ({ onSelect, initialSearch = '' }) => {
   // Paginación SERVER-SIDE: solo la página + counts globales por tipo (stats) + meta.
   const { items, meta, stats, isLoading, isFetching } = useCatalogoPaginated({
     page,
-    limit: PAGE_SIZE,
+    limit,
     tipo: tipoFilter === 'all' ? undefined : Number(tipoFilter),
     q: debouncedSearch || undefined,
   });
@@ -178,29 +184,17 @@ const CatalogoTable = ({ onSelect, initialSearch = '' }) => {
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between px-3 py-2 border-t border-border-base bg-surface-subtle">
-          <span className="text-[10px] font-medium text-content-tertiary uppercase tracking-wide">
-            {meta.total} ítems · Página {meta.page} de {totalPages}
-            {isFetching && ' · actualizando…'}
-          </span>
-          <div className="flex items-center gap-0.5">
-            <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="p-1 rounded-sm text-content-tertiary hover:bg-surface-muted disabled:opacity-30 transition-colors"
-            >
-              <ChevronLeft size={13} />
-            </button>
-            <button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="p-1 rounded-sm text-content-tertiary hover:bg-surface-muted disabled:opacity-30 transition-colors"
-            >
-              <ChevronRight size={13} />
-            </button>
-          </div>
-        </div>
+      {meta.total > 0 && (
+        <TablePager
+          page={meta.page}
+          totalPages={totalPages}
+          totalItems={meta.total}
+          itemLabel="ítems"
+          onPageChange={setPage}
+          limit={limit}
+          onLimitChange={handlePerPage}
+          isFetching={isFetching}
+        />
       )}
     </div>
   );
