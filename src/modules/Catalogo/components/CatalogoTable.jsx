@@ -23,7 +23,7 @@ const CatalogoTable = ({ onSelect, initialSearch = '' }) => {
   const [tipoFilter, setTipoFilter]         = useState('all');
   const [page, setPage]                     = useState(1);
   const [limitOverride, setLimitOverride]   = useState(null);
-  const limit = limitOverride ?? Number(configPageSize) ?? 20;
+  const limit = limitOverride ?? (Number(configPageSize) || 20);
   const handlePerPage = (n) => { setLimitOverride(n); setPage(1); };
 
   // Re-sincronizar el buscador cuando cambia initialSearch (navegación Cmd+K con ?q=).

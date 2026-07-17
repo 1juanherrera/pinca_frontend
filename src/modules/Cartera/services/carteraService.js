@@ -39,6 +39,7 @@ export const calcularDiasMora = (fechaVencimiento) => {
  */
 export const getEstadoEfectivo = (factura) => {
   if (!factura) return 'Pendiente';
+  if (factura.estado === 'Anulada') return 'Anulada';
   if (factura.estado === 'Pagada') return 'Pagada';
   const saldo = Number(factura.saldo_pendiente ?? 0);
   const total = Number(factura.total ?? 0);

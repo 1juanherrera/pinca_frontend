@@ -115,7 +115,15 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
     // campos vacíos o malformados.
     if (!validation.validateAll(form)) return;
 
-    const payload = { ...form, impuestos, items, subtotal, total };
+    // El DTO backend (FacturaLineaDto) espera `precio_unit`; el form usa
+    // `precio_unitario`. Mapeamos al shape exacto (con whitelist:true, un campo
+    // con otro nombre se descartaría → precio_unit undefined → 422).
+    const itemsPayload = items.map((it) => ({
+      descripcion: it.descripcion,
+      cantidad: Number(it.cantidad),
+      precio_unit: Number(it.precio_unitario) || 0,
+    }));
+    const payload = { ...form, impuestos, items: itemsPayload, subtotal, total };
     try {
       if (editData) {
         await updateAsync({ id: editData.id_facturas, data: payload });

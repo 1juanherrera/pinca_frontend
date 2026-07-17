@@ -19,6 +19,7 @@ import { useConfigValue } from '../modules/Configuracion/api/useConfiguracion';
 export default function usePageSize(fallback = 20) {
   const cfg = useConfigValue('page_size_default', fallback);
   const [override, setOverride] = useState(null);
-  const limit = override ?? Number(cfg) ?? fallback;
+  // `|| fallback` (no `??`) para atrapar también 0/NaN si el config queda vacío/no-numérico.
+  const limit = override ?? (Number(cfg) || fallback);
   return [limit, setOverride];
 }

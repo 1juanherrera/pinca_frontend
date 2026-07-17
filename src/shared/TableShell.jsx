@@ -56,10 +56,9 @@ const PaginationFooter = ({ pagination, isLoading }) => {
                 onChange={(e) => setPerPage(Number(e.target.value))}
                 className="bg-surface-base border border-border-base text-content-primary text-xs font-medium rounded-md focus:ring-2 focus:ring-border-focus/15 focus:border-border-focus block px-2 py-1 outline-none transition-colors"
               >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
+                {[...new Set([10, 20, 50, 100, perPage].filter(Boolean))]
+                  .sort((a, b) => a - b)
+                  .map((n) => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
           </>
