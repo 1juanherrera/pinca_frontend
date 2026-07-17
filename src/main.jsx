@@ -1,3 +1,4 @@
+import './polyfills';   // ← DEBE ir primero (Buffer/global/process para react-pdf)
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
