@@ -1,9 +1,9 @@
+import { useState } from 'react';
 import { Ban, Calendar, Boxes } from 'lucide-react';
 import StatusBadge from '../../../shared/StatusBadge';
 import ErpTable from '../../../shared/ErpTable';
 import EmptyState from '../../../shared/EmptyState';
 import TableShell from '../../../shared/TableShell';
-import useClientPagination from '../../../hooks/useClientPagination';
 import { formatLetterDate } from '../../../utils/formatters';
 
 const fmtNum = (v, dec = 2) =>
@@ -16,10 +16,22 @@ const formatDate = (d) => {
 };
 
 const HuerfanosTab = () => {
-  const { data: items = [], isLoading } = useSincHuerfanos();
-  const pagination = useClientPagination(items, 20);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  // Paginación SERVER-SIDE.
+  const { items, meta, isLoading, isFetching } = useSincHuerfanos({ page, limit });
 
-  if (!isLoading && !items.length) {
+  const pagination = {
+    paginated:      items,
+    currentPage:    meta.page,
+    perPage:        meta.limit,
+    totalItems:     meta.total,
+    totalPages:     meta.pages,
+    setCurrentPage: setPage,
+    setPerPage:     (n) => { setLimit(n); setPage(1); },
+  };
+
+  if (!isLoading && meta.total === 0) {
     return (
       <EmptyState
         icon={Ban}
@@ -77,14 +89,14 @@ const HuerfanosTab = () => {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-xs text-content-tertiary">
-        {items.length} MP sin proveedores activos
+        {meta.total} MP sin proveedores activos{isFetching && ' · actualizando…'}
       </p>
 
       <TableShell pagination={pagination} isLoading={isLoading}>
         <ErpTable
           columns={columns}
           data={pagination.paginated.map((r) => ({ ...r, id: r.id_item_general }))}
-          isLoading={isLoading}
+          isLoading={isLoading || isFetching}
           variant="default"
           borderless
           EmptyIcon={Ban}

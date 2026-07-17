@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { API_ROUTES } from '../../../api/apiRoutes';
 import { comprasKeys } from './ComprasKeys';
@@ -130,5 +130,62 @@ export const useCompras = (id = null) => {
 
     removeAsync:      deleteMutation.mutateAsync,
     isDeleting:       deleteMutation.isPending,
+  };
+};
+
+/**
+ * useComprasPaginated(filters) — lista PAGINADA server-side de órdenes de compra
+ * (mismo patrón que useFacturasPaginated / useCotizacionesPaginated). El backend,
+ * con `page`, devuelve { data, meta, stats }.
+ *   stats = KPIs globales (total/enviadas/recibidas/canceladas) para las FlowCards.
+ *   meta  = paginador { total, page, limit, pages }.
+ * filters: { page, limit, estado, q }
+ * Lo usan OrdenesTab (todos los estados) e HistorialTab (estado fijo=Recibida).
+ */
+export const useComprasPaginated = (filters = {}) => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: comprasKeys.list(filters),
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') params.append(k, v);
+      });
+      return await apiClient.get(`${API_ROUTES.ORDENES_COMPRA.LIST}?${params.toString()}`);
+    },
+    placeholderData: keepPreviousData,
+    staleTime: 30 * 1000,
+  });
+
+  const invalidarListas = () => {
+    queryClient.invalidateQueries({ queryKey: comprasKeys.lists() });
+  };
+
+  const cambiarEstadoMutation = useMutation({
+    mutationFn: ({ id, estado }) => apiClient.patch(API_ROUTES.ORDENES_COMPRA.UPDATE_ESTADO(id), { estado }),
+    onSuccess: (_, { id }) => {
+      invalidarListas();
+      queryClient.invalidateQueries({ queryKey: comprasKeys.detail(id) });
+      toast.success('Estado actualizado');
+    },
+    onError: () => toast.error('Error al cambiar el estado'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => apiClient.delete(API_ROUTES.ORDENES_COMPRA.DELETE(id)),
+    onSuccess: () => { invalidarListas(); toast.success('Orden eliminada'); },
+    onError: () => toast.error('Error al eliminar la orden'),
+  });
+
+  return {
+    ordenes:  query.data?.data ?? [],
+    meta:     query.data?.meta ?? { total: 0, page: 1, limit: 20, pages: 1 },
+    stats:    query.data?.stats ?? { total: 0, enviadas: 0, recibidas: 0, canceladas: 0 },
+    isLoading:  query.isLoading,
+    isFetching: query.isFetching,
+    cambiarEstado:      cambiarEstadoMutation.mutate,
+    cambiarEstadoAsync: cambiarEstadoMutation.mutateAsync,
+    removeAsync:        deleteMutation.mutateAsync,
   };
 };

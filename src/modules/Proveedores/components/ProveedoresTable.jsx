@@ -9,6 +9,7 @@ import StatusBadge from '../../../shared/StatusBadge';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 import useClientPagination from '../../../hooks/useClientPagination';
 import { getPaginationRange } from '../../Inventario/services/pagination';
+import { useProveedores, useProveedoresPaginated } from '../api/useProveedores';
 import cn from '../../../utils/cn';
 
 // Paletas para avatares (intencionalmente coloridas; identifican proveedores).
@@ -39,10 +40,8 @@ const ActionBtn = ({ onClick, icon: Icon, title, danger }) => (
 );
 
 const ProveedoresTable = ({
-  proveedores = [],
   catalogo = [],
   productosPorProveedor = {},
-  isLoading,
   onEdit,
   onDelete,
   onPortafolio,
@@ -50,19 +49,23 @@ const ProveedoresTable = ({
 }) => {
   const PAGE_SIZE = useConfigValue('page_size_default', 20);
   const [search, setSearch] = useState(initialSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
+  const [serverPage, setServerPage] = useState(1);
+  const [limit, setLimit] = useState(PAGE_SIZE);
 
   // Re-sincronizar el buscador cuando cambia initialSearch (navegación Cmd+K con ?q=).
-  // Snapshot en render: solo dispara al cambiar la prop, no mientras el usuario teclea.
   const [lastInitial, setLastInitial] = useState(initialSearch);
   if (initialSearch !== lastInitial) {
     setLastInitial(initialSearch);
     setSearch(initialSearch);
+    setServerPage(1);
   }
 
   const [productoFilter, setProductoFilter] = useState(null);
   const [productoSearch, setProductoSearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const filterRef = useRef(null);
+  const isComparison = !!productoFilter;
 
   useEffect(() => {
     const handler = (e) => {
@@ -72,11 +75,26 @@ const ProveedoresTable = ({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // Debounce de búsqueda (modo normal) → server page 1.
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setServerPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // MODO NORMAL: lista paginada SERVER-SIDE.
+  const { proveedores: pageRows, meta, isLoading: loadingList, isFetching } =
+    useProveedoresPaginated({ page: serverPage, limit, q: debouncedSearch || undefined });
+
+  // MODO COMPARACIÓN: se necesita el universo COMPLETO de proveedores para el
+  // provMap; se carga LAZY (solo cuando hay productoFilter). El comparador es un
+  // análisis sobre el catálogo completo (acotado), no una lista que crezca sin techo.
+  const { proveedores: fullProv = [] } = useProveedores({ enabledProveedores: isComparison });
+
   const provMap = useMemo(() => {
     const m = new Map();
-    proveedores.forEach(p => m.set(p.id_proveedor, p));
+    fullProv.forEach(p => m.set(p.id_proveedor, p));
     return m;
-  }, [proveedores]);
+  }, [fullProv]);
 
   const productosUnicos = useMemo(() => {
     const map = new Map();
@@ -110,22 +128,23 @@ const ProveedoresTable = ({
       .sort((a, b) => a._costoKg - b._costoKg);
   }, [productoFilter, catalogo, provMap]);
 
-  const filtered = useMemo(() => {
-    if (productoFilter) return comparacionData || [];
-    if (!search) return proveedores;
-    const q = search.toLowerCase();
-    return proveedores.filter(p =>
-      p.nombre_empresa?.toLowerCase().includes(q) ||
-      p.nombre_encargado?.toLowerCase().includes(q) ||
-      p.numero_documento?.toLowerCase().includes(q) ||
-      p.email?.toLowerCase().includes(q)
-    );
-  }, [proveedores, search, productoFilter, comparacionData]);
-
-  const pagination = useClientPagination(filtered, PAGE_SIZE);
+  // Paginación: comparación = client-side (acotado); normal = server-side.
+  const compPagination = useClientPagination(comparacionData || [], limit);
+  const normalPagination = {
+    paginated:      pageRows,
+    currentPage:    meta.page,
+    totalPages:     meta.pages,
+    totalItems:     meta.total,
+    setCurrentPage: setServerPage,
+    perPage:        meta.limit,
+    setPerPage:     (n) => { setLimit(n); setServerPage(1); },
+  };
+  const pagination = isComparison ? compPagination : normalPagination;
   const { paginated, currentPage, totalPages, totalItems, setCurrentPage, perPage, setPerPage } = pagination;
+
+  const displayCount = isComparison ? (comparacionData?.length ?? 0) : meta.total;
+  const tableLoading = isComparison ? false : (loadingList || isFetching);
   const mejorCosto = comparacionData?.length > 0 ? comparacionData[0]._costoKg : null;
-  const isComparison = !!productoFilter;
   const colCount = 6;
 
   return (
@@ -224,7 +243,7 @@ const ProveedoresTable = ({
         </div>
 
         <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest ml-auto whitespace-nowrap tabular-nums">
-          {filtered.length} {isComparison ? 'opciones' : 'proveedores'}
+          {displayCount} {isComparison ? 'opciones' : 'proveedores'}{isFetching && !isComparison ? ' · …' : ''}
         </span>
       </div>
 
@@ -239,7 +258,7 @@ const ProveedoresTable = ({
             <span className="text-xs font-bold text-semantic-success-fg tabular-nums">{fmt(mejorCosto)}</span>
           </div>
           <span className="text-[10px] font-medium text-semantic-success-fg/80">
-            {filtered.length} proveedor{filtered.length !== 1 ? 'es' : ''}
+            {displayCount} proveedor{displayCount !== 1 ? 'es' : ''}
           </span>
         </div>
       )}
@@ -271,7 +290,7 @@ const ProveedoresTable = ({
             </tr>
           </thead>
           <tbody>
-            {isLoading ? (
+            {tableLoading ? (
               Array.from({ length: 8 }).map((_, i) => (
                 <tr key={i} className="border-b border-border-subtle">
                   <td className="px-4 py-3">

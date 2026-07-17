@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   CreditCard, Clock, CheckCircle2, Receipt,
   DollarSign, AlertCircle, Phone, FileMinus, User, X, Ban,
@@ -12,10 +12,8 @@ import AmountDisplay from '../../../shared/AmountDisplay';
 import { Button } from '../../../shared/Button';
 import { fmt } from '../../../utils/formatters';
 import { calcularDiasMora, getEstadoEfectivo } from '../services/carteraService';
-import { useFactura } from '../../Comercial/Facturacion/api/useFactura';
-import useTableSort from '../../../hooks/useTableSorts';
+import { useFacturasPaginated } from '../../Comercial/Facturacion/api/useFactura';
 import TableShell from '../../../shared/TableShell';
-import useClientPagination from '../../../hooks/useClientPagination';
 import { useBoundStore } from '../../../store/useBoundStore';
 
 const STATUS_OPTIONS = [
@@ -35,11 +33,54 @@ const SECTOR_OPTIONS = [
 ];
 
 const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, onEstadoCuenta }) => {
-  const { facturas, isLoadingFacturas, cambiarEstadoAsync } = useFactura();
   const openConfirm = useBoundStore((s) => s.openConfirm);
 
   const [search,  setSearch]  = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filters, setFilters] = useState({ estado: '', sector: '' });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+
+  // Debounce de búsqueda → vuelve a página 1.
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const hookFilters = useMemo(() => ({
+    page,
+    limit,
+    efectivo: 1,                       // Cartera: estado por mora/saldo (calculado en SQL)
+    estado: filters.estado || undefined,
+    sector: filters.sector || undefined,
+    q: debouncedSearch || undefined,
+  }), [page, limit, filters.estado, filters.sector, debouncedSearch]);
+
+  // Paginación SERVER-SIDE + stats con ESTADO EFECTIVO (mora) para que KPIs y filtro
+  // coincidan con lo que ve el usuario.
+  const { facturas, meta, stats, isLoading, isFetching, cambiarEstadoAsync } =
+    useFacturasPaginated(hookFilters);
+
+  const metrics = {
+    total:      stats.total ?? 0,
+    pendiente:  stats.pendiente ?? 0,
+    pagada:     stats.pagada ?? 0,
+    vencida:    stats.vencida ?? 0,
+    saldoTotal: stats.saldo_por_cobrar ?? 0,
+  };
+
+  const pagination = {
+    paginated:      facturas,
+    currentPage:    meta.page,
+    perPage:        meta.limit,
+    totalItems:     meta.total,
+    totalPages:     meta.pages,
+    setCurrentPage: setPage,
+    setPerPage:     (n) => { setLimit(n); setPage(1); },
+  };
+
+  const onFilterChange = (key, val) => { setFilters((prev) => ({ ...prev, [key]: val })); setPage(1); };
+  const onSectorChange = (val) => { setFilters((prev) => ({ ...prev, sector: val })); setPage(1); };
 
   // ─── Selección múltiple (bulk actions) ──────────────────────────────────
   const [selected, setSelected] = useState(() => new Set());
@@ -56,43 +97,10 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
 
-  const metrics = useMemo(() => {
-    const list = Array.isArray(facturas) ? facturas : [];
-    return {
-      total:     list.length,
-      pendiente: list.filter((f) => getEstadoEfectivo(f) === 'Pendiente').length,
-      pagada:    list.filter((f) => getEstadoEfectivo(f) === 'Pagada').length,
-      vencida:   list.filter((f) => getEstadoEfectivo(f) === 'Vencida').length,
-      saldoTotal: list
-        .filter((f) => getEstadoEfectivo(f) !== 'Pagada')
-        .reduce((acc, f) => acc + Number(f.saldo_pendiente || 0), 0),
-    };
-  }, [facturas]);
-
-  const filtered = useMemo(() => {
-    const list = Array.isArray(facturas) ? facturas : [];
-    return list.filter((f) => {
-      const q = search.toLowerCase();
-      const matchSearch =
-        !q ||
-        f.numero?.toLowerCase().includes(q) ||
-        f.nombre_empresa?.toLowerCase().includes(q) ||
-        f.nombre_encargado?.toLowerCase().includes(q) ||
-        f.ciudad?.toLowerCase().includes(q);
-      const estadoEfectivo = getEstadoEfectivo(f);
-      const matchEstado  = !filters.estado || estadoEfectivo === filters.estado;
-      const matchSector  = !filters.sector || String(f.cliente_tipo) === filters.sector;
-      return matchSearch && matchEstado && matchSector;
-    });
-  }, [facturas, search, filters]);
-
-  const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
-  const pagination = useClientPagination(sorted, 20);
-
-  // Estado del header checkbox: select-all SOBRE las filas visibles (page actual).
+  // Select-all SOBRE las filas visibles (página actual del server).
   const visibleIds = useMemo(
-    () => pagination.paginated.map((r) => r.id_facturas).filter(Boolean),
-    [pagination.paginated],
+    () => facturas.map((r) => r.id_facturas).filter(Boolean),
+    [facturas],
   );
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));
   const someVisibleSelected = visibleIds.some((id) => selected.has(id));
@@ -362,7 +370,7 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
                 onSearch={setSearch}
                 placeholder="Buscar por número, cliente o ciudad..."
                 values={filters}
-                onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+                onChange={onFilterChange}
                 statusOptions={STATUS_OPTIONS}
               />
             </div>
@@ -371,7 +379,7 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
               {SECTOR_OPTIONS.map(({ value, label }) => (
                 <button
                   key={value}
-                  onClick={() => setFilters((p) => ({ ...p, sector: value }))}
+                  onClick={() => onSectorChange(value)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                     filters.sector === value
                       ? 'bg-content-primary text-content-inverse border-content-primary'
@@ -385,20 +393,17 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
           </div>
         }
         pagination={pagination}
-        isLoading={isLoadingFacturas}
+        isLoading={isLoading}
       >
         <ERPTable
           columns={columns}
-          data={pagination.paginated}
-          isLoading={isLoadingFacturas}
+          data={facturas}
+          isLoading={isLoading || isFetching}
           variant="default"
           borderless
           emptyMessage="No se encontraron facturas"
           emptySubMessage="Las facturas generadas aparecerán aquí"
           onRowClick={(row) => onVerDetalle?.(row)}
-          sortBy={sortBy}
-          sortDir={sortDir}
-          onSort={handleSort}
         />
       </TableShell>
     </div>

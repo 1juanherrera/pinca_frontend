@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { ShoppingCart, CheckCircle2, XCircle, Send, Pencil, Trash2, VariableIcon, Download, Plus, FileSpreadsheet, Ban, X } from 'lucide-react';
 import { Button } from '../../../shared/Button';
@@ -9,10 +9,8 @@ import FlowCard        from '../../../shared/FlowCard';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay   from '../../../shared/AmountDisplay';
 import TableShell from '../../../shared/TableShell';
-import useClientPagination from '../../../hooks/useClientPagination';
 import { useBoundStore } from '../../../store/useBoundStore';
-import { useCompras }    from '../api/useCompras';
-import useTableSort      from '../../../hooks/useTableSorts';
+import { useComprasPaginated } from '../api/useCompras';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 
 const STATUS_OPTIONS = [
@@ -23,16 +21,52 @@ const STATUS_OPTIONS = [
 ];
 
 const OrdenesTab = ({ onVerDetalle }) => {
-  const { ordenes, isLoadingOrdenes, removeAsync, cambiarEstadoAsync } = useCompras();
   const { openDrawer, openConfirm } = useBoundStore();
   const ivaPct = useConfigValue('iva_default', 19);
 
   const [search,  setSearch]  = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filters, setFilters] = useState({ estado: '' });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
 
   // ─── Selección múltiple (bulk actions) — patrón de FacturasTable ─────────
   const [selectedIds, setSelectedIds] = useState(() => new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+
+  // Debounce de búsqueda → vuelve a página 1.
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const hookFilters = useMemo(
+    () => ({ page, limit, estado: filters.estado || undefined, q: debouncedSearch || undefined }),
+    [page, limit, filters.estado, debouncedSearch],
+  );
+  // Paginación SERVER-SIDE: solo llega la página + KPIs globales (stats) + meta.
+  const { ordenes, meta, stats, isLoading, isFetching, removeAsync, cambiarEstadoAsync } =
+    useComprasPaginated(hookFilters);
+
+  const metrics = {
+    total:      stats.total,
+    enviadas:   stats.enviadas,
+    recibidas:  stats.recibidas,
+    canceladas: stats.canceladas,
+  };
+
+  // Adaptador del meta server-side al shape que consume TableShell.
+  const pagination = {
+    paginated:      ordenes,
+    currentPage:    meta.page,
+    perPage:        meta.limit,
+    totalItems:     meta.total,
+    totalPages:     meta.pages,
+    setCurrentPage: setPage,
+    setPerPage:     (n) => { setLimit(n); setPage(1); },
+  };
+
+  const onFilterChange = (key, val) => { setFilters((prev) => ({ ...prev, [key]: val })); setPage(1); };
 
   const toggleSelected = useCallback((id) => {
     setSelectedIds((prev) => {
@@ -45,36 +79,10 @@ const OrdenesTab = ({ onVerDetalle }) => {
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
-  const metrics = useMemo(() => {
-    const list = Array.isArray(ordenes) ? ordenes : [];
-    return {
-      total:    list.length,
-      enviadas: list.filter((o) => o.estado === 'Enviada').length,
-      recibidas: list.filter((o) => o.estado === 'Recibida').length,
-      canceladas: list.filter((o) => o.estado === 'Cancelada').length,
-    };
-  }, [ordenes]);
-
-  const filtered = useMemo(() => {
-    const list = Array.isArray(ordenes) ? ordenes : [];
-    return list.filter((o) => {
-      const q = search.toLowerCase();
-      const matchSearch =
-        !q ||
-        o.numero?.toLowerCase().includes(q) ||
-        o.nombre_empresa?.toLowerCase().includes(q);
-      const matchEstado = !filters.estado || o.estado === filters.estado;
-      return matchSearch && matchEstado;
-    });
-  }, [ordenes, search, filters]);
-
-  const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
-  const pagination = useClientPagination(sorted, 20);
-
-  // Select-all sobre las filas visibles (página actual).
+  // Select-all sobre las filas visibles (página actual del server).
   const visibleIds = useMemo(
-    () => pagination.paginated.map((r) => r.id_orden).filter(Boolean),
-    [pagination.paginated],
+    () => ordenes.map((r) => r.id_orden).filter(Boolean),
+    [ordenes],
   );
   const allVisibleSelected  = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
   const someVisibleSelected = visibleIds.some((id) => selectedIds.has(id));
@@ -346,7 +354,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
                 onSearch={setSearch}
                 placeholder="Buscar por número o proveedor..."
                 values={filters}
-                onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+                onChange={onFilterChange}
                 statusOptions={STATUS_OPTIONS}
               />
             </div>
@@ -354,20 +362,20 @@ const OrdenesTab = ({ onVerDetalle }) => {
               variant="secondary"
               size="sm"
               icon={FileSpreadsheet}
-              onClick={() => exportOrdenesCompraExcel(filtered, { ivaPct, filename: 'ordenes-compra' })}
-              disabled={!filtered.length}
+              onClick={() => exportOrdenesCompraExcel(ordenes, { ivaPct, filename: 'ordenes-compra' })}
+              disabled={!ordenes.length}
             >
               Excel
             </Button>
           </div>
         }
         pagination={pagination}
-        isLoading={isLoadingOrdenes}
+        isLoading={isLoading}
       >
         <ERPTable
           columns={columns}
-          data={pagination.paginated}
-          isLoading={isLoadingOrdenes}
+          data={ordenes}
+          isLoading={isLoading || isFetching}
           variant="default"
           borderless
           EmptyIcon={ShoppingCart}
@@ -379,9 +387,6 @@ const OrdenesTab = ({ onVerDetalle }) => {
             </Button>
           }
           onRowClick={(row) => onVerDetalle(row)}
-          sortBy={sortBy}
-          sortDir={sortDir}
-          onSort={handleSort}
         />
       </TableShell>
     </div>

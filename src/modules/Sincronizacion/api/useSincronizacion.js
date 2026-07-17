@@ -11,10 +11,23 @@ const buildMaestroUrl = (filters = {}) => {
   if (filters.search)    params.set('search', filters.search);
   if (filters.cobertura) params.set('cobertura', filters.cobertura);
   if (filters.tipo != null && filters.tipo !== '') params.set('tipo', String(filters.tipo));
+  if (filters.page)  params.set('page', String(filters.page));
+  if (filters.limit) params.set('limit', String(filters.limit));
   const qs = params.toString();
   return qs
     ? `${API_ROUTES.SINCRONIZACION.MAESTRO}?${qs}`
     : API_ROUTES.SINCRONIZACION.MAESTRO;
+};
+
+const buildHuerfanosUrl = (filters = {}) => {
+  const params = new URLSearchParams();
+  if (filters.q)     params.set('q', filters.q);
+  if (filters.page)  params.set('page', String(filters.page));
+  if (filters.limit) params.set('limit', String(filters.limit));
+  const qs = params.toString();
+  return qs
+    ? `${API_ROUTES.SINCRONIZACION.HUERFANOS}?${qs}`
+    : API_ROUTES.SINCRONIZACION.HUERFANOS;
 };
 
 export const useSincStats = () =>
@@ -24,13 +37,23 @@ export const useSincStats = () =>
     staleTime: STALE_5MIN,
   });
 
-export const useSincMaestro = (filters = {}) =>
-  useQuery({
+// Retrocompatible: sin `page` array; con `page`, { data, meta }.
+// Normaliza a { items, meta, isLoading, isFetching }.
+export const useSincMaestro = (filters = {}) => {
+  const query = useQuery({
     queryKey: sincKeys.maestro(filters),
     queryFn:  () => apiClient.get(buildMaestroUrl(filters)),
     staleTime: STALE_5MIN,
     placeholderData: keepPreviousData,
   });
+  const raw = query.data;
+  return {
+    items: Array.isArray(raw) ? raw : (raw?.data ?? []),
+    meta:  raw?.meta ?? { total: Array.isArray(raw) ? raw.length : 0, page: 1, limit: 20, pages: 1 },
+    isLoading:  query.isLoading,
+    isFetching: query.isFetching,
+  };
+};
 
 export const useSincPendientes = () =>
   useQuery({
@@ -46,12 +69,23 @@ export const useSincDuplicados = (threshold = 70) =>
     staleTime: STALE_5MIN,
   });
 
-export const useSincHuerfanos = () =>
-  useQuery({
-    queryKey: sincKeys.huerfanos(),
-    queryFn:  () => apiClient.get(API_ROUTES.SINCRONIZACION.HUERFANOS),
+// Retrocompatible: sin `page` el backend devuelve array; con `page`, { data, meta }.
+// El hook normaliza a { items, meta, isLoading, isFetching }.
+export const useSincHuerfanos = (filters = {}) => {
+  const query = useQuery({
+    queryKey: sincKeys.huerfanos(filters),
+    queryFn:  () => apiClient.get(buildHuerfanosUrl(filters)),
     staleTime: STALE_5MIN,
+    placeholderData: keepPreviousData,
   });
+  const raw = query.data;
+  return {
+    items: Array.isArray(raw) ? raw : (raw?.data ?? []),
+    meta:  raw?.meta ?? { total: Array.isArray(raw) ? raw.length : 0, page: 1, limit: 20, pages: 1 },
+    isLoading:  query.isLoading,
+    isFetching: query.isFetching,
+  };
+};
 
 export const useSincMerge = () => {
   const queryClient = useQueryClient();

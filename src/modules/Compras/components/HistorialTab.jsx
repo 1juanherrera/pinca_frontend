@@ -1,36 +1,42 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import ERPTable        from '../../../shared/ErpTable';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay   from '../../../shared/AmountDisplay';
 import TableShell from '../../../shared/TableShell';
-import useClientPagination from '../../../hooks/useClientPagination';
-import { useCompras }  from '../api/useCompras';
-import useTableSort    from '../../../hooks/useTableSorts';
+import { useComprasPaginated } from '../api/useCompras';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 
 const HistorialTab = ({ onVerDetalle }) => {
-  const { ordenes, isLoadingOrdenes } = useCompras();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const ivaPct = useConfigValue('iva_default', 19);
 
-  const recibidas = useMemo(() => {
-    const list = Array.isArray(ordenes) ? ordenes : [];
-    return list.filter((o) => o.estado === 'Recibida');
-  }, [ordenes]);
+  // Debounce de búsqueda → vuelve a página 1.
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  const filtered = useMemo(() => {
-    if (!search) return recibidas;
-    const q = search.toLowerCase();
-    return recibidas.filter(
-      (o) =>
-        o.numero?.toLowerCase().includes(q) ||
-        o.nombre_empresa?.toLowerCase().includes(q)
-    );
-  }, [recibidas, search]);
+  const hookFilters = useMemo(
+    () => ({ page, limit, estado: 'Recibida', q: debouncedSearch || undefined }),
+    [page, limit, debouncedSearch],
+  );
+  // Paginación SERVER-SIDE: solo las órdenes Recibidas de la página actual.
+  const { ordenes, meta, isLoading, isFetching } = useComprasPaginated(hookFilters);
 
-  const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
-  const pagination = useClientPagination(sorted, 20);
+  // Adaptador del meta server-side al shape que consume TableShell.
+  const pagination = {
+    paginated:      ordenes,
+    currentPage:    meta.page,
+    perPage:        meta.limit,
+    totalItems:     meta.total,
+    totalPages:     meta.pages,
+    setCurrentPage: setPage,
+    setPerPage:     (n) => { setLimit(n); setPage(1); },
+  };
 
   const columns = useMemo(() => [
     {
@@ -109,21 +115,18 @@ const HistorialTab = ({ onVerDetalle }) => {
           />
         }
         pagination={pagination}
-        isLoading={isLoadingOrdenes}
+        isLoading={isLoading}
       >
         <ERPTable
           columns={columns}
-          data={pagination.paginated}
-          isLoading={isLoadingOrdenes}
+          data={ordenes}
+          isLoading={isLoading || isFetching}
           variant="default"
           borderless
           emptyMessage="No hay órdenes recibidas"
           emptySubMessage="Las órdenes completamente recibidas aparecerán aquí"
           EmptyIcon={CheckCircle2}
           onRowClick={(row) => onVerDetalle(row)}
-          sortBy={sortBy}
-          sortDir={sortDir}
-          onSort={handleSort}
         />
       </TableShell>
     </div>

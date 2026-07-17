@@ -1,10 +1,39 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { API_ROUTES } from '../../../api/apiRoutes';
 import { pagoKeys } from './pagoKeys';
 import toast from 'react-hot-toast';
 import { facturaKeys } from '../../Comercial/Facturacion/api/facturaKeys';
 import { carteraKeys } from '../../Cartera/api/carteraKeys';
+
+/**
+ * usePagosPaginated(filters) — lista PAGINADA server-side de pagos. El backend,
+ * con `page`, devuelve { data, meta, stats }.
+ *   stats = KPIs (count, Σ monto, counts por tipo) para las FlowCards.
+ * filters: { page, limit, tipo, metodo_pago, q, cliente_id, factura_id, desde, hasta }
+ * Las mutaciones siguen en usePagos({ enabled:false }) para no re-fetchear todo.
+ */
+export const usePagosPaginated = (filters = {}) => {
+  const query = useQuery({
+    queryKey: pagoKeys.list(filters),
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') params.append(k, v);
+      });
+      return await apiClient.get(`${API_ROUTES.PAGOS.LIST}?${params.toString()}`);
+    },
+    placeholderData: keepPreviousData,
+    staleTime: 30 * 1000,
+  });
+  return {
+    pagos: query.data?.data ?? [],
+    meta:  query.data?.meta ?? { total: 0, page: 1, limit: 20, pages: 1 },
+    stats: query.data?.stats ?? { total: 0, monto_total: 0, abonos: 0, anticipos: 0, pagos_total: 0 },
+    isLoading:  query.isLoading,
+    isFetching: query.isFetching,
+  };
+};
 
 
 /**
@@ -14,10 +43,12 @@ import { carteraKeys } from '../../Cartera/api/carteraKeys';
  * options.facturaId  → filtra pagos de una factura específica
  * Sin opciones       → trae todos los pagos
  */
-export const usePagos = ({ clienteId = null, facturaId = null } = {}) => {
+export const usePagos = ({ clienteId = null, facturaId = null, enabled = true } = {}) => {
   const queryClient = useQueryClient();
 
   // ── 1. Lista general de pagos ────────────────────────────────────────────
+  // `enabled:false` → la página usa usePagosPaginated para la lista y este hook
+  // solo aporta las mutaciones (sin re-fetchear toda la tabla).
   const queryPagos = useQuery({
     queryKey: facturaId
       ? pagoKeys.byFactura(facturaId)
@@ -29,6 +60,7 @@ export const usePagos = ({ clienteId = null, facturaId = null } = {}) => {
       if (clienteId) return apiClient.get(API_ROUTES.PAGOS.BY_CLIENT(clienteId));
       return apiClient.get(API_ROUTES.PAGOS.LIST);
     },
+    enabled,
   });
 
   // ── MUTACIONES ───────────────────────────────────────────────────────────

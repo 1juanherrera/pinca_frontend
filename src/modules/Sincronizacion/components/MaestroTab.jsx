@@ -1,11 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Users, Package, FileSpreadsheet, Eye } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import StatusBadge from '../../../shared/StatusBadge';
 import ErpTable from '../../../shared/ErpTable';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import TableShell from '../../../shared/TableShell';
-import useClientPagination from '../../../hooks/useClientPagination';
 import { Button } from '../../../shared/Button';
 import { fmt } from '../../../utils/formatters';
 import { useSincMaestro } from '../api/useSincronizacion';
@@ -20,15 +19,36 @@ const fmtNum = (v, dec = 2) =>
 
 const MaestroTab = () => {
   const [search, setSearch]       = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [cobertura, setCobertura] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [selected, setSelected]   = useState(null);
 
+  // Debounce de búsqueda → vuelve a página 1.
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search.trim()); setPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [search]);
+
   const filters = useMemo(
-    () => ({ search: search.trim() || undefined, cobertura: cobertura || undefined }),
-    [search, cobertura],
+    () => ({ search: debouncedSearch || undefined, cobertura: cobertura || undefined, page, limit }),
+    [debouncedSearch, cobertura, page, limit],
   );
-  const { data: items = [], isLoading } = useSincMaestro(filters);
-  const pagination = useClientPagination(items, 20);
+  // Paginación SERVER-SIDE.
+  const { items, meta, isLoading, isFetching } = useSincMaestro(filters);
+
+  const pagination = {
+    paginated:      items,
+    currentPage:    meta.page,
+    perPage:        meta.limit,
+    totalItems:     meta.total,
+    totalPages:     meta.pages,
+    setCurrentPage: setPage,
+    setPerPage:     (n) => { setLimit(n); setPage(1); },
+  };
+
+  const onCoberturaChange = (v) => { setCobertura(v); setPage(1); };
 
   const exportExcel = () => {
     const rows = items.map((it) => ({
@@ -128,11 +148,12 @@ const MaestroTab = () => {
         {/* Header de la tab: contador + acción */}
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs text-content-tertiary">
-            {items.length} ítem{items.length === 1 ? '' : 's'}
+            {meta.total} ítem{meta.total === 1 ? '' : 's'}{isFetching && ' · …'}
           </p>
           <Button
             variant="secondary" size="sm" icon={FileSpreadsheet}
             onClick={exportExcel} disabled={!items.length}
+            title="Exporta la página actual"
           >
             Exportar
           </Button>
@@ -151,7 +172,7 @@ const MaestroTab = () => {
                 { value: 'dos_mas', label: '2+ proveedores', dot: 'bg-semantic-success' },
               ]}
               values={{ cobertura }}
-              onChange={(_, v) => setCobertura(v)}
+              onChange={(_, v) => onCoberturaChange(v)}
             />
           }
           pagination={pagination}
@@ -160,7 +181,7 @@ const MaestroTab = () => {
           <ErpTable
             columns={columns}
             data={pagination.paginated.map((r) => ({ ...r, id: r.id_item_general }))}
-            isLoading={isLoading}
+            isLoading={isLoading || isFetching}
             variant="default"
             borderless
             onRowClick={(row) => setSelected(row)}

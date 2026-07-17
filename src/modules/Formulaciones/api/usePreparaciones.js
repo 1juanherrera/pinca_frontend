@@ -1,7 +1,41 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { preparacionesKeys } from './preparacionesKeys';
 import toast from 'react-hot-toast';
+
+/**
+ * usePreparacionesPaginated(filters) — lista PAGINADA server-side de órdenes de
+ * producción. Backend responde { success, data:{ data, meta, stats, itemsFiltro } }.
+ *   stats = KPIs globales por estado; itemsFiltro = ítems distintos con órdenes
+ *   (para el select de filtro); meta = paginador.
+ * filters: { page, limit, estado, search, item, desde, hasta }
+ * ⚠️ Reemplaza el fetch sin `page` que traía SOLO 50 filas (bug latente).
+ */
+export const usePreparacionesPaginated = (filters = {}) => {
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: preparacionesKeys.list(filters),
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') params.append(k, v);
+      });
+      return await apiClient.get(`/preparaciones?${params.toString()}`);
+    },
+    placeholderData: keepPreviousData,
+    staleTime: 30 * 1000,
+  });
+  const payload = query.data?.data ?? {};
+  return {
+    preparaciones: Array.isArray(payload.data) ? payload.data : [],
+    meta:  payload.meta  ?? { total: 0, page: 1, limit: 50, pages: 1 },
+    stats: payload.stats ?? { total: 0, pendiente: 0, en_proceso: 0, completada: 0, cancelada: 0 },
+    itemsFiltro: Array.isArray(payload.itemsFiltro) ? payload.itemsFiltro : [],
+    isLoading:  query.isLoading,
+    isFetching: query.isFetching,
+    refresh: () => queryClient.invalidateQueries({ queryKey: preparacionesKeys.lists() }),
+  };
+};
 
 /**
  * Hook de preparaciones.

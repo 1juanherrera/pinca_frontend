@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Link2, Link, Trash2, Edit, Plus } from 'lucide-react';
 import ERPTable        from '../../../shared/ErpTable';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
@@ -6,9 +6,7 @@ import TableShell      from '../../../shared/TableShell';
 import AmountDisplay   from '../../../shared/AmountDisplay';
 import StatusBadge     from '../../../shared/StatusBadge';
 import { useBoundStore } from '../../../store/useBoundStore';
-import { useProveedores } from '../api/useProveedores';
-import useTableSort from '../../../hooks/useTableSorts';
-import useClientPagination from '../../../hooks/useClientPagination';
+import { useItemProveedoresPaginated } from '../api/useProveedores';
 import VincularModal from './VincularModal';
 
 const STATUS_OPTIONS = [
@@ -25,28 +23,41 @@ const TIPO_TONE = {
 };
 
 const CatalogoTab = () => {
-  const { catalogo, isLoadingCatalogo, removeItemAsync } = useProveedores();
   const { openConfirm, openDrawer } = useBoundStore();
 
   const [search,        setSearch]        = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filters,       setFilters]       = useState({ disponible: '' });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [itemVincular,  setItemVincular]  = useState(null);
 
-  const filtered = useMemo(() => {
-    return catalogo.filter((item) => {
-      const q = search.toLowerCase();
-      const matchSearch =
-        !q ||
-        item.nombre?.toLowerCase().includes(q) ||
-        item.codigo?.toLowerCase().includes(q) ||
-        item.nombre_empresa?.toLowerCase().includes(q);
-      const matchDisponible = !filters.disponible || String(item.disponible) === filters.disponible;
-      return matchSearch && matchDisponible;
-    });
-  }, [catalogo, search, filters]);
+  // Debounce de búsqueda → vuelve a página 1.
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  const { sorted, sortBy, sortDir, handleSort } = useTableSort(filtered);
-  const pagination = useClientPagination(sorted, 20);
+  const hookFilters = useMemo(
+    () => ({ page, limit, disponible: filters.disponible || undefined, q: debouncedSearch || undefined }),
+    [page, limit, filters.disponible, debouncedSearch],
+  );
+  // Paginación SERVER-SIDE.
+  const { catalogo, meta, isLoading, isFetching, removeItemAsync } =
+    useItemProveedoresPaginated(hookFilters);
+
+  // Adaptador del meta server-side al shape que consume TableShell.
+  const pagination = {
+    paginated:      catalogo,
+    currentPage:    meta.page,
+    perPage:        meta.limit,
+    totalItems:     meta.total,
+    totalPages:     meta.pages,
+    setCurrentPage: setPage,
+    setPerPage:     (n) => { setLimit(n); setPage(1); },
+  };
+
+  const onFilterChange = (key, val) => { setFilters((prev) => ({ ...prev, [key]: val })); setPage(1); };
 
   const columns = useMemo(() => [
     {
@@ -179,24 +190,21 @@ const CatalogoTab = () => {
             onSearch={setSearch}
             placeholder="Buscar por nombre, código o proveedor..."
             values={filters}
-            onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+            onChange={onFilterChange}
             statusKey="disponible"
             statusOptions={STATUS_OPTIONS}
             allLabel="Todos"
           />
         }
         pagination={pagination}
-        isLoading={isLoadingCatalogo}
+        isLoading={isLoading}
       >
         <ERPTable
           columns={columns}
-          data={pagination.paginated}
-          isLoading={isLoadingCatalogo}
+          data={catalogo}
+          isLoading={isLoading || isFetching}
           emptyMessage="No hay productos en el catálogo"
           emptySubMessage="Agrega productos desde el botón superior"
-          sortBy={sortBy}
-          sortDir={sortDir}
-          onSort={handleSort}
           borderless
         />
       </TableShell>

@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Search, X, ChevronLeft, ChevronRight,
   Pencil, Trash2, Users,
 } from 'lucide-react';
 import StatusBadge from '../../../shared/StatusBadge';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
+import { useClientesPaginated } from '../api/useClientes';
 
 const PALETTES = [
   'bg-semantic-info',
@@ -33,18 +34,16 @@ const ActionBtn = ({ onClick, icon: Icon, title, danger }) => (
 );
 
 const ClientesTable = ({
-  clientes = [],
-  isLoading,
   onEdit,
   onDelete,
   initialSearch = '',
 }) => {
   const PAGE_SIZE = useConfigValue('page_size_default', 20);
   const [search, setSearch] = useState(initialSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [page,   setPage]   = useState(1);
 
   // Re-sincronizar el buscador cuando cambia initialSearch (navegación Cmd+K con ?q=).
-  // Snapshot en render: solo dispara al cambiar la prop, no mientras el usuario teclea.
   const [lastInitial, setLastInitial] = useState(initialSearch);
   if (initialSearch !== lastInitial) {
     setLastInitial(initialSearch);
@@ -52,20 +51,21 @@ const ClientesTable = ({
     setPage(1);
   }
 
-  const filtered = useMemo(() => {
-    if (!search) return clientes;
-    const q = search.toLowerCase();
-    return clientes.filter((c) =>
-      c.nombre_empresa?.toLowerCase().includes(q) ||
-      c.nombre_encargado?.toLowerCase().includes(q) ||
-      String(c.numero_documento ?? '').toLowerCase().includes(q) ||
-      c.email?.toLowerCase().includes(q) ||
-      c.ciudad?.toLowerCase().includes(q)
-    );
-  }, [clientes, search]);
+  // Debounce de búsqueda → vuelve a página 1.
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // Paginación SERVER-SIDE.
+  const { clientes, meta, isLoading, isFetching } = useClientesPaginated({
+    page,
+    limit: PAGE_SIZE,
+    q: debouncedSearch || undefined,
+  });
+
+  const paginated  = clientes; // la página ya viene resuelta del server
+  const totalPages = meta.pages;
   const colCount = 7;
 
   return (
@@ -89,7 +89,8 @@ const ClientesTable = ({
           )}
         </div>
         <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest ml-auto whitespace-nowrap tabular-nums">
-          {filtered.length} {filtered.length === 1 ? 'cliente' : 'clientes'}
+          {meta.total} {meta.total === 1 ? 'cliente' : 'clientes'}
+          {isFetching && ' · …'}
         </span>
       </div>
 
@@ -193,10 +194,10 @@ const ClientesTable = ({
         </table>
       </div>
 
-      {filtered.length > PAGE_SIZE && (
+      {totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-2.5 border-t border-border-subtle bg-surface-subtle">
           <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest tabular-nums">
-            {filtered.length} registros · Pág. {page} de {totalPages}
+            {meta.total} registros · Pág. {meta.page} de {totalPages}
           </span>
           <div className="flex items-center gap-1">
             <button

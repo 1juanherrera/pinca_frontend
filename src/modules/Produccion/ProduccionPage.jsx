@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback } from 'react';
-import { Factory, RefreshCw } from 'lucide-react';
-import { usePreparaciones } from '../Formulaciones/api/usePreparaciones';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { Factory, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { usePreparacionesPaginated } from '../Formulaciones/api/usePreparaciones';
 import { ProduccionKPIs } from './components/ProduccionKpis';
 import { ProduccionFilters } from './components/ProduccionFilters';
 import { ProduccionDetailModal } from './components/ProduccionDetailModal';
@@ -11,41 +11,7 @@ import ExportProduccion from './components/ExportProduccion';
 import { TrazabilidadPorPreparacionDrawer } from '../Trazabilidad/components/TrazabilidadDrawer';
 import ExportTrazabilidad from '../Trazabilidad/components/ExportTrazabilidad';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const applyFilters = (data, filters) => {
-  if (!Array.isArray(data)) return [];
-  let result = [...data];
-
-  if (filters.estado && filters.estado !== 'TODOS') {
-    result = result.filter(r => r.estado === filters.estado);
-  }
-
-  if (filters.search) {
-    const q = filters.search.toLowerCase();
-    result = result.filter(r =>
-      r.item_nombre?.toLowerCase().includes(q) ||
-      r.item_codigo?.toLowerCase().includes(q)
-    );
-  }
-
-  if (filters.item) {
-    result = result.filter(r => String(r.item_general_id) === filters.item);
-  }
-
-  if (filters.desde) {
-    const desde = new Date(filters.desde);
-    result = result.filter(r => r.fecha_creacion && new Date(r.fecha_creacion) >= desde);
-  }
-
-  if (filters.hasta) {
-    const hasta = new Date(filters.hasta);
-    hasta.setHours(23, 59, 59);
-    result = result.filter(r => r.fecha_creacion && new Date(r.fecha_creacion) <= hasta);
-  }
-
-  return result;
-};
-
+// ─── Helper: ordenamiento LOCAL de la página visible (el server ya filtra/pagina).
 const applySorting = (data, sortBy, sortDir) => {
   if (!Array.isArray(data)) return [];
   return [...data].sort((a, b) => {
@@ -72,33 +38,44 @@ const ProduccionPage = () => {
   const [sortDir,         setSortDir]         = useState('desc');
   const [selectedRow,     setSelectedRow]     = useState(null);
   const [trazaPrepId,     setTrazaPrepId]     = useState(null);
+  const [page,            setPage]            = useState(1);
+  const [limit,           setLimit]           = useState(50);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  // ── Datos ─────────────────────────────────────────────────────────────────
-  // fetchList: true → activa la query GET /preparaciones (lista global)
-  const { preparacionesByItem: allPreparaciones, isLoadingByItem, refresh } =
-    usePreparaciones(null, null, { fetchList: true });
+  // Debounce de la búsqueda → vuelve a página 1.
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(filters.search); setPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [filters.search]);
 
-  // ── Procesado ─────────────────────────────────────────────────────────────
-  const filtered = useMemo(
-    () => applyFilters(allPreparaciones, filters),
-    [allPreparaciones, filters]
-  );
+  // ── Datos (paginación SERVER-SIDE; antes traía solo 50 filas sin `page`) ────
+  const hookFilters = useMemo(() => ({
+    page,
+    limit,
+    estado: filters.estado && filters.estado !== 'TODOS' ? filters.estado : undefined,
+    search: debouncedSearch || undefined,
+    item:   filters.item   || undefined,
+    desde:  filters.desde  || undefined,
+    hasta:  filters.hasta  || undefined,
+  }), [page, limit, filters.estado, filters.item, filters.desde, filters.hasta, debouncedSearch]);
 
+  const { preparaciones, meta, stats, itemsFiltro, isLoading, isFetching, refresh } =
+    usePreparacionesPaginated(hookFilters);
+
+  // Orden LOCAL de la página visible (el server ordena por fecha DESC).
   const sorted = useMemo(
-    () => applySorting(filtered, sortBy, sortDir),
-    [filtered, sortBy, sortDir]
+    () => applySorting(preparaciones, sortBy, sortDir),
+    [preparaciones, sortBy, sortDir]
   );
 
-  // Opciones únicas de item para el select de filtros
-  const itemOptions = useMemo(() => {
-    const map = new Map();
-    allPreparaciones.forEach(p => {
-      if (!map.has(p.item_general_id)) {
-        map.set(p.item_general_id, { value: String(p.item_general_id), label: p.item_nombre });
-      }
-    });
-    return Array.from(map.values());
-  }, [allPreparaciones]);
+  // Opciones de item para el filtro: vienen del server (todos los ítems con órdenes).
+  const itemOptions = itemsFiltro;
+
+  // Cambiar cualquier filtro (excepto search, ya debounced) → página 1.
+  const handleFiltersChange = useCallback((next) => {
+    setFilters(next);
+    setPage(1);
+  }, []);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   const handleSort = useCallback((field) => {
@@ -145,18 +122,18 @@ const ProduccionPage = () => {
           sizeIcon={18}
           title="Actualizar datos"
           variant="white"
-          animate={isLoadingByItem ? 'animate-spin' : ''}
+          animate={isFetching ? 'animate-spin' : ''}
         />
       </div>
 
-      {/* ── KPIs ── */}
-      <ProduccionKPIs data={allPreparaciones} />
+      {/* ── KPIs (globales del server) ── */}
+      <ProduccionKPIs stats={stats} />
 
       {/* ── Filtros ── */}
       <div className="bg-surface-base border border-border-subtle rounded-2xl px-5 py-4 shadow-sm">
         <ProduccionFilters
           filters={filters}
-          onChange={setFilters}
+          onChange={handleFiltersChange}
           itemOptions={itemOptions}
         />
       </div>
@@ -170,12 +147,38 @@ const ProduccionPage = () => {
         )}
         <ProduccionTable
           data={sorted}
-          isLoading={isLoadingByItem}
+          isLoading={isLoading}
           sortBy={sortBy}
           sortDir={sortDir}
           onSort={handleSort}
           onRowClick={handleRowClick}
         />
+
+        {/* ── Paginador server-side ── */}
+        {meta.pages > 1 && (
+          <div className="flex items-center justify-between px-4 py-2.5 border-t border-border-base bg-surface-subtle">
+            <span className="text-[10px] font-medium text-content-tertiary uppercase tracking-wide">
+              {meta.total} órdenes · Página {meta.page} de {meta.pages}
+              {isFetching && ' · actualizando…'}
+            </span>
+            <div className="flex items-center gap-0.5">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={meta.page <= 1}
+                className="p-1 rounded-sm text-content-tertiary hover:bg-surface-muted disabled:opacity-30 transition-colors"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(meta.pages, p + 1))}
+                disabled={meta.page >= meta.pages}
+                className="p-1 rounded-sm text-content-tertiary hover:bg-surface-muted disabled:opacity-30 transition-colors"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Modal de detalle ── */}

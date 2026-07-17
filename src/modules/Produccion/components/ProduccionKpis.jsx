@@ -27,12 +27,13 @@ const KPICard = ({ icon: Icon, label, value, sub, theme = 'zinc' }) => {
   );
 };
 
-export const ProduccionKPIs = ({ data }) => {
-  const total      = data.length;
-  const pendiente  = data.filter(d => d.estado === 'PENDIENTE').length;
-  const en_proceso = data.filter(d => d.estado === 'EN_PROCESO').length;
-  const completada = data.filter(d => d.estado === 'COMPLETADA').length;
-  const cancelada  = data.filter(d => d.estado === 'CANCELADA').length;
+export const ProduccionKPIs = ({ stats = {} }) => {
+  // Stats GLOBALES del server (independientes de la página/filtros visibles).
+  const total      = stats.total ?? 0;
+  const pendiente  = stats.pendiente ?? 0;
+  const en_proceso = stats.en_proceso ?? 0;
+  const completada = stats.completada ?? 0;
+  const cancelada  = stats.cancelada ?? 0;
   const pct        = total > 0 ? Math.round((completada / total) * 100) : 0;
 
   return (

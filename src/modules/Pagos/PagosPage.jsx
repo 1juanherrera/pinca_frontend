@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Wallet, Plus, TrendingUp, CreditCard,
-  Banknote, Eye, Trash2, Download,
+  Banknote, Eye, Trash2, Download, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useBoundStore } from '../../store/useBoundStore';
 import HeaderSection from '../../shared/HeaderSection';
@@ -15,7 +15,7 @@ import AmountDisplay from '../../shared/AmountDisplay';
 import PagoForm from './components/PagoForm';
 import PagoDrawer from './components/PagoDrawer';
 import ExportRecibo from './components/ExportRecibo';
-import { usePagos } from './api/usePago';
+import { usePagos, usePagosPaginated } from './api/usePago';
 import { fmt } from '../../utils/formatters';
 
 // Tone semántico por método de pago (badges unificados con StatusBadge)
@@ -33,38 +33,43 @@ const MetodoBadge = ({ metodo }) => {
 };
 
 const PagosPage = () => {
-  const { pagos, isLoadingPagos, removeAsync } = usePagos();
   const { openDrawer, openConfirm } = useBoundStore();
+  // usePagos solo para la mutación de borrado (enabled:false → no re-fetchea todo).
+  const { removeAsync } = usePagos({ enabled: false });
 
   const [search, setSearch]   = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filters, setFilters] = useState({ tipo: '', metodo_pago: '' });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [selected, setSelected] = useState(null);
 
-  // ── Métricas ──────────────────────────────────────────────────────────────
-  const metrics = useMemo(() => {
-    const list = Array.isArray(pagos) ? pagos : [];
-    const total = list.reduce((acc, p) => acc + Number(p.monto || 0), 0);
-    const abonos     = list.filter((p) => p.tipo === 'abono').length;
-    const anticipos  = list.filter((p) => p.tipo === 'anticipo').length;
-    const pagosTotal = list.filter((p) => p.tipo === 'pago_total').length;
-    return { count: list.length, total, abonos, anticipos, pagosTotal };
-  }, [pagos]);
+  // Debounce de búsqueda → vuelve a página 1.
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  // ── Filtrado ──────────────────────────────────────────────────────────────
-  const filtered = useMemo(() => {
-    const list = Array.isArray(pagos) ? pagos : [];
-    return list.filter((p) => {
-      const q = search.toLowerCase();
-      const matchSearch =
-        !q ||
-        p.numero_referencia?.toLowerCase().includes(q) ||
-        p.nombre_empresa?.toLowerCase().includes(q) ||
-        p.nombre_encargado?.toLowerCase().includes(q);
-      const matchTipo   = !filters.tipo        || p.tipo        === filters.tipo;
-      const matchMetodo = !filters.metodo_pago || p.metodo_pago === filters.metodo_pago;
-      return matchSearch && matchTipo && matchMetodo;
-    });
-  }, [pagos, search, filters]);
+  const hookFilters = useMemo(() => ({
+    page,
+    limit,
+    tipo: filters.tipo || undefined,
+    metodo_pago: filters.metodo_pago || undefined,
+    q: debouncedSearch || undefined,
+  }), [page, limit, filters.tipo, filters.metodo_pago, debouncedSearch]);
+
+  // Paginación SERVER-SIDE: página + KPIs globales (stats) + meta.
+  const { pagos, meta, stats, isLoading, isFetching } = usePagosPaginated(hookFilters);
+
+  const metrics = {
+    count:      stats.total,
+    total:      stats.monto_total,
+    abonos:     stats.abonos,
+    anticipos:  stats.anticipos,
+    pagosTotal: stats.pagos_total,
+  };
+
+  const onFilterChange = (key, val) => { setFilters((prev) => ({ ...prev, [key]: val })); setPage(1); };
 
   // ── Columnas ──────────────────────────────────────────────────────────────
   const columns = [
@@ -197,19 +202,45 @@ const PagosPage = () => {
           },
         ]}
         values={filters}
-        onChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+        onChange={onFilterChange}
       />
 
       {/* ── Tabla ── */}
       <ERPTable
         columns={columns}
-        data={filtered}
-        isLoading={isLoadingPagos}
+        data={pagos}
+        isLoading={isLoading || isFetching}
         variant="cards"
         emptyMessage="No se encontraron pagos"
         emptySubMessage="Ajusta los filtros o registra un nuevo pago."
         onRowClick={(row) => setSelected(row)}
       />
+
+      {/* ── Paginador server-side ── */}
+      {meta.pages > 1 && (
+        <div className="flex items-center justify-between px-1 py-1">
+          <span className="text-[10px] font-medium text-content-tertiary uppercase tracking-wide">
+            {meta.total} pagos · Página {meta.page} de {meta.pages}
+            {isFetching && ' · actualizando…'}
+          </span>
+          <div className="flex items-center gap-0.5">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={meta.page <= 1}
+              className="p-1 rounded-sm text-content-tertiary hover:bg-surface-muted disabled:opacity-30 transition-colors"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(meta.pages, p + 1))}
+              disabled={meta.page >= meta.pages}
+              className="p-1 rounded-sm text-content-tertiary hover:bg-surface-muted disabled:opacity-30 transition-colors"
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Modales ── */}
       <PagoDrawer

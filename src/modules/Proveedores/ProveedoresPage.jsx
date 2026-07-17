@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Truck, Plus, Search, BarChart2, LayoutList, LayoutGrid, X } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Truck, Plus, Search, BarChart2, LayoutList, LayoutGrid, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import HeaderSection   from '../../shared/HeaderSection';
 import { Button }      from '../../shared/Button';
 import PageTabs        from '../../shared/PageTabs';
@@ -7,7 +7,7 @@ import { SkeletonCard } from '../../shared/Skeletons';
 import ConfirmModal    from '../../shared/ConfirmModal';
 import { useBoundStore } from '../../store/useBoundStore';
 import { useUrlSearch } from '../../hooks/useUrlSearch';
-import { useProveedores } from './api/useProveedores';
+import { useProveedores, useProveedoresPaginated } from './api/useProveedores';
 import ProveedoresTable        from './components/ProveedoresTable';
 import ProveedorCard           from './components/ProveedorCard';
 import ProveedorForm           from './components/ProveedorForm';
@@ -56,10 +56,23 @@ const ProveedoresPage = () => {
   const [portafolioProv, setPortafolioProv] = useState(null);
   // Pre-llenar búsqueda al llegar desde Cmd+K (initializer pattern)
   const [cardSearch, setCardSearch] = useState(() => initialQ ?? '');
+  const [debouncedCardSearch, setDebouncedCardSearch] = useState(() => initialQ ?? '');
+  const [cardPage, setCardPage] = useState(1);
 
-  const { proveedores, isLoadingProveedores, catalogo, removeAsync } = useProveedores();
+  // useProveedores sin fetch de la lista (la tabla self-fetchea; acá solo catálogo + mutación).
+  const { catalogo, removeAsync } = useProveedores({ enabledProveedores: false });
   const { openDrawer } = useBoundStore();
   const openConfirm = useBoundStore(state => state.openConfirm);
+
+  // Debounce de la búsqueda de cards → página 1.
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedCardSearch(cardSearch); setCardPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [cardSearch]);
+
+  // Vista cards: paginación SERVER-SIDE propia.
+  const { proveedores: cardProv, meta: cardMeta, isLoading: isLoadingCards } =
+    useProveedoresPaginated({ page: cardPage, limit: 12, q: debouncedCardSearch || undefined });
 
   const productosPorProveedor = useMemo(() => {
     const map = {};
@@ -68,16 +81,6 @@ const ProveedoresPage = () => {
     });
     return map;
   }, [catalogo]);
-
-  const filteredCards = useMemo(() => {
-    if (!cardSearch) return proveedores;
-    const q = cardSearch.toLowerCase();
-    return proveedores.filter(p =>
-      p.nombre_empresa?.toLowerCase().includes(q) ||
-      p.nombre_encargado?.toLowerCase().includes(q) ||
-      p.numero_documento?.toLowerCase().includes(q)
-    );
-  }, [proveedores, cardSearch]);
 
   return (
     <div className="flex flex-col w-full gap-4">
@@ -116,10 +119,8 @@ const ProveedoresPage = () => {
       {/* ── Tab Proveedores: vista tabla ── */}
       {tab === 'proveedores' && viewMode === 'tabla' && (
         <ProveedoresTable
-          proveedores={proveedores}
           catalogo={catalogo}
           productosPorProveedor={productosPorProveedor}
-          isLoading={isLoadingProveedores}
           onEdit={(prov) => openDrawer('PROVEEDOR_FORM', prov)}
           onDelete={(prov) => openConfirm({
             title:   'Eliminar Proveedor',
@@ -151,9 +152,9 @@ const ProveedoresPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {isLoadingProveedores
+            {isLoadingCards
               ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} isLoading />)
-              : filteredCards.length === 0
+              : cardProv.length === 0
                 ? (
                   <div className="col-span-full flex flex-col items-center justify-center py-16 gap-2">
                     <p className="text-sm font-semibold text-content-muted">No se encontraron proveedores</p>
@@ -164,7 +165,7 @@ const ProveedoresPage = () => {
                     )}
                   </div>
                 )
-                : filteredCards.map((proveedor) => (
+                : cardProv.map((proveedor) => (
                   <ProveedorCard
                     key={proveedor.id_proveedor}
                     proveedor={proveedor}
@@ -179,6 +180,31 @@ const ProveedoresPage = () => {
                 ))
             }
           </div>
+
+          {/* ── Paginador cards ── */}
+          {cardMeta.pages > 1 && (
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest tabular-nums">
+                {cardMeta.total} proveedores · Pág. {cardMeta.page} de {cardMeta.pages}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCardPage((p) => Math.max(1, p - 1))}
+                  disabled={cardMeta.page <= 1}
+                  className="p-1.5 rounded-lg text-content-muted hover:bg-surface-muted disabled:opacity-25 transition-all"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <button
+                  onClick={() => setCardPage((p) => Math.min(cardMeta.pages, p + 1))}
+                  disabled={cardMeta.page >= cardMeta.pages}
+                  className="p-1.5 rounded-lg text-content-muted hover:bg-surface-muted disabled:opacity-25 transition-all"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
 

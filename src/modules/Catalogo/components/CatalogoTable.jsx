@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Package, Layers, Beaker, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { fmt } from '../../../utils/formatters';
 import PageTabs from '../../../shared/PageTabs';
 import StatusBadge from '../../../shared/StatusBadge';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
+import { useCatalogoPaginated } from '../api/useCatalogo';
 import cn from '../../../utils/cn';
 
 const TIPO_CONFIG = {
@@ -12,14 +13,14 @@ const TIPO_CONFIG = {
   2: { label: 'Insumo',        tone: 'neutral', icon: Beaker  },
 };
 
-const CatalogoTable = ({ items = [], isLoading, onSelect, initialSearch = '' }) => {
+const CatalogoTable = ({ onSelect, initialSearch = '' }) => {
   const PAGE_SIZE = useConfigValue('page_size_default', 25);
-  const [search, setSearch]         = useState(initialSearch);
-  const [tipoFilter, setTipoFilter] = useState('all');
-  const [page, setPage]             = useState(1);
+  const [search, setSearch]                 = useState(initialSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
+  const [tipoFilter, setTipoFilter]         = useState('all');
+  const [page, setPage]                     = useState(1);
 
   // Re-sincronizar el buscador cuando cambia initialSearch (navegación Cmd+K con ?q=).
-  // Snapshot en render: solo dispara al cambiar la prop, no mientras el usuario teclea.
   const [lastInitial, setLastInitial] = useState(initialSearch);
   if (initialSearch !== lastInitial) {
     setLastInitial(initialSearch);
@@ -27,34 +28,28 @@ const CatalogoTable = ({ items = [], isLoading, onSelect, initialSearch = '' }) 
     setPage(1);
   }
 
-  const filtered = useMemo(() => {
-    let result = items;
-    if (tipoFilter !== 'all') result = result.filter(i => Number(i.tipo) === Number(tipoFilter));
-    if (search) {
-      const s = search.toLowerCase();
-      result = result.filter(i =>
-        i.nombre?.toLowerCase().includes(s) ||
-        i.codigo?.toLowerCase().includes(s),
-      );
-    }
-    return result;
-  }, [items, tipoFilter, search]);
+  // Debounce de búsqueda → vuelve a página 1.
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // Paginación SERVER-SIDE: solo la página + counts globales por tipo (stats) + meta.
+  const { items, meta, stats, isLoading, isFetching } = useCatalogoPaginated({
+    page,
+    limit: PAGE_SIZE,
+    tipo: tipoFilter === 'all' ? undefined : Number(tipoFilter),
+    q: debouncedSearch || undefined,
+  });
 
-  const counts = useMemo(() => ({
-    all: items.length,
-    0:   items.filter(i => Number(i.tipo) === 0).length,
-    1:   items.filter(i => Number(i.tipo) === 1).length,
-    2:   items.filter(i => Number(i.tipo) === 2).length,
-  }), [items]);
+  const totalPages = meta.pages;
+  const paginated  = items; // la página ya viene resuelta del server
 
   const tabs = [
-    { key: 'all', label: 'Todos',           count: counts.all },
-    { key: '0',   label: 'Productos',       count: counts[0]  },
-    { key: '1',   label: 'Materias Primas', count: counts[1]  },
-    { key: '2',   label: 'Insumos',         count: counts[2]  },
+    { key: 'all', label: 'Todos',           count: stats.all   },
+    { key: '0',   label: 'Productos',       count: stats.tipo0 },
+    { key: '1',   label: 'Materias Primas', count: stats.tipo1 },
+    { key: '2',   label: 'Insumos',         count: stats.tipo2 },
   ];
 
   return (
@@ -183,10 +178,11 @@ const CatalogoTable = ({ items = [], isLoading, onSelect, initialSearch = '' }) 
         </table>
       </div>
 
-      {filtered.length > PAGE_SIZE && (
+      {totalPages > 1 && (
         <div className="flex items-center justify-between px-3 py-2 border-t border-border-base bg-surface-subtle">
           <span className="text-[10px] font-medium text-content-tertiary uppercase tracking-wide">
-            {filtered.length} ítems · Página {page} de {totalPages}
+            {meta.total} ítems · Página {meta.page} de {totalPages}
+            {isFetching && ' · actualizando…'}
           </span>
           <div className="flex items-center gap-0.5">
             <button

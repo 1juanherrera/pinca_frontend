@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Users, Plus, Search, X, LayoutList, LayoutGrid } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, Plus, Search, X, LayoutList, LayoutGrid, ChevronLeft, ChevronRight } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import { Button } from '../../shared/Button';
 import { SkeletonCard } from '../../shared/Skeletons';
@@ -9,7 +9,7 @@ import ClienteForm from './components/ClienteForm';
 import ClienteCard from './components/ClienteCard';
 import ClientesTable from './components/ClientesTable';
 import ConfirmModal from '../../shared/ConfirmModal';
-import { useClientes } from './api/useClientes';
+import { useClientes, useClientesPaginated } from './api/useClientes';
 
 const ViewToggle = ({ value, onChange }) => (
   <div className="inline-flex items-center rounded-lg border border-border-base/60 p-0.5 bg-surface-muted/40">
@@ -39,34 +39,31 @@ const ViewToggle = ({ value, onChange }) => (
 );
 
 const ClientesPage = () => {
-  const { clientes, isLoadingClientes, removeAsync } = useClientes();
+  // useClientes solo aporta la mutación de borrado (enabled:false → no fetch).
+  const { removeAsync } = useClientes(null, { enabled: false });
   const { openDrawer } = useBoundStore();
   const openConfirm = useBoundStore((state) => state.openConfirm);
 
   const initialQ = useUrlSearch('q');
   const [viewMode,   setViewMode]   = useState('tabla');
-  // Inicializar con initialQ ahorra el setState-in-effect. Si initialQ cambia
-  // entre renders (caso raro porque useUrlSearch limpia la URL después de
-  // leer), re-sincronizamos vía snapshot pattern.
   const [cardSearch, setCardSearch] = useState(() => initialQ || '');
+  const [debouncedCardSearch, setDebouncedCardSearch] = useState(() => initialQ || '');
+  const [cardPage, setCardPage] = useState(1);
   const [lastInitialQ, setLastInitialQ] = useState(initialQ);
   if (initialQ && initialQ !== lastInitialQ) {
     setLastInitialQ(initialQ);
     setCardSearch(initialQ);
   }
 
-  const list = Array.isArray(clientes) ? clientes : [];
+  // Debounce de la búsqueda de cards → página 1.
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedCardSearch(cardSearch); setCardPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [cardSearch]);
 
-  const filteredCards = useMemo(() => {
-    if (!cardSearch) return list;
-    const q = cardSearch.toLowerCase();
-    return list.filter((c) =>
-      c.nombre_empresa?.toLowerCase().includes(q) ||
-      c.nombre_encargado?.toLowerCase().includes(q) ||
-      String(c.numero_documento ?? '').toLowerCase().includes(q) ||
-      c.ciudad?.toLowerCase().includes(q)
-    );
-  }, [list, cardSearch]);
+  // Vista cards: paginación SERVER-SIDE propia (la tabla self-fetchea aparte).
+  const { clientes: cardClientes, meta: cardMeta, isLoading: isLoadingCards } =
+    useClientesPaginated({ page: cardPage, limit: 12, q: debouncedCardSearch || undefined });
 
   const handleEdit = (cliente) => openDrawer('CLIENTE_FORM', cliente);
   const handleDelete = (cliente) => openConfirm({
@@ -102,11 +99,9 @@ const ClientesPage = () => {
         </div>
       </div>
 
-      {/* ── Vista tabla ── */}
+      {/* ── Vista tabla (self-fetch paginado) ── */}
       {viewMode === 'tabla' && (
         <ClientesTable
-          clientes={list}
-          isLoading={isLoadingClientes}
           onEdit={handleEdit}
           onDelete={handleDelete}
           initialSearch={initialQ}
@@ -133,9 +128,9 @@ const ClientesPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {isLoadingClientes ? (
+            {isLoadingCards ? (
               Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} isLoading />)
-            ) : filteredCards.length === 0 ? (
+            ) : cardClientes.length === 0 ? (
               <div className="col-span-full flex flex-col items-center justify-center py-16 gap-2">
                 <p className="text-sm font-semibold text-content-muted">No se encontraron clientes</p>
                 {cardSearch && (
@@ -145,7 +140,7 @@ const ClientesPage = () => {
                 )}
               </div>
             ) : (
-              filteredCards.map((cliente) => (
+              cardClientes.map((cliente) => (
                 <ClienteCard
                   key={cliente.id_clientes}
                   cliente={cliente}
@@ -155,6 +150,31 @@ const ClientesPage = () => {
               ))
             )}
           </div>
+
+          {/* ── Paginador cards ── */}
+          {cardMeta.pages > 1 && (
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest tabular-nums">
+                {cardMeta.total} clientes · Pág. {cardMeta.page} de {cardMeta.pages}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCardPage((p) => Math.max(1, p - 1))}
+                  disabled={cardMeta.page <= 1}
+                  className="p-1.5 rounded-lg text-content-muted hover:bg-surface-muted disabled:opacity-25 transition-all"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <button
+                  onClick={() => setCardPage((p) => Math.min(cardMeta.pages, p + 1))}
+                  disabled={cardMeta.page >= cardMeta.pages}
+                  className="p-1.5 rounded-lg text-content-muted hover:bg-surface-muted disabled:opacity-25 transition-all"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
 

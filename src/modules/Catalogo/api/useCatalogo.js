@@ -1,8 +1,38 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
 import { API_ROUTES } from '../../../api/apiRoutes';
 import { catalogoKeys } from './catalogoKeys';
 import toast from 'react-hot-toast';
+
+/**
+ * useCatalogoPaginated(filters) — lista PAGINADA server-side del catálogo
+ * (item_general). El backend, con `page`, devuelve { data, meta, stats }.
+ *   stats = counts globales por tipo para las tabs (all/tipo0/tipo1/tipo2).
+ *   meta  = paginador { total, page, limit, pages }.
+ * filters: { page, limit, tipo, categoria_id, q }
+ */
+export const useCatalogoPaginated = (filters = {}) => {
+  const query = useQuery({
+    queryKey: catalogoKeys.list(filters),
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') params.append(k, v);
+      });
+      return await apiClient.get(`${API_ROUTES.CATALOGO.LIST}?${params.toString()}`);
+    },
+    placeholderData: keepPreviousData,
+    staleTime: 60 * 1000,
+  });
+
+  return {
+    items:      query.data?.data ?? [],
+    meta:       query.data?.meta ?? { total: 0, page: 1, limit: 25, pages: 1 },
+    stats:      query.data?.stats ?? { all: 0, tipo0: 0, tipo1: 0, tipo2: 0 },
+    isLoading:  query.isLoading,
+    isFetching: query.isFetching,
+  };
+};
 
 export const useCatalogoList = (filters = {}) => {
   const params = new URLSearchParams();

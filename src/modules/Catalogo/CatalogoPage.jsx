@@ -5,9 +5,11 @@ import HeaderSection from '../../shared/HeaderSection';
 import PageTabs from '../../shared/PageTabs';
 import { Button, ButtonSquare } from '../../shared/Button';
 import ConfirmModal from '../../shared/ConfirmModal';
+import { useQueryClient } from '@tanstack/react-query';
 import { useBoundStore } from '../../store/useBoundStore';
 import { useUrlSearch } from '../../hooks/useUrlSearch';
-import { useCatalogoList, useCatalogoMutations } from './api/useCatalogo';
+import { useCatalogoMutations } from './api/useCatalogo';
+import { catalogoKeys } from './api/catalogoKeys';
 import CatalogoTable from './components/CatalogoTable';
 import ItemDetailModal from './components/ItemDetailModal';
 import CatalogoForm from './components/CatalogoForm';
@@ -23,7 +25,8 @@ const TABS = [
 
 const CatalogoPage = () => {
   const { setActiveTitle, openDrawer } = useBoundStore();
-  const { items, isLoading, refetch } = useCatalogoList();
+  const queryClient = useQueryClient();
+  const refetch = () => queryClient.invalidateQueries({ queryKey: catalogoKeys.all });
   const { crear, actualizar, isCreating, isUpdating } = useCatalogoMutations();
   const initialQ = useUrlSearch('q');
   const [searchParams] = useSearchParams();
@@ -93,7 +96,6 @@ const CatalogoPage = () => {
                 title="Actualizar"
                 variant="white"
                 onClick={refetch}
-                animate={isLoading ? 'animate-spin' : ''}
               />
               <Button variant="black" onClick={handleOpenCreate} icon={Plus}>
                 Nuevo Ítem
@@ -117,8 +119,6 @@ const CatalogoPage = () => {
       {tab === 'productos' && (
         <>
           <CatalogoTable
-            items={items}
-            isLoading={isLoading}
             onSelect={handleSelect}
             initialSearch={initialQ}
           />

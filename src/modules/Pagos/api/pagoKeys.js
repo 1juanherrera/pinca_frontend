@@ -1,6 +1,8 @@
 export const pagoKeys = {
   all:     ['pagos'],
   lists:   () => [...pagoKeys.all, 'list'],
+  // Lista paginada server-side; prefijo de lists() → invalidar lists() la refresca.
+  list:    (filters) => [...pagoKeys.all, 'list', { filters }],
   details: () => [...pagoKeys.all, 'detail'],
   detail:  (id) => [...pagoKeys.details(), id?.toString()],
 
