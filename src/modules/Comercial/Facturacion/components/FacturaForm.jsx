@@ -11,6 +11,7 @@ import { Button } from '../../../../shared/Button';
 import { FormInput } from '../../../../shared/Form/FormInput';
 import { FormTextarea } from '../../../../shared/Form/FormTextarea';
 import FormDate from '../../../../shared/Form/FormDate';
+import RetencionSugerida from '../../../../shared/RetencionSugerida';
 import { LABEL_BASE } from '../../../../shared/Form/styles';
 import { useConfigValue } from '../../../Configuracion/api/useConfiguracion';
 import { useFieldErrors } from '../../../../hooks/useFieldErrors';
@@ -327,6 +328,12 @@ const FacturaFormContent = ({ editData, closeDrawer }) => {
             value={form.retencion}
             onChange={(e) => setField('retencion', e.target.value)}
             className="text-right tabular-nums"
+          />
+
+          <RetencionSugerida
+            base={baseIva}
+            iva={impuestos}
+            onApply={(monto) => setField('retencion', monto)}
           />
         </section>
 

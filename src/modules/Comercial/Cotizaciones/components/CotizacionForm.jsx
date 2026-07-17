@@ -11,6 +11,7 @@ import { useCotizaciones } from '../api/useCotizaciones';
 import { useInventario }   from '../../../Inventario/api/useInventario'; // ajusta el path
 import { Button }          from '../../../../shared/Button';
 import FormDate            from '../../../../shared/Form/FormDate';
+import RetencionSugerida    from '../../../../shared/RetencionSugerida';
 import apiClient           from '../../../../api/apiClient';
 import { useConfigValue }  from '../../../Configuracion/api/useConfiguracion';
 import { useFormValidation } from '../../../../hooks/useFormValidation';
@@ -466,6 +467,12 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
                 <input type="number" value={form.retencion} min="0" onChange={(e) => setField('retencion', e.target.value)}
                   className="w-full text-sm border border-border-base rounded-lg px-3 py-2 text-right  focus:outline-none focus:ring-2 focus:ring-brand-primary/30" />
               </div>
+
+              <RetencionSugerida
+                base={baseIva}
+                iva={impuestos}
+                onApply={(monto) => setField('retencion', monto)}
+              />
             </fieldset>
 
             {/* Resumen de totales */}
