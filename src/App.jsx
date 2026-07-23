@@ -27,6 +27,7 @@ const PanelPrincipalPage   = lazy(() => import("./modules/Dashboard/PanelPrincip
 const ConfiguracionPage    = lazy(() => import("./modules/Configuracion/ConfiguracionPage"));
 const TrazabilidadPage     = lazy(() => import("./modules/Trazabilidad/TrazabilidadPage"));
 const CostosProduccionPage = lazy(() => import("./modules/CostosProduccion/CostosProduccionPage"));
+const NominaPage           = lazy(() => import("./modules/Nomina/NominaPage"));
 
 const App = () => {
   return (
@@ -57,6 +58,7 @@ const App = () => {
             <Route path="/configuracion"  element={<ConfiguracionPage />} />
             <Route path="/trazabilidad"   element={<TrazabilidadPage />} />
             <Route path="/costos-produccion" element={<CostosProduccionPage />} />
+            <Route path="/nomina" element={<NominaPage />} />
             {/* /costos fue absorbido por /rentabilidad — redirect preserva bookmarks viejos */}
             <Route path="/costos" element={<Navigate to="/rentabilidad" replace />} />
           </Route>

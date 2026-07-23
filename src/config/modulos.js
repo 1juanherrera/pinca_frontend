@@ -18,6 +18,7 @@ export const MODULOS_SISTEMA = [
   { key: 'sincronizacion',   label: 'Sincronización',     grupo: 'Inventario' },
   { key: 'trazabilidad',     label: 'Trazabilidad',       grupo: 'Inventario' },
   { key: 'costos-produccion', label: 'Costos de Producción', grupo: 'Análisis' },
+  { key: 'nomina',           label: 'Nómina',             grupo: 'RRHH' },
 ];
 
 export const ROLES_LABELS = {

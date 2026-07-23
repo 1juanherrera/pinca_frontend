@@ -21,6 +21,7 @@ const ROUTE_TITLES = {
   '/trazabilidad':      'Trazabilidad de Lotes',
   '/configuracion':     'Configuración',
   '/inventario-global': 'Inventario Global',
+  '/nomina':            'Nómina',
 };
 
 const PREFIX_TITLES = [

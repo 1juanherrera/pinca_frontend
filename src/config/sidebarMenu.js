@@ -13,6 +13,7 @@ import {
   Building2,
   GitBranch,
   Calculator,
+  BadgeDollarSign,
 } from 'lucide-react';
 
 // `moduloKey` debe coincidir con los valores en MODULOS_SISTEMA y en la tabla permisos_rol_modulo.
@@ -44,4 +45,7 @@ export const sidebarMenu = [
   // Análisis
   { link: 'rentabilidad',      moduloKey: 'rentabilidad',      label: 'Rentabilidad',     icon: TrendingUp,      grupo: 'Análisis' },
   { link: 'costos-produccion', moduloKey: 'costos-produccion', label: 'Costos Producción',icon: Calculator,      grupo: 'Análisis' },
+
+  // RRHH
+  { link: 'nomina',            moduloKey: 'nomina',            label: 'Nómina',           icon: BadgeDollarSign, grupo: 'RRHH' },
 ];
