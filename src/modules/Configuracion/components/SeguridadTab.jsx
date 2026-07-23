@@ -8,12 +8,17 @@ import { useBoundStore } from '../../../store/useBoundStore';
 const SECCIONES = [
   {
     id: 'sesion', titulo: 'Sesión',  icon: Clock, tone: 'info',
-    descripcion: 'Tiempo de validez del JWT antes de exigir re-login.',
+    descripcion: 'Tiempo de validez del JWT y de la sesión recordada (refresh token).',
     campos: [
       {
         clave: 'jwt_expiracion_horas', label: 'Duración del JWT', sufijo: 'horas',
         min: 1, max: 168, step: 1,
         hint: 'Tras este tiempo el usuario debe volver a iniciar sesión. Recomendado: 8–12 h.',
+      },
+      {
+        clave: 'refresh_token_dias', label: 'Sesión recordada', sufijo: 'días',
+        min: 1, max: 90, step: 1,
+        hint: 'Duración del refresh token: mientras esté vigente, la sesión se renueva sin re-login. Al vencer, login completo. Recomendado: 7–30 días.',
       },
     ],
   },

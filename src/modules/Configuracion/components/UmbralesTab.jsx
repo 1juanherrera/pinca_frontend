@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Save, RotateCcw, Boxes, Wallet, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Save, RotateCcw, Boxes, Wallet, TrendingUp, AlertTriangle, Factory } from 'lucide-react';
 import { Button } from '../../../shared/Button';
 import IconBox from '../../../shared/IconBox';
 import { useConfiguracionGrupo, useBulkUpdateConfig } from '../api/useConfiguracion';
@@ -54,6 +54,23 @@ const SECCIONES = [
       {
         clave: 'margen_objetivo_pct', label: 'Objetivo', sufijo: '%', min: 0, max: 100, step: 0.5,
         hint:  'Por encima: margen marcado en verde (saludable).',
+      },
+    ],
+  },
+  {
+    id:    'operacion',
+    titulo: 'Producción y compras',
+    icon:   Factory,
+    tone:   'info',
+    descripcion: 'Ventanas de tiempo para proyectar el stock y detectar OCs demoradas.',
+    campos: [
+      {
+        clave: 'ventana_consumo_dias', label: 'Ventana de consumo', sufijo: 'días', min: 1, max: 365, step: 1,
+        hint:  'Días hacia atrás para medir el consumo de MP y estimar los días de stock restante. Idealmente igual o mayor a la advertencia de stock.',
+      },
+      {
+        clave: 'oc_demora_dias', label: 'OC demorada', sufijo: 'días', min: 1, max: 365, step: 1,
+        hint:  'Una OC enviada sin recibir por más de estos días se marca como demorada (alerta de seguimiento a proveedor).',
       },
     ],
   },
