@@ -6,6 +6,7 @@ import {
 import { useBoundStore }   from '../../../store/useBoundStore';
 import ERPTable            from '../../../shared/ErpTable';
 import StatusBadge         from '../../../shared/StatusBadge';
+import { fmtFechaCorta }   from '../../../utils/formatters';
 import FlowCard            from '../../../shared/FlowCard';
 import SearchFilterBar     from '../../../shared/SearchFilterBar';
 import RemisionDrawer      from './components/RemisionDrawer';
@@ -87,7 +88,7 @@ const RemisionesTab = () => {
       label: 'Fecha',
       render: (v) => (
         <span className="text-xs text-content-tertiary tabular-nums whitespace-nowrap">
-          {v ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
+          {fmtFechaCorta(v)}
         </span>
       ),
     },

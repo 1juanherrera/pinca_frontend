@@ -11,7 +11,7 @@ import FlowCard from '../../../shared/FlowCard';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay from '../../../shared/AmountDisplay';
 import { Button } from '../../../shared/Button';
-import { fmt } from '../../../utils/formatters';
+import { fmt, fmtFechaCorta } from '../../../utils/formatters';
 import { calcularDiasMora, getEstadoEfectivo } from '../services/carteraService';
 import { useFacturasPaginated } from '../../Comercial/Facturacion/api/useFactura';
 import TableShell from '../../../shared/TableShell';
@@ -205,7 +205,7 @@ const FacturasTable = ({ onRegistrarPago, onVerDetalle, onGestiones, onNotas, on
       label:     'Emisión',
       render: (v) => (
         <span className="text-xs text-content-tertiary tabular-nums whitespace-nowrap">
-          {v ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
+          {fmtFechaCorta(v)}
         </span>
       ),
     },

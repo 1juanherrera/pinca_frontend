@@ -13,19 +13,6 @@ import ExportProduccion from './components/ExportProduccion';
 import { TrazabilidadPorPreparacionDrawer } from '../Trazabilidad/components/TrazabilidadDrawer';
 import ExportTrazabilidad from '../Trazabilidad/components/ExportTrazabilidad';
 
-// ─── Helper: ordenamiento LOCAL de la página visible (el server ya filtra/pagina).
-const applySorting = (data, sortBy, sortDir) => {
-  if (!Array.isArray(data)) return [];
-  return [...data].sort((a, b) => {
-    const av = a[sortBy] ?? '';
-    const bv = b[sortBy] ?? '';
-    const cmp = typeof av === 'number'
-      ? av - bv
-      : String(av).localeCompare(String(bv));
-    return sortDir === 'asc' ? cmp : -cmp;
-  });
-};
-
 // ─── Página ───────────────────────────────────────────────────────────────────
 const ProduccionPage = () => {
   // ── Estado de UI ─────────────────────────────────────────────────────────
@@ -36,8 +23,6 @@ const ProduccionPage = () => {
     desde:  '',
     hasta:  '',
   });
-  const [sortBy,          setSortBy]          = useState('id_preparaciones');
-  const [sortDir,         setSortDir]         = useState('desc');
   const [selectedRow,     setSelectedRow]     = useState(null);
   const [trazaPrepId,     setTrazaPrepId]     = useState(null);
   const [page,            setPage]            = useState(1);
@@ -64,12 +49,6 @@ const ProduccionPage = () => {
   const { preparaciones, meta, stats, itemsFiltro, isLoading, isFetching, refresh } =
     usePreparacionesPaginated(hookFilters);
 
-  // Orden LOCAL de la página visible (el server ordena por fecha DESC).
-  const sorted = useMemo(
-    () => applySorting(preparaciones, sortBy, sortDir),
-    [preparaciones, sortBy, sortDir]
-  );
-
   // Opciones de item para el filtro: vienen del server (todos los ítems con órdenes).
   const itemOptions = itemsFiltro;
 
@@ -80,17 +59,6 @@ const ProduccionPage = () => {
   }, []);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
-  const handleSort = useCallback((field) => {
-    setSortBy(prev => {
-      if (prev === field) {
-        setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-        return prev;
-      }
-      setSortDir('asc');
-      return field;
-    });
-  }, []);
-
   const handleRowClick = useCallback((row) => {
     setSelectedRow(row);
   }, []);
@@ -148,11 +116,8 @@ const ProduccionPage = () => {
           </span>
         )}
         <ProduccionTable
-          data={sorted}
+          data={preparaciones}
           isLoading={isLoading}
-          sortBy={sortBy}
-          sortDir={sortDir}
-          onSort={handleSort}
           onRowClick={handleRowClick}
         />
 

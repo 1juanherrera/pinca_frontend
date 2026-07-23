@@ -6,6 +6,7 @@ import { Button } from '../../../shared/Button';
 import { exportOrdenesCompraExcel } from './ExportOrdenCompraExcel';
 import ERPTable        from '../../../shared/ErpTable';
 import StatusBadge     from '../../../shared/StatusBadge';
+import { fmtFechaCorta } from '../../../utils/formatters';
 import FlowCard        from '../../../shared/FlowCard';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay   from '../../../shared/AmountDisplay';
@@ -175,7 +176,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
       className: 'w-28',
       render: (v) => (
         <span className="text-xs text-content-tertiary tabular-nums whitespace-nowrap">
-          {v ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
+          {fmtFechaCorta(v)}
         </span>
       ),
     },
@@ -185,7 +186,7 @@ const OrdenesTab = ({ onVerDetalle }) => {
       className: 'w-28',
       render: (v) => (
         <span className="text-xs text-content-tertiary tabular-nums whitespace-nowrap">
-          {v ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
+          {fmtFechaCorta(v)}
         </span>
       ),
     },

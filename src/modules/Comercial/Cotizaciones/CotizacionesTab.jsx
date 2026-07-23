@@ -14,7 +14,7 @@ import SearchFilterBar      from '../../../shared/SearchFilterBar';
 import AmountDisplay        from '../../../shared/AmountDisplay';
 import CotizacionDrawer     from './components/CotizacionDrawer';
 import ExportCotizacion     from './components/ExportCotizacion';
-import { fmt }              from '../../../utils/formatters';
+import { fmt, fmtFechaCorta, estaVencida } from '../../../utils/formatters';
 import { useCotizacionesPaginated } from './api/useCotizaciones';
 import TableShell        from '../../../shared/TableShell';
 
@@ -187,9 +187,7 @@ const columns = useMemo(() => [
       align:     'center',
       render: (v) => (
         <span className="text-xs text-content-tertiary tabular-nums whitespace-nowrap">
-          {v
-            ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' })
-            : '—'}
+          {fmtFechaCorta(v)}
         </span>
       ),
     },
@@ -198,7 +196,7 @@ const columns = useMemo(() => [
       label:     'Vencimiento',
       align:     'center',
       render: (v) => {
-        const retrasada = v && new Date(v) < new Date();
+        const retrasada = estaVencida(v);
         return (
           <div className={`inline-flex items-center gap-1.5 text-xs tabular-nums whitespace-nowrap ${
             retrasada ? 'text-semantic-danger font-semibold' : 'text-content-tertiary'

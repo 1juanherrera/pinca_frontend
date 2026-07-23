@@ -37,12 +37,12 @@ const SortIcon = ({ field, sortBy, sortDir }) => {
 
 const TH = ({ label, field, sortBy, sortDir, onSort, className = '' }) => (
   <th
-    onClick={() => onSort(field)}
-    className={`px-4 py-3 text-left text-[10px] font-bold text-content-inverse uppercase tracking-widest cursor-pointer hover:text-content-muted select-none transition-colors ${className}`}
+    onClick={onSort ? () => onSort(field) : undefined}
+    className={`px-4 py-3 text-left text-[10px] font-bold text-content-inverse uppercase tracking-widest select-none transition-colors ${onSort ? 'cursor-pointer hover:text-content-muted' : ''} ${className}`}
   >
     <div className="flex items-center gap-1.5">
       {label}
-      <SortIcon field={field} sortBy={sortBy} sortDir={sortDir} />
+      {onSort && <SortIcon field={field} sortBy={sortBy} sortDir={sortDir} />}
     </div>
   </th>
 );

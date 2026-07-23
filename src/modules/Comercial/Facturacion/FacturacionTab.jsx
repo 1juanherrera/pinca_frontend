@@ -10,7 +10,7 @@ import FlowCard           from '../../../shared/FlowCard';
 import SearchFilterBar    from '../../../shared/SearchFilterBar';
 import AmountDisplay      from '../../../shared/AmountDisplay';
 import FacturaDrawer      from './components/FacturaDrawer';
-import { fmt }            from '../../../utils/formatters';
+import { fmt, fmtFechaCorta, estaVencida } from '../../../utils/formatters';
 import { useFacturasPaginated } from './api/useFactura';
 import TableShell      from '../../../shared/TableShell';
 
@@ -81,7 +81,7 @@ const FacturacionTab = () => {
       render: (v) => (
         <span className="text-xs text-content-tertiary tabular-nums whitespace-nowrap">
           {v
-            ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' })
+            ? fmtFechaCorta(v)
             : '—'}
         </span>
       ),
@@ -91,7 +91,7 @@ const FacturacionTab = () => {
       label:     'Vencimiento',
       className: 'w-32',
       render: (v) => {
-        const retrasada = v && new Date(v) < new Date();
+        const retrasada = estaVencida(v);
         return (
           <div className={`inline-flex items-center gap-1.5 text-xs tabular-nums whitespace-nowrap ${
             retrasada ? 'text-semantic-danger font-semibold' : 'text-content-tertiary'

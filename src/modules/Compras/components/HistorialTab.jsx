@@ -4,6 +4,7 @@ import { CheckCircle2 } from 'lucide-react';
 import ERPTable        from '../../../shared/ErpTable';
 import SearchFilterBar from '../../../shared/SearchFilterBar';
 import AmountDisplay   from '../../../shared/AmountDisplay';
+import { fmtFechaCorta } from '../../../utils/formatters';
 import TableShell from '../../../shared/TableShell';
 import { useComprasPaginated } from '../api/useCompras';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
@@ -64,7 +65,7 @@ const HistorialTab = ({ onVerDetalle }) => {
       className: 'w-28',
       render: (v) => (
         <span className="text-xs text-content-tertiary tabular-nums whitespace-nowrap">
-          {v ? new Date(v).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
+          {fmtFechaCorta(v)}
         </span>
       ),
     },

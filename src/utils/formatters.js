@@ -90,3 +90,29 @@ export const formatLetterDate = (dateString) => {
 
   return `${mesCapitalizado} ${partes[0]} ${partes[2]}`;
 };
+
+/**
+ * Parsea una fecha de DB (date-only 'YYYY-MM-DD') a medianoche LOCAL.
+ * `new Date('2026-07-17')` la interpreta como UTC → en Colombia (UTC-5) da el día
+ * ANTERIOR. Anteponer 'T00:00:00' la fija en hora local. Devuelve null si inválida.
+ */
+export const parseFechaLocal = (v) => {
+  if (!v) return null;
+  const d = new Date(`${String(v).slice(0, 10)}T00:00:00`);
+  return isNaN(d.getTime()) ? null : d;
+};
+
+/** Fecha corta "17 jul 26" (sin off-by-one de timezone). '—' si vacía/inválida. */
+export const fmtFechaCorta = (v) => {
+  const d = parseFechaLocal(v);
+  return d ? d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—';
+};
+
+/** true si la fecha (date-only) ya pasó respecto a HOY (compara solo días, no horas). */
+export const estaVencida = (v) => {
+  const d = parseFechaLocal(v);
+  if (!d) return false;
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  return d < hoy;
+};

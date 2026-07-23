@@ -172,6 +172,10 @@ export const useFactura = (id = null) => {
       );
 
       toast.success(`Factura marcada como ${variables.estado}`);
+      // Invalidar lists() (prefijo de list(filters)) para refrescar las tablas
+      // PAGINADAS (Cartera/FacturacionTab); el setQueryData de arriba solo tocaba
+      // la key array vieja, no las paginadas → quedaban stale.
+      queryClient.invalidateQueries({ queryKey: facturaKeys.lists() });
       queryClient.invalidateQueries({ queryKey: facturaKeys.details() });
     },
     onError: () => toast.error('Error al cambiar el estado'),
