@@ -108,7 +108,7 @@ const ERPTable = ({
                       <td
                         key={j}
                         className={cn(
-                          'bg-surface-base shadow-card',
+                          'bg-surface-base',
                           j === 0 && 'rounded-l-lg border-l-4 border-transparent',
                           j === columns.length - 1 && 'rounded-r-lg',
                           cellPad,
@@ -133,8 +133,7 @@ const ERPTable = ({
                       <td
                         key={col.key}
                         className={cn(
-                          'bg-surface-base shadow-card transition-all',
-                          'group-hover:shadow-lift',
+                          'bg-surface-base transition-all',
                           j === 0 && 'rounded-l-lg border-l-4 border-transparent group-hover:border-brand-primary',
                           j === columns.length - 1 && 'rounded-r-lg',
                           cellPad, cellText,

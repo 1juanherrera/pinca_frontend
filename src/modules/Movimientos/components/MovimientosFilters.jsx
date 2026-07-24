@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Search, X, GitBranch } from 'lucide-react';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import DateRangePicker from '../../../shared/DateRangePicker';
-import { useUsuariosRoles } from '../../Roles/api/useRoles';
+import { useResponsables } from '../api/useMovimientos';
 
 const inputCls =
   'h-8 bg-surface-base border border-border-base rounded-md text-xs font-medium ' +
@@ -13,7 +13,7 @@ export const MovimientosFilters = ({ filters, onChange, onClear, onBuscarLote })
   const [localSearch, setLocalSearch] = useState(filters.search || '');
   const [loteInput,   setLoteInput]   = useState('');
 
-  const { data: usuarios = [] } = useUsuariosRoles();
+  const { data: usuarios = [] } = useResponsables();
   const responsableOptions = useMemo(() => ([
     { value: '', label: 'Todos los responsables' },
     ...usuarios.map((u) => ({

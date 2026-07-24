@@ -83,6 +83,16 @@ export const usePeriodos = () => {
     onError: (e) => toast.error(e?.response?.data?.message || 'Error al eliminar'),
   });
 
+  const pagarMutation = useMutation({
+    mutationFn: ({ id, data }) => apiClient.patch(`${BASE}/periodos/${id}/pagar`, data),
+    onSuccess: (_res, { id }) => {
+      toast.success('Período marcado como pagado');
+      invalidate();
+      qc.invalidateQueries({ queryKey: nominaKeys.periodo(id) });
+    },
+    onError: (e) => toast.error(e?.response?.data?.message || 'Error al marcar como pagado'),
+  });
+
   return {
     periodos: Array.isArray(query.data) ? query.data : [],
     isLoading: query.isLoading,
@@ -90,10 +100,12 @@ export const usePeriodos = () => {
     isGenerando: generarMutation.isPending,
     cerrar: cerrarMutation.mutate,
     eliminar: eliminarMutation.mutate,
+    pagarAsync: pagarMutation.mutateAsync,
+    isPagando: pagarMutation.isPending,
   };
 };
 
-// Detalle de UN período (con renglones). Incluye ajuste de días trabajados.
+// Detalle de UN período (con renglones). Incluye ajuste de días trabajados y abonos.
 export const usePeriodo = (id) => {
   const qc = useQueryClient();
 
@@ -102,6 +114,11 @@ export const usePeriodo = (id) => {
     queryFn: () => apiClient.get(`${BASE}/periodos/${id}`),
     enabled: !!id,
   });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: nominaKeys.periodo(id) });
+    qc.invalidateQueries({ queryKey: nominaKeys.periodos() });
+  };
 
   const ajustarMutation = useMutation({
     mutationFn: ({ detalleId, dias }) =>
@@ -114,11 +131,48 @@ export const usePeriodo = (id) => {
     onError: (e) => toast.error(e?.response?.data?.message || 'Error al ajustar'),
   });
 
+  const abonarMutation = useMutation({
+    mutationFn: ({ detalleId, data }) => apiClient.post(`${BASE}/detalle/${detalleId}/abonos`, data),
+    onSuccess: () => { toast.success('Abono registrado'); invalidate(); },
+    onError: (e) => toast.error(e?.response?.data?.message || 'Error al registrar el abono'),
+  });
+
   return {
     periodo: query.data ?? null,
     detalle: query.data?.detalle ?? [],
     isLoading: query.isLoading,
     ajustar: ajustarMutation.mutate,
     isAjustando: ajustarMutation.isPending,
+    abonarAsync: abonarMutation.mutateAsync,
+    isAbonando: abonarMutation.isPending,
+  };
+};
+
+// ── Descuentos (mercancía sacada / acuerdos verbales) ───────────────────────
+export const useDescuentosEmpleado = (empleadoId) => {
+  const qc = useQueryClient();
+
+  const query = useQuery({
+    queryKey: nominaKeys.descuentos(empleadoId),
+    queryFn: () => apiClient.get(`${BASE}/empleados/${empleadoId}/descuentos`),
+    enabled: !!empleadoId,
+  });
+
+  const registrarMutation = useMutation({
+    mutationFn: (data) => apiClient.post(`${BASE}/empleados/${empleadoId}/descuentos`, data),
+    onSuccess: () => {
+      toast.success('Descuento registrado');
+      qc.invalidateQueries({ queryKey: nominaKeys.descuentos(empleadoId) });
+      qc.invalidateQueries({ queryKey: nominaKeys.periodos() });
+      qc.invalidateQueries({ queryKey: [...nominaKeys.all, 'periodo'] });
+    },
+    onError: (e) => toast.error(e?.response?.data?.message || 'Error al registrar el descuento'),
+  });
+
+  return {
+    descuentos: Array.isArray(query.data) ? query.data : [],
+    isLoading: query.isLoading,
+    registrarAsync: registrarMutation.mutateAsync,
+    isRegistrando: registrarMutation.isPending,
   };
 };

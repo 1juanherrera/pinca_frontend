@@ -108,6 +108,10 @@ export const fmtFechaCorta = (v) => {
   return d ? d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—';
 };
 
+/** Como fmtFechaCorta pero sin año — para UIs donde el año ya aparece en otro
+ * lado (ej. etiquetas de período de Nómina: "Primera quincena - Agosto 2026"). */
+export const fmtFechaSinAno = (v) => fmtFechaCorta(v).replace(/ de \d{2}$/, '');
+
 /** true si la fecha (date-only) ya pasó respecto a HOY (compara solo días, no horas). */
 export const estaVencida = (v) => {
   const d = parseFechaLocal(v);

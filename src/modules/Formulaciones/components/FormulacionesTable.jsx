@@ -54,14 +54,15 @@ const IngredienteProveedorSelect = ({ opciones, selectedId, onSelect }) => {
         ref={btnRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border transition-all max-w-[160px] ${
+        className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border transition-all max-w-[100px] min-w-0 ${
           selected
             ? 'bg-semantic-warning-subtle border-semantic-warning/20 text-semantic-warning-fg hover:bg-semantic-warning-subtle'
             : 'bg-surface-subtle border-border-base text-content-tertiary hover:bg-surface-muted'
         }`}
+        title={selected ? selected.nombre_empresa : undefined}
       >
         <Truck size={9} className="shrink-0" />
-        <span className="truncate">
+        <span className="truncate min-w-0">
           {selected ? selected.nombre_empresa : 'Proveedor'}
         </span>
         <ChevronDown size={9} className={`shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -438,7 +439,7 @@ export const FormulacionesTable = ({
                                             {formulacion.materia_prima_codigo || 'Sin código'}
                                         </span>
                                         {formulacion.nota && (
-                                            <span className="inline-flex items-center max-w-[160px] truncate text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-muted text-content-secondary border border-border-base" title={formulacion.nota}>
+                                            <span className="inline-flex items-center max-w-[100px] min-w-0 truncate text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-muted text-content-secondary border border-border-base" title={formulacion.nota}>
                                                 {formulacion.nota}
                                             </span>
                                         )}

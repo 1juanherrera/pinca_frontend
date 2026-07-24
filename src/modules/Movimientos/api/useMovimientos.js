@@ -31,3 +31,13 @@ export const useMovimientos = (filters = {}) => {
     isFetching: query.isFetching,
   };
 };
+
+// Responsables para el filtro de Movimientos. Usa /movimientos/responsables
+// (accesible a cualquier autenticado), NO /roles/usuarios (solo-superadmin) que
+// devolvía 403 a admin/operador/visor al abrir la vista.
+export const useResponsables = () =>
+  useQuery({
+    queryKey: [...movimientosKeys.all, 'responsables'],
+    queryFn: () => apiClient.get('/movimientos/responsables'),
+    staleTime: 5 * 60 * 1000,
+  });

@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   X, KeyRound, Eye, EyeOff, LogOut, ShieldCheck, UserCircle,
-  CheckCircle2, Clock, History, Settings2, Building2, Save,
-  Globe, Phone, MapPin, FileText, Hash, AlertCircle, Bell,
+  Clock, History, Settings2, AlertCircle, Bell,
   BellOff, Rows3, Maximize2, Palette, Check, User as UserIcon, HeartPulse,
   Sun, Moon, Monitor,
 } from 'lucide-react';
@@ -73,21 +72,11 @@ const SectionTitle = ({ icon: Icon, children }) => (
   </p>
 );
 
-const FieldInput = ({ label, value, onChange, icon: Icon, placeholder, type = 'text' }) => (
-  <div>
-    <label className="flex items-center gap-1 text-xs text-content-tertiary mb-1">{Icon && <Icon size={11} />}{label}</label>
-    <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-      className="w-full border border-border-base rounded-lg px-3 py-2 text-sm bg-surface-subtle text-content-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:bg-surface-base transition-all" />
-  </div>
-);
 
 // ─── TAB: Mi Cuenta ───────────────────────────────────────────────────────────
 const MiCuentaTab = ({ user, token, onLogout }) => {
   const [countdown, setCountdown] = useState(0);
   const [pctUsed,   setPctUsed]   = useState(0);
-  const [show, setShow]  = useState({ curr: false, next: false, conf: false });
-  const [form, setForm]  = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  const [ok,   setOk]    = useState(false);
   const [nombreInput, setNombreInput] = useState(user?.nombre ?? '');
   const setAuth = useBoundStore(s => s.setAuth);
 
@@ -97,7 +86,6 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
   const rol   = user?.rol  ?? 'visor';
   const style = ROL_STYLES[rol] ?? ROL_STYLES.visor;
   const avatarGrad = useAvatarGradient(rol);
-  const modulos = user?.modulos ?? [];
 
   // Countdown del token
   useEffect(() => {
@@ -118,21 +106,6 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
   const jwt = decodeJwt(token);
   const loginAt = jwt?.iat ? new Date(jwt.iat * 1000).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
 
-  const { mutate: cambiarPwd, isPending } = useMutation({
-    mutationFn: (body) => apiClient.patch(API_ROUTES.AUTH.CAMBIAR_PASSWORD, body),
-    onSuccess: (res) => {
-      // El backend bumpea token_version al cambiar password — usar el token
-      // nuevo para que esta sesión no caiga al próximo request.
-      const nuevoToken = res?.token;
-      if (nuevoToken && user) setAuth(nuevoToken, user);
-      toast.success('Contraseña actualizada');
-      setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setOk(true);
-      setTimeout(() => setOk(false), 3000);
-    },
-    onError: (e) => toast.error(e?.response?.data?.msg || 'Contraseña actual incorrecta'),
-  });
-
   const { mutate: guardarNombre, isPending: isPendingNombre } = useMutation({
     mutationFn: (nombre) => apiClient.patch(API_ROUTES.AUTH.ACTUALIZAR_PERFIL, { nombre }),
     onSuccess: (res) => {
@@ -147,19 +120,6 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
     },
     onError: (e) => toast.error(e?.response?.data?.msg || 'No se pudo actualizar el nombre'),
   });
-
-  const handlePwd = (e) => {
-    e.preventDefault();
-    if (form.newPassword.length < 8) return toast.error('Mínimo 8 caracteres.');
-    if (form.newPassword !== form.confirmPassword) return toast.error('Las contraseñas no coinciden.');
-    cambiarPwd({ currentPassword: form.currentPassword, newPassword: form.newPassword });
-  };
-
-  const modulosPorGrupo = MODULOS_SISTEMA.reduce((acc, m) => {
-    if (!modulos.includes(m.key)) return acc;
-    (acc[m.grupo] ??= []).push(m.label);
-    return acc;
-  }, {});
 
   const barColor = pctUsed < 50 ? 'bg-semantic-success' : pctUsed < 75 ? 'bg-semantic-warning' : 'bg-semantic-danger';
 
@@ -195,28 +155,6 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
         </div>
         <p className="text-[11px] text-content-muted">Inicio de sesión: <span className="text-content-secondary font-medium">{loginAt}</span></p>
       </div>
-
-      {/* Módulos */}
-      {Object.keys(modulosPorGrupo).length > 0 && (
-        <div>
-          <SectionTitle icon={CheckCircle2}>Módulos con acceso</SectionTitle>
-          <div className="flex flex-col gap-1.5">
-            {Object.entries(modulosPorGrupo).map(([grupo, labels]) => (
-              <div key={grupo} className="flex flex-wrap items-start gap-1.5">
-                <span className="text-[10px] text-content-muted font-medium w-20 shrink-0 pt-0.5">{grupo}</span>
-                <div className="flex flex-wrap gap-1">
-                  {labels.map(label => (
-                    <span key={label} className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-base border border-border-subtle text-content-secondary rounded-full text-[11px]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-semantic-success/80 shrink-0" />
-                      {label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Editar perfil */}
       <div>
@@ -254,42 +192,74 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
         </form>
       </div>
 
-      {/* Cambiar contraseña */}
-      <div>
-        <SectionTitle icon={KeyRound}>Cambiar contraseña</SectionTitle>
-        <form onSubmit={handlePwd} className="flex flex-col gap-2.5">
-          {[
-            { key: 'currentPassword', label: 'Contraseña actual',          sk: 'curr' },
-            { key: 'newPassword',     label: 'Nueva contraseña',            sk: 'next' },
-            { key: 'confirmPassword', label: 'Confirmar nueva contraseña',  sk: 'conf' },
-          ].map(({ key, label, sk }) => (
-            <div key={key} className="relative">
-              <label className="block text-xs text-content-tertiary mb-1">{label}</label>
-              <div className="relative">
-                <input type={show[sk] ? 'text' : 'password'} value={form[key]} required
-                  onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                  className="w-full border border-border-base rounded-lg px-3 py-2 pr-9 text-sm bg-surface-subtle text-content-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:bg-surface-base transition-all" />
-                <button type="button" onClick={() => setShow(s => ({ ...s, [sk]: !s[sk] }))}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-secondary">
-                  {show[sk] ? <EyeOff size={14} /> : <Eye size={14} />}
-                </button>
-              </div>
-            </div>
-          ))}
-          <button type="submit" disabled={isPending}
-            className={`w-full py-2 rounded-lg text-sm font-semibold transition-all mt-1 ${
-              ok ? 'bg-semantic-success text-content-inverse' : 'bg-content-primary hover:bg-content-secondary text-content-inverse disabled:opacity-60'
-            }`}>
-            {isPending ? 'Guardando…' : ok ? '¡Actualizada correctamente!' : 'Guardar contraseña'}
-          </button>
-        </form>
-      </div>
-
       {/* Logout */}
       <button onClick={onLogout}
         className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-semantic-danger/20 text-white hover:bg-semantic-danger/80 bg-semantic-danger transition-colors text-sm font-medium">
         <LogOut size={15} /> Cerrar sesión
       </button>
+    </div>
+  );
+};
+
+// ─── Cambiar contraseña (vive dentro del tab Seguridad) ───────────────────────
+const CambiarPasswordForm = () => {
+  const user    = useBoundStore(s => s.user);
+  const setAuth = useBoundStore(s => s.setAuth);
+  const [show, setShow] = useState({ curr: false, next: false, conf: false });
+  const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [ok,   setOk]   = useState(false);
+
+  const { mutate: cambiarPwd, isPending } = useMutation({
+    mutationFn: (body) => apiClient.patch(API_ROUTES.AUTH.CAMBIAR_PASSWORD, body),
+    onSuccess: (res) => {
+      // El backend bumpea token_version al cambiar password — usar el token
+      // nuevo para que esta sesión no caiga al próximo request.
+      const nuevoToken = res?.token;
+      if (nuevoToken && user) setAuth(nuevoToken, user);
+      toast.success('Contraseña actualizada');
+      setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setOk(true);
+      setTimeout(() => setOk(false), 3000);
+    },
+    onError: (e) => toast.error(e?.response?.data?.msg || 'Contraseña actual incorrecta'),
+  });
+
+  const handlePwd = (e) => {
+    e.preventDefault();
+    if (form.newPassword.length < 8) return toast.error('Mínimo 8 caracteres.');
+    if (form.newPassword !== form.confirmPassword) return toast.error('Las contraseñas no coinciden.');
+    cambiarPwd({ currentPassword: form.currentPassword, newPassword: form.newPassword });
+  };
+
+  return (
+    <div>
+      <SectionTitle icon={KeyRound}>Cambiar contraseña</SectionTitle>
+      <form onSubmit={handlePwd} className="flex flex-col gap-2.5">
+        {[
+          { key: 'currentPassword', label: 'Contraseña actual',          sk: 'curr' },
+          { key: 'newPassword',     label: 'Nueva contraseña',            sk: 'next' },
+          { key: 'confirmPassword', label: 'Confirmar nueva contraseña',  sk: 'conf' },
+        ].map(({ key, label, sk }) => (
+          <div key={key} className="relative">
+            <label className="block text-xs text-content-tertiary mb-1">{label}</label>
+            <div className="relative">
+              <input type={show[sk] ? 'text' : 'password'} value={form[key]} required autoComplete={sk === 'curr' ? 'current-password' : 'new-password'}
+                onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                className="w-full border border-border-base rounded-lg px-3 py-2 pr-9 text-sm bg-surface-subtle text-content-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:bg-surface-base transition-all" />
+              <button type="button" onClick={() => setShow(s => ({ ...s, [sk]: !s[sk] }))}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-secondary">
+                {show[sk] ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+          </div>
+        ))}
+        <button type="submit" disabled={isPending}
+          className={`w-full py-2 rounded-lg text-sm font-semibold transition-all mt-1 ${
+            ok ? 'bg-semantic-success text-content-inverse' : 'bg-content-primary hover:bg-content-secondary text-content-inverse disabled:opacity-60'
+          }`}>
+          {isPending ? 'Guardando…' : ok ? '¡Actualizada correctamente!' : 'Guardar contraseña'}
+        </button>
+      </form>
     </div>
   );
 };
@@ -327,6 +297,9 @@ const SeguridadTab = ({ user }) => {
           ))}
         </div>
       </div>
+
+      {/* Cambiar contraseña */}
+      <CambiarPasswordForm />
 
       {/* Historial de accesos */}
       <div>
@@ -553,72 +526,6 @@ const PreferenciasTab = () => {
   );
 };
 
-// ─── TAB: Empresa ─────────────────────────────────────────────────────────────
-const EmpresaTab = () => {
-  const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
-    queryKey: ['empresa'],
-    queryFn:  () => apiClient.get(API_ROUTES.EMPRESA.GET),
-    select:   (r) => (Array.isArray(r) ? r[0] : r) ?? {},
-  });
-
-  const [form, setForm] = useState(null);
-  const [seededData, setSeededData] = useState(null); // última `data` sembrada
-
-  // Sembrar/re-sembrar el draft desde el servidor en render (sin setState-in-effect
-  // ni refs). Re-siembra cuando la data del backend cambia de referencia y el usuario
-  // NO tiene ediciones sin guardar (form === seededData). Al editar, form pasa a ser
-  // otra referencia y deja de re-sembrarse (protege lo tecleado). Tras guardar,
-  // onSuccess pone form=null → re-siembra con lo que devuelve el backend (refleja su
-  // normalización). Antes se sembraba una sola vez y quedaba pegado el buffer local.
-  if (data && data !== seededData && (form === null || form === seededData)) {
-    setSeededData(data);
-    setForm(data);
-  }
-
-  const { mutate: save, isPending } = useMutation({
-    mutationFn: (body) => apiClient.put(API_ROUTES.EMPRESA.UPDATE, body),
-    onSuccess: () => {
-      toast.success('Datos de empresa actualizados');
-      setForm(null); setSeededData(null); // fuerza re-seed desde la data refrescada
-      qc.invalidateQueries({ queryKey: ['empresa'] });
-    },
-    onError:   () => toast.error('Error al guardar'),
-  });
-
-  if (isLoading || !form) return <p className="p-5 text-sm text-content-muted">Cargando datos de empresa…</p>;
-
-  const FIELDS = [
-    { key: 'razon_social', label: 'Razón social',  icon: Building2, placeholder: 'Nombre legal de la empresa' },
-    { key: 'nit',          label: 'NIT',            icon: Hash,       placeholder: '000000000-0' },
-    { key: 'ciudad',       label: 'Ciudad',         icon: MapPin,     placeholder: 'Ciudad' },
-    { key: 'telefono',     label: 'Teléfono',       icon: Phone,      placeholder: '+57 300 000 0000' },
-    { key: 'pagina_web',   label: 'Página web',     icon: Globe,      placeholder: 'https://ejemplo.com' },
-    { key: 'descripcion',  label: 'Descripción',    icon: FileText,   placeholder: 'Breve descripción de la empresa', type: 'text' },
-  ];
-
-  return (
-    <div className="flex flex-col gap-5 p-5">
-      <SectionTitle icon={Building2}>Datos de la empresa</SectionTitle>
-
-      <div className="grid grid-cols-1 gap-3">
-        {FIELDS.map(({ key, label, icon, placeholder, type }) => (
-          <FieldInput key={key} label={label} icon={icon} placeholder={placeholder} type={type ?? 'text'}
-            value={form[key] ?? ''}
-            onChange={val => setForm(f => ({ ...f, [key]: val }))}
-          />
-        ))}
-      </div>
-
-      <button onClick={() => save(form)} disabled={isPending}
-        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-content-primary hover:bg-content-secondary text-content-inverse text-sm font-semibold transition-colors disabled:opacity-60">
-        <Save size={15} />
-        {isPending ? 'Guardando…' : 'Guardar cambios'}
-      </button>
-    </div>
-  );
-};
-
 // ─── TAB: Roles y Permisos ────────────────────────────────────────────────────
 const RolesTab = () => {
   const [subTab, setSubTab] = useState('modulos');
@@ -809,9 +716,9 @@ const UserPanel = () => {
     { key: 'cuenta',      label: 'Mi Cuenta',  icon: UserCircle },
     { key: 'seguridad',   label: 'Seguridad',  icon: History    },
     { key: 'prefs',       label: 'Ajustes',    icon: Settings2  },
-    // Tabs admin (admin + superadmin)
+    // Tabs admin (admin + superadmin). Los datos de empresa viven en
+    // Configuración → Empresa, por eso ya no se duplica esa tab acá.
     ...(isAdminAccess ? [
-      { key: 'empresa',   label: 'Empresa',    icon: Building2  },
       { key: 'salud',     label: 'Salud',      icon: HeartPulse },
     ] : []),
     // Tab exclusiva de superadmin: gestión de roles
@@ -872,7 +779,6 @@ const UserPanel = () => {
           {tab === 'cuenta'    && <MiCuentaTab    user={user} token={token} onLogout={handleLogout} />}
           {tab === 'seguridad' && <SeguridadTab   user={user} />}
           {tab === 'prefs'     && <PreferenciasTab />}
-          {tab === 'empresa'   && <EmpresaTab />}
           {tab === 'roles'     && <RolesTab />}
           {tab === 'salud'     && (
             <div className="p-5">

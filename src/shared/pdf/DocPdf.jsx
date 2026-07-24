@@ -49,27 +49,29 @@ const s = StyleSheet.create({
 
   accent: { height: 1, backgroundColor: '#cccccc', marginTop: 10 },
 
-  fields: { marginTop: 14 },
-  fRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: HAIR, paddingVertical: 6 },
-  fCol: { flex: 1, flexDirection: 'row', paddingRight: 16 },
-  fLabel: { color: MUTED, marginRight: 5 },
-  fValue: { fontFamily: 'Outfit', fontWeight: 700, color: INK, flex: 1 },
+  // Grid compacto de campos (cliente/empleado/período/etc.) — 3 por fila,
+  // label chico arriba + valor abajo, mismo lenguaje visual que infoCard.
+  fields: { marginTop: 10, borderWidth: 1, borderColor: HAIR, borderRadius: 5, paddingVertical: 7, paddingHorizontal: 12, flexDirection: 'row', flexWrap: 'wrap' },
+  fItem: { width: '33.33%', marginBottom: 5 },
+  fItemInner: { paddingRight: 10 },
+  fItemLabel: { fontSize: 6.5, fontFamily: 'Outfit', fontWeight: 700, letterSpacing: 0.4, color: '#999999', marginBottom: 2 },
+  fItemValue: { fontSize: 8.5, fontFamily: 'Outfit', fontWeight: 700, color: INK },
 
-  table: { marginTop: 20 },
-  thead: { flexDirection: 'row', backgroundColor: DARK, paddingVertical: 8, paddingHorizontal: 10 },
+  table: { marginTop: 14 },
+  thead: { flexDirection: 'row', backgroundColor: DARK, paddingVertical: 7, paddingHorizontal: 10 },
   th: { color: '#fff', fontSize: 8, fontFamily: 'Outfit', fontWeight: 700, letterSpacing: 0.4 },
-  tr: { flexDirection: 'row', paddingVertical: 7, paddingHorizontal: 10, borderBottomWidth: 1, borderBottomColor: HAIR },
+  tr: { flexDirection: 'row', paddingVertical: 6, paddingHorizontal: 10, borderBottomWidth: 1, borderBottomColor: HAIR },
   trAlt: { backgroundColor: ZEBRA },
   td: { fontSize: 8.5, color: INK },
   tdBold: { fontFamily: 'Outfit', fontWeight: 700, color: INK },
   emptyRow: { paddingVertical: 16, textAlign: 'center', color: MUTED, fontSize: 8.5, flex: 1 },
 
-  totalWrap: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 14 },
+  totalWrap: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
   totalBox: { minWidth: 250, borderWidth: 1, borderColor: HAIR },
-  totRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, paddingHorizontal: 14 },
+  totRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, paddingHorizontal: 14 },
   totLabel: { fontSize: 9, color: INK },
   totVal: { fontSize: 9, color: INK },
-  totRowGrand: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 9, paddingHorizontal: 14, backgroundColor: ZEBRA, borderLeftWidth: 4, borderLeftColor: DARK },
+  totRowGrand: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 7, paddingHorizontal: 14, backgroundColor: ZEBRA, borderLeftWidth: 4, borderLeftColor: DARK },
   totLabelGrand: { fontSize: 11, fontFamily: 'Outfit', fontWeight: 700, color: INK },
   totValGrand: { fontSize: 12, fontFamily: 'Outfit', fontWeight: 700, color: INK },
 
@@ -79,10 +81,14 @@ const s = StyleSheet.create({
   montoVal: { fontSize: 26, fontFamily: 'Outfit', fontWeight: 700, color: INK, marginTop: 5, lineHeight: 1 },
   montoSub: { fontSize: 8, color: MUTED, marginTop: 5, letterSpacing: 0.5 },
 
-  obsWrap: { marginTop: 22 },
+  obsWrap: { marginTop: 14 },
   obsHead: { fontFamily: 'Outfit', fontWeight: 700, fontSize: 8.5, marginBottom: 3 },
   obsTxt: { fontSize: 8.5, color: INK, lineHeight: 1.5 },
-  signRow: { flexDirection: 'row', marginTop: 'auto', paddingTop: 24 },
+  // NUNCA marginTop:'auto' acá — con contenido variable, @react-pdf/renderer
+  // calcula mal el "stretch to bottom" al paginar: si el resto no entra
+  // completo en la página 1, crea una página 2 casi en blanco e intenta
+  // volver a estirar el sobrante hasta el fondo de ESA página también.
+  signRow: { flexDirection: 'row', marginTop: 20, paddingTop: 16 },
   signCol: { flex: 1, borderTopWidth: 1, borderTopColor: HAIR, paddingTop: 5 },
   signGap: { width: 40 },
   signLabel: { fontSize: 8, color: MUTED },
@@ -132,9 +138,6 @@ export const DocPdf = ({
   campos = [], columnas = [], filas = [], totales = [], monto = null,
   observaciones, obsLabel = 'Observaciones', firmas = null, watermark = null, docTitle,
 }) => {
-  const filasCampos = [];
-  for (let i = 0; i < campos.length; i += 2) filasCampos.push([campos[i], campos[i + 1]]);
-
   return (
     <Document title={docTitle || `${titulo} ${numero || ''}`.trim()} author={E.nombre}>
       <Page size="A4" style={s.page}>
@@ -166,17 +169,15 @@ export const DocPdf = ({
         </View>
         <View style={s.accent} />
 
-        {/* Campos (cliente/proveedor/etc.) */}
-        {filasCampos.length > 0 ? (
+        {/* Campos (cliente/proveedor/etc.) — grid compacto, 3 por fila */}
+        {campos.length > 0 ? (
           <View style={s.fields}>
-            {filasCampos.map((par, i) => (
-              <View key={i} style={s.fRow}>
-                {par.map((f, j) => f ? (
-                  <View key={j} style={s.fCol}>
-                    <Text style={s.fLabel}>{f[0]}</Text>
-                    <Text style={s.fValue}>{f[1] ?? '—'}</Text>
-                  </View>
-                ) : <View key={j} style={s.fCol} />)}
+            {campos.map((f, i) => (
+              <View key={i} style={s.fItem}>
+                <View style={s.fItemInner}>
+                  <Text style={s.fItemLabel}>{String(f[0] ?? '').replace(/:$/, '').toUpperCase()}</Text>
+                  <Text style={s.fItemValue}>{f[1] ?? '—'}</Text>
+                </View>
               </View>
             ))}
           </View>

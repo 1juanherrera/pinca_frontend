@@ -5,6 +5,7 @@ import PageTabs from '../../shared/PageTabs';
 import EmpleadosTab from './components/EmpleadosTab';
 import PeriodosTab from './components/PeriodosTab';
 import EmpleadoForm from './components/EmpleadoForm';
+import ExportDesprendible from './components/ExportDesprendible';
 
 const TABS = [
   { key: 'empleados', label: 'Empleados', icon: Users },
@@ -28,8 +29,9 @@ const NominaPage = () => {
 
       {tab === 'empleados' ? <EmpleadosTab /> : <PeriodosTab />}
 
-      {/* Drawer global de empleado (se auto-monta según activeDrawer) */}
+      {/* Drawer/modal globales (se auto-montan según activeDrawer) */}
       <EmpleadoForm />
+      <ExportDesprendible />
     </div>
   );
 };
