@@ -104,7 +104,7 @@ const IngredienteProveedorSelect = ({ opciones, selectedId, onSelect }) => {
                 <div className="text-right shrink-0">
                   <p className="text-[11px] font-bold text-semantic-warning-fg">{fmtCOP(op.precio_por_kg)}/kg</p>
                   {op.unidad_compra && (
-                    <p className="text-[9px] text-content-muted">{fmtCOP(op.precio_unitario)}/{op.unidad_compra}</p>
+                    <p className="text-[9px] text-content-muted">{fmtCOP(op.precio_con_iva ?? op.precio_unitario)}/{op.unidad_compra}</p>
                   )}
                 </div>
               </button>

@@ -47,10 +47,11 @@ export const CostCalculator = ({
     return disponible < requerido;
   });
 
-  const puedePreparar = tieneRecalculo;
+  const volumenBase = parseFloat(productDetail?.item?.volumen_base) || 0;
+  const puedePreparar = tieneRecalculo || volumenBase > 0;
 
-  const razonBloqueo = !tieneRecalculo
-    ? 'Recalcula el volumen antes de preparar.'
+  const razonBloqueo = !puedePreparar
+    ? 'El producto no tiene volumen base definido.'
     : null;
 
   // 1. Estado de espera
@@ -124,10 +125,21 @@ export const CostCalculator = ({
           </div>
 
           {!recalculatedData && (
-            <div className="flex justify-center items-center py-2 bg-surface-subtle rounded-lg border border-border-subtle">
-              <p className="text-[10px] text-content-secondary font-bold uppercase tracking-tight flex items-center gap-1">
-                <Info size={12} /> Escribe un volumen y presiona Enter o el botón
-              </p>
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-center items-center py-2 bg-surface-subtle rounded-lg border border-border-subtle">
+                <p className="text-[10px] text-content-secondary font-bold uppercase tracking-tight flex items-center gap-1">
+                  <Info size={12} /> Escribe un volumen y presiona Enter o el botón
+                </p>
+              </div>
+              {volumenBase > 0 && (
+                <Button
+                  onClick={() => openDrawer('PREPARATION_FORM', { productDetail, recalculatedData: null, totalUnificadoMP })}
+                  children={`PREPARAR (${volumenBase} gal)`}
+                  variant="dark"
+                  icon={Stamp}
+                  className="w-full"
+                />
+              )}
             </div>
           )}
         </div>
