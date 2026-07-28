@@ -7,8 +7,43 @@ import { FormInput } from '../../../shared/Form/FormInput';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import FormDate from '../../../shared/Form/FormDate';
 import { fmt } from '../../../utils/formatters';
+import cn from '../../../utils/cn';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 import { useEmpleados, usePeriodos } from '../api/useNomina';
+
+const MESES = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+];
+const pad = (n) => String(n).padStart(2, '0');
+const toIso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const capitalizar = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// Quincena por defecto según el día de hoy — para no obligar a elegir si es obvio.
+const quincenaPorDefecto = () => (new Date().getDate() <= 15 ? 'primera' : 'segunda');
+
+/** Rango de fechas sugerido para el mes en curso según periodicidad + quincena. */
+const rangoSugerido = (tipo, quincena) => {
+  const hoy = new Date();
+  const anio = hoy.getFullYear();
+  const mes = hoy.getMonth();
+  if (tipo === 'mensual') {
+    return { fecha_inicio: toIso(new Date(anio, mes, 1)), fecha_fin: toIso(new Date(anio, mes + 1, 0)) };
+  }
+  if (quincena === 'segunda') {
+    return { fecha_inicio: toIso(new Date(anio, mes, 16)), fecha_fin: toIso(new Date(anio, mes + 1, 0)) };
+  }
+  return { fecha_inicio: toIso(new Date(anio, mes, 1)), fecha_fin: toIso(new Date(anio, mes, 15)) };
+};
+
+const etiquetaSugerida = (tipo, quincena, fechaInicioIso) => {
+  const d = fechaInicioIso ? new Date(`${fechaInicioIso}T00:00:00`) : new Date();
+  const mes = MESES[d.getMonth()];
+  const anio = d.getFullYear();
+  return tipo === 'mensual'
+    ? `${capitalizar(mes)} ${anio}`
+    : `${quincena === 'segunda' ? 'Segunda' : 'Primera'} quincena de ${mes} ${anio}`;
+};
 
 const GenerarPeriodoModal = ({ isOpen, onClose, onGenerated }) => {
   const { generarAsync, isGenerando } = usePeriodos();
@@ -20,15 +55,48 @@ const GenerarPeriodoModal = ({ isOpen, onClose, onGenerated }) => {
 
   const activos = useMemo(() => empleados.filter((e) => Number(e.activo) === 1), [empleados]);
   const [excluidos, setExcluidos] = useState(() => new Set());
+  const [quincena, setQuincena] = useState(quincenaPorDefecto);
 
-  const { register, handleSubmit, reset, control, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, control, watch, setValue, getValues, formState: { errors } } = useForm();
+  const tipo = watch('tipo');
 
   useEffect(() => {
     if (isOpen) {
-      reset({ etiqueta: '', tipo: 'quincenal', fecha_inicio: '', fecha_fin: '' });
+      const q = quincenaPorDefecto();
+      setQuincena(q);
+      const rango = rangoSugerido('quincenal', q);
+      reset({ etiqueta: etiquetaSugerida('quincenal', q, rango.fecha_inicio), tipo: 'quincenal', ...rango });
       setExcluidos(new Set());
     }
   }, [isOpen, reset]);
+
+  // Autocompleta "Desde"/"Hasta" (y la etiqueta, si el usuario no la tocó) cada
+  // vez que cambia la periodicidad o la quincena — reduce la fricción de tener
+  // que calcular las fechas a mano. Los campos siguen siendo editables después.
+  const aplicarAutocompletado = (nuevoTipo, nuevaQuincena) => {
+    const rango = rangoSugerido(nuevoTipo, nuevaQuincena);
+    setValue('fecha_inicio', rango.fecha_inicio, { shouldValidate: true });
+    setValue('fecha_fin', rango.fecha_fin, { shouldValidate: true });
+    const etiquetaActual = getValues('etiqueta');
+    const eraAutogenerada =
+      !etiquetaActual
+      || etiquetaActual === etiquetaSugerida('quincenal', 'primera', null)
+      || etiquetaActual === etiquetaSugerida('quincenal', 'segunda', null)
+      || etiquetaActual === etiquetaSugerida('mensual', null, null);
+    if (eraAutogenerada) {
+      setValue('etiqueta', etiquetaSugerida(nuevoTipo, nuevaQuincena, rango.fecha_inicio));
+    }
+  };
+
+  const handleTipoChange = (val) => {
+    setValue('tipo', val);
+    aplicarAutocompletado(val, quincena);
+  };
+
+  const handleQuincenaChange = (val) => {
+    setQuincena(val);
+    aplicarAutocompletado('quincenal', val);
+  };
 
   const toggleExcluido = (id) => setExcluidos((prev) => {
     const next = new Set(prev);
@@ -81,22 +149,33 @@ const GenerarPeriodoModal = ({ isOpen, onClose, onGenerated }) => {
           registration={register('etiqueta', { required: 'La etiqueta es obligatoria' })}
         />
 
-        <Controller
-          name="tipo"
-          control={control}
-          render={({ field }) => (
+        <div className={cn('grid gap-4', tipo === 'quincenal' ? 'grid-cols-2' : 'grid-cols-1')}>
+          <FormSelect
+            label="Periodicidad"
+            options={[
+              { value: 'quincenal', label: 'Quincenal (15 días base)' },
+              { value: 'mensual', label: 'Mensual (30 días base)' },
+            ]}
+            value={tipo}
+            onChange={handleTipoChange}
+            error={errors.tipo?.message}
+          />
+          {tipo === 'quincenal' && (
             <FormSelect
-              label="Periodicidad"
+              label="Quincena"
               options={[
-                { value: 'quincenal', label: 'Quincenal (15 días base)' },
-                { value: 'mensual', label: 'Mensual (30 días base)' },
+                { value: 'primera', label: '1 al 15' },
+                { value: 'segunda', label: '16 al fin de mes' },
               ]}
-              value={field.value}
-              onChange={field.onChange}
-              error={errors.tipo?.message}
+              value={quincena}
+              onChange={handleQuincenaChange}
             />
           )}
-        />
+        </div>
+
+        <p className="text-[11px] text-content-tertiary -mt-2">
+          Las fechas de abajo se autocompletan según la periodicidad — podés ajustarlas si la liquidación no es del mes en curso.
+        </p>
 
         <div className="grid grid-cols-2 gap-4">
           <Controller

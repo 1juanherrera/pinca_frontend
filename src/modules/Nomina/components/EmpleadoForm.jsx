@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Save } from 'lucide-react';
 import Drawer from '../../../shared/Drawer';
+import { Button } from '../../../shared/Button';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import { InputMoneda } from '../../../shared/Form/InputMoneda';
@@ -57,21 +58,10 @@ const EmpleadoForm = () => {
       description={payload ? 'Modifica los datos del empleado.' : 'Registra un empleado para la nómina.'}
       footer={
         <>
-          <button
-            onClick={handleClose}
-            type="button"
-            className="px-5 py-2.5 text-sm font-semibold text-content-secondary bg-surface-base border border-border-base/80 rounded-xl hover:bg-surface-subtle transition-all"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            form="empleado-form"
-            disabled={isSaving}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-semantic-success rounded-xl hover:bg-semantic-success disabled:opacity-70 transition-all shadow-sm"
-          >
-            <Save size={18} /> {payload ? 'Actualizar' : 'Guardar'}
-          </button>
+          <Button variant="ghost" onClick={handleClose}>Cancelar</Button>
+          <Button variant="success" icon={Save} type="submit" form="empleado-form" loading={isSaving}>
+            {payload ? 'Actualizar' : 'Guardar'}
+          </Button>
         </>
       }
     >

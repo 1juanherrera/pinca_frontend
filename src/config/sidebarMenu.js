@@ -35,17 +35,17 @@ export const sidebarMenu = [
 
   // Ventas
   { link: 'comercial',         moduloKey: 'comercial',         label: 'Comercial',        icon: Handbag,         grupo: 'Ventas' },
-  { link: 'cartera',           moduloKey: 'cartera',           label: 'Cartera',          icon: Wallet,          grupo: 'Ventas' },
   { link: 'clientes',          moduloKey: 'clientes',          label: 'Clientes',         icon: Users,           grupo: 'Ventas' },
 
   // Compras
   { link: 'compras',           moduloKey: 'compras',           label: 'Compras',          icon: ShoppingBag,     grupo: 'Compras' },
   { link: 'proveedores',       moduloKey: 'proveedores',       label: 'Proveedores',      icon: Truck,           grupo: 'Compras' },
 
-  // Análisis
-  { link: 'rentabilidad',      moduloKey: 'rentabilidad',      label: 'Rentabilidad',     icon: TrendingUp,      grupo: 'Análisis' },
-  { link: 'costos-produccion', moduloKey: 'costos-produccion', label: 'Costos Producción',icon: Calculator,      grupo: 'Análisis' },
+  // Finanzas (alineado con MODULOS_SISTEMA: Cartera y Costos ya viven ahí, no en Ventas/Análisis)
+  { link: 'cartera',           moduloKey: 'cartera',           label: 'Cartera',          icon: Wallet,          grupo: 'Finanzas' },
+  { link: 'costos-produccion', moduloKey: 'costos-produccion', label: 'Costos Producción',icon: Calculator,      grupo: 'Finanzas' },
+  { link: 'nomina',            moduloKey: 'nomina',            label: 'Nómina',           icon: BadgeDollarSign, grupo: 'Finanzas' },
 
-  // RRHH
-  { link: 'nomina',            moduloKey: 'nomina',            label: 'Nómina',           icon: BadgeDollarSign, grupo: 'RRHH' },
+  // Análisis — al final
+  { link: 'rentabilidad',      moduloKey: 'rentabilidad',      label: 'Rentabilidad',     icon: TrendingUp,      grupo: 'Análisis' },
 ];

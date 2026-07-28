@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { CalendarPlus, CalendarDays, Trash2 } from 'lucide-react';
 import ERPTable from '../../../shared/ErpTable';
 import TableShell from '../../../shared/TableShell';
@@ -10,7 +11,6 @@ import { fmt, fmtFechaSinAno } from '../../../utils/formatters';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { usePeriodos } from '../api/useNomina';
 import GenerarPeriodoModal from './GenerarPeriodoModal';
-import PeriodoDetailModal from './PeriodoDetailModal';
 
 const STATUS_OPTIONS = [
   { value: 'borrador', label: 'Borrador', dot: 'bg-semantic-warning' },
@@ -19,10 +19,10 @@ const STATUS_OPTIONS = [
 ];
 
 const PeriodosTab = () => {
+  const navigate = useNavigate();
   const { periodos, isLoading, eliminar } = usePeriodos();
   const openConfirm = useBoundStore((s) => s.openConfirm);
   const [showGenerar, setShowGenerar] = useState(false);
-  const [detailId, setDetailId] = useState(null);
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({ estado: '' });
 
@@ -123,18 +123,15 @@ const PeriodosTab = () => {
               Generar liquidación
             </Button>
           }
-          onRowClick={(r) => setDetailId(r.id)}
+          onRowClick={(r) => navigate(`/nomina/liquidaciones/${r.id}`)}
         />
       </TableShell>
 
       <GenerarPeriodoModal
         isOpen={showGenerar}
         onClose={() => setShowGenerar(false)}
-        onGenerated={(id) => setDetailId(id)}
+        onGenerated={(id) => navigate(`/nomina/liquidaciones/${id}`)}
       />
-      {detailId && (
-        <PeriodoDetailModal periodoId={detailId} onClose={() => setDetailId(null)} />
-      )}
     </div>
   );
 };

@@ -27,6 +27,7 @@ const ROUTE_TITLES = {
 const PREFIX_TITLES = [
   { prefix: '/inventario/',          label: 'Inventario' },
   { prefix: '/instalaciones/bodegas', label: 'Bodegas' },
+  { prefix: '/nomina/liquidaciones',  label: 'Liquidación' },
 ];
 
 const PageTitle = () => {

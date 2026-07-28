@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Wallet, Users, CalendarDays } from 'lucide-react';
 import HeaderSection from '../../shared/HeaderSection';
 import PageTabs from '../../shared/PageTabs';
+import { useUrlSearch } from '../../hooks/useUrlSearch';
 import EmpleadosTab from './components/EmpleadosTab';
 import PeriodosTab from './components/PeriodosTab';
 import EmpleadoForm from './components/EmpleadoForm';
@@ -13,7 +14,8 @@ const TABS = [
 ];
 
 const NominaPage = () => {
-  const [tab, setTab] = useState('empleados');
+  const initialTab = useUrlSearch('tab');
+  const [tab, setTab] = useState(() => initialTab || 'empleados');
 
   return (
     <div className="flex flex-col w-full gap-4">
@@ -22,7 +24,7 @@ const NominaPage = () => {
         subtitle="Recursos Humanos"
         description="Empleados y liquidación de nómina por período"
         icon={Wallet}
-        breadcrumbs={[{ label: 'RRHH' }, { label: 'Nómina', path: '/nomina' }]}
+        breadcrumbs={[{ label: 'Finanzas' }, { label: 'Nómina', path: '/nomina' }]}
       />
 
       <PageTabs tabs={TABS} value={tab} onChange={setTab} variant="underline" />

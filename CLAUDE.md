@@ -2,9 +2,11 @@
 
 > Este archivo es la **fuente de verdad** para cualquier Claude que retome este proyecto. Está organizado para leerse en orden de necesidad: contexto rápido arriba, detalles técnicos abajo.
 
-## 1. Estado actual (snapshot 2026-07-02)
+## 1. Estado actual (snapshot 2026-07-28)
 
-> **Última sesión**: 2026-07-02 — paginación en CatalogoTab (TableShell) y ProveedoresTable (getPaginationRange) + auditoría MP (54/57 resueltas). Ver §31.
+> **Última sesión**: 2026-07-28 — Nómina: modal de liquidación → página completa con tabla TanStack + slide-over, comprobante de pago en PDF (formato propio, corto), reorganización del sidebar (grupo "Finanzas"), auditoría UX/UI + prueba de los 16 endpoints de `/nomina` (todos OK). Ver §34.
+> **2026-07-24 / 2026-07-17**: hubo dos sesiones sin registrar acá (módulo Nómina básico el 24, auditoría multi-agente de bugs el 17 — ver §34.1 para el resumen breve). Si necesitás el detalle fino de esas dos, revisá `git log` de ese rango.
+> **2026-07-02**: paginación en CatalogoTab (TableShell) y ProveedoresTable (getPaginationRange) + auditoría MP (54/57 resueltas). Ver §31.
 > **Anterior**: 2026-06-05 — toast con motivo real (409 del backend) al eliminar ítem en `useItem`. Ver §30.
 > **2026-06-02**: pestaña "Sugerencias IA" en Sincronización (dedup de MP por identidad química) + mejoras de Login (dark por clase, a11y, Bloq Mayús). Ver §29.
 > **2026-05-30 (tarde)**: breadcrumbs arreglados (0 rotos), Login dark mode, `CalculadoraProrrateo` pre-OC, columna "Último precio" en formulaciones, **revert** de ocultar-acciones-por-rol (política por módulo). Ver §28.
@@ -2142,3 +2144,114 @@ Replicado el patrón de facturas (backend retrocompatible `findAll/index(query)`
   - El usuario preguntó "por qué nginx" — aclarado que el archivo venía de la migración strangler (no es obligatorio). Falta que defina su **target de deploy** (VPS propio / cloud tipo Railway-Render / HTTPS+dominio) para elegir A o B. Si es A, hay que agregar `useStaticAssets(dist)` + un catch-all a `index.html` en Nest.
 - **Pendientes reales al cierre** (orden sugerido): (1) decidir A/B de arriba; (2) replicar la **paginación server-side** (patrón de facturas ya probado) a cotizaciones/remisiones/OC/ítems + migrar la vista de **Cartera** (KPIs por estado efectivo → stats con fecha en SQL); (3) **rotar la GEMINI_API_KEY** (acción del usuario); (4) cutover: apagar CI4 (`docker stop gestor-pinca-app`) → smoke-test → borrar. Los 3 bloqueantes técnicos del cutover (uploads, frontend estático, costos_snapshot) ya están resueltos.
 - **Prueba visual pendiente del usuario** (no se pudo hacer desde WSL): FacturacionTab con paginación server-side, el tiquete A4 de PDF, y el logo `/uploads` — todo en `npm run dev` (Windows).
+
+---
+
+## 34. Sesión 2026-07-28 — Nómina: página completa + TanStack Table + comprobante PDF + sidebar + auditoría
+
+Sesión larga, todo en `pinca_frontend` (el backend `pinca_backend_nest` no tuvo cambios de código esta sesión — solo se le probaron los 16 endpoints de `/nomina`, ver su propio `CLAUDE.md` §7, creado hoy). Validado con esbuild (bundle) + ESLint en cada paso — **no se pudo compilar/correr `npm run dev` desde WSL** (de nuevo, node_modules cross-platform), pruebas visuales pendientes del usuario en Windows salvo donde se indique "validado con Docker/render real".
+
+### 34.1 Sesiones previas sin registrar (backfill breve)
+
+Entre el cierre del §33 (2026-07-16) y hoy hubo dos sesiones que no se documentaron acá — quedan solo como referencia rápida (si hace falta el detalle fino, revisar `git log` de ese rango):
+
+- **2026-07-17 — Auditoría multi-agente de bugs**: 5 agentes (dinero/hardcodeo/concurrencia/seguridad/frontend). Núcleo sano (cero SQLi). Fixes en 3 tandas: crear/editar factura, Cartera sin Anuladas, concurrencia (recepción→OC/preparación/refresh/OC-recepción/numeración), borrar admin-only, `UNIQUE` en folio/pago. Pendiente: retenciones-UVT (usuario dijo "ahora no"), `trust proxy` (deploy).
+- **2026-07-24 — Módulo Nómina básico**: empleados + liquidación por período + pago (abonos parciales por empleado + descuentos comerciales con arrastre FIFO al próximo período + desprendible PDF). Admin-only. ⚠️ SMMLV/auxilio de transporte son *placeholders* configurables (Configuración → Nómina) — el módulo **no calcula prestaciones sociales ni retención en la fuente**, es liquidación básica.
+
+### 34.2 Liquidación: de modal a página completa + TanStack Table + slide-over
+
+El usuario pidió (como Product Manager + Dev) que la vista de revisión de una liquidación dejara de ser un modal y se comportara como un módulo de nómina "de verdad": página completa, tabla profesional, slide-over para el detalle por empleado, y automatización de fechas al generar.
+
+**Archivos nuevos**:
+- `src/modules/Nomina/pages/LiquidacionPage.jsx` — página completa en `/nomina/liquidaciones/:id` (antes era el modal `PeriodoDetailModal.jsx`, **borrado**). Stepper de ciclo de vida (Borrador→Cerrada→Pagada), stats (Neto/Pagado/Pendiente), la tabla, y las acciones según estado.
+- `src/modules/Nomina/components/LiquidacionTable.jsx` — tabla con **`@tanstack/react-table`** (headless, nueva dependencia `^8.21.3`). Columnas: Empleado, Días (editable con input punteado solo en borrador), Devengos, Deducciones, Neto a pagar, Estado. Sorting real por click en header (antes el "pendientes primero" era un sort silencioso e imposible de cambiar).
+- `src/modules/Nomina/components/EmpleadoPagoSlideOver.jsx` — al hacer clic en un empleado, abre un `Drawer` (slide-over derecho) con el desglose completo (salario base, devengado, auxilio, deducciones, saldo, historial de abonos) en vez de otro modal central.
+
+**Modificados**: `App.jsx` (ruta nueva lazy), `Layout.jsx` (le faltaba `'nomina': 'Nómina'` en `TITULO_POR_RUTA` — bug preexistente, el Topbar nunca actualizaba el título al entrar a Nómina), `NominaPage.jsx` (`useUrlSearch('tab')` para que "volver" desde la página de liquidación restaure el tab correcto), `PeriodosTab.jsx` (navega a la página en vez de abrir el modal), `PageTitle.jsx` (prefijo `/nomina/liquidaciones` → título "Liquidación").
+
+**Bug real encontrado y corregido en el camino** (auditoría §34.6): el slide-over guardaba una copia congelada del renglón (`useState(row)`) al hacer clic — la misma clase de bug "entidad anterior" ya cazada en la sesión del 07-03 (§32). Se corrigió derivando el renglón en vivo de `detalle` por id con `useMemo`.
+
+### 34.3 GenerarPeriodoModal — automatización de fechas
+
+Al elegir periodicidad "Quincenal" aparece un selector "1 al 15" / "16 al fin de mes" (con default según el día de hoy); cambiar periodicidad o quincena autocompleta "Desde"/"Hasta" (y la etiqueta, si no fue editada a mano) para el mes en curso. Los campos siguen editables si la liquidación no es del mes actual.
+
+**Bug encontrado y corregido**: el grid de 2 columnas (Periodicidad + Quincena) dejaba un hueco vacío a la derecha cuando se elegía "Mensual" (el selector de Quincena desaparece pero el grid seguía reservando el espacio). Grid ahora condicional (`grid-cols-1`/`grid-cols-2`).
+
+### 34.4 Comprobante de pago de nómina — formato PDF propio y corto
+
+El desprendible existente (`ExportDesprendible.jsx` → `DocPdf`, formato "Carta" A4 detallado) se mantiene intacto. Se agregó un **segundo formato, "Comprobante"**, iterado varias veces con el usuario hasta quedar bien:
+
+- **`src/shared/pdf/fonts.js`** (nuevo) — registro único de la tipografía Outfit para `@react-pdf/renderer`, extraído de `DocPdf.jsx` para poder compartirlo con el componente nuevo sin duplicar `Font.register`.
+- **`src/modules/Nomina/components/DocComprobantePago.jsx`** (nuevo) — documento **propio**, NO el tiquete POS (`DocTicket`) que usan Factura/Recibo/OC. Página chica de verdad (`[300, 690]` puntos, no A4 completo), mismos tokens visuales que `DocPdf` (Outfit, negro/gris, acento amarillo), pero el **neto a pagar/pagado es lo primero que se ve** (recuadro grande centrado), con el desglose de devengos/deducciones como líneas cortas (no tabla).
+- **`src/modules/Nomina/components/DocComprobantePagoPreview.jsx`** (nuevo) — preview WYSIWYG análogo a `DocPdfPreview` pero para este documento.
+- **`ExportDesprendible.jsx`**: toggle Carta/Comprobante en el modal de vista previa; cada formato arma su propio config y usa su propio `download*`.
+
+**Iteración de datos** (pedido explícito: "más orientado a nómina, con estructura profesional"):
+- Nombre completo + **"C.C. {documento}"** explícito (antes mostraba cargo O documento, nunca ambos).
+- **Salario base mensual** visible en el header del empleado (contexto del contrato).
+- Deducciones con **% al lado del concepto** ("Salud (4%)", "Pensión (4%)") — lee `nomina_pct_salud`/`nomina_pct_pension` de Configuración vía `useConfigValue` (mismo hook que ya usa `GenerarPeriodoModal`).
+- **Caja "Saldo Pendiente" se omite** cuando coincide EXACTO con el neto a pagar (nada abonado aún — sería redundante); se muestra en cualquier otro caso (abono parcial o ya saldado, donde sí aporta info nueva).
+- **Firma formal**: "Firma del Empleado" + "C.C. {documento}" (antes: "Recibí conforme — {nombre}").
+
+**Bug propio encontrado y corregido durante la iteración**: al ocultar la caja de saldo pasando `saldo: null`, la etiqueta del recuadro grande ("NETO A PAGAR" vs "NETO PAGADO") dependía de ese mismo campo → decía "PAGADO" aunque no se hubiera pagado nada (justo el caso donde se oculta la caja). Se separó en un flag `pagado` (boolean) independiente de `saldo` (que solo decide si la caja se muestra).
+
+**Bugs de layout encontrados y corregidos** (detectados generando el PDF real con `@react-pdf/renderer` en Node y leyéndolo, no solo por código — ver §34.5 receta):
+- Header: el nombre de la empresa se montaba encima del número de comprobante (columnas sin ancho reservado — `headLeft` sin `flex:1`, `headRight` sin `width` fijo). Corregido con `flex:1`/`width:82` explícitos.
+- Contenido desbordaba a una 2ª página casi en blanco — la altura de página (probada en varias iteraciones: 470→520→560→600→650→**690**) fue insuficiente varias veces seguidas hasta encontrar la correcta con el espaciado final.
+- "NETO A PAGAR" pedía quedar "más centrado" → la caja ganó `marginHorizontal` (antes ocupaba el ancho completo, borde a borde) para leerse como tarjeta destacada.
+- Nombre de empresa largo hacía salto de línea → tamaño de fuente reducido (8.5→7) + columna izquierda del header ensanchada.
+
+### 34.5 Receta usada para iterar el PDF sin `npm run dev`
+
+Como no se puede levantar Vite desde WSL, se armó un harness para generar el PDF real con Node y leerlo con el tool `Read` (que renderiza PDFs como imagen):
+
+```bash
+# Bundlear el componente a CJS con esbuild (react-pdf y react quedan externos)
+esbuild render.jsx --bundle --platform=node --format=cjs --jsx=automatic \
+  --external:react --external:react-dom --external:@react-pdf/renderer \
+  --loader:.ttf=file --loader:.png=file --define:import.meta.env='{}' \
+  --outfile=render.cjs
+# Copiar el .cjs + las fuentes .ttf embebidas a UNA carpeta temporal DENTRO
+# del repo (para que Node resuelva node_modules) y correr desde ahí:
+cd pinca_frontend/.tmp_pdf_test && node render.cjs   # genera out.pdf
+```
+
+Notas: `import.meta.env` rompe en CJS → shimear con `--define`; las fuentes con loader `file` devuelven rutas relativas que Node resuelve contra el **cwd**, no contra el bundle — hay que ejecutar desde la misma carpeta donde quedaron copiadas. Carpeta temporal siempre borrada al final (`rm -rf .tmp_pdf_test`), nunca commiteada.
+
+### 34.6 Sidebar — reorganización de grupos + auditoría UX/UI
+
+Pedido: sacar el ícono de tuerca (`Cog`) de "Producción" y no dejar "Nómina" como grupo de un solo ítem ("al aire libre").
+
+- **`src/shared/Sidebar.jsx`**: `GROUP_ICONS['Producción']` de `Cog` → `Boxes`. Se agregó y luego se sacó `'Análisis': BarChart3` (grupo quedó con 1 solo ítem, ya no necesita ícono de grupo — se renderiza como ítem directo, patrón ya establecido desde 2026-05-19). Ícono nuevo `'Finanzas': Landmark`.
+- **`src/config/sidebarMenu.js`**: reorganización final (iterada con el usuario, no fue la primera propuesta):
+  - **Análisis**: solo Rentabilidad (al final del todo del sidebar, por pedido explícito).
+  - **Finanzas** (grupo nuevo): Cartera + Costos Producción + Nómina — alineado con `config/modulos.js` (`MODULOS_SISTEMA`), que YA clasificaba a Cartera como "Finanzas" y a Costos Producción como "Análisis" (taxonomía de permisos, separada de esta), no como "Ventas"/"Análisis" donde vivían en `sidebarMenu.js`.
+  - **Ventas** quedó más limpio: solo Comercial + Clientes.
+
+**Bug encontrado en la auditoría posterior**: el breadcrumb de Nómina (`NominaPage.jsx` y `LiquidacionPage.jsx`) seguía diciendo "RRHH" — el grupo del sidebar ya se había renombrado a "Finanzas" en un paso anterior y no se propagó a los breadcrumbs. Corregido en ambos archivos.
+
+### 34.7 Auditoría UX/UI completa del módulo Nómina
+
+Pedido explícito del usuario ("dime qué bugs puedes encontrar a nivel de UX/UI, también revisa los endpoints"). Repaso archivo por archivo de `src/modules/Nomina/`. Bugs reales encontrados y corregidos (además de los ya listados en 34.2/34.6):
+
+- **`LiquidacionTable.jsx`**: la columna "Días" ordenaba como texto, no como número (`columnHelper.accessor('dias_trabajados', ...)` sin castear) — confirmado con el backend que `dias_trabajados` viaja como **string** ("15.00", típico de columnas `DECIMAL` vía `mysql2`), así que el sort hubiera sido alfabético. Accessor cambiado a función `(d) => Number(d.dias_trabajados)`.
+- **`LiquidacionPage.jsx`**: sin manejo de "período no encontrado" — un ID inválido o un período borrado renderizaba una página "vacía" engañosa (stats en $0, tabla con el empty state de "sin renglones") en vez de un error claro. Agregado `EmptyState` + botón "Volver a liquidaciones" cuando `!periodo` tras cargar.
+- **`EmpleadoForm.jsx`**: usaba botones nativos en vez del `<Button>` compartido — el de "Guardar" no mostraba spinner durante el guardado (inconsistente con TODOS los demás forms de Nómina) y el hover no tenía efecto visual (mismo color hover que el fondo). Migrado a `<Button variant="success" loading={isSaving}>`.
+
+**Encontrados pero NO corregidos** (menor severidad o patrón compartido con toda la app, fuera de alcance puntual):
+- El input de "Días" no revierte visualmente si el guardado falla en el servidor (se apoya solo en el toast) — mismo comportamiento que el resto de inputs de la app.
+- Los modales `Export*` (Desprendible, Factura, Recibo, etc. — patrón compartido en 8+ archivos, no específico de Nómina) son overlays a medida sin su propio manejador de ESC; si se abren encima de un Drawer ya abierto (ej. el slide-over de empleado), la tecla ESC cierra el Drawer de abajo en vez del modal de arriba. Preexistente, no tocado.
+
+**Backend**: los 16 endpoints de `/nomina` se probaron uno por uno contra Docker (JWT real, datos `__TEST__`, limpieza verificada) — todos OK, incluidos los guard-rails de estado. Único hallazgo: inconsistencia de tipo en `total_saldo` (string en el listado, number en el detalle) — no es un bug activo (frontend ya castea), documentado en `pinca_backend_nest/CLAUDE.md` §6 para quien toque ese service. Detalle completo de la prueba en `pinca_backend_nest/CLAUDE.md` §7 (creado hoy — antes el backend no tenía CLAUDE.md propio).
+
+### Archivos de esta sesión
+
+**Creados**: `Nomina/pages/LiquidacionPage.jsx`, `Nomina/components/LiquidacionTable.jsx`, `Nomina/components/EmpleadoPagoSlideOver.jsx`, `Nomina/components/DocComprobantePago.jsx`, `Nomina/components/DocComprobantePagoPreview.jsx`, `shared/pdf/fonts.js`, `pinca_backend_nest/CLAUDE.md`.
+**Eliminados**: `Nomina/components/PeriodoDetailModal.jsx` (el modal que reemplazó la página completa).
+**Modificados**: `App.jsx`, `Layout.jsx`, `shared/PageTitle.jsx`, `shared/Sidebar.jsx`, `config/sidebarMenu.js`, `shared/pdf/DocPdf.jsx` (solo el import de fuentes), `Nomina/NominaPage.jsx`, `Nomina/components/{PeriodosTab,GenerarPeriodoModal,ExportDesprendible,EmpleadoForm}.jsx`.
+**Dependencia nueva**: `@tanstack/react-table@^8.21.3`.
+
+### Pendiente
+
+- Prueba visual completa en `npm run dev` (Windows) de todo lo de esta sesión — no se pudo hacer desde WSL.
+- Nada bloqueante del lado backend (los 16 endpoints de nómina están confirmados sanos).

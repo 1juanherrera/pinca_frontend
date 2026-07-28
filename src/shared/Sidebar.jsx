@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  BarChart3,
+  Boxes,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Cog,
+  Landmark,
   LogOut,
   Package,
   Settings,
@@ -24,10 +24,10 @@ const COLLAPSED_KEY = 'sidebar_collapsed_groups';
 // Se eligen iconos diferentes a los de los items individuales para evitar confusión.
 const GROUP_ICONS = {
   'Inventario': Package,
-  'Producción': Cog,
+  'Producción': Boxes,
   'Ventas':     ShoppingCart,
   'Compras':    Store,
-  'Análisis':   BarChart3,
+  'Finanzas':   Landmark,
 };
 
 const loadJson = (key, fallback) => {

@@ -44,6 +44,7 @@ const TITULO_POR_RUTA = {
   'sincronizacion':    'Sincronización',
   'trazabilidad':      'Trazabilidad',
   'configuracion':     'Configuración',
+  'nomina':            'Nómina',
 };
 
 const Layout = () => {

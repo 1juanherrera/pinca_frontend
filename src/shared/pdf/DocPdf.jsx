@@ -1,16 +1,6 @@
-import { Document, Page, View, Text, Image, StyleSheet, Font } from '@react-pdf/renderer';
+import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
 import { EMPRESA_FALLBACK } from '../../utils/empresaInfo';
-import OutfitRegular from '../../assets/fonts/Outfit-Regular.ttf';
-import OutfitBold from '../../assets/fonts/Outfit-Bold.ttf';
-
-// Tipografía de marca (Outfit). Registro una sola vez.
-Font.register({
-  family: 'Outfit',
-  fonts: [
-    { src: OutfitRegular, fontWeight: 400 },
-    { src: OutfitBold, fontWeight: 700 },
-  ],
-});
+import './fonts';
 
 /**
  * Plantilla PDF compartida branded PINCA. Fuente de verdad única para el

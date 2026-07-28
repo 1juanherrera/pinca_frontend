@@ -28,6 +28,7 @@ const ConfiguracionPage    = lazy(() => import("./modules/Configuracion/Configur
 const TrazabilidadPage     = lazy(() => import("./modules/Trazabilidad/TrazabilidadPage"));
 const CostosProduccionPage = lazy(() => import("./modules/CostosProduccion/CostosProduccionPage"));
 const NominaPage           = lazy(() => import("./modules/Nomina/NominaPage"));
+const LiquidacionPage      = lazy(() => import("./modules/Nomina/pages/LiquidacionPage"));
 
 const App = () => {
   return (
@@ -59,6 +60,7 @@ const App = () => {
             <Route path="/trazabilidad"   element={<TrazabilidadPage />} />
             <Route path="/costos-produccion" element={<CostosProduccionPage />} />
             <Route path="/nomina" element={<NominaPage />} />
+            <Route path="/nomina/liquidaciones/:id" element={<LiquidacionPage />} />
             {/* /costos fue absorbido por /rentabilidad — redirect preserva bookmarks viejos */}
             <Route path="/costos" element={<Navigate to="/rentabilidad" replace />} />
           </Route>
