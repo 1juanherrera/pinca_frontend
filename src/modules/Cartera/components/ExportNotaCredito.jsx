@@ -75,7 +75,7 @@ const ExportNotaCreditoContent = ({ nota, closeModal }) => {
                 <p className="text-xs text-content-muted">{nota.nombre_empresa}</p>
               </div>
             </div>
-            <button onClick={closeModal} className="p-1.5 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-lg transition-colors">
+            <button onClick={closeModal} aria-label="Cerrar" className="p-1.5 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-lg transition-colors">
               <X size={18} />
             </button>
           </div>

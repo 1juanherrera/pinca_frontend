@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { inventarioKeys } from './inventarioKeys';
 import toast from 'react-hot-toast';
 
@@ -12,7 +13,7 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
     queryKey: inventarioKeys.byBodega(id_bodega, page, perPage, search, tipo),
     queryFn: async () => {
       const response = await apiClient.get(
-        `/bodegas/inventario/${id_bodega}?page=${page}&perPage=${perPage}&search=${search}&tipo=${tipo}`
+        API_ROUTES.BODEGAS.INVENTARIO(id_bodega, `?page=${page}&perPage=${perPage}&search=${search}&tipo=${tipo}`)
       );
       const data = response?.data !== undefined ? response.data : response;
       return data || { inventario: [], pagination: { totalPages: 1, totalItems: 0 } };
@@ -22,7 +23,7 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
   });
 
   const traspasoMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/inventario/traspaso', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.INVENTARIO.TRASPASO, data),
     onSuccess: () => {
       // Invalida TODOS los queries de inventario — origen y destino se refrescan
       queryClient.invalidateQueries({
@@ -37,7 +38,7 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
 
   const removeFromBodegaMutation = useMutation({
     mutationFn: ({ itemId, bodegaId }) =>
-      apiClient.delete(`/inventario/${itemId}/bodega/${bodegaId}`),
+      apiClient.delete(API_ROUTES.INVENTARIO.REMOVE_BODEGA(itemId, bodegaId)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: inventarioKeys.all });
       toast.success('Ítem eliminado del inventario');
@@ -48,7 +49,7 @@ export const useInventario = (id_bodega = null, page = 1, perPage = 10, search =
   });
 
   const ajusteManualMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/inventario/ajuste-manual', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.INVENTARIO.AJUSTE_MANUAL, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: inventarioKeys.all });
       toast.success('Ajuste registrado');

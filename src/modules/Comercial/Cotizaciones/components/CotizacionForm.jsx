@@ -323,7 +323,7 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
             </h2>
             <p className="text-xs text-content-tertiary mt-0.5">Complete los datos de la propuesta comercial</p>
           </div>
-          <button onClick={requestClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-content-muted hover:bg-surface-strong">
+          <button onClick={requestClose} aria-label="Cerrar" className="w-8 h-8 rounded-lg flex items-center justify-center text-content-muted hover:bg-surface-strong">
             <X className="w-4 h-4" />
           </button>
         </div>

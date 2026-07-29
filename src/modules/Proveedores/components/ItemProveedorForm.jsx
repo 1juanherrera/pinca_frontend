@@ -662,8 +662,10 @@ const ItemProveedorForm = () => {
               <label className="flex items-center gap-2.5 cursor-pointer select-none">
                 <button
                   type="button"
+                  role="switch"
+                  aria-checked={aplicarIva}
                   onClick={() => setAplicarIva(v => !v)}
-                  className={`relative w-9 h-5 rounded-full transition-colors duration-200 focus:outline-none ${aplicarIva ? 'bg-content-primary' : 'bg-surface-strong'}`}
+                  className={`relative w-9 h-5 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 focus-visible:ring-offset-1 ${aplicarIva ? 'bg-content-primary' : 'bg-surface-strong'}`}
                 >
                   <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-surface-base rounded-full shadow transition-transform duration-200 ${aplicarIva ? 'translate-x-4' : 'translate-x-0'}`} />
                 </button>

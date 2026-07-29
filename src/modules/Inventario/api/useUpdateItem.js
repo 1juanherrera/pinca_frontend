@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { inventarioKeys } from './inventarioKeys';
 import toast from 'react-hot-toast';
 
@@ -11,7 +12,7 @@ export const useUpdateItem = (id_bodega) => {
   const bodegaId = id_bodega?.toString();
 
   return useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/bodegas/item/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.BODEGAS.UPDATE_ITEM(id), data),
 
     onSuccess: (_response, { id, data }) => {
       // Actualizar optimistamente el cache

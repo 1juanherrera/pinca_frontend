@@ -102,24 +102,24 @@ const GananciasVentasTable = ({ ventas, isLoading }) => {
       {/* Fila de totales */}
       {!isLoading && ventas.length > 0 && (
         <div className="bg-content-primary text-content-inverse rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
-          <span className="text-content-muted">{ventas.length} venta(s)</span>
+          <span className="text-content-inverse/60">{ventas.length} venta(s)</span>
           <div className="flex items-center gap-8">
             <div className="text-right">
-              <p className="text-content-muted font-normal text-[10px]">Total Ventas</p>
+              <p className="text-content-inverse/60 font-normal text-[10px]">Total Ventas</p>
               <p className=" tabular-nums text-semantic-success/60">{fmt(totales.totalVentas)}</p>
             </div>
             <div className="text-right">
-              <p className="text-content-muted font-normal text-[10px]">Total Costos</p>
+              <p className="text-content-inverse/60 font-normal text-[10px]">Total Costos</p>
               <p className=" tabular-nums text-semantic-danger/60">{fmt(totales.totalCostos)}</p>
             </div>
             <div className="text-right">
-              <p className="text-content-muted font-normal text-[10px]">Utilidad Bruta</p>
+              <p className="text-content-inverse/60 font-normal text-[10px]">Utilidad Bruta</p>
               <p className={` tabular-nums text-base ${totales.utilidadBruta >= 0 ? 'text-semantic-success' : 'text-semantic-danger/60'}`}>
                 {fmt(totales.utilidadBruta)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-content-muted font-normal text-[10px]">Margen Promedio</p>
+              <p className="text-content-inverse/60 font-normal text-[10px]">Margen Promedio</p>
               <p className={` tabular-nums text-sm ${totales.margenPromedio >= 0 ? 'text-semantic-success' : 'text-semantic-danger/60'}`}>
                 {totales.margenPromedio.toFixed(1)}%
               </p>

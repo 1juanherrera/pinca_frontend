@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 
 export const useGananciasVentas = ({ desde, hasta } = {}) => {
   const query = useQuery({
     queryKey: ['ganancias-ventas', desde, hasta],
     queryFn: async () => {
       // Primero obtenemos las facturas del período
-      const facturas = await apiClient.get('/facturas', {
+      const facturas = await apiClient.get(API_ROUTES.FACTURAS.LIST, {
         params: { 
           desde,
           hasta,
@@ -39,7 +40,7 @@ export const useGananciasVentas = ({ desde, hasta } = {}) => {
         facturasData.map(async (factura) => {
           try {
             // Obtener items de la factura para calcular costos
-            const itemsFactura = await apiClient.get(`/facturas/${factura.id_facturas}/detalle`);
+            const itemsFactura = await apiClient.get(API_ROUTES.FACTURAS.DETALLE(factura.id_facturas));
             const items = itemsFactura?.data || itemsFactura || [];
             
             let costoTotal = 0;

@@ -261,6 +261,7 @@ const FormCostProductsInner = ({ costos, item, closeDrawer }) => {
           </div>
           <button
             onClick={handleClose}
+            aria-label="Cerrar"
             className="p-2 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-xl transition-all active:scale-95"
           >
             <X size={18} />

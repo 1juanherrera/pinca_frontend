@@ -2295,3 +2295,25 @@ Ambos: **1 sola página**, sin superposiciones, sin corte de contenido (confirma
 ---
 
 > **Snapshot al cierre 2026-07-29**: `DocComprobantePago.jsx` con alto de página calculado dinámicamente en vez de un valor fijo adivinado — validado generando y leyendo el PDF real en 2 escenarios (mínimo/máximo contenido), ambos en 1 página sin overflow. Sin cambios en `DocPdf`/`DocTicket` (ya usaban A4 correctamente). Nada más tocado en esta sesión.
+
+---
+
+## 36. Commit de backlog acumulado (2026-07-29) — trabajo de sesiones previas sin commitear
+
+Al cerrar la sesión de hoy (§35) se encontraron **68 archivos con cambios sin commitear** en el working tree, además del fix puntual del §35. No fueron hechos en esta conversación — quedaron pendientes de una o más sesiones anteriores que avanzaron trabajo real pero nunca lo consolidaron en un commit. Se revisaron los diffs (sin evidencia de la corrupción por Google Drive documentada en §27 — son cambios coherentes y consistentes, no reversiones a versiones viejas) y se commitearon aparte del fix de hoy. Documentado acá porque, a diferencia de cada sesión anterior, este bloque nunca tuvo su propia entrada.
+
+**Patrones identificados por muestreo de diffs** (agrupados, no exhaustivo archivo por archivo):
+
+- **Completar `API_ROUTES`** (cierra el pendiente reportado desde §25/§26/§33.6 de "~15-30 hooks con rutas hardcodeadas"): `apiRoutes.js` gana namespaces/params nuevos (`EMPRESA.LOGO*`, `BODEGAS.INVENTARIO` con querystring, `ITEMS.LEGACY_ALL`, `GESTIONES`/`NOTAS_CREDITO` por factura/cliente, `FORMULACIONES.*`, etc.) y ~15 hooks (`useCatalogosMaestros`, `useFormulaciones`, `usePreparaciones`, `useAuditoria`, `useAuditoria`, `useEmpresa`, `useNumeracion`, `useComparador`, `useCostosCompras`, `useCostosIndirectos`, `useCostosProduccion`, `useGananciasVentas`, `useInventario`, `useCategorias`, `useItem`, `useUpdateItem`, `useMovimientos`, `useCartera`, `useUnidades`) migran sus `apiClient.get('/ruta-literal')` a las constantes centralizadas.
+- **Fallback de error unificado**: varios `onError` que solo leían `.messages.error` (shape viejo CI4) ahora agregan `|| e?.response?.data?.msg` — cierra el pendiente puntual de `useCatalogosMaestros.js` documentado en §33.6.
+- **Accesibilidad**: `aria-label="Cerrar"` agregado a botones de cerrar sin texto visible en ~10 modales/drawers (`VincularModal`, `RecibirLineaModal`, `DisponibilidadModal`, `HistorialDrawer`, `FormCostProducts`, `FormulacionModal`, `ProduccionDetailModal`, `preparationModal`, `RentabilidadDetalleProd`, etc.). `FormSelect.jsx` (el cambio más grande, +70 líneas) gana navegación por teclado completa (↑↓ Enter Esc, scroll al ítem resaltado) + ids ARIA (`aria-controls`, `listbox`, `errorId`) — antes era clickeable pero no operable con teclado.
+- **Contraste dark mode en bandas de header oscuras**: en varios paneles con banda `bg-content-primary` (ej. `preparationModal.jsx` — panel "Materias primas"/"Resumen de órdenes"), el texto usaba `text-content-muted`/`text-content-tertiary` (tokens que flipean con el tema) en vez de `text-content-inverse/60-70` (estable sobre fondo oscuro) — mismo tipo de bug que la clase `.tbl-header` ya resuelta en §32, aplicado acá a paneles que no pasaron por esa pasada.
+- **UX/seguridad de inputs numéricos** (`main.jsx`): listener global que hace `blur()` de un `<input type="number">` enfocado si el usuario scrollea la página — evita el comportamiento nativo del navegador de cambiar el valor del input por accidente al scrollear con el cursor encima (riesgo real en un ERP con montos/cantidades).
+- **`vite.config.js`**: `server.allowedHosts: ['host.docker.internal']` — permite que un escáner de seguridad corriendo en Docker (ej. OWASP ZAP) le pegue al dev server sin el 403 de host no permitido de Vite. Indica que hubo (o se preparó) una sesión de pentesting/DAST contra el frontend.
+- Varios ajustes puntuales de 1-2 líneas en `Layout.jsx`, `CommandPalette.jsx`, `ErpTable.jsx`, `RolesPage.jsx`, `ItemGeneralSearch.jsx`, `CatalogoForm.jsx`, `OrdenForm.jsx`, `TributariaTab.jsx` y varios `Export*.jsx` — no inspeccionados uno por uno en detalle, consistentes con los patrones de arriba (aria-label, fallback de ruta, o ajuste menor de estilo).
+
+**No se pudo validar visualmente** (mismo problema de siempre: no compila desde WSL) — el build/lint/`npm run dev` de todo este bloque queda pendiente de la próxima verificación en Windows.
+
+---
+
+> **Snapshot al cierre 2026-07-29 (commit de backlog)**: 68 archivos de trabajo previamente sin commitear, consolidados en un commit aparte del fix del §35. Cierra backlog documentado de varias sesiones (API_ROUTES hardcoded, fallback `.msg`, a11y de modales, contraste dark en paneles). Pendiente: build/lint/prueba visual en Windows.

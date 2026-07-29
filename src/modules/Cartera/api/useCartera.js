@@ -32,7 +32,7 @@ export const useResumenCartera = () => {
 export const useAgingCartera = () => {
   const query = useQuery({
     queryKey: carteraKeys.aging(),
-    queryFn:  () => apiClient.get('/cartera/aging'),
+    queryFn:  () => apiClient.get(API_ROUTES.CARTERA.AGING),
   });
 
   return {
@@ -46,7 +46,7 @@ export const useAgingCartera = () => {
 export const useEstadoCuenta = (clienteId = null) => {
   const query = useQuery({
     queryKey: carteraKeys.estadoCuenta(clienteId),
-    queryFn:  () => apiClient.get(`/cartera/estado_cuenta/${clienteId}`),
+    queryFn:  () => apiClient.get(API_ROUTES.CARTERA.ESTADO_CUENTA(clienteId)),
     enabled:  !!clienteId,
   });
 
@@ -61,7 +61,7 @@ export const useEstadoCuenta = (clienteId = null) => {
 export const usePagosCliente = (clienteId = null) => {
   const query = useQuery({
     queryKey: carteraKeys.pagosPorCliente(clienteId),
-    queryFn:  () => apiClient.get(`/pagos_cliente?cliente_id=${clienteId}`),
+    queryFn:  () => apiClient.get(API_ROUTES.PAGOS.BY_CLIENT(clienteId)),
     enabled:  !!clienteId,
   });
 
@@ -132,7 +132,7 @@ export const usePagos = () => {
   });
 
   const eliminarMutation = useMutation({
-    mutationFn: (pagoId) => apiClient.delete(`/pagos_cliente/${pagoId}`),
+    mutationFn: (pagoId) => apiClient.delete(API_ROUTES.PAGOS.DELETE(pagoId)),
 
     onSuccess: (_, pagoId) => {
       queryClient.setQueriesData(
@@ -170,17 +170,14 @@ export const useGestionesCobro = (facturaId = null, clienteId = null) => {
 
   const query = useQuery({
     queryKey,
-    queryFn: () => {
-      const param = facturaId
-        ? `factura_id=${facturaId}`
-        : `cliente_id=${clienteId}`;
-      return apiClient.get(`/gestiones_cobro?${param}`);
-    },
+    queryFn: () => facturaId
+      ? apiClient.get(API_ROUTES.GESTIONES.BY_FACTURA(facturaId))
+      : apiClient.get(API_ROUTES.GESTIONES.BY_CLIENTE(clienteId)),
     enabled: !!facturaId || !!clienteId,
   });
 
   const crearMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/gestiones_cobro', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.GESTIONES.CREATE, data),
     onSuccess: (response, variables) => {
       const nueva = response?.data ?? { ...variables, id_gestion: Date.now() };
       queryClient.setQueryData(queryKey, (old) =>
@@ -193,7 +190,7 @@ export const useGestionesCobro = (facturaId = null, clienteId = null) => {
   });
 
   const eliminarMutation = useMutation({
-    mutationFn: (id) => apiClient.delete(`/gestiones_cobro/${id}`),
+    mutationFn: (id) => apiClient.delete(API_ROUTES.GESTIONES.DELETE(id)),
     onSuccess: (_, id) => {
       queryClient.setQueryData(queryKey, (old) =>
         Array.isArray(old) ? old.filter((g) => g.id_gestion !== id) : old
@@ -226,17 +223,14 @@ export const useNotasCredito = (facturaId = null, clienteId = null) => {
 
   const query = useQuery({
     queryKey,
-    queryFn: () => {
-      const param = facturaId
-        ? `factura_id=${facturaId}`
-        : `cliente_id=${clienteId}`;
-      return apiClient.get(`/notas_credito?${param}`);
-    },
+    queryFn: () => facturaId
+      ? apiClient.get(API_ROUTES.NOTAS_CREDITO.BY_FACTURA(facturaId))
+      : apiClient.get(API_ROUTES.NOTAS_CREDITO.BY_CLIENTE(clienteId)),
     enabled: !!facturaId || !!clienteId,
   });
 
   const crearMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/notas_credito', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.NOTAS_CREDITO.CREATE, data),
     onSuccess: (response, variables) => {
       const nueva = response?.data ?? { ...variables, id_nota_credito: Date.now() };
       queryClient.setQueryData(queryKey, (old) =>
@@ -252,7 +246,7 @@ export const useNotasCredito = (facturaId = null, clienteId = null) => {
   });
 
   const anularMutation = useMutation({
-    mutationFn: (id) => apiClient.patch(`/notas_credito/${id}/anular`),
+    mutationFn: (id) => apiClient.patch(API_ROUTES.NOTAS_CREDITO.ANULAR(id)),
     onSuccess: (response, id) => {
       queryClient.setQueryData(queryKey, (old) =>
         Array.isArray(old)

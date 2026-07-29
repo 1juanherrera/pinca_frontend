@@ -11,9 +11,11 @@ const ROLES = ['admin', 'operador', 'visor'];
 const Toggle = ({ checked, onChange, disabled }) => (
   <button
     type="button"
+    role="switch"
+    aria-checked={checked}
     disabled={disabled}
     onClick={() => !disabled && onChange(!checked)}
-    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
+    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 focus-visible:ring-offset-1 ${
       disabled
         ? 'bg-surface-strong cursor-not-allowed opacity-60'
         : checked

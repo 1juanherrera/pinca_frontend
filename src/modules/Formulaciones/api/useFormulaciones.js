@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import toast from 'react-hot-toast';
 import { formulacionKeys } from './FormulacionKeys';
 import { itemKeys } from '../../Inventario/api/itemKeys';
@@ -10,13 +11,13 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
   // 1. Obtener todas las formulaciones
   const queryList = useQuery({
     queryKey: formulacionKeys.lists(),
-    queryFn:  () => apiClient.get('/formulaciones'),
+    queryFn:  () => apiClient.get(API_ROUTES.FORMULACIONES.LIST),
   });
 
   // 2. Calcular costos base
   const queryCostos = useQuery({
     queryKey: formulacionKeys.costs(id),
-    queryFn:  () => apiClient.get(`/formulaciones/costos/${id}`),
+    queryFn:  () => apiClient.get(API_ROUTES.FORMULACIONES.COSTOS(id)),
     enabled:  !!id,
     staleTime: 1000 * 60 * 5,
   });
@@ -24,7 +25,7 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
   // 3. Recalcular costos por volumen
   const queryRecalcular = useQuery({
     queryKey: formulacionKeys.recalculate(id, volumen),
-    queryFn:  () => apiClient.get(`/formulaciones/recalcular_costos/${id}/${volumen}`),
+    queryFn:  () => apiClient.get(API_ROUTES.FORMULACIONES.RECALCULAR(id, volumen)),
     enabled:  !!id && !!volumen,
     // Mantener los datos previos SOLO si sigue siendo el mismo producto
     // (evita el parpadeo al cambiar el volumen). Si cambia el producto, NO
@@ -40,7 +41,7 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
   // Proveedores disponibles para la formulación del producto seleccionado
   const queryProveedores = useQuery({
     queryKey: formulacionKeys.proveedores(id),
-    queryFn:  () => apiClient.get(`/formulaciones/${id}/proveedores`),
+    queryFn:  () => apiClient.get(API_ROUTES.FORMULACIONES.PROVEEDORES(id)),
     enabled:  !!id,
     staleTime: 1000 * 60 * 5,
   });
@@ -48,7 +49,7 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
   // Costos recalculados por proveedor
   const queryCostosProveedor = useQuery({
     queryKey: formulacionKeys.costsByProveedor(id, proveedorId),
-    queryFn:  () => apiClient.get(`/formulaciones/costos/${id}/proveedor/${proveedorId}`),
+    queryFn:  () => apiClient.get(API_ROUTES.FORMULACIONES.COSTOS_PROVEEDOR(id, proveedorId)),
     enabled:  !!id && !!proveedorId,
     staleTime: 1000 * 60 * 5,
   });
@@ -56,7 +57,7 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
   // Opciones de proveedor por ingrediente
   const queryOpcionesIngredientes = useQuery({
     queryKey: formulacionKeys.opcionesIngredientes(id),
-    queryFn:  () => apiClient.get(`/formulaciones/${id}/opciones-ingredientes`),
+    queryFn:  () => apiClient.get(API_ROUTES.FORMULACIONES.OPCIONES_INGREDIENTES(id)),
     enabled:  !!id,
     staleTime: 1000 * 60 * 5,
   });
@@ -64,13 +65,13 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
   // ✅ 4. Formulación de un item específico (para el modal)
   const queryByItem = useQuery({
     queryKey: formulacionKeys.byItem(itemId),
-    queryFn:  () => apiClient.get(`/formulacion_item/${itemId}`),
+    queryFn:  () => apiClient.get(API_ROUTES.FORMULACIONES.BY_ITEM(itemId)),
     enabled:  !!itemId,
   });
 
   // ✅ CREATE
   const createMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/formulaciones', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.FORMULACIONES.CREATE, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: formulacionKeys.lists() });
       queryClient.invalidateQueries({ queryKey: formulacionKeys.byItem(variables.item_general_id?.toString()) });
@@ -82,7 +83,7 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
 
   // ✅ QUICK CREATE ITEM (producto o materia prima desde el modal)
   const createItemMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/item_general', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.ITEMS.GENERAL, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: itemKeys.lists() });
       queryClient.invalidateQueries({ queryKey: itemKeys.materiasPrimas() });
@@ -93,7 +94,7 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
 
   // ✅ UPDATE
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/formulaciones/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.FORMULACIONES.UPDATE(id), data),
     onSuccess: (_) => {
       queryClient.invalidateQueries({ queryKey: formulacionKeys.lists() });
       queryClient.invalidateQueries({ queryKey: formulacionKeys.byItem(itemId?.toString()) });
@@ -106,25 +107,25 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
   // ✅ Materias primas (tipo = 1) — usado por otras partes del sistema
   const queryMateriasPrimas = useQuery({
     queryKey: itemKeys.materiasPrimas(),
-    queryFn:  () => apiClient.get('/items'),
+    queryFn:  () => apiClient.get(API_ROUTES.ITEMS.LEGACY_ALL),
   });
 
   // ✅ Materias disponibles: item_general tipo=1 + item_proveedor no vinculados
   const queryMateriasDisponibles = useQuery({
     queryKey: [...itemKeys.all, 'materias-disponibles'],
-    queryFn:  () => apiClient.get('/items/materias_disponibles'),
+    queryFn:  () => apiClient.get(API_ROUTES.ITEMS.MATERIAS_DISPONIBLES),
   });
 
   // ✅ Productos (tipo = 0)
   const queryProductos = useQuery({
     queryKey: itemKeys.lists(),
-    queryFn:  () => apiClient.get('/item_general'),
+    queryFn:  () => apiClient.get(API_ROUTES.ITEMS.GENERAL),
   });
 
   // ✅ Clonar fórmula a otro producto
   const clonarMutation = useMutation({
     mutationFn: ({ from_item_id, to_item_id, nombre }) =>
-      apiClient.post('/formulaciones/clonar', { from_item_id, to_item_id, nombre }),
+      apiClient.post(API_ROUTES.FORMULACIONES.CLONAR, { from_item_id, to_item_id, nombre }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: formulacionKeys.lists() });
       queryClient.invalidateQueries({ queryKey: formulacionKeys.byItem(String(variables.to_item_id)) });
@@ -136,7 +137,7 @@ export const useFormulaciones = (id = null, volumen = null, itemId = null, prove
 
   // ✅ Vincular item_proveedor → item_general (auto-crea si es necesario)
   const vincularMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.patch(`/item_proveedores/${id}/vincular`, data),
+    mutationFn: ({ id, data }) => apiClient.patch(API_ROUTES.ITEM_PROVEEDORES.VINCULAR(id), data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: itemKeys.materiasPrimas() });
       queryClient.invalidateQueries({ queryKey: [...itemKeys.all, 'materias-disponibles'] });

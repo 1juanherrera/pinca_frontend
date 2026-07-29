@@ -7,6 +7,9 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
+  server: {
+    allowedHosts: ['host.docker.internal'], // permite que ZAP (Docker) le pegue sin el 403
+  },
   build: {
     sourcemap: false,
     minify: 'esbuild',

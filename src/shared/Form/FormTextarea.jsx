@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { AlertCircle } from 'lucide-react';
 import cn from '../../utils/cn';
 import {
@@ -14,20 +15,28 @@ export const FormTextarea = ({
   registration,
   rows = 4,
   className = '',
+  id,
   ...props
 }) => {
+  const generatedId = useId();
+  const textareaId = id ?? generatedId;
+  const errorId = `${textareaId}-error`;
+
   return (
     <div className={cn(FIELD_WRAPPER, 'w-full', className)}>
       {label && (
-        <label className={LABEL_BASE}>
+        <label htmlFor={textareaId} className={LABEL_BASE}>
           {label}{required && <span className={LABEL_REQUIRED_MARK}>*</span>}
         </label>
       )}
 
       <div className="relative">
         <textarea
+          id={textareaId}
           placeholder={placeholder}
           rows={rows}
+          aria-invalid={!!error}
+          aria-describedby={error ? errorId : undefined}
           className={cn(
             INPUT_BASE,
             'resize-y min-h-20 leading-relaxed',
@@ -46,7 +55,7 @@ export const FormTextarea = ({
       </div>
 
       {error && (
-        <span className={FIELD_ERROR}>{error}</span>
+        <span id={errorId} className={FIELD_ERROR}>{error}</span>
       )}
     </div>
   );

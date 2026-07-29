@@ -1,5 +1,6 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 
 const buildQs = (filters = {}) => {
   const qs = new URLSearchParams();
@@ -13,7 +14,7 @@ const buildQs = (filters = {}) => {
 export const useLoginAttempts = (filters) =>
   useQuery({
     queryKey:  ['auditoria', 'login-attempts', filters],
-    queryFn:   () => apiClient.get(`/auditoria/login-attempts${buildQs(filters)}`),
+    queryFn:   () => apiClient.get(API_ROUTES.AUDITORIA.LOGIN_ATTEMPTS(buildQs(filters))),
     staleTime: 30 * 1000,
     placeholderData: keepPreviousData,
   });
@@ -21,7 +22,7 @@ export const useLoginAttempts = (filters) =>
 export const useMovimientosAudit = (filters) =>
   useQuery({
     queryKey:  ['auditoria', 'movimientos', filters],
-    queryFn:   () => apiClient.get(`/auditoria/movimientos${buildQs(filters)}`),
+    queryFn:   () => apiClient.get(API_ROUTES.AUDITORIA.MOVIMIENTOS(buildQs(filters))),
     staleTime: 30 * 1000,
     placeholderData: keepPreviousData,
   });

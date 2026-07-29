@@ -424,7 +424,7 @@ const ExportProduccionContent = ({ preparacion, closeModal }) => {
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-overlay backdrop-blur-sm">
-        <div className="w-full max-w-6xl h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+        <div className="w-full max-w-6xl h-[90vh] bg-surface-elevated rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
 
           <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle shrink-0">
             <div className="flex items-center gap-3">
@@ -441,7 +441,7 @@ const ExportProduccionContent = ({ preparacion, closeModal }) => {
                 onClick={() => setModo('ESTANDAR')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${modo === 'ESTANDAR'
                   ? 'bg-content-primary border-content-primary text-content-inverse'
-                  : 'bg-white border-border-base text-content-tertiary hover:border-border-strong'
+                  : 'bg-surface-base border-border-base text-content-tertiary hover:border-border-strong'
                   }`}
               >
                 <ClipboardList size={13} />
@@ -451,13 +451,13 @@ const ExportProduccionContent = ({ preparacion, closeModal }) => {
                 onClick={() => setModo('MUESTRARIO')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${modo === 'MUESTRARIO'
                   ? 'bg-semantic-info-subtle border-semantic-info/30 text-semantic-info-fg'
-                  : 'bg-white border-border-base text-content-tertiary hover:border-border-strong'
+                  : 'bg-surface-base border-border-base text-content-tertiary hover:border-border-strong'
                   }`}
               >
                 <FlaskConical size={13} />
                 Muestrario
               </button>
-              <button onClick={closeModal} className="p-1.5 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-lg transition-colors ml-4">
+              <button onClick={closeModal} aria-label="Cerrar" className="p-1.5 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-lg transition-colors ml-4">
                 <X size={18} />
               </button>
             </div>

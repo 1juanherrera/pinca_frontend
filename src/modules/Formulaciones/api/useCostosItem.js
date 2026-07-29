@@ -8,7 +8,7 @@ export const useCostosItem = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/costos_item/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.COSTOS_ITEM.UPDATE(id), data),
     onSuccess: (_, variables) => {
       toast.success('Costos actualizados correctamente');
       queryClient.invalidateQueries({ queryKey: ['formulaciones'] });

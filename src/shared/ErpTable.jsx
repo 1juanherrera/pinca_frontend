@@ -78,6 +78,10 @@ const ERPTable = ({
                   <th
                     key={col.key}
                     onClick={isSortable ? () => onSort(col.key) : undefined}
+                    tabIndex={isSortable ? 0 : undefined}
+                    role={isSortable ? 'button' : undefined}
+                    aria-sort={isSortable && sortBy === col.key ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                    onKeyDown={isSortable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort(col.key); } } : undefined}
                     className={cn(
                       'px-4 pb-2 text-[10px] font-semibold text-content-tertiary uppercase tracking-wider',
                       align(col.align),
@@ -123,6 +127,9 @@ const ERPTable = ({
                   <tr
                     key={row.id ?? idx}
                     onClick={() => onRowClick?.(row)}
+                    tabIndex={onRowClick ? 0 : undefined}
+                    role={onRowClick ? 'button' : undefined}
+                    onKeyDown={onRowClick ? (e) => { if (e.key === 'Enter') onRowClick(row); } : undefined}
                     className={cn(
                       'group transition-all',
                       onRowClick && 'cursor-pointer hover:-translate-y-0.5',
@@ -175,6 +182,10 @@ const ERPTable = ({
                 <th
                   key={col.key}
                   onClick={isSortable ? () => onSort(col.key) : undefined}
+                  tabIndex={isSortable ? 0 : undefined}
+                  role={isSortable ? 'button' : undefined}
+                  aria-sort={isSortable && sortBy === col.key ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                  onKeyDown={isSortable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort(col.key); } } : undefined}
                   className={cn(
                     'px-3 py-2 text-[10px] font-semibold text-content-secondary uppercase tracking-wider',
                     align(col.align),
@@ -207,6 +218,9 @@ const ERPTable = ({
                 <tr
                   key={row.id ?? idx}
                   onClick={() => onRowClick?.(row)}
+                  tabIndex={onRowClick ? 0 : undefined}
+                  role={onRowClick ? 'button' : undefined}
+                  onKeyDown={onRowClick ? (e) => { if (e.key === 'Enter') onRowClick(row); } : undefined}
                   className={cn(
                     'transition-colors hover:bg-surface-subtle',
                     onRowClick && 'cursor-pointer',

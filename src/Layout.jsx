@@ -126,13 +126,20 @@ const Layout = () => {
 
   return (
     <div className="flex h-screen w-full bg-surface-base overflow-hidden font-sans transition-colors duration-300">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[300] focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-content-on-brand focus:rounded-lg focus:font-semibold focus:text-sm"
+      >
+        Saltar al contenido principal
+      </a>
+
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar onOpenPalette={() => setPaletteOpen(true)} />
         <GlobalTopProgressBar />
 
-        <main className="p-2 bg-surface-main h-full overflow-auto">
+        <main id="main-content" tabIndex={-1} className="p-2 bg-surface-main h-full overflow-auto">
           {sinAcceso ? (
             <div className="flex flex-col items-center justify-center h-full gap-4 text-content-muted">
               <ShieldOff size={48} />

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 
 const KEY = ['empresa'];
 
@@ -11,14 +12,14 @@ const KEY = ['empresa'];
 export const useEmpresa = () =>
   useQuery({
     queryKey:  KEY,
-    queryFn:   () => apiClient.get('/empresa'),
+    queryFn:   () => apiClient.get(API_ROUTES.EMPRESA.GET),
     staleTime: 30 * 60 * 1000, // empresa cambia muy rara vez
   });
 
 export const useUpdateEmpresa = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data) => apiClient.put('/empresa', data),
+    mutationFn: (data) => apiClient.put(API_ROUTES.EMPRESA.UPDATE, data),
     onSuccess: () => { toast.success('Empresa actualizada'); qc.invalidateQueries({ queryKey: KEY }); },
     onError:   (e) => toast.error(e?.response?.data?.messages?.error || e?.response?.data?.msg || 'Error al actualizar empresa'),
   });
@@ -32,7 +33,7 @@ export const useUpdateEmpresa = () => {
 export const useEmpresaLogoBase64 = () =>
   useQuery({
     queryKey:  ['empresa', 'logo-base64'],
-    queryFn:   () => apiClient.get('/empresa/logo-base64'),
+    queryFn:   () => apiClient.get(API_ROUTES.EMPRESA.LOGO_BASE64),
     staleTime: 30 * 60 * 1000,
   });
 
@@ -42,7 +43,7 @@ export const useUploadLogo = () => {
     mutationFn: (file) => {
       const fd = new FormData();
       fd.append('logo', file);
-      return apiClient.post('/empresa/logo', fd, {
+      return apiClient.post(API_ROUTES.EMPRESA.LOGO, fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
     },
@@ -54,7 +55,7 @@ export const useUploadLogo = () => {
 export const useDeleteLogo = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => apiClient.delete('/empresa/logo'),
+    mutationFn: () => apiClient.delete(API_ROUTES.EMPRESA.LOGO),
     onSuccess: () => { toast.success('Logo eliminado'); qc.invalidateQueries({ queryKey: KEY }); },
     onError:   (e) => toast.error(e?.response?.data?.messages?.error || e?.response?.data?.msg || 'Error al eliminar logo'),
   });

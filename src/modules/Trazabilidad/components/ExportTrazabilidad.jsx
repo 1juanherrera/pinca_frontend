@@ -340,7 +340,7 @@ const ExportTrazContent = ({ payload, closeModal }) => {
   return (
     <div className="fixed inset-0 z-[110] bg-black/60 flex items-center justify-center p-4" onClick={closeModal}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden"
+        className="bg-surface-elevated rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between">
@@ -353,7 +353,7 @@ const ExportTrazContent = ({ payload, closeModal }) => {
               <p className="text-[11px] text-content-tertiary mt-0.5">Hoja de trazabilidad para auditoría</p>
             </div>
           </div>
-          <button onClick={closeModal} className="text-content-tertiary hover:text-content-primary">
+          <button onClick={closeModal} aria-label="Cerrar" className="text-content-tertiary hover:text-content-primary">
             <X size={18} />
           </button>
         </div>

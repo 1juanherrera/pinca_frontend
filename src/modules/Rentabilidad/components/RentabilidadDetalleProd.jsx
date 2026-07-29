@@ -62,6 +62,7 @@ const RentabilidadDetalleProd = ({ orden, onClose }) => {
           </div>
           <button
             onClick={onClose}
+            aria-label="Cerrar"
             className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-muted rounded-xl transition-all"
           >
             <X size={18} />

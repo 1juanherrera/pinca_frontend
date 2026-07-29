@@ -151,11 +151,11 @@ const MateriasPanel = ({ formulaciones, titulo }) => {
     <div className="flex-1 flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-5 py-3 bg-content-primary shrink-0">
         <div className="flex items-center gap-2">
-          <FlaskConical size={13} className="text-content-muted" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-content-muted">Materias primas</p>
-          <span className="bg-content-inverse/10 text-content-muted text-[9px] font-bold px-1.5 py-0.5 rounded-md">{formulaciones.length}</span>
+          <FlaskConical size={13} className="text-content-inverse/60" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-content-inverse/60">Materias primas</p>
+          <span className="bg-content-inverse/10 text-content-inverse/70 text-[9px] font-bold px-1.5 py-0.5 rounded-md">{formulaciones.length}</span>
         </div>
-        <p className="text-[9px] font-bold text-content-tertiary uppercase tracking-widest">{titulo}</p>
+        <p className="text-[9px] font-bold text-content-inverse/60 uppercase tracking-widest">{titulo}</p>
       </div>
       <div className="flex items-center px-4 py-1.5 bg-surface-subtle border-b border-border-subtle shrink-0">
         <div className="w-6 shrink-0" />
@@ -869,10 +869,10 @@ const CombinacionForm = ({
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3 bg-content-primary shrink-0">
           <div className="flex items-center gap-2">
-            <Split size={13} className="text-content-muted" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-content-muted">Resumen de órdenes</p>
+            <Split size={13} className="text-content-inverse/60" />
+            <p className="text-[10px] font-black uppercase tracking-widest text-content-inverse/60">Resumen de órdenes</p>
           </div>
-          <p className="text-[9px] font-bold text-content-tertiary uppercase tracking-widest">{volumen} gal totales</p>
+          <p className="text-[9px] font-bold text-content-inverse/60 uppercase tracking-widest">{volumen} gal totales</p>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-4">
@@ -1088,7 +1088,7 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
               <p className="text-xs text-content-muted font-medium mt-0.5">{item?.nombre ?? '—'}</p>
             </div>
           </div>
-          <button onClick={handleClose} className="p-2 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-xl transition-all active:scale-95">
+          <button onClick={handleClose} aria-label="Cerrar" className="p-2 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-xl transition-all active:scale-95">
             <X size={18} />
           </button>
         </div>
@@ -1134,7 +1134,7 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
                 <p className="text-sm font-semibold text-semantic-success-fg tabular-nums">{formatCOP(precioGalon)}</p>
               </div>
               <div className="bg-content-primary border border-content-primary rounded-xl px-3 py-3 shadow-sm">
-                <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest mb-1 flex items-center gap-1"><Layers size={9} className="text-content-muted" /> Markup</p>
+                <p className="text-[9px] font-bold text-content-inverse/60 uppercase tracking-widest mb-1 flex items-center gap-1"><Layers size={9} className="text-content-inverse/60" /> Markup</p>
                 <p className="text-sm font-semibold text-content-inverse tabular-nums">{costos?.porcentaje_utilidad ?? 0}%</p>
               </div>
             </div>

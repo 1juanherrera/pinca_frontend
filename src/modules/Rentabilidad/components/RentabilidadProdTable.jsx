@@ -86,18 +86,18 @@ const RentabilidadProdTable = ({ ordenes, isLoading, onRowClick }) => {
       {/* Fila de totales */}
       {!isLoading && ordenes.length > 0 && (
         <div className="bg-content-primary text-content-inverse rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
-          <span className="text-content-muted">{ordenes.length} orden(es)</span>
+          <span className="text-content-inverse/60">{ordenes.length} orden(es)</span>
           <div className="flex items-center gap-8">
             <div className="text-right">
-              <p className="text-content-muted font-normal text-[10px]">Costo MP</p>
+              <p className="text-content-inverse/60 font-normal text-[10px]">Costo MP</p>
               <p className=" tabular-nums">{fmt(totalMP)}</p>
             </div>
             <div className="text-right">
-              <p className="text-content-muted font-normal text-[10px]">Indirectos</p>
+              <p className="text-content-inverse/60 font-normal text-[10px]">Indirectos</p>
               <p className=" tabular-nums text-brand-primary/70">{fmt(totalIndirectos)}</p>
             </div>
             <div className="text-right">
-              <p className="text-content-muted font-normal text-[10px]">Total Producción</p>
+              <p className="text-content-inverse/60 font-normal text-[10px]">Total Producción</p>
               <p className=" tabular-nums text-base">{fmt(totalGeneral)}</p>
             </div>
           </div>

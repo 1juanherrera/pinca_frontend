@@ -50,10 +50,15 @@ const ActionMenu = ({ items = [], trigger, align = 'right' }) => {
       if (menuRef.current?.contains(e.target)) return;
       setOpen(false);
     };
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
     document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKeyDown);
     window.addEventListener('scroll', onScroll, true);
     return () => {
       document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('scroll', onScroll, true);
     };
   }, [open]);

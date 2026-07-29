@@ -101,12 +101,12 @@ const PorProductoView = ({ onHistorial }) => {
         <div className="flex flex-col gap-3">
           <div className="bg-content-primary rounded-2xl px-5 py-4 shadow-sm flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1">Comparando producto</p>
+              <p className="text-[10px] font-bold text-content-inverse/60 uppercase tracking-widest mb-1">Comparando producto</p>
               <h2 className="text-base font-bold text-content-inverse">{selectedGrupo.nombre}</h2>
-              <p className="text-xs text-content-muted mt-0.5">{selectedGrupo.proveedores.length} opciones disponibles</p>
+              <p className="text-xs text-content-inverse/60 mt-0.5">{selectedGrupo.proveedores.length} opciones disponibles</p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-bold text-content-muted uppercase tracking-widest mb-1">Mejor Precio</p>
+              <p className="text-[10px] font-bold text-content-inverse/60 uppercase tracking-widest mb-1">Mejor Precio</p>
               <p className="text-lg font-bold text-semantic-success/80 tabular-nums">{fmt(selectedGrupo.precio_min)}</p>
             </div>
           </div>

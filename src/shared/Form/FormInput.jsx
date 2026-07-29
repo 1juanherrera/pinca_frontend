@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { AlertCircle } from 'lucide-react';
 import cn from '../../utils/cn';
 import {
@@ -13,12 +14,17 @@ export const FormInput = ({
   leftSymbol,
   registration,
   className = '',
+  id,
   ...props
 }) => {
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
+  const errorId = `${inputId}-error`;
+
   return (
     <div className={cn(FIELD_WRAPPER, 'w-full')}>
       {label && (
-        <label className={LABEL_BASE}>
+        <label htmlFor={inputId} className={LABEL_BASE}>
           {label}{required && <span className={LABEL_REQUIRED_MARK}>*</span>}
         </label>
       )}
@@ -31,6 +37,9 @@ export const FormInput = ({
         )}
 
         <input
+          id={inputId}
+          aria-invalid={!!error}
+          aria-describedby={error ? errorId : undefined}
           className={cn(
             INPUT_BASE,
             leftSymbol && 'pl-7',
@@ -43,7 +52,7 @@ export const FormInput = ({
       </div>
 
       {error && (
-        <span className={FIELD_ERROR}>
+        <span id={errorId} className={FIELD_ERROR}>
           <AlertCircle size={11} /> {error}
         </span>
       )}

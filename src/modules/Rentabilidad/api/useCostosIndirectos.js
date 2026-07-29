@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { costosKeys } from './costosKeys';
 
 /**
@@ -8,13 +9,13 @@ import { costosKeys } from './costosKeys';
 export const useCostosIndirectos = () => {
   const queryResumen = useQuery({
     queryKey: costosKeys.indirectos(),
-    queryFn:  () => apiClient.get('/costos_indirectos/resumen'),
+    queryFn:  () => apiClient.get(API_ROUTES.COSTOS_INDIRECTOS.RESUMEN),
     staleTime: 5 * 60 * 1000,
   });
 
   const queryLista = useQuery({
     queryKey: [...costosKeys.indirectos(), 'lista'],
-    queryFn:  () => apiClient.get('/costos_indirectos'),
+    queryFn:  () => apiClient.get(API_ROUTES.COSTOS_INDIRECTOS.LIST),
     staleTime: 5 * 60 * 1000,
   });
 

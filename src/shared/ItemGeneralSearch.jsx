@@ -157,8 +157,15 @@ const ItemGeneralSearch = ({
     const handler = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) setAbierto(false);
     };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setAbierto(false);
+    };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   useEffect(() => {
@@ -217,6 +224,7 @@ const ItemGeneralSearch = ({
             <button
               type="button"
               onClick={handleClear}
+              aria-label="Quitar selección"
               className="p-1 text-semantic-success/80 hover:text-semantic-danger hover:bg-semantic-danger-subtle rounded-lg transition-all shrink-0"
             >
               <X size={13} />

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { preparacionesKeys } from './preparacionesKeys';
 import toast from 'react-hot-toast';
 
@@ -20,7 +21,7 @@ export const usePreparacionesPaginated = (filters = {}) => {
       Object.entries(filters).forEach(([k, v]) => {
         if (v !== undefined && v !== null && v !== '') params.append(k, v);
       });
-      return await apiClient.get(`/preparaciones?${params.toString()}`);
+      return await apiClient.get(API_ROUTES.PREPARACIONES.LIST_QS(`?${params.toString()}`));
     },
     placeholderData: keepPreviousData,
     staleTime: 30 * 1000,
@@ -63,8 +64,8 @@ export const usePreparaciones = (
     : preparacionesKeys.lists();
 
   const queryFn = itemId
-    ? () => apiClient.get(`/preparaciones/item/${itemId}`)
-    : () => apiClient.get('/preparaciones');
+    ? () => apiClient.get(API_ROUTES.PREPARACIONES.BY_ITEM(itemId))
+    : () => apiClient.get(API_ROUTES.PREPARACIONES.LIST);
 
   const queryList = useQuery({
     queryKey,
@@ -75,14 +76,14 @@ export const usePreparaciones = (
   // ── 2. Query: Detalle de una preparación ──────────────────────────────────
   const queryDetail = useQuery({
     queryKey: preparacionesKeys.detail(id),
-    queryFn:  () => apiClient.get(`/preparaciones/${id}`),
+    queryFn:  () => apiClient.get(API_ROUTES.PREPARACIONES.DETAIL(id)),
     enabled:  !!id && fetchDetail,
   });
 
   // ── MUTACIONES ────────────────────────────────────────────────────────────
 
   const createMutation = useMutation({
-    mutationFn: (data) => apiClient.post('/preparaciones', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.PREPARACIONES.CREATE, data),
     onSuccess: (response, variables) => {
       const nuevaPreparacion = response?.data ?? { ...variables, id_preparaciones: Date.now() };
 
@@ -109,7 +110,7 @@ export const usePreparaciones = (
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/preparaciones/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.PREPARACIONES.DETAIL(id), data),
     onSuccess: () => {
       toast.success('Preparación actualizada');
       queryClient.invalidateQueries({ queryKey: preparacionesKeys.all });
@@ -120,7 +121,7 @@ export const usePreparaciones = (
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (idToDelete) => apiClient.delete(`/preparaciones/${idToDelete}`),
+    mutationFn: (idToDelete) => apiClient.delete(API_ROUTES.PREPARACIONES.DETAIL(idToDelete)),
     onSuccess: (_, idToDelete) => {
       const filterFn = (oldData) => {
         const list = Array.isArray(oldData) ? oldData : (oldData?.data ?? []);

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 
 const KEYS = { all: ['numeracion'] };
 
@@ -10,14 +11,14 @@ const KEYS = { all: ['numeracion'] };
 export const useNumeraciones = () =>
   useQuery({
     queryKey:  KEYS.all,
-    queryFn:   () => apiClient.get('/numeracion'),
+    queryFn:   () => apiClient.get(API_ROUTES.NUMERACION.LIST),
     staleTime: 60 * 1000,
   });
 
 export const useUpdateNumeracion = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }) => apiClient.put(`/numeracion/${id}`, data),
+    mutationFn: ({ id, data }) => apiClient.put(API_ROUTES.NUMERACION.UPDATE(id), data),
     onSuccess: () => {
       toast.success('Serie actualizada');
       qc.invalidateQueries({ queryKey: KEYS.all });
@@ -29,7 +30,7 @@ export const useUpdateNumeracion = () => {
 export const useCreateNumeracion = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data) => apiClient.post('/numeracion', data),
+    mutationFn: (data) => apiClient.post(API_ROUTES.NUMERACION.CREATE, data),
     onSuccess: () => {
       toast.success('Nueva serie creada');
       qc.invalidateQueries({ queryKey: KEYS.all });

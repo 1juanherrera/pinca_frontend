@@ -751,7 +751,7 @@ const UserPanel = () => {
               <p className="text-[10px] text-content-muted mt-0.5">{ROLES_LABELS[user?.rol] ?? user?.rol}</p>
             </div>
           </div>
-          <button onClick={closeDrawer}
+          <button onClick={closeDrawer} aria-label="Cerrar"
             className="p-1.5 rounded-lg hover:bg-surface-muted text-content-muted hover:text-content-secondary transition-colors">
             <X size={16} />
           </button>

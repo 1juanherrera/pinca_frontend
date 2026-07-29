@@ -522,6 +522,7 @@ const FormulacionModalInner = ({ onClose, itemId = null }) => {
             </div>
             <button
               onClick={handleClose}
+              aria-label="Cerrar"
               className="p-2 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-full transition-colors"
             >
               <X size={20} />

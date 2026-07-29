@@ -180,7 +180,7 @@ const CommandPaletteBody = ({ onClose }) => {
           <kbd className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold text-content-muted bg-surface-muted border border-border-base rounded">
             ESC
           </kbd>
-          <button onClick={onClose} className="text-content-muted hover:text-content-primary transition sm:hidden">
+          <button onClick={onClose} aria-label="Cerrar" className="text-content-muted hover:text-content-primary transition sm:hidden">
             <X size={16} />
           </button>
         </div>

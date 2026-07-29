@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { costosKeys } from './costosKeys';
 
 /**
@@ -16,7 +17,7 @@ export const useCostosProduccion = (params = {}) => {
       if (params.estado !== undefined && params.estado !== '') {
         search.set('estado', params.estado);
       }
-      return apiClient.get(`/preparaciones/costos_resumen?${search.toString()}`);
+      return apiClient.get(API_ROUTES.PREPARACIONES.COSTOS_RESUMEN(`?${search.toString()}`));
     },
     staleTime: 5 * 60 * 1000,
   });

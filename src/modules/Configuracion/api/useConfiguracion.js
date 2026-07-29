@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { configuracionKeys } from './configuracionKeys';
 
 const STALE = 5 * 60 * 1000; // 5 min — los configs cambian poco
@@ -11,7 +12,7 @@ const STALE = 5 * 60 * 1000; // 5 min — los configs cambian poco
 export const useConfiguracion = () =>
   useQuery({
     queryKey: configuracionKeys.all,
-    queryFn:  () => apiClient.get('/configuracion'),
+    queryFn:  () => apiClient.get(API_ROUTES.CONFIGURACION.ALL),
     staleTime: STALE,
   });
 
@@ -21,7 +22,7 @@ export const useConfiguracion = () =>
 export const useConfiguracionGrupo = (grupo) =>
   useQuery({
     queryKey: configuracionKeys.grupo(grupo),
-    queryFn:  () => apiClient.get(`/configuracion/grupo/${grupo}`),
+    queryFn:  () => apiClient.get(API_ROUTES.CONFIGURACION.GRUPO(grupo)),
     enabled:  !!grupo,
     staleTime: STALE,
   });
@@ -48,7 +49,7 @@ export const useConfigValue = (clave, defaultValue = null) => {
 export const useUpdateConfig = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ clave, valor }) => apiClient.put(`/configuracion/${clave}`, { valor }),
+    mutationFn: ({ clave, valor }) => apiClient.put(API_ROUTES.CONFIGURACION.UPDATE(clave), { valor }),
     onSuccess: (_data, { clave }) => {
       toast.success(`Configuración "${clave}" actualizada`);
       qc.invalidateQueries({ queryKey: configuracionKeys.all });
@@ -65,7 +66,7 @@ export const useUpdateConfig = () => {
 export const useBulkUpdateConfig = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (configs) => apiClient.put('/configuracion/bulk', { configs }),
+    mutationFn: (configs) => apiClient.put(API_ROUTES.CONFIGURACION.BULK_UPDATE, { configs }),
     onSuccess: (data) => {
       toast.success(data?.mensaje ?? 'Configuraciones actualizadas');
       qc.invalidateQueries({ queryKey: configuracionKeys.all });

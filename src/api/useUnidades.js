@@ -6,7 +6,7 @@ export const useUnidades = () => {
   const { data = [], isLoading } = useQuery({
     queryKey: ['unidades'],
     queryFn:  async () => {
-      const res = await apiClient.get(API_ROUTES.UNIDADES);
+      const res = await apiClient.get(API_ROUTES.UNIDADES.LIST);
       return Array.isArray(res) ? res : [];
     },
     staleTime: Infinity,

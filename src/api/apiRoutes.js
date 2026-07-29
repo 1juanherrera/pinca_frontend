@@ -9,8 +9,10 @@ export const API_ROUTES = {
     MI_ACTIVIDAD:      '/usuarios/mi-actividad',
   },
   EMPRESA: {
-    GET:    '/empresa',
-    UPDATE: '/empresa',
+    GET:         '/empresa',
+    UPDATE:      '/empresa',
+    LOGO_BASE64: '/empresa/logo-base64',
+    LOGO:        '/empresa/logo',
   },
   INSTALACIONES: {
     LIST: '/instalaciones',
@@ -20,13 +22,16 @@ export const API_ROUTES = {
   BODEGAS: {
     LIST: '/bodegas',
     DETAIL: (id) => `/bodegas/${id}`,
-    INVENTARIO: (id) => `/bodegas/inventario/${id}`,
+    INVENTARIO: (id, qs = '') => `/bodegas/inventario/${id}${qs}`,
+    UPDATE_ITEM: (id) => `/bodegas/item/${id}`,
   },
   ITEMS: {
     GENERAL:        '/item_general',
     DETAIL:         (id) => `/item_general/${id}`,
     PRECIO_MANUAL:  (id) => `/item_general/${id}/precio-manual`,
     BUSCAR:         (q, tipos) => `/item_general/buscar?q=${encodeURIComponent(q)}${tipos?.length ? `&tipos=${tipos.join(',')}` : ''}`,
+    LEGACY_ALL:            '/items',
+    MATERIAS_DISPONIBLES:  '/items/materias_disponibles',
   },
   // Rutas de Cartera y Pagos
   CARTERA: {
@@ -42,11 +47,15 @@ export const API_ROUTES = {
   },
   GESTIONES: {
     LIST: '/gestiones_cobro',
+    BY_FACTURA: (facturaId) => `/gestiones_cobro?factura_id=${facturaId}`,
+    BY_CLIENTE: (clienteId) => `/gestiones_cobro?cliente_id=${clienteId}`,
     CREATE: '/gestiones_cobro',
     DELETE: (id) => `/gestiones_cobro/${id}`,
   },
   NOTAS_CREDITO: {
     LIST: '/notas_credito',
+    BY_FACTURA: (facturaId) => `/notas_credito?factura_id=${facturaId}`,
+    BY_CLIENTE: (clienteId) => `/notas_credito?cliente_id=${clienteId}`,
     CREATE: '/notas_credito',
     ANULAR: (id) => `/notas_credito/${id}/anular`,
   },
@@ -55,17 +64,39 @@ export const API_ROUTES = {
     DETAIL:      (id) => `/catalogo/${id}`,
     PROVEEDORES: (id) => `/catalogo/${id}/proveedores`,
   },
-  UNIDADES: '/unidades',
+  UNIDADES: {
+    LIST:   '/unidades',
+    CREATE: '/unidades',
+    UPDATE: (id) => `/unidades/${id}`,
+    DELETE: (id) => `/unidades/${id}`,
+  },
   INVENTARIO: {
-    GLOBAL: '/inventario/global',
+    GLOBAL:         '/inventario/global',
+    TRASPASO:       '/inventario/traspaso',
+    AJUSTE_MANUAL:  '/inventario/ajuste-manual',
+    REMOVE_BODEGA:  (itemId, bodegaId) => `/inventario/${itemId}/bodega/${bodegaId}`,
   },
   CAPAS: {
     POR_ITEM:       (itemId) => `/inventario/${itemId}/capas`,
     BODEGAS:        '/inventario/capas/bodegas',
     POR_PREPARACION:(prepId) => `/inventario/capas/preparacion/${prepId}`,
   },
-  FORMULACIONES: '/formulaciones',
-  FORMULACIONES_OPCIONES_INGREDIENTES: (itemId) => `/formulaciones/${itemId}/opciones-ingredientes`,
+  FORMULACIONES: {
+    LIST:                  '/formulaciones',
+    CREATE:                '/formulaciones',
+    DETAIL:                (id) => `/formulaciones/${id}`,
+    UPDATE:                (id) => `/formulaciones/${id}`,
+    COSTOS:                (id) => `/formulaciones/costos/${id}`,
+    RECALCULAR:            (id, volumen) => `/formulaciones/recalcular_costos/${id}/${volumen}`,
+    PROVEEDORES:           (id) => `/formulaciones/${id}/proveedores`,
+    COSTOS_PROVEEDOR:      (id, proveedorId) => `/formulaciones/costos/${id}/proveedor/${proveedorId}`,
+    OPCIONES_INGREDIENTES: (itemId) => `/formulaciones/${itemId}/opciones-ingredientes`,
+    BY_ITEM:               (itemId) => `/formulacion_item/${itemId}`,
+    CLONAR:                '/formulaciones/clonar',
+    VERSIONES:             (id) => `/formulaciones/${id}/versiones`,
+    VERSION_DETALLE:       (versionId) => `/formulaciones/versiones/${versionId}`,
+    VERSION_RESTAURAR:     (versionId) => `/formulaciones/versiones/${versionId}/restaurar`,
+  },
   PROVEEDORES: '/proveedores',
   ITEM_PROVEEDORES: {
     LIST:     '/item_proveedores',
@@ -117,7 +148,11 @@ export const API_ROUTES = {
   },
   PREPARACIONES: {
     LIST:                   '/preparaciones',
+    LIST_QS:                (qs = '') => `/preparaciones${qs}`,
+    CREATE:                 '/preparaciones',
     DETAIL:                 (id) => `/preparaciones/${id}`,
+    BY_ITEM:                (itemId) => `/preparaciones/item/${itemId}`,
+    COSTOS_RESUMEN:         (qs = '') => `/preparaciones/costos_resumen${qs}`,
     VERIFICAR_DISPONIBILIDAD: (itemId, cantidad, unidadId) =>
       `/preparaciones/verificar-disponibilidad?item_general_id=${itemId}&cantidad=${cantidad}&unidad_id=${unidadId}`,
   },
@@ -189,4 +224,36 @@ export const API_ROUTES = {
     HISTORIA: (id) => `/costos-produccion/${id}/historia`,
   },
   SALUD_SISTEMA: '/salud-sistema',
+  AUDITORIA: {
+    LOGIN_ATTEMPTS: (qs = '') => `/auditoria/login-attempts${qs}`,
+    MOVIMIENTOS:    (qs = '') => `/auditoria/movimientos${qs}`,
+  },
+  CONFIGURACION: {
+    ALL:              '/configuracion',
+    GRUPO:            (grupo) => `/configuracion/grupo/${grupo}`,
+    UPDATE:           (clave) => `/configuracion/${clave}`,
+    BULK_UPDATE:      '/configuracion/bulk',
+    TIPOS_MOVIMIENTO: '/configuracion/tipos-movimiento',
+  },
+  NUMERACION: {
+    LIST:   '/numeracion',
+    CREATE: '/numeracion',
+    UPDATE: (id) => `/numeracion/${id}`,
+  },
+  MOVIMIENTOS: {
+    LIST:         (qs = '') => `/movimientos${qs}`,
+    RESPONSABLES: '/movimientos/responsables',
+  },
+  COSTOS_ITEM: {
+    UPDATE: (id) => `/costos_item/${id}`,
+  },
+  COMPARADOR: {
+    POR_ITEM:      '/comparador/por_item',
+    POR_PROVEEDOR: (proveedorId) => `/comparador/por_proveedor/${proveedorId}`,
+    HISTORIAL:     (itemProveedorId) => `/comparador/historial/${itemProveedorId}`,
+  },
+  COSTOS_INDIRECTOS: {
+    LIST:    '/costos_indirectos',
+    RESUMEN: '/costos_indirectos/resumen',
+  },
 };

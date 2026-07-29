@@ -85,9 +85,9 @@ const RentabilidadIndirectosPanel = ({ lista, porCategoria, totalMensual, isLoad
       {/* Total */}
       {lista.length > 0 && (
         <div className="bg-content-primary text-content-inverse rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
-          <span className="text-content-muted">{lista.length} ítem(s) activos</span>
+          <span className="text-content-inverse/60">{lista.length} ítem(s) activos</span>
           <div className="text-right">
-            <p className="text-content-muted font-normal text-[10px]">Total mensual</p>
+            <p className="text-content-inverse/60 font-normal text-[10px]">Total mensual</p>
             <p className=" tabular-nums text-base text-brand-primary/70">{fmt(totalMensual)}</p>
           </div>
         </div>

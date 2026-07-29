@@ -76,11 +76,11 @@ const RentabilidadComprasTable = ({ ordenes, isLoading }) => {
 
       {!isLoading && ordenes.length > 0 && (
         <div className="bg-content-primary text-content-inverse rounded-xl px-4 py-3 flex items-center justify-between text-xs font-bold">
-          <span className="text-content-muted">{ordenes.length} orden(es)</span>
+          <span className="text-content-inverse/60">{ordenes.length} orden(es)</span>
           <div className="text-right">
-            <p className="text-content-muted font-normal text-[10px]">Subtotal</p>
-            <p className="tabular-nums text-sm text-content-muted">{fmt(totalGeneral)}</p>
-            <p className="text-content-muted font-normal text-[10px] mt-1">Total + IVA ({ivaPct}%)</p>
+            <p className="text-content-inverse/60 font-normal text-[10px]">Subtotal</p>
+            <p className="tabular-nums text-sm text-content-inverse/70">{fmt(totalGeneral)}</p>
+            <p className="text-content-inverse/60 font-normal text-[10px] mt-1">Total + IVA ({ivaPct}%)</p>
             <p className="tabular-nums text-base text-semantic-warning/70">{fmt(totalConIva)}</p>
           </div>
         </div>

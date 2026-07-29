@@ -80,7 +80,7 @@ const CatalogoForm = ({ item, onSubmit, onClose, isSaving }) => {
               <p className="text-xs text-content-tertiary">Definición técnica del producto</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-full transition-colors">
+          <button onClick={onClose} aria-label="Cerrar" className="p-2 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-full transition-colors">
             <X size={22} />
           </button>
         </div>

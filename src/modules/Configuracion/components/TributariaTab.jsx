@@ -129,9 +129,11 @@ const TributariaTab = () => {
         <div className="md:col-span-2 flex items-start gap-3 p-3 rounded-lg bg-surface-subtle border border-border-subtle">
           <button
             type="button"
+            role="switch"
+            aria-checked={valores.aplicar_iva_por_default}
             disabled={!esAdmin}
             onClick={() => handleChange('aplicar_iva_por_default', !valores.aplicar_iva_por_default, 'boolean')}
-            className={`relative w-10 h-5.5 rounded-full transition-colors duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed shrink-0 mt-0.5 ${
+            className={`relative w-10 h-5.5 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 mt-0.5 ${
               valores.aplicar_iva_por_default ? 'bg-content-primary' : 'bg-surface-strong'
             }`}
           >

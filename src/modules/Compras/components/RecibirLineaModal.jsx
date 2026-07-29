@@ -58,6 +58,7 @@ const RecibirLineaModal = ({ linea, ordenId, onClose, onConfirm, isSubmitting })
           </div>
           <button
             onClick={onClose}
+            aria-label="Cerrar"
             className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all"
           >
             <X size={14} />

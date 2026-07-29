@@ -325,7 +325,7 @@ const columns = useMemo(() => [
               variant="ghost"
               icon={X}
               onClick={clearSelection}
-              className="!text-content-inverse hover:!bg-white/10"
+              className="!text-content-inverse hover:!bg-content-inverse/10"
             >
               Limpiar selección
             </Button>

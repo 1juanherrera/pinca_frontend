@@ -8,6 +8,15 @@ import App from './App.jsx';
 import ErrorBoundary from './shared/ErrorBoundary.jsx';
 import ToastLimiter from './shared/ToastLimiter.jsx';
 
+// Evita que la rueda del mouse cambie el valor de un input numérico enfocado
+// por accidente (comportamiento nativo del navegador) — riesgo real en un ERP
+// con montos/cantidades: basta con scrollear la página con el cursor sobre un
+// campo enfocado para alterar su valor sin darse cuenta.
+document.addEventListener('wheel', () => {
+  const el = document.activeElement;
+  if (el?.tagName === 'INPUT' && el.type === 'number') el.blur();
+}, { passive: true });
+
 // Política central de reintentos: NO reintentamos errores del cliente (4xx)
 // porque son determinísticos — pegarle 3 veces al mismo 422 no va a cambiar
 // nada y solo confunde con toasts duplicados. Sí reintentamos red caída

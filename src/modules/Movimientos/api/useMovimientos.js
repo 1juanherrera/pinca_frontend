@@ -1,5 +1,6 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 
 export const movimientosKeys = {
   all: ['movimientos'],
@@ -18,7 +19,7 @@ export const useMovimientos = (filters = {}) => {
         }
       });
       // apiClient ya extrae response.data en el interceptor → devuelve {data, meta} directo.
-      return await apiClient.get(`/movimientos?${params.toString()}`);
+      return await apiClient.get(API_ROUTES.MOVIMIENTOS.LIST(`?${params.toString()}`));
     },
     placeholderData: keepPreviousData, // v5: conserva la página previa al paginar (antes era no-op)
     staleTime: 30 * 1000,
@@ -38,6 +39,6 @@ export const useMovimientos = (filters = {}) => {
 export const useResponsables = () =>
   useQuery({
     queryKey: [...movimientosKeys.all, 'responsables'],
-    queryFn: () => apiClient.get('/movimientos/responsables'),
+    queryFn: () => apiClient.get(API_ROUTES.MOVIMIENTOS.RESPONSABLES),
     staleTime: 5 * 60 * 1000,
   });

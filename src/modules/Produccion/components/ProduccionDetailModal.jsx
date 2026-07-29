@@ -439,6 +439,7 @@ export const ProduccionDetailModal = ({ preparacion, onClose, onUpdated, onVerTr
             </button>
             <button
               onClick={onClose}
+              aria-label="Cerrar"
               className="p-2 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-xl transition-all active:scale-95"
             >
               <X size={18} />

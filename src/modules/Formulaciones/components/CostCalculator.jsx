@@ -176,7 +176,7 @@ export const CostCalculator = ({
                     <p className="text-[10px] font-bold uppercase tracking-widest text-semantic-danger mb-1.5 flex items-center gap-1">
                       <AlertTriangle size={10} /> No se puede preparar
                     </p>
-                    <p className="text-[10px] text-content-muted mb-2">{razonBloqueo}</p>
+                    <p className="text-[10px] text-content-inverse/60 mb-2">{razonBloqueo}</p>
                     {faltantes.length > 0 && (
                       <div className="flex flex-col gap-1.5 border-t border-content-secondary pt-2">
                         {faltantes.map((f) => {
@@ -185,10 +185,10 @@ export const CostCalculator = ({
                           const disponible = parseFloat(f.inventario_cantidad ?? 0);
                           return (
                             <div key={f.item_general_id} className="flex flex-col">
-                              <span className="text-[10px] font-semibold text-content-muted truncate">
+                              <span className="text-[10px] font-semibold text-content-inverse/60 truncate">
                                 {f.materia_prima_nombre}
                               </span>
-                              <div className="flex justify-between text-[9px] text-content-muted mt-0.5">
+                              <div className="flex justify-between text-[9px] text-content-inverse/60 mt-0.5">
                                 <span>Disp: {disponible}</span>
                                 <span>Req: {requerido}</span>
                                 <span className="text-semantic-danger font-bold">

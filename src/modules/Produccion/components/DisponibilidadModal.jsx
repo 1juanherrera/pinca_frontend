@@ -258,6 +258,7 @@ const DisponibilidadModal = ({
             </div>
             <button
               onClick={onClose}
+              aria-label="Cerrar"
               className="p-1.5 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-lg transition-all"
             >
               <X size={16} />

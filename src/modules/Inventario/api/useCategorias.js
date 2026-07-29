@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "../../../api/apiClient";
+import { API_ROUTES } from "../../../api/apiRoutes";
 import { categoriaKeys } from "./categoriaKeys";
 
 export const useCategorias = () => {
   return useQuery({
     queryKey: categoriaKeys.lists(),
     queryFn: async () => {
-      const response = await apiClient.get('/categorias');
+      const response = await apiClient.get(API_ROUTES.CATEGORIAS.LIST);
       const data = response?.data !== undefined ? response.data : response;
       return data || [];
     },

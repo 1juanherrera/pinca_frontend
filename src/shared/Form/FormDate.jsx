@@ -17,7 +17,7 @@
  *     )}
  *   />
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DayPicker } from 'react-day-picker';
 import { es } from 'date-fns/locale';
@@ -59,7 +59,11 @@ const FormDate = ({
   className = '',
   minDate,
   maxDate,
+  id,
 }) => {
+  const generatedId = useId();
+  const triggerId = id ?? generatedId;
+  const errorId = `${triggerId}-error`;
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
   const triggerRef = useRef(null);
@@ -123,15 +127,20 @@ const FormDate = ({
   return (
     <div ref={wrapperRef} className={cn(FIELD_WRAPPER, 'w-full')}>
       {label && (
-        <label className={LABEL_BASE}>
+        <label htmlFor={triggerId} className={LABEL_BASE}>
           {label}{required && <span className={LABEL_REQUIRED_MARK}>*</span>}
         </label>
       )}
 
       <button
+        id={triggerId}
         ref={triggerRef}
         type="button"
         disabled={disabled}
+        aria-invalid={!!error}
+        aria-describedby={error ? errorId : undefined}
+        aria-haspopup="dialog"
+        aria-expanded={open}
         onClick={() => !disabled && setOpen((o) => !o)}
         className={cn(
           INPUT_BASE,
@@ -282,7 +291,7 @@ const FormDate = ({
       )}
 
       {error && (
-        <span className={FIELD_ERROR}>
+        <span id={errorId} className={FIELD_ERROR}>
           <AlertCircle size={11} /> {error}
         </span>
       )}

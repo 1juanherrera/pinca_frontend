@@ -18,7 +18,7 @@ export const useItem = (id = null, fetchFormulacion = true) => {
 const queryFormulacion = useQuery({
   queryKey: ['formulaciones', id],
   queryFn: async () => {
-    const response = await apiClient.get(`${API_ROUTES.FORMULACIONES}/${id}`);
+    const response = await apiClient.get(API_ROUTES.FORMULACIONES.DETAIL(id));
     return response;
   },
   enabled: !!id && fetchFormulacion, // Solo se ejecuta si hay un ID y fetchFormulacion es true
@@ -40,7 +40,7 @@ const queryFormulacion = useQuery({
 
   const queryUnidades = useQuery({
     queryKey: itemKeys.unidades(),
-    queryFn: () => apiClient.get(API_ROUTES.UNIDADES),
+    queryFn: () => apiClient.get(API_ROUTES.UNIDADES.LIST),
   });
 
   // --- MUTACIONES CON ACTUALIZACIÓN OPTIMISTA (La Fórmula Definitiva) ---

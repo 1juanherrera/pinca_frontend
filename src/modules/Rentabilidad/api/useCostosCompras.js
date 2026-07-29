@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { costosKeys } from './costosKeys';
 
 /**
@@ -9,7 +10,7 @@ import { costosKeys } from './costosKeys';
 export const useCostosCompras = ({ desde, hasta } = {}) => {
   const query = useQuery({
     queryKey: costosKeys.compras(),
-    queryFn:  () => apiClient.get('/ordenes_compra'),
+    queryFn:  () => apiClient.get(API_ROUTES.ORDENES_COMPRA.LIST),
     staleTime: 5 * 60 * 1000,
   });
 

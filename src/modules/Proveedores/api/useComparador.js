@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../../../api/apiClient';
+import { API_ROUTES } from '../../../api/apiRoutes';
 import { comparadorKeys } from './ComparadorKeys';
 
 // ── Todos los productos agrupados por nombre con sus proveedores ──────────
 export const useComparadorPorItem = () => {
   const query = useQuery({
     queryKey: comparadorKeys.porItem(),
-    queryFn:  () => apiClient.get('/comparador/por_item'),
+    queryFn:  () => apiClient.get(API_ROUTES.COMPARADOR.POR_ITEM),
   });
 
   return {
@@ -19,7 +20,7 @@ export const useComparadorPorItem = () => {
 export const useComparadorPorProveedor = (proveedorId) => {
   const query = useQuery({
     queryKey: comparadorKeys.porProveedor(proveedorId),
-    queryFn:  () => apiClient.get(`/comparador/por_proveedor/${proveedorId}`),
+    queryFn:  () => apiClient.get(API_ROUTES.COMPARADOR.POR_PROVEEDOR(proveedorId)),
     enabled:  !!proveedorId,
   });
 
@@ -33,7 +34,7 @@ export const useComparadorPorProveedor = (proveedorId) => {
 export const useHistorialPrecios = (itemProveedorId) => {
   const query = useQuery({
     queryKey: comparadorKeys.historial(itemProveedorId),
-    queryFn:  () => apiClient.get(`/comparador/historial/${itemProveedorId}`),
+    queryFn:  () => apiClient.get(API_ROUTES.COMPARADOR.HISTORIAL(itemProveedorId)),
     enabled:  !!itemProveedorId,
   });
 

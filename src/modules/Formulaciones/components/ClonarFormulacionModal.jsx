@@ -45,7 +45,7 @@ const ClonarFormulacionModal = ({ from, onClose, onCloned }) => {
             <Copy size={15} className="text-content-secondary" />
             <h2 className="text-sm font-bold text-content-primary uppercase tracking-wide">Clonar fórmula</h2>
           </div>
-          <button onClick={onClose} className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-surface-base border border-border-base text-content-primary hover:bg-surface-muted transition">
+          <button onClick={onClose} aria-label="Cerrar" className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-surface-base border border-border-base text-content-primary hover:bg-surface-muted transition">
             <X size={14} />
           </button>
         </div>
