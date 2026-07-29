@@ -85,12 +85,32 @@ const Row = ({ label, value, grand, negative }) => (
  *                  arriba, así que en ese caso no se pasa saldo.
  * @param docTitle  metadata del PDF
  */
+/**
+ * Alto de página calculado a partir del contenido real, en vez de un número
+ * fijo "adivinado". La estructura es mayormente fija (header, grid, montoBox,
+ * devengos, firma, footer) — lo único que varía es: la línea de salario base
+ * (opcional), la fila de "Descuentos" en deducciones (opcional), y la caja de
+ * saldo pendiente (opcional). Cada uno suma su alto real solo si está presente.
+ * BASE incluye ya un margen de seguridad para redondeo de line-height y textos
+ * que puedan ocupar una línea extra (nombre de empresa/empleado largos).
+ */
+const ALTO_BASE = 660;
+const ALTO_SALARIO_BASE = 14;
+const ALTO_FILA_DESCUENTOS = 19;
+const ALTO_CAJA_SALDO = 55;
+
+const calcularAltoPagina = ({ empleado, deducciones, saldo }) =>
+  ALTO_BASE
+  + (empleado?.salarioBase ? ALTO_SALARIO_BASE : 0)
+  + (deducciones?.descuentos ? ALTO_FILA_DESCUENTOS : 0)
+  + (saldo ? ALTO_CAJA_SALDO : 0);
+
 export const DocComprobantePago = ({
   numero, fecha, empresa: E = EMPRESA_FALLBACK, logo,
   empleado, periodo, devengos, deducciones, neto, pagado, saldo, docTitle,
 }) => (
   <Document title={docTitle || `Comprobante ${numero || ''}`.trim()} author={E.nombre}>
-    <Page size={[300, 690]} style={s.page}>
+    <Page size={[300, calcularAltoPagina({ empleado, deducciones, saldo })]} style={s.page}>
       <View style={s.header}>
         <View style={s.headLeft}>
           {logo ? <Image src={logo} style={s.logo} /> : null}

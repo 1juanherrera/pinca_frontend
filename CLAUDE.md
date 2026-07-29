@@ -2255,3 +2255,43 @@ Pedido explícito del usuario ("dime qué bugs puedes encontrar a nivel de UX/UI
 
 - Prueba visual completa en `npm run dev` (Windows) de todo lo de esta sesión — no se pudo hacer desde WSL.
 - Nada bloqueante del lado backend (los 16 endpoints de nómina están confirmados sanos).
+
+---
+
+## 35. Sesión 2026-07-29 — Fix de fondo: alto de página fijo en `DocComprobantePago` (causa raíz del dolor recurrente con proporciones de PDF)
+
+Sesión disparada por una pregunta del usuario ("¿cómo hacen otros este tipo de facturas? llevo mucho tiempo luchando con vos para que manejes bien las proporciones") a raíz de ver el PDF de una integración externa (Factus, facturación electrónica DIAN — ver sesión de ese mismo día en el contexto del backend/proyecto general, no específica de este repo).
+
+### Diagnóstico
+
+Investigué qué generaba esas diferencias de calidad. PINCA usa **dos motores de PDF distintos**:
+- `jsPDF` puro (`ExportProduccion.jsx`, `ExportTrazabilidad.jsx`) — coordenadas x/y manuales, sin motor de layout. Cualquier cambio de contenido rompe todo lo que viene después.
+- `@react-pdf/renderer` (`shared/pdf/DocPdf.jsx`, `DocTicket.jsx`, y `Nomina/components/DocComprobantePago.jsx`) — SÍ tiene motor de layout tipo flexbox. `DocPdf`/`DocTicket` usan `size="A4"` (tamaño estándar, deja fluir/paginar solo) y por eso nunca dieron este problema.
+
+**La causa raíz puntual** (documentada ya en §34.4 como "iterado 470→520→560→600→650→690"): `DocComprobantePago.jsx` usaba `<Page size={[300, 690]}>` — un **alto de página fijo e inventado a mano**, la misma clase de error que dibujar coordenadas manuales en jsPDF, solo que disfrazado de componente React. El número "690" no salió de calcular el contenido — salió de probar valores hasta que "cupiera".
+
+### Fix
+
+`DocComprobantePago.jsx` — reemplazado el número mágico por `calcularAltoPagina({empleado, deducciones, saldo})`: una función que suma el alto real de cada sección, sumando extras SOLO si esa sección está presente:
+- `ALTO_BASE = 660` (todo el contenido fijo: header, título, empleado, grid, caja de neto, devengos, deducciones base, firma, footer, con margen de seguridad para redondeo de line-height y nombres largos).
+- `+14` si `empleado.salarioBase` está presente (línea opcional bajo el nombre).
+- `+19` si `deducciones.descuentos` está presente (fila extra en la tabla).
+- `+55` si `saldo` está presente (caja punteada extra).
+
+### Validación (no solo código — PDF real generado y leído)
+
+Repliqué la receta de §34.5 (esbuild bundlea el componente a CJS con React/react-dom/@react-pdf/renderer externos, se copia a una carpeta temporal DENTRO del repo para que Node resuelva `node_modules`, se corre con Node y se lee el PDF resultante con el tool de lectura, que lo renderiza como imagen). Como el esbuild YA instalado en `pinca_frontend/node_modules` es el binario de Windows (mismo problema cross-platform de siempre en WSL), instalé un esbuild nuevo en el scratchpad (`npm install esbuild` ahí, sin tocar el repo) para tener el binario Linux correcto.
+
+Generé **dos escenarios reales** (no solo el caso feliz):
+- **Mínimo**: sin salario base, sin descuentos, sin saldo → `min.pdf`.
+- **Máximo**: con salario base, con fila de descuentos, con caja de saldo → `max.pdf`.
+
+Ambos: **1 sola página**, sin superposiciones, sin corte de contenido (confirmado contando `/Type /Page` en el PDF crudo Y leyendo el render visual de ambos). Carpeta temporal borrada al final, nada commiteado.
+
+### Lección para la próxima vez que alguien (yo u otro Claude) toque un documento de `@react-pdf/renderer`
+
+**Nunca hardcodear un alto de página adivinado por prueba y error.** Si el documento no es A4/Carta estándar (formato "recibo" angosto como este), calcular el alto sumando el tamaño real de cada bloque de contenido, con extras condicionales para las secciones opcionales — igual que se hizo acá. Si en algún momento se agrega una sección nueva opcional a `DocComprobantePago`, sumarle su constante de alto a `calcularAltoPagina` en vez de tocar un número base a ciegas.
+
+---
+
+> **Snapshot al cierre 2026-07-29**: `DocComprobantePago.jsx` con alto de página calculado dinámicamente en vez de un valor fijo adivinado — validado generando y leyendo el PDF real en 2 escenarios (mínimo/máximo contenido), ambos en 1 página sin overflow. Sin cambios en `DocPdf`/`DocTicket` (ya usaban A4 correctamente). Nada más tocado en esta sesión.
