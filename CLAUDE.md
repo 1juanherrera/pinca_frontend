@@ -2317,3 +2317,43 @@ Al cerrar la sesión de hoy (§35) se encontraron **68 archivos con cambios sin 
 ---
 
 > **Snapshot al cierre 2026-07-29 (commit de backlog)**: 68 archivos de trabajo previamente sin commitear, consolidados en un commit aparte del fix del §35. Cierra backlog documentado de varias sesiones (API_ROUTES hardcoded, fallback `.msg`, a11y de modales, contraste dark en paneles). Pendiente: build/lint/prueba visual en Windows.
+
+---
+
+## 37. Sesión 2026-07-30/31 — Estilo "Factus" para Cotización/Remisión/OC/Recibo (cuarto formato de PDF)
+
+Disparada por una pregunta sobre la evaluación de Factus (proveedor DIAN, ver `pinca_backend_nest/CLAUDE.md` y memoria general del asistente): el usuario vio el PDF de ejemplo de Factus y pidió replicar su **estructura visual** (no sus datos legales — eso solo aplica a documentos DIAN reales) como una tercera opción de formato, además de Carta/Tiquete, en 4 exportadores.
+
+### Componentes nuevos (standalone, `@react-pdf/renderer`)
+
+- `Comercial/Cotizaciones/components/CotizacionFactusStyleDoc.jsx`
+- `Comercial/Remisiones/components/RemisionFactusStyleDoc.jsx` (sin descuento/IVA por línea — la remisión de PINCA no aplica impuesto)
+- `Compras/components/OrdenCompraFactusStyleDoc.jsx` (el proveedor toma el lugar del "cliente")
+- `Pagos/components/ReciboFactusStyleDoc.jsx` (sin tabla de ítems — un recibo no factura productos, el "monto recibido" ocupa ese lugar)
+
+Ninguno reemplaza `shared/pdf/DocPdf.jsx` (que siguen usando los Carta/Tiquete existentes) — son plantillas paralelas, wireadas como una **tercera opción del toggle** ("Factus", ícono `LayoutTemplate`) en `ExportCotizacion.jsx` / `ExportRemision.jsx` / `ExportOrdenCompra.jsx` / `ExportRecibo.jsx`, cada uno con su propio `buildFactusConfig(...)` que mapea los datos reales de la entidad al shape que espera el componente nuevo (distinto al de `DocPdf`, que usa `campos/columnas/filas`).
+
+### Iteración de diseño del header (varias rondas con el usuario)
+
+1. **v1**: header en 3 columnas (logo | título+datos legales centrados | QR) — el QR codificaba solo texto plano (`"COTIZACIÓN {numero} · {empresa} · Cliente: {nombre}"`, generado con la librería `qrcode`), no una URL real. Se explicó por qué: el QR real de Factus apunta a la verificación DIAN del CUFE, que no existe para documentos que no son facturas electrónicas — no se inventó una URL falsa.
+2. **v2**: el usuario pidió quitar el QR y mandar los datos de la empresa al costado derecho en vez de centrados → header a **2 columnas** (logo izquierda | título+número+datos alineados a la derecha). Se sacó toda la generación de QR (`useEffect` + `QRCode.toDataURL` + estado `qrDataUrl`) de los 4 `Export*.jsx`, y la dependencia `qrcode` se desinstaló otra vez del `package.json` (quedó igual que antes de esta sesión).
+3. **v3**: el usuario sintió el header "muy vacío" arriba → se le dieron 3 opciones (caja con borde alrededor de los datos / franja de acento de color / ambas) y eligió la primera. Los datos de la empresa (nombre/NIT/tel-email/dirección-ciudad) quedaron dentro de una `View` con borde + fondo gris claro (mismo lenguaje visual que el panel de Cliente/Fecha de abajo), con el título y el número arriba de la caja, más grandes.
+4. **Bug real encontrado y corregido en el camino**: al subir `docTitle` de fontSize 11→13 sin tocar `lineHeight`, el título y el número quedaban **superpuestos** (glifos cruzados, visible en el render real, no solo en el código). Se detectó comparando el render antes/después de agregar la caja, no por inspección de código. Fix: `lineHeight: 1.3` explícito + `marginBottom`/`marginTop` de 2px en ambos, replicado en los 4 archivos.
+
+Cada iteración se validó generando el PDF real (no solo el código) con el mismo harness de `pinca_frontend/CLAUDE.md` §34.5 (esbuild a CJS con React/react-dom/@react-pdf/renderer externos, renderizado con Node en una carpeta temporal dentro del repo, borrada al final) — nunca se dio por buena una iteración solo por lectura de código.
+
+### `qrcode` — dependencia instalada y desinstalada (gotcha de WSL)
+
+Al instalar `qrcode` desde WSL (para el QR de la v1), `npm install` le quitó a `node_modules/@rollup` el binario `rollup-win32-x64-msvc` (mismo bug ya documentado en la memoria del asistente `frontend-rollup-cross-platform-node-modules` — node_modules compartido Windows/WSL). Al desinstalarla de nuevo (v2) volvió a pasar. **El usuario necesita correr `npm install` en Windows** antes de su próximo `npm run dev`/`build` para restaurar el binario — `package.json`/`package-lock.json` ya quedaron limpios (sin `qrcode`), pero el `node_modules` físico en disco puede seguir roto para Windows hasta ese `npm install`.
+
+### Backend — gaps de datos cerrados de paso
+
+Construir el estilo Factus expuso que varios campos (NIT del cliente en cotizaciones, NIT/dirección del proveedor en OC, NIT del cliente en pagos) **siempre salían vacíos**, en cualquier formato (Carta/Tiquete incluidos, no solo el nuevo) — las queries del backend nunca los traían del JOIN. Se corrigió en `pinca_backend_nest` (`cotizaciones.service.ts`, `ordenes-compra.service.ts`, `pagos-cliente.service.ts` — ver ese `CLAUDE.md` para el detalle). También se corrigió un bug de nombre de campo en `ExportRecibo.jsx` (`buildConfig` leía `pago.factura_numero`, el backend devuelve `pago.numero_factura` — el campo "Factura" del recibo salía vacío en Carta/Tiquete).
+
+### Validado
+
+Los 4 documentos se generaron con datos reales (cliente Distribuidora Andina, proveedor real BRENNTAG COLOMBIA de la OC-003) en cada ronda de iteración — layout final sin overflow, sin overlap, una sola página, NIT/dirección poblados. **No se pudo probar en `npm run dev`** (WSL) — falta la prueba visual del usuario en Windows, especialmente después del `npm install` pendiente por el tema de `qrcode`/rollup.
+
+---
+
+> **Snapshot al cierre 2026-07-31**: cuarto formato de PDF ("Factus") wireado en Cotización/Remisión/OC/Recibo, iterado 3 veces con el usuario (con QR → sin QR, datos a la derecha → caja con borde), con un bug real de overlap de texto encontrado y corregido generando el PDF real en cada paso. De paso, 3 gaps de datos del backend (NIT/dirección de cliente/proveedor) que afectaban a TODOS los formatos, no solo el nuevo, quedaron cerrados. Pendiente: `npm install` en Windows (rollup) + prueba visual completa.

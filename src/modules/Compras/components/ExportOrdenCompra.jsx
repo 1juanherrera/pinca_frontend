@@ -3,7 +3,8 @@
  * Se abre via openDrawer('EXPORT_MODAL_OC', { id_orden }).
  */
 import { useState, lazy, Suspense } from 'react';
-import { X, Download, CheckCircle2, Loader2, ShoppingCart, FileText, Receipt } from 'lucide-react';
+import { PDFViewer } from '@react-pdf/renderer';
+import { X, Download, CheckCircle2, Loader2, ShoppingCart, FileText, Receipt, LayoutTemplate } from 'lucide-react';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { useCompras } from '../api/useCompras';
 import logoFallback from '../../../assets/pincaicono.png';
@@ -11,10 +12,37 @@ import { useEmpresaInfo } from '../../../utils/empresaInfo';
 import { useEmpresaLogoBase64 } from '../../Configuracion/api/useEmpresa';
 import { fmt, fmtCant, downloadDocPdf } from '../../../shared/pdf/DocPdf';
 import { downloadDocTicket } from '../../../shared/pdf/DocTicket';
+import { OrdenCompraFactusStyleDoc, downloadOrdenCompraFactusStyle } from './OrdenCompraFactusStyleDoc';
 
 const DocPdfPreview = lazy(() => import('../../../shared/pdf/DocPdfPreview'));
 
 const fmtFecha = (d) => d ? new Date(d).toLocaleDateString('es-CO') : '—';
+
+/** Config para el formato "Factus" — el proveedor toma el lugar del "cliente". */
+const buildFactusConfig = (orden, EMPRESA, logo) => ({
+  numero: orden.numero,
+  fecha: fmtFecha(orden.fecha),
+  fechaEsperada: fmtFecha(orden.fecha_esperada),
+  estado: orden.estado,
+  empresa: EMPRESA,
+  logo,
+  proveedor: {
+    nombre: orden.nombre_empresa,
+    documento: orden.nit_proveedor,
+    direccion: orden.direccion_proveedor,
+    email: orden.email,
+    telefono: orden.telefono,
+    bodega: orden.bodega_nombre,
+  },
+  items: (orden.lineas ?? []).map((it, i) => ({
+    codigo: it.item_codigo ?? String(i + 1),
+    descripcion: it.descripcion ?? it.item_nombre,
+    valorUnit: it.precio_unit,
+    cantidad: it.cantidad,
+  })),
+  ivaPct: orden.iva_pct ?? 0,
+  observaciones: orden.observaciones,
+});
 
 const buildConfig = (orden, EMPRESA, logo) => ({
   titulo: 'ORDEN DE COMPRA',
@@ -53,12 +81,17 @@ const ExportOrdenContent = ({ ordenId, closeModal }) => {
   const [formato, setFormato] = useState('carta');
 
   const config = orden ? buildConfig(orden, EMPRESA, previewLogo) : null;
+  const factusConfig = orden ? buildFactusConfig(orden, EMPRESA, previewLogo) : null;
 
   const handleDownload = async () => {
     setIsExporting(true);
     try {
-      const dl = formato === 'tiquete' ? downloadDocTicket : downloadDocPdf;
-      await dl(config, orden.numero);
+      if (formato === 'factus') {
+        await downloadOrdenCompraFactusStyle(factusConfig, orden.numero);
+      } else {
+        const dl = formato === 'tiquete' ? downloadDocTicket : downloadDocPdf;
+        await dl(config, orden.numero);
+      }
       setDone(true);
       setTimeout(() => { setDone(false); closeModal(); }, 1200);
     } finally {
@@ -92,6 +125,10 @@ const ExportOrdenContent = ({ ordenId, closeModal }) => {
                 <Loader2 size={20} className="animate-spin" />
                 <span className="text-sm font-medium">Cargando orden...</span>
               </div>
+            ) : formato === 'factus' ? (
+              <PDFViewer showToolbar={false} style={{ width: '100%', height: '100%', border: 'none', backgroundColor: '#fff' }}>
+                <OrdenCompraFactusStyleDoc {...factusConfig} />
+              </PDFViewer>
             ) : (
               <Suspense fallback={<div className="flex-1 flex items-center justify-center gap-3 text-content-muted"><Loader2 size={20} className="animate-spin" /><span className="text-sm font-medium">Generando vista previa…</span></div>}>
                 <DocPdfPreview {...config} formato={formato} />
@@ -116,6 +153,12 @@ const ExportOrdenContent = ({ ordenId, closeModal }) => {
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${formato === 'tiquete' ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
               >
                 <Receipt size={12} /> Tiquete
+              </button>
+              <button
+                onClick={() => setFormato('factus')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${formato === 'factus' ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
+              >
+                <LayoutTemplate size={12} /> Factus
               </button>
             </div>
 

@@ -3,7 +3,8 @@
  * y DocTicket (tirilla POS). Se abre via openDrawer('EXPORT_MODAL_REMISIONES', remision).
  */
 import { useState, lazy, Suspense } from 'react';
-import { X, Download, CheckCircle2, Loader2, Truck, FileText, Receipt } from 'lucide-react';
+import { PDFViewer } from '@react-pdf/renderer';
+import { X, Download, CheckCircle2, Loader2, Truck, FileText, Receipt, LayoutTemplate } from 'lucide-react';
 import { useBoundStore } from '../../../../store/useBoundStore';
 import { useRemisiones } from '../api/useRemisiones';
 import logoFallback from '../../../../assets/pincaicono.png';
@@ -11,8 +12,30 @@ import { useEmpresaInfo } from '../../../../utils/empresaInfo';
 import { useEmpresaLogoBase64 } from '../../../Configuracion/api/useEmpresa';
 import { fmt, fmtCant, downloadDocPdf } from '../../../../shared/pdf/DocPdf';
 import { downloadDocTicket } from '../../../../shared/pdf/DocTicket';
+import { RemisionFactusStyleDoc, downloadRemisionFactusStyle } from './RemisionFactusStyleDoc';
 
 const DocPdfPreview = lazy(() => import('../../../../shared/pdf/DocPdfPreview'));
+
+/** Config para el formato "Factus" — sin descuento/IVA (la remisión de PINCA no aplica impuesto). */
+const buildFactusConfig = (remision, items, EMPRESA, logo) => ({
+  numero: remision.numero,
+  fecha: remision.fecha_remision,
+  estado: remision.estado,
+  empresa: EMPRESA,
+  logo,
+  cliente: {
+    nombre: remision.nombre_empresa,
+    documento: remision.nit_cliente,
+    direccionEntrega: remision.direccion_entrega,
+  },
+  items: (items ?? []).map((it, i) => ({
+    codigo: it.codigo ?? String(i + 1),
+    descripcion: it.descripcion,
+    valorUnit: it.precio_unit,
+    cantidad: it.cantidad,
+  })),
+  observaciones: remision.observaciones,
+});
 
 const buildConfig = (remision, items, EMPRESA, logo) => {
   const subtotal = (items ?? []).reduce((acc, i) => acc + (Number(i.subtotal) || 0), 0);
@@ -56,13 +79,18 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
   const [formato, setFormato] = useState('carta');
 
   const config = buildConfig(remision, items, EMPRESA, previewLogo);
+  const factusConfig = buildFactusConfig(remision, items, EMPRESA, previewLogo);
   const subtotal = (items ?? []).reduce((s, i) => s + (Number(i.subtotal) || 0), 0);
 
   const handleDownload = async () => {
     setIsExporting(true);
     try {
-      const dl = formato === 'tiquete' ? downloadDocTicket : downloadDocPdf;
-      await dl(config, remision.numero);
+      if (formato === 'factus') {
+        await downloadRemisionFactusStyle(factusConfig, remision.numero);
+      } else {
+        const dl = formato === 'tiquete' ? downloadDocTicket : downloadDocPdf;
+        await dl(config, remision.numero);
+      }
       setDone(true);
       setTimeout(() => { setDone(false); closeModal(); }, 1200);
     } finally {
@@ -96,6 +124,10 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
                 <Loader2 size={20} className="animate-spin" />
                 <span className="text-sm font-medium">Cargando ítems...</span>
               </div>
+            ) : formato === 'factus' ? (
+              <PDFViewer showToolbar={false} style={{ width: '100%', height: '100%', border: 'none', backgroundColor: '#fff' }}>
+                <RemisionFactusStyleDoc {...factusConfig} />
+              </PDFViewer>
             ) : (
               <Suspense fallback={<div className="flex-1 flex items-center justify-center gap-3 text-content-muted"><Loader2 size={20} className="animate-spin" /><span className="text-sm font-medium">Generando vista previa…</span></div>}>
                 <DocPdfPreview {...config} formato={formato} />
@@ -120,6 +152,12 @@ const ExportRemisionContent = ({ remision, closeModal }) => {
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${formato === 'tiquete' ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
               >
                 <Receipt size={12} /> Tiquete
+              </button>
+              <button
+                onClick={() => setFormato('factus')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${formato === 'factus' ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
+              >
+                <LayoutTemplate size={12} /> Factus
               </button>
             </div>
 

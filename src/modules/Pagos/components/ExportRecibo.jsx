@@ -3,17 +3,36 @@
  * Se abre via openDrawer('EXPORT_MODAL_RECIBO', pago).
  */
 import { useState, lazy, Suspense } from 'react';
-import { X, Download, CheckCircle2, Loader2, Receipt, FileText } from 'lucide-react';
+import { PDFViewer } from '@react-pdf/renderer';
+import { X, Download, CheckCircle2, Loader2, Receipt, FileText, LayoutTemplate } from 'lucide-react';
 import { useBoundStore } from '../../../store/useBoundStore';
 import logoFallback from '../../../assets/pincaicono.png';
 import { useEmpresaInfo } from '../../../utils/empresaInfo';
 import { useEmpresaLogoBase64 } from '../../Configuracion/api/useEmpresa';
 import { fmt, downloadDocPdf } from '../../../shared/pdf/DocPdf';
 import { downloadDocTicket } from '../../../shared/pdf/DocTicket';
+import { ReciboFactusStyleDoc, downloadReciboFactusStyle } from './ReciboFactusStyleDoc';
 
 const DocPdfPreview = lazy(() => import('../../../shared/pdf/DocPdfPreview'));
 
 const tipoLabel = (t) => t === 'pago_total' ? 'PAGO TOTAL' : t === 'abono' ? 'ABONO PARCIAL' : (t || '');
+
+/** Config para el formato "Factus" — sin tabla de ítems (un recibo no factura productos). */
+const buildFactusConfig = (pago, EMPRESA, logo) => ({
+  numero: pago.numero_referencia ?? `PG-${pago.id_pagos_cliente}`,
+  fecha: pago.fecha_pago,
+  empresa: EMPRESA,
+  logo,
+  cliente: {
+    nombre: pago.nombre_empresa,
+    documento: pago.nit_cliente,
+  },
+  metodo: pago.metodo_pago,
+  facturaNumero: pago.numero_factura ?? (pago.facturas_id ? `#${pago.facturas_id}` : undefined),
+  monto: pago.monto,
+  tipo: pago.tipo,
+  observaciones: pago.observaciones,
+});
 
 const buildConfig = (pago, EMPRESA, logo) => ({
   titulo: 'RECIBO DE PAGO',
@@ -23,11 +42,11 @@ const buildConfig = (pago, EMPRESA, logo) => ({
   logo,
   campos: [
     ['Cliente:', pago.nombre_empresa],
-    ['NIT:', pago.numero_documento],
+    ['NIT:', pago.nit_cliente],
     ['Encargado:', pago.nombre_encargado],
     ['Método:', pago.metodo_pago],
     ['Referencia:', pago.numero_referencia],
-    ['Factura:', pago.factura_numero ?? `#${pago.facturas_id ?? '—'}`],
+    ['Factura:', pago.numero_factura ?? `#${pago.facturas_id ?? '—'}`],
   ],
   monto: { label: 'MONTO RECIBIDO', value: fmt(pago.monto), sub: tipoLabel(pago.tipo) },
   observaciones: pago.observaciones,
@@ -43,12 +62,17 @@ const ExportReciboContent = ({ pago, closeModal }) => {
   const [formato, setFormato] = useState('carta');
 
   const config = buildConfig(pago, EMPRESA, previewLogo);
+  const factusConfig = buildFactusConfig(pago, EMPRESA, previewLogo);
 
   const handleDownload = async () => {
     setIsExporting(true);
     try {
-      const dl = formato === 'tiquete' ? downloadDocTicket : downloadDocPdf;
-      await dl(config, `recibo_${config.numero}`);
+      if (formato === 'factus') {
+        await downloadReciboFactusStyle(factusConfig, `recibo_${config.numero}`);
+      } else {
+        const dl = formato === 'tiquete' ? downloadDocTicket : downloadDocPdf;
+        await dl(config, `recibo_${config.numero}`);
+      }
       setDone(true);
       setTimeout(() => { setDone(false); closeModal(); }, 1200);
     } finally {
@@ -77,9 +101,15 @@ const ExportReciboContent = ({ pago, closeModal }) => {
           </div>
 
           <div className="flex-1 min-h-0 flex flex-col bg-surface-muted">
-            <Suspense fallback={<div className="flex-1 flex items-center justify-center gap-3 text-content-muted"><Loader2 size={20} className="animate-spin" /><span className="text-sm font-medium">Generando vista previa…</span></div>}>
-              <DocPdfPreview {...config} formato={formato} />
-            </Suspense>
+            {formato === 'factus' ? (
+              <PDFViewer showToolbar={false} style={{ width: '100%', height: '100%', border: 'none', backgroundColor: '#fff' }}>
+                <ReciboFactusStyleDoc {...factusConfig} />
+              </PDFViewer>
+            ) : (
+              <Suspense fallback={<div className="flex-1 flex items-center justify-center gap-3 text-content-muted"><Loader2 size={20} className="animate-spin" /><span className="text-sm font-medium">Generando vista previa…</span></div>}>
+                <DocPdfPreview {...config} formato={formato} />
+              </Suspense>
+            )}
           </div>
 
           <div className="px-5 py-4 border-t border-border-subtle bg-surface-subtle flex flex-wrap items-center justify-between gap-3 shrink-0">
@@ -97,6 +127,12 @@ const ExportReciboContent = ({ pago, closeModal }) => {
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${formato === 'tiquete' ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
               >
                 <Receipt size={12} /> Tiquete
+              </button>
+              <button
+                onClick={() => setFormato('factus')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${formato === 'factus' ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
+              >
+                <LayoutTemplate size={12} /> Factus
               </button>
             </div>
 

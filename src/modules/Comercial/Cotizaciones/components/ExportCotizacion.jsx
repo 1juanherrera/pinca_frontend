@@ -4,7 +4,8 @@
  * openDrawer('EXPORT_MODAL_COTIZACIONES', cotizacion).
  */
 import { useState, lazy, Suspense } from 'react';
-import { X, Download, CheckCircle2, Loader2, FileText, EyeOff, DollarSign, Receipt } from 'lucide-react';
+import { PDFViewer } from '@react-pdf/renderer';
+import { X, Download, CheckCircle2, Loader2, FileText, EyeOff, DollarSign, Receipt, LayoutTemplate } from 'lucide-react';
 import { useBoundStore } from '../../../../store/useBoundStore';
 import { useCotizaciones } from '../api/useCotizaciones';
 import logoFallback from '../../../../assets/pincaicono.png';
@@ -12,8 +13,38 @@ import { useEmpresaInfo } from '../../../../utils/empresaInfo';
 import { useEmpresaLogoBase64 } from '../../../Configuracion/api/useEmpresa';
 import { fmt, fmtCant, downloadDocPdf } from '../../../../shared/pdf/DocPdf';
 import { downloadDocTicket } from '../../../../shared/pdf/DocTicket';
+import { CotizacionFactusStyleDoc, downloadCotizacionFactusStyle } from './CotizacionFactusStyleDoc';
 
 const DocPdfPreview = lazy(() => import('../../../../shared/pdf/DocPdfPreview'));
+
+/** Config para el formato "Factus" — shape distinto al de DocPdf (campos/columnas/filas). */
+const buildFactusConfig = (cot, items, EMPRESA, logo) => ({
+  numero: cot.numero,
+  fecha: cot.fecha_cotizacion,
+  vencimiento: cot.fecha_vencimiento,
+  empresa: EMPRESA,
+  logo,
+  cliente: {
+    nombre: cot.nombre_empresa,
+    documento: cot.nit_cliente,
+    ciudad: cot.ciudad,
+    direccion: cot.direccion,
+    email: cot.email,
+  },
+  items: (items ?? []).map((it, i) => ({
+    // cotizaciones_detalle no tiene columna `codigo` (mismo gap que arriba, ver `it.codigo ?? i+1`).
+    codigo: it.codigo ?? String(i + 1),
+    descripcion: it.descripcion,
+    valorUnit: it.precio_unit,
+    cantidad: it.cantidad,
+    descuentoPct: it.descuento_pct,
+    ivaPct: 19,
+  })),
+  observaciones: cot.observaciones,
+  vigenciaDias: cot.fecha_vencimiento && cot.fecha_cotizacion
+    ? Math.max(1, Math.round((new Date(cot.fecha_vencimiento) - new Date(cot.fecha_cotizacion)) / 86400000))
+    : 30,
+});
 
 const num = (x) => Number(x) || 0;
 
@@ -66,12 +97,17 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
   const [formato, setFormato] = useState('carta');
 
   const config = buildConfig(cotizacion, items, EMPRESA, previewLogo, conPrecios);
+  const factusConfig = buildFactusConfig(cotizacion, items, EMPRESA, previewLogo);
 
   const handleDownload = async () => {
     setIsExporting(true);
     try {
-      const dl = formato === 'tiquete' ? downloadDocTicket : downloadDocPdf;
-      await dl(config, cotizacion.numero);
+      if (formato === 'factus') {
+        await downloadCotizacionFactusStyle(factusConfig, cotizacion.numero);
+      } else {
+        const dl = formato === 'tiquete' ? downloadDocTicket : downloadDocPdf;
+        await dl(config, cotizacion.numero);
+      }
       setDone(true);
       setTimeout(() => { setDone(false); closeModal(); }, 1200);
     } finally {
@@ -105,6 +141,10 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
                 <Loader2 size={20} className="animate-spin" />
                 <span className="text-sm font-medium">Cargando ítems...</span>
               </div>
+            ) : formato === 'factus' ? (
+              <PDFViewer showToolbar={false} style={{ width: '100%', height: '100%', border: 'none', backgroundColor: '#fff' }}>
+                <CotizacionFactusStyleDoc {...factusConfig} />
+              </PDFViewer>
             ) : (
               <Suspense fallback={<div className="flex-1 flex items-center justify-center gap-3 text-content-muted"><Loader2 size={20} className="animate-spin" /><span className="text-sm font-medium">Generando vista previa…</span></div>}>
                 <DocPdfPreview {...config} formato={formato} />
@@ -131,23 +171,31 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
               >
                 <Receipt size={12} /> Tiquete
               </button>
+              <button
+                onClick={() => setFormato('factus')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${formato === 'factus' ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
+              >
+                <LayoutTemplate size={12} /> Factus
+              </button>
             </div>
 
-            {/* Toggle con/sin precios */}
-            <div className="flex items-center gap-0.5 bg-surface-strong/60 rounded-lg p-0.5 shrink-0">
-              <button
-                onClick={() => setConPrecios(true)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${conPrecios ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
-              >
-                <DollarSign size={12} /> Con precios
-              </button>
-              <button
-                onClick={() => setConPrecios(false)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${!conPrecios ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
-              >
-                <EyeOff size={12} /> Sin precios
-              </button>
-            </div>
+            {/* Toggle con/sin precios — no aplica al estilo Factus (siempre priced) */}
+            {formato !== 'factus' && (
+              <div className="flex items-center gap-0.5 bg-surface-strong/60 rounded-lg p-0.5 shrink-0">
+                <button
+                  onClick={() => setConPrecios(true)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${conPrecios ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
+                >
+                  <DollarSign size={12} /> Con precios
+                </button>
+                <button
+                  onClick={() => setConPrecios(false)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${!conPrecios ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
+                >
+                  <EyeOff size={12} /> Sin precios
+                </button>
+              </div>
+            )}
 
             <button
               onClick={handleDownload}
