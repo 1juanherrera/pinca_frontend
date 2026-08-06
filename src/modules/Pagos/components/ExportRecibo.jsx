@@ -9,9 +9,10 @@ import { useBoundStore } from '../../../store/useBoundStore';
 import logoFallback from '../../../assets/pincaicono.png';
 import { useEmpresaInfo } from '../../../utils/empresaInfo';
 import { useEmpresaLogoBase64 } from '../../Configuracion/api/useEmpresa';
-import { fmt, downloadDocPdf } from '../../../shared/pdf/DocPdf';
-import { downloadDocTicket } from '../../../shared/pdf/DocTicket';
-import { ReciboFactusStyleDoc, downloadReciboFactusStyle } from './ReciboFactusStyleDoc';
+import { fmt, downloadDocPdf } from '../../../shared/pdf/docPdfHelpers';
+import { downloadDocTicket } from '../../../shared/pdf/docTicketHelpers';
+import { ReciboFactusStyleDoc } from './ReciboFactusStyleDoc';
+import { downloadReciboFactusStyle } from './downloadReciboFactusStyle';
 
 const DocPdfPreview = lazy(() => import('../../../shared/pdf/DocPdfPreview'));
 

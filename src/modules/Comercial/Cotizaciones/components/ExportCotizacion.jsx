@@ -11,9 +11,10 @@ import { useCotizaciones } from '../api/useCotizaciones';
 import logoFallback from '../../../../assets/pincaicono.png';
 import { useEmpresaInfo } from '../../../../utils/empresaInfo';
 import { useEmpresaLogoBase64 } from '../../../Configuracion/api/useEmpresa';
-import { fmt, fmtCant, downloadDocPdf } from '../../../../shared/pdf/DocPdf';
-import { downloadDocTicket } from '../../../../shared/pdf/DocTicket';
-import { CotizacionFactusStyleDoc, downloadCotizacionFactusStyle } from './CotizacionFactusStyleDoc';
+import { fmt, fmtCant, downloadDocPdf } from '../../../../shared/pdf/docPdfHelpers';
+import { downloadDocTicket } from '../../../../shared/pdf/docTicketHelpers';
+import { CotizacionFactusStyleDoc } from './CotizacionFactusStyleDoc';
+import { downloadCotizacionFactusStyle } from './downloadCotizacionFactusStyle';
 
 const DocPdfPreview = lazy(() => import('../../../../shared/pdf/DocPdfPreview'));
 

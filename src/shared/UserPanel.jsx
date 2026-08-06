@@ -9,7 +9,7 @@ import SaludSistemaPage from '../modules/SaludSistema/SaludSistemaPage';
 import { useBoundStore }  from '../store/useBoundStore';
 import { useTheme }        from '../hooks/useTheme';
 import { useNavigate }    from 'react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import apiClient           from '../api/apiClient';
 import { API_ROUTES }      from '../api/apiRoutes';
 import toast               from 'react-hot-toast';
@@ -78,10 +78,14 @@ const MiCuentaTab = ({ user, token, onLogout }) => {
   const [countdown, setCountdown] = useState(0);
   const [pctUsed,   setPctUsed]   = useState(0);
   const [nombreInput, setNombreInput] = useState(user?.nombre ?? '');
+  // Sync local cuando el user cambia (post-login o post-save) — ajustado
+  // durante el render (no en un efecto) para evitar el flash de valor stale.
+  const [nombreSincronizado, setNombreSincronizado] = useState(user?.nombre ?? '');
+  if ((user?.nombre ?? '') !== nombreSincronizado) {
+    setNombreSincronizado(user?.nombre ?? '');
+    setNombreInput(user?.nombre ?? '');
+  }
   const setAuth = useBoundStore(s => s.setAuth);
-
-  // Sync local cuando el user cambia (post-login o post-save)
-  useEffect(() => { setNombreInput(user?.nombre ?? ''); }, [user?.nombre]);
 
   const rol   = user?.rol  ?? 'visor';
   const style = ROL_STYLES[rol] ?? ROL_STYLES.visor;

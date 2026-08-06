@@ -30,8 +30,6 @@ export const CostProductsTable = ({
         if (typeof val === 'number') return val;
         return parseFloat(String(val).replace(/\./g, '').replace(',', '.')) || 0;
     };
-    const fmtCOP = (n) =>
-        new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(n) || 0);
     const fmtNum = (n) =>
         new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(Number(n) || 0);
 

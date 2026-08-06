@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Search, X, CheckCircle2, Loader2, Link2, TrendingDown, TrendingUp, Minus, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import apiClient from '../api/apiClient';
 import { API_ROUTES } from '../api/apiRoutes';
@@ -153,6 +153,17 @@ const ItemGeneralSearch = ({
   const debounceRef  = useRef(null);
   const containerRef = useRef(null);
 
+  // `tipos` por default es un array literal nuevo en cada render — lo
+  // estabilizamos por contenido para que `buscar` no cambie de identidad
+  // en cada render (evitaría re-disparar el efecto de autoSearch de abajo).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const tiposEstable = useMemo(() => tipos, [tipos.join(',')]);
+
+  // Última `value` sin forzar al efecto de autoSearch a re-ejecutarse
+  // solo porque cambió la selección (mismo comportamiento que antes).
+  const valueRef = useRef(value);
+  useEffect(() => { valueRef.current = value; }, [value]);
+
   useEffect(() => {
     const handler = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) setAbierto(false);
@@ -168,20 +179,14 @@ const ItemGeneralSearch = ({
     };
   }, []);
 
-  useEffect(() => {
-    if (!autoSearch || value) return;
-    setQuery(autoSearch);
-    buscar(autoSearch);
-  }, [autoSearch]);
-
-  const buscar = (texto) => {
+  const buscar = useCallback((texto) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!texto || texto.trim().length < 2) { setResultados([]); setAbierto(false); return; }
 
     debounceRef.current = setTimeout(async () => {
       setCargando(true);
       try {
-        const res = await apiClient.get(API_ROUTES.ITEMS.BUSCAR(texto, tipos));
+        const res = await apiClient.get(API_ROUTES.ITEMS.BUSCAR(texto, tiposEstable));
         setResultados(Array.isArray(res) ? res : []);
         setAbierto(true);
       } catch {
@@ -190,7 +195,13 @@ const ItemGeneralSearch = ({
         setCargando(false);
       }
     }, 300);
-  };
+  }, [tiposEstable]);
+
+  useEffect(() => {
+    if (!autoSearch || valueRef.current) return;
+    setQuery(autoSearch);
+    buscar(autoSearch);
+  }, [autoSearch, buscar]);
 
   const handleInput = (e) => {
     const v = e.target.value;

@@ -187,7 +187,7 @@ const DisponibilidadModal = ({
         setCargando(false);
       });
     return () => { cancelled = true; };
-  }, [itemGeneralId, cantidad, unidadId]);
+  }, [itemGeneralId, cantidad, unidadId, verificar]);
 
   const handleSelectProveedor = (itemId, proveedor) => {
     setSeleccion((prev) => ({ ...prev, [itemId]: proveedor }));

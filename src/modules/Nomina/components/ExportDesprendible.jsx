@@ -15,8 +15,8 @@ import { useBoundStore } from '../../../store/useBoundStore';
 import logoFallback from '../../../assets/pincaicono.png';
 import { useEmpresaInfo } from '../../../utils/empresaInfo';
 import { useEmpresaLogoBase64 } from '../../Configuracion/api/useEmpresa';
-import { fmt, fmtCant, downloadDocPdf } from '../../../shared/pdf/DocPdf';
-import { downloadDocComprobantePago } from './DocComprobantePago';
+import { fmt, fmtCant, downloadDocPdf } from '../../../shared/pdf/docPdfHelpers';
+import { downloadDocComprobantePago } from './downloadDocComprobantePago';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
 
 const DocPdfPreview = lazy(() => import('../../../shared/pdf/DocPdfPreview'));

@@ -140,7 +140,7 @@ export const FormulacionesTable = ({
         });
     }
 
-    const materiasOpciones = opcionesIngredientes?.materias ?? {};
+    const materiasOpciones = useMemo(() => opcionesIngredientes?.materias ?? {}, [opcionesIngredientes]);
 
     const handleSelectProveedor = (itemGeneralId, itemProveedorId) => {
         if (!onSeleccionIngrediente) return;

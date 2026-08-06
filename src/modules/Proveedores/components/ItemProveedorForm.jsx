@@ -239,6 +239,14 @@ const ItemProveedorForm = () => {
 
   const [aplicarIva,     setAplicarIva]     = useState(aplicarIvaDefault);
   const [porcentajeIva,  setPorcentajeIva]  = useState(ivaDefault);
+
+  // Refs con el default vigente — el efecto de inicialización (al abrir el
+  // drawer) los lee vía ref para NO re-dispararse si la config cambia
+  // mientras el usuario está editando (eso pisaría el form con `reset(...)`).
+  const ivaDefaultRef = useRef(ivaDefault);
+  const aplicarIvaDefaultRef = useRef(aplicarIvaDefault);
+  useEffect(() => { ivaDefaultRef.current = ivaDefault; }, [ivaDefault]);
+  useEffect(() => { aplicarIvaDefaultRef.current = aplicarIvaDefault; }, [aplicarIvaDefault]);
   const [itemGeneral,    setItemGeneral]    = useState(null);
   const [unidadCompraId, setUnidadCompraId] = useState('');
   const [nombreLocal,    setNombreLocal]    = useState('');
@@ -286,11 +294,11 @@ const ItemProveedorForm = () => {
     const editing    = !!payload?.id_item_proveedor; // derivado de payload (dep del effect)
     const precioUnit = payload?.precio_unitario ?? 0;
     const precioIva  = payload?.precio_con_iva  ?? 0;
-    let ivaAct = aplicarIvaDefault, ivaPct = ivaDefault;
+    let ivaAct = aplicarIvaDefaultRef.current, ivaPct = ivaDefaultRef.current;
 
     if (editing && precioUnit > 0 && precioIva > precioUnit) {
       const pctDetectado = Math.round((precioIva / precioUnit - 1) * 100);
-      ivaPct = pctDetectado > 0 ? pctDetectado : ivaDefault;
+      ivaPct = pctDetectado > 0 ? pctDetectado : ivaDefaultRef.current;
     } else if (editing) {
       ivaAct = false;
     }

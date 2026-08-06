@@ -57,14 +57,13 @@ const Sidebar = () => {
   const user           = useBoundStore((s) => s.user);
   const activeTitle    = useBoundStore((s) => s.activeTitle);
 
-  const modulos = user?.modulos ?? [];
   const esAdmin = user?.rol === 'admin';
 
   const menuVisible = useMemo(
     () => esAdmin
       ? sidebarMenu
-      : sidebarMenu.filter((item) => modulos.includes(item.moduloKey)),
-    [esAdmin, modulos],
+      : sidebarMenu.filter((item) => (user?.modulos ?? []).includes(item.moduloKey)),
+    [esAdmin, user?.modulos],
   );
 
   // Agrupar conservando orden del array original

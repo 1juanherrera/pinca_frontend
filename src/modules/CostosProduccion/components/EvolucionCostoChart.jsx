@@ -35,7 +35,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 const EvolucionCostoChart = ({ productoId, isOpen }) => {
   const { data, isLoading } = useCostoHistoria(productoId, { enabled: isOpen });
-  const snapshots = data?.snapshots || [];
+  const snapshots = useMemo(() => data?.snapshots || [], [data?.snapshots]);
 
   // Variación entre primer y último snapshot
   const variacion = useMemo(() => {
