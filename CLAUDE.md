@@ -2357,3 +2357,59 @@ Los 4 documentos se generaron con datos reales (cliente Distribuidora Andina, pr
 ---
 
 > **Snapshot al cierre 2026-07-31**: cuarto formato de PDF ("Factus") wireado en Cotización/Remisión/OC/Recibo, iterado 3 veces con el usuario (con QR → sin QR, datos a la derecha → caja con borde), con un bug real de overlap de texto encontrado y corregido generando el PDF real en cada paso. De paso, 3 gaps de datos del backend (NIT/dirección de cliente/proveedor) que afectaban a TODOS los formatos, no solo el nuevo, quedaron cerrados. Pendiente: `npm install` en Windows (rollup) + prueba visual completa.
+
+---
+
+## 38. Sesión 2026-08-10 — Limpieza/refactor general (`/goal`) + 2 bugs reales de costeo en Formulaciones
+
+Sesión larga disparada por un `/goal` de limpieza de código (código no usado, `console.log` de depuración, refactor de funciones/componentes complejos, sin tocar lógica de negocio). Auditoría inicial: **el frontend ya estaba limpio** de imports/variables sin usar (ESLint 0 issues en 327 archivos) y de `console.log` de depuración (solo 1 `console.warn` legítimo dentro de un catch). Trabajo real: 7 archivos huérfanos eliminados + 3 componentes/archivos grandes refactorizados + 2 bugs reales encontrados y corregidos a partir de preguntas del usuario sobre números que no cuadraban.
+
+### 38.1 Archivos huérfanos eliminados (0 referencias en todo el proyecto, verificado independientemente)
+
+- `src/modules/Roles/RolesPage.jsx` — página completa superada por el tab "Roles" de `UserPanel.jsx` desde sesiones anteriores (ya documentado como huérfano conocido en una auditoría previa). Se conservó `Roles/api/useRoles.js` (sigue usado por `UserPanel`).
+- `src/modules/index.js` — barrel file que re-exportaba ~90 módulos; nadie importaba desde ahí.
+- `src/modules/sedes/services/instalacionesServices.js` — capa de servicios pre-hooks, reemplazada hace tiempo por `sedes/api/useInstalaciones.js`.
+
+**Conservados deliberadamente** (no son código muerto — están documentados en este mismo archivo como parte del sistema de componentes compartidos, ver §5/§6): `ActionMenu.jsx`, `FormSection.jsx`, `useTableSorts.js`, `utils/services.js`. No tienen usos actuales pero borrarlos contradiría las convenciones documentadas del equipo — quedan como sugerencia, no como acción.
+
+### 38.2 Refactors de componentes grandes (extracción pura, sin cambio de lógica)
+
+Cada uno validado con: ESLint (`no-undef` detecta imports faltantes/rotos), `npm run build` limpio, **conteo de tokens idéntico** entre el archivo original (hooks, `<button>`, `className=`, `onClick=`, `size={`, etc.) y la suma de los archivos nuevos, y la suite de tests sin regresión (33/34 — el único fallo es preexistente en `StatusBadge.test.jsx`, no tocado, no relacionado).
+
+- **`preparationModal.jsx`** (1238 → 6 archivos): `preparationModal/constants.js`, `calculos.js`, `PreparationSubComponents.jsx` (UnitIcon, OrdenCard, MetaForm, MateriasPanel, IndirectCostSelector, SuccessView), `ConfirmSubForm.jsx`, `CombinacionForm.jsx` + el wrapper principal (`preparationModal.jsx`, quedó como componente `PreparationModal` delgado).
+- **`ItemProveedorForm.jsx`** (742 → 2 archivos): extraído `NombreAutocomplete.jsx` (176 líneas, autocomplete con debounce contra `/item_general/buscar`). De paso se limpió un import muerto (`X` de lucide-react, sin uso ni en el original).
+- **`FormulacionModal.jsx`** (988 → 7 archivos, en 3 rondas validadas por separado): primero se extrajo `IngredientCard.jsx` + `formulacionModalHelpers.js` (`fmtCOP`/`fmtKg` compartidos). Luego, sobre el `FormulacionModalInner` de ~700 líneas que había quedado intacto (mezclado con `react-hook-form`, se había decidido no tocarlo sin poder verlo renderizado), se completó la extracción: `NuevoProductoInline.jsx` y `BuscadorIngredientes.jsx` (sin acoplamiento a RHF, bajo riesgo), luego `IngredientesList.jsx` (lista reordenable de ingredientes/instrucciones, recibe `register`/`setValue`/`errors` como props — mismo patrón ya probado en `IngredientCard`) y `FormulacionModalFooter.jsx` (totales + botones de acción). `FormulacionModal.jsx` quedó en **462 líneas** (orquestador: estado, `useForm`/`useFieldArray`, handlers) — la sección "Identidad" (selector de producto + nombre + volumen) es lo único que no se extrajo más, por bajo retorno.
+
+**No se pudo probar visualmente** (WSL no levanta `npm run dev` — ver gotcha de rollup más abajo). Validación 100% por build+lint+conteo de tokens+tests. **Falta la prueba visual del usuario** en Windows de: Formulaciones (crear/editar fórmula, agregar ingredientes, crear producto/MP inline, guardar) y Proveedores (crear/editar ítem de proveedor).
+
+### 38.3 Bug real #1: inconsistencia de precio de insumo entre `costos-produccion` y Formulaciones
+
+El usuario pidió generar dos imágenes de costeo para mandarle a un cliente (`VINILO T2 ECONOMICO` id 461, `VINILO T1 COMERCIAL` id 462). Al comparar los números contra la pantalla real de Formulaciones, no coincidían. Investigación (ver detalle completo en `pinca_backend_nest/CLAUDE.md`, mismo día): el endpoint `costos-produccion` calculaba el precio de cada insumo **sin IVA** y priorizando proveedores vinculados directo aunque no fueran los más baratos, mientras que Formulaciones (`getOpcionesProveedorFormulacion`) usa **precio con IVA** y dejar ganar siempre al más barato — con una función de coincidencia por nombre además más estricta (evita falsos positivos tipo "ACRONAL" calzando dentro de "COLARCRYL ACRONAL 50"). El usuario confirmó que el criterio de Formulaciones es el correcto. Fix aplicado en el backend, validado 17/17 y 16/16 insumos coincidiendo exacto tras el cambio.
+
+De paso se encontró que ambos productos tenían `costos_item.volumen` (volumen base del lote) en NULL — dato faltante desde que se cargaron por foto de libreta, no un bug — causaba que el sistema asumiera 1 galón por defecto y multiplicara todo ×100 al simular un lote de 100 gal. Corregido en la base de datos (no es un cambio de código).
+
+### 38.4 Bug real #2: `Number()` mal-parseando precio formateado en `FormulacionesTable.jsx`
+
+Incluso después del fix de IVA, el total seguía sin coincidir por ~$9.600 (el valor exacto del ingrediente AGUA). Causa: `calculateCosts` (backend) devuelve `costo_total_materia` **pre-formateado en pesos colombianos como string** (`"9.600"`, con punto de miles), y `FormulacionesTable.jsx` hacía `Number(f.costo_total_materia)` en la rama de insumos sin proveedor vinculado — `Number("9.600")` en JS da **9.6** (interpreta el punto como decimal), no 9600. El agua (único insumo típico sin proveedor real) prácticamente desaparecía del total.
+
+**Fix**: `src/modules/Formulaciones/components/FormulacionesTable.jsx` — se cambió `Number(...)` por `parseCOP(...)` (importado de `../utils/handlers`, ya existía en el proyecto para exactamente este caso) en el cálculo de `totalUnificado`. Validado reproduciendo el cálculo completo en Node con el fix aplicado — coincide exacto ($15.643,77/gal para VIN462) con lo esperado. Riesgo estructural: el mismo patrón (`Number()` sobre un campo `toCOP()`-formateado) podría existir en otros lados si algún insumo caro se queda sin proveedor vinculado — se revisó el resto del módulo Formulaciones y no se encontraron más ocurrencias del mismo patrón.
+
+### 38.5 Gotcha de entorno (recurrente, ya documentado antes)
+
+Para poder correr `npm run build`/ESLint/tests desde WSL en esta sesión hubo que reinstalar el binario Linux de `rollup` (`npm install @rollup/rollup-linux-x64-gnu --no-save`), lo que **probablemente volvió a romper el lado Windows** (mismo bug de `node_modules` compartido documentado en la memoria del asistente). El usuario necesita correr `npm install` en PowerShell antes de su próximo `npm run dev`/`build`.
+
+### Archivos de esta sesión
+
+**Creados**: `Formulaciones/components/preparationModal/{constants.js,calculos.js,PreparationSubComponents.jsx,ConfirmSubForm.jsx,CombinacionForm.jsx}`, `Formulaciones/components/{IngredientCard.jsx,formulacionModalHelpers.js,NuevoProductoInline.jsx,BuscadorIngredientes.jsx,IngredientesList.jsx,FormulacionModalFooter.jsx}`, `Proveedores/components/NombreAutocomplete.jsx`.
+**Eliminados**: `modules/Roles/RolesPage.jsx`, `modules/index.js`, `modules/sedes/services/instalacionesServices.js`.
+**Modificados**: `Formulaciones/components/{preparationModal.jsx,FormulacionModal.jsx,FormulacionesTable.jsx}`, `Proveedores/components/ItemProveedorForm.jsx`.
+
+### Pendiente
+
+- Prueba visual completa en `npm run dev` (Windows) de Formulaciones y Proveedores — no se pudo hacer desde WSL en toda la sesión.
+- `npm install` en Windows (rollup) antes del próximo `npm run dev`.
+- Componentes documentados-pero-no-usados (`ActionMenu`, `FormSection`, `useTableSorts`, `utils/services.js`) — decisión pendiente del usuario: adoptarlos o retirarlos de la documentación.
+
+---
+
+> **Snapshot al cierre 2026-08-10**: limpieza general completa (0 código muerto real restante, 3 huérfanos borrados, 3 archivos grandes refactorizados en 15 archivos nuevos, todo validado por build+lint+conteo de tokens+tests). 2 bugs reales de costeo encontrados y corregidos (inconsistencia IVA/matching backend, `Number()` vs `parseCOP` en `FormulacionesTable.jsx`). Falta prueba visual del usuario en Windows.

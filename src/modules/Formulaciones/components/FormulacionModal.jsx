@@ -1,269 +1,18 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form';
-import {
-  FlaskConical, X, PlusCircle, Trash2, Search, PackagePlus, Truck,
-  AlertTriangle, ShoppingCart, Package, TrendingUp, CheckCircle2,
-  Layers, DollarSign, Droplets, ChevronUp, ChevronDown, ClipboardList,
-} from 'lucide-react';
-import { Link } from 'react-router';
+import { FlaskConical, X, TrendingUp, Layers, Droplets } from 'lucide-react';
 import { useFormulaciones } from '../api/useFormulaciones';
-import { useCapasStock } from '../../Produccion/api/useCapasStock';
 import { FormSelect } from '../../../shared/Form/FormSelect';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { FormTextarea } from '../../../shared/Form/FormTextarea';
-import { Button } from '../../../shared/Button';
 import toast from 'react-hot-toast';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmtCOP = (v) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(v) || 0);
-const fmtKg = (v, dec = 2) =>
-  Number.isFinite(Number(v)) ? Number(v).toFixed(dec) : '—';
+import { NuevoProductoInline } from './NuevoProductoInline';
+import { BuscadorIngredientes } from './BuscadorIngredientes';
+import { IngredientesList } from './IngredientesList';
+import { FormulacionModalFooter } from './FormulacionModalFooter';
 
 const EMPTY_PRODUCTO = { nombre: '', codigo: '' };
 const EMPTY_MP       = { nombre: '', codigo: '', costo_unitario: '' };
-
-// ─── Card de un ingrediente ───────────────────────────────────────────────────
-const IngredientCard = ({
-  field, index, quantity, modoGlobal,
-  proveedorId, onProveedorChange, onCostoChange, onRemove,
-  register, setValue, errors, tabBase,
-}) => {
-  const { capas, stockTotal, costoPromedio, isLoading } = useCapasStock(field.materia_prima_id);
-  const [unidad, setUnidad] = useState('kg');
-
-  // Proveedores únicos con stock y costo promedio ponderado
-  const proveedoresDisponibles = useMemo(() => {
-    const map = new Map();
-    capas.forEach(c => {
-      if (!c.proveedor_id) return;
-      const qty  = Number(c.cantidad_disponible || 0);
-      const cost = Number(c.costo_unitario || 0);
-      if (!map.has(c.proveedor_id)) {
-        map.set(c.proveedor_id, { id: c.proveedor_id, nombre: c.proveedor_nombre || `Prov #${c.proveedor_id}`, stock: qty, costAcum: qty * cost });
-      } else {
-        const p = map.get(c.proveedor_id);
-        p.stock    += qty;
-        p.costAcum += qty * cost;
-      }
-    });
-    return Array.from(map.values()).map(p => ({
-      ...p, costoProm: p.stock > 0 ? p.costAcum / p.stock : 0,
-    }));
-  }, [capas]);
-
-  const provActual = modoGlobal === 'MANUAL' && proveedorId
-    ? proveedoresDisponibles.find(p => String(p.id) === String(proveedorId))
-    : null;
-
-  const stockEfectivo = provActual ? provActual.stock    : stockTotal;
-  const costoEfectivo = provActual
-    ? provActual.costoProm
-    : costoPromedio > 0 ? costoPromedio : Number(field.costo_unitario || 0);
-
-  const cantidadNecesaria = parseFloat(quantity) || 0;
-  const hasDeficit  = cantidadNecesaria > 0 && stockEfectivo < cantidadNecesaria && !isLoading;
-  const pctStock    = cantidadNecesaria > 0 && stockEfectivo > 0
-    ? Math.min((stockEfectivo / cantidadNecesaria) * 100, 100) : 0;
-  const subtotal = cantidadNecesaria * costoEfectivo;
-
-  // Notificar al padre cuando cambian los datos de costo/stock/déficit
-  useEffect(() => {
-    onCostoChange(field.id, { costoUnitario: costoEfectivo, stockDisponible: stockEfectivo, hasDeficit });
-  }, [costoEfectivo, stockEfectivo, hasDeficit, field.id, onCostoChange]);
-
-  const stockBarColor = isLoading ? 'bg-surface-strong animate-pulse'
-    : hasDeficit        ? 'bg-semantic-danger/80'
-    : stockEfectivo > 0 ? 'bg-semantic-success/80'
-    : 'bg-surface-strong';
-
-  const stockTextColor = hasDeficit ? 'text-semantic-danger-fg'
-    : stockEfectivo > 0 ? 'text-semantic-success-fg'
-    : 'text-content-muted';
-
-  const subtotalColor = !subtotal ? 'text-content-muted'
-    : hasDeficit ? 'text-semantic-danger-fg'
-    : 'text-content-primary';
-
-  return (
-    <div className={`rounded-2xl border overflow-hidden animate-in slide-in-from-left-4 duration-200 transition-colors ${
-      hasDeficit ? 'border-semantic-danger/20' : 'border-border-subtle'
-    }`}>
-      {/* Cabecera */}
-      <div className={`flex items-center gap-2 px-3 py-2.5 ${hasDeficit ? 'bg-semantic-danger-subtle' : 'bg-surface-subtle'}`}>
-        <span className="w-5 h-5 flex items-center justify-center rounded bg-surface-strong text-[9px] font-black text-content-tertiary shrink-0">
-          {String(index + 1).padStart(2, '0')}
-        </span>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold text-content-primary truncate leading-none">{field.nombre}</p>
-          {field.fuente === 'proveedor' && field.proveedor_nombre && (
-            <span className="flex items-center gap-0.5 mt-0.5">
-              <Truck size={8} className="text-semantic-warning" />
-              <span className="text-[9px] text-semantic-warning-fg">{field.proveedor_nombre}</span>
-            </span>
-          )}
-        </div>
-
-        {/* Selector de proveedor (Modo Manual) */}
-        {modoGlobal === 'MANUAL' && !isLoading && proveedoresDisponibles.length > 0 && (
-          <select
-            value={proveedorId ?? ''}
-            onChange={e => onProveedorChange(field.id, e.target.value ? parseInt(e.target.value) : null)}
-            tabIndex={tabBase + 1}
-            className="text-[10px] border border-border-base rounded-lg px-2 py-1 bg-surface-base focus:outline-none focus:ring-1 focus:ring-brand-primary/30 max-w-[150px] shrink-0"
-          >
-            <option value="">— Todo stock —</option>
-            {proveedoresDisponibles.map(p => (
-              <option key={p.id} value={p.id}>
-                {p.nombre} ({fmtKg(p.stock, 1)} kg)
-              </option>
-            ))}
-          </select>
-        )}
-        {modoGlobal === 'MANUAL' && isLoading && (
-          <div className="h-6 w-28 bg-surface-strong animate-pulse rounded-lg shrink-0" />
-        )}
-
-        <button
-          type="button"
-          onClick={() => onRemove(index)}
-          tabIndex={-1}
-          className="w-7 h-7 flex items-center justify-center rounded-lg text-content-muted hover:bg-semantic-danger-subtle hover:text-semantic-danger transition-all shrink-0"
-        >
-          <Trash2 size={13} />
-        </button>
-      </div>
-
-      {/* Cuerpo: 3 celdas */}
-      <div className="grid grid-cols-3 divide-x divide-border-subtle bg-surface-base">
-        {/* Cantidad */}
-        <div className="px-3 py-2.5 flex flex-col gap-1">
-          <div className="flex items-center justify-between mb-0.5">
-            <label className="text-[9px] font-bold text-content-muted uppercase tracking-widest">Cantidad</label>
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => setUnidad(u => u === 'kg' ? 'g' : 'kg')}
-              title={unidad === 'kg' ? 'Cambiar a gramos' : 'Cambiar a kilogramos'}
-              className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-surface-muted text-content-tertiary hover:bg-content-primary hover:text-content-inverse transition-colors"
-            >
-              {unidad}
-            </button>
-          </div>
-          {/* Campo RHF siempre montado (oculto en modo gramos) */}
-          <input
-            type="number"
-            step="0.001"
-            min="0"
-            tabIndex={unidad === 'kg' ? tabBase : -1}
-            {...register(`materias_primas.${index}.cantidad`, {
-              required: true, valueAsNumber: true, min: 0.001,
-            })}
-            placeholder="0.000"
-            className={`w-full text-sm font-bold text-center rounded-lg px-2 py-1.5 border focus:outline-none focus:ring-1 focus:ring-brand-primary/30 tabular-nums transition-colors ${
-              unidad === 'g' ? 'hidden' : ''
-            } ${errors?.materias_primas?.[index]?.cantidad
-                ? 'border-semantic-danger/30 bg-semantic-danger-subtle text-semantic-danger-fg'
-                : 'border-border-base text-content-primary'
-            }`}
-          />
-          {/* Input proxy en gramos: solo visible en modo 'g' */}
-          {unidad === 'g' && (
-            <input
-              type="number"
-              step="0.001"
-              min="0"
-              tabIndex={tabBase}
-              // toFixed(3) en vez de Math.round: quita el ruido de float SIN truncar cantidades
-              // sub-gramo (Math.round volvía 0.5 g → 1 g, corrompiendo la receta al cambiar de unidad).
-              value={parseFloat(quantity) > 0 ? Number((parseFloat(quantity) * 1000).toFixed(3)) : ''}
-              onChange={(e) => setValue(`materias_primas.${index}.cantidad`, (parseFloat(e.target.value) || 0) / 1000)}
-              placeholder="0 g"
-              className={`w-full text-sm font-bold text-center rounded-lg px-2 py-1.5 border focus:outline-none focus:ring-1 focus:ring-brand-primary/30 tabular-nums transition-colors ${
-                errors?.materias_primas?.[index]?.cantidad
-                  ? 'border-semantic-danger/30 bg-semantic-danger-subtle text-semantic-danger-fg'
-                  : 'border-border-base text-content-primary'
-              }`}
-            />
-          )}
-          {errors?.materias_primas?.[index]?.cantidad && (
-            <p className="text-[9px] text-semantic-danger flex items-center gap-0.5">
-              <AlertTriangle size={8} /> Requerido
-            </p>
-          )}
-        </div>
-
-        {/* Stock */}
-        <div className="px-3 py-2.5 flex flex-col gap-1.5 justify-center">
-          <label className="text-[9px] font-bold text-content-muted uppercase tracking-widest">Disponibilidad</label>
-          {isLoading ? (
-            <div className="space-y-1.5">
-              <div className="h-1.5 bg-surface-strong rounded-full animate-pulse" />
-              <div className="h-3 bg-surface-strong rounded w-3/4 animate-pulse" />
-            </div>
-          ) : (
-            <>
-              <div className="w-full h-1.5 bg-surface-muted rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${stockBarColor}`}
-                  style={{ width: `${pctStock}%` }}
-                />
-              </div>
-              <div className={`flex items-center justify-between text-[9px] font-medium ${stockTextColor}`}>
-                <span className="tabular-nums">{fmtKg(stockEfectivo, 1)} / {fmtKg(cantidadNecesaria, 1)} kg</span>
-                {hasDeficit
-                  ? <span className="flex items-center gap-0.5"><AlertTriangle size={8} /> Déficit</span>
-                  : stockEfectivo > 0
-                    ? <span className="flex items-center gap-0.5"><CheckCircle2 size={8} /> OK</span>
-                    : <span className="text-content-muted">Sin stock</span>
-                }
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Costo / Subtotal */}
-        <div className="px-3 py-2.5 flex flex-col gap-0.5 justify-center">
-          <label className="text-[9px] font-bold text-content-muted uppercase tracking-widest">Costo</label>
-          {isLoading ? (
-            <div className="space-y-1.5">
-              <div className="h-3 bg-surface-strong rounded w-3/4 animate-pulse" />
-              <div className="h-4 bg-surface-strong rounded animate-pulse" />
-            </div>
-          ) : (
-            <>
-              <p className="text-[10px] text-content-tertiary tabular-nums">
-                {costoEfectivo > 0 ? `${fmtCOP(costoEfectivo)}/kg` : '—'}
-              </p>
-              <p className={`text-sm font-black tabular-nums transition-colors duration-300 ${subtotalColor}`}>
-                {subtotal > 0 ? fmtCOP(subtotal) : '—'}
-              </p>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Alerta inline de déficit */}
-      {hasDeficit && (
-        <div className="flex items-center justify-between gap-2 px-3 py-2 bg-semantic-danger-subtle border-t border-semantic-danger/15">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <AlertTriangle size={10} className="text-semantic-danger shrink-0" />
-            <p className="text-[10px] text-semantic-danger-fg font-medium truncate">
-              Faltan {fmtKg(cantidadNecesaria - stockEfectivo, 1)} kg
-              {provActual ? ` con ${provActual.nombre}` : ' en stock total'}
-            </p>
-          </div>
-          <Link
-            to={`/compras?item_id=${field.materia_prima_id}${proveedorId ? `&proveedor_id=${proveedorId}` : ''}`}
-            className="shrink-0 flex items-center gap-1 text-[9px] font-bold text-semantic-warning-fg bg-semantic-warning-subtle border border-semantic-warning/20 px-2 py-1 rounded-lg hover:bg-semantic-warning-subtle transition-colors"
-          >
-            <ShoppingCart size={8} /> Generar OC
-          </Link>
-        </div>
-      )}
-    </div>
-  );
-};
 
 // ─── Modal principal ──────────────────────────────────────────────────────────
 // Implementación interna. El wrapper `FormulacionModal` (al final del archivo)
@@ -603,41 +352,15 @@ const FormulacionModalInner = ({ onClose, itemId = null }) => {
                     />
                   )}
                 />
-                {!showNuevoProducto ? (
-                  <button type="button" onClick={() => setShowNuevoProducto(true)}
-                    className="flex items-center gap-1 text-[10px] font-semibold text-content-muted hover:text-content-secondary transition-colors">
-                    <PlusCircle size={10} /> Crear nuevo producto
-                  </button>
-                ) : (
-                  <div className="p-3 bg-surface-subtle border border-border-base rounded-xl space-y-2 animate-in slide-in-from-top-2 duration-150">
-                    <div className="flex items-center gap-2">
-                      <PackagePlus size={12} className="text-content-tertiary" />
-                      <span className="text-[10px] font-bold text-content-tertiary uppercase tracking-widest">Nuevo producto</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input type="text" value={nuevoProductoData.nombre}
-                        onChange={e => setNuevoProductoData(p => ({ ...p, nombre: e.target.value }))}
-                        placeholder="Nombre *"
-                        className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-surface-base placeholder:text-content-muted" />
-                      <input type="text" value={nuevoProductoData.codigo}
-                        onChange={e => setNuevoProductoData(p => ({ ...p, codigo: e.target.value }))}
-                        placeholder="Código (opcional)"
-                        className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-surface-base placeholder:text-content-muted" />
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <button type="button"
-                        onClick={() => { setShowNuevoProducto(false); setNuevoProductoData(EMPTY_PRODUCTO); }}
-                        className="px-3 py-1.5 text-xs text-content-tertiary hover:text-content-secondary transition-colors">
-                        Cancelar
-                      </button>
-                      <button type="button" onClick={handleCrearProducto}
-                        disabled={isActioning || !nuevoProductoData.nombre.trim()}
-                        className="px-3 py-1.5 text-xs font-semibold bg-content-primary text-content-inverse rounded-lg hover:bg-content-secondary disabled:opacity-40 transition-colors">
-                        {isActioning ? 'Creando...' : '+ Crear'}
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <NuevoProductoInline
+                  show={showNuevoProducto}
+                  onShow={() => setShowNuevoProducto(true)}
+                  onHide={() => { setShowNuevoProducto(false); setNuevoProductoData(EMPTY_PRODUCTO); }}
+                  data={nuevoProductoData}
+                  setData={setNuevoProductoData}
+                  onCrear={handleCrearProducto}
+                  isActioning={isActioning}
+                />
               </div>
               <FormInput
                 label="Nombre de la formulación"
@@ -673,300 +396,51 @@ const FormulacionModalInner = ({ onClose, itemId = null }) => {
             />
 
             {/* Sección 2: Buscador */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-content-muted uppercase tracking-widest">
-                  Ingredientes {fields.length > 0 && <span className="text-content-secondary">({fields.length})</span>}
-                </label>
-                {!showNuevaMp && (
-                  <button type="button" onClick={() => setShowNuevaMp(true)}
-                    className="flex items-center gap-1 text-[10px] font-semibold text-content-muted hover:text-content-secondary transition-colors">
-                    <PlusCircle size={10} /> Nueva materia prima
-                  </button>
-                )}
-              </div>
-
-              <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && mpFiltradas.length > 0) {
-                      e.preventDefault();
-                      agregarMateriaPrima(mpFiltradas[0]);
-                    } else if (e.key === 'Escape') {
-                      setSearchTerm('');
-                    }
-                  }}
-                  placeholder="Buscar en inventario y catálogo de proveedores..."
-                  className="w-full pl-9 pr-3 py-2.5 text-sm border border-border-base rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition placeholder:text-content-muted"
-                />
-
-                {searchTerm && mpFiltradas.length > 0 && (
-                  <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-surface-base border border-border-subtle rounded-xl shadow-xl overflow-hidden max-h-56 overflow-y-auto">
-                    {mpFiltradas.map((mp, i) => {
-                      const esProveedor = mp.fuente === 'proveedor';
-                      return (
-                        <button
-                          key={`${mp.fuente}-${mp.item_general_id ?? mp.id_item_proveedor}-${i}`}
-                          type="button"
-                          onClick={() => agregarMateriaPrima(mp)}
-                          disabled={isActioning}
-                          className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-surface-subtle transition-colors text-left border-b border-border-subtle last:border-0 disabled:opacity-50"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="text-xs font-semibold text-content-primary truncate">{mp.nombre}</p>
-                              {esProveedor && (
-                                <span className="shrink-0 flex items-center gap-1 px-1.5 py-0.5 bg-semantic-warning-subtle border border-semantic-warning/20 text-semantic-warning-fg rounded text-[9px] font-bold uppercase">
-                                  <Truck size={8} /> Proveedor
-                                </span>
-                              )}
-                            </div>
-                            {esProveedor && mp.proveedor_nombre && (
-                              <p className="text-[10px] text-semantic-warning-fg font-medium mt-0.5">{mp.proveedor_nombre}</p>
-                            )}
-                          </div>
-                          <PlusCircle size={13} className="text-content-muted shrink-0 ml-2" />
-                        </button>
-                      );
-                    })}
-                    <button
-                      type="button"
-                      onClick={() => { setNuevaMpData(d => ({ ...d, nombre: searchTerm })); setShowNuevaMp(true); setSearchTerm(''); }}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 border-t border-border-subtle hover:bg-surface-subtle transition-colors text-left"
-                    >
-                      <PlusCircle size={13} className="text-content-muted shrink-0" />
-                      <span className="text-xs font-semibold text-content-tertiary">Crear nueva materia prima</span>
-                    </button>
-                  </div>
-                )}
-
-                {searchTerm && mpFiltradas.length === 0 && (
-                  <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-surface-base border border-border-subtle rounded-xl shadow-xl p-3 space-y-2">
-                    <p className="text-xs text-content-muted">No se encontraron resultados</p>
-                    <button type="button"
-                      onClick={() => { setNuevaMpData(d => ({ ...d, nombre: searchTerm })); setShowNuevaMp(true); setSearchTerm(''); }}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-content-secondary hover:text-content-primary transition-colors">
-                      <PlusCircle size={13} /> Crear "{searchTerm}" como materia prima
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {showNuevaMp && (
-                <div className="p-3 bg-surface-subtle border border-border-base rounded-xl space-y-2 animate-in slide-in-from-top-2 duration-150">
-                  <div className="flex items-center gap-2">
-                    <PackagePlus size={12} className="text-content-tertiary" />
-                    <span className="text-[10px] font-bold text-content-tertiary uppercase tracking-widest">Nueva materia prima</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input type="text" value={nuevaMpData.nombre}
-                      onChange={e => setNuevaMpData(p => ({ ...p, nombre: e.target.value }))}
-                      placeholder="Nombre *"
-                      className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-surface-base placeholder:text-content-muted" />
-                    <input type="text" value={nuevaMpData.codigo}
-                      onChange={e => setNuevaMpData(p => ({ ...p, codigo: e.target.value }))}
-                      placeholder="Código (opcional)"
-                      className="px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-surface-base placeholder:text-content-muted" />
-                  </div>
-                  <input type="number" step="0.01" min="0" value={nuevaMpData.costo_unitario}
-                    onChange={e => setNuevaMpData(p => ({ ...p, costo_unitario: e.target.value }))}
-                    placeholder="Costo unitario (opcional)"
-                    className="w-full px-3 py-1.5 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 bg-surface-base placeholder:text-content-muted" />
-                  <div className="flex justify-end gap-2">
-                    <button type="button"
-                      onClick={() => { setShowNuevaMp(false); setNuevaMpData(EMPTY_MP); }}
-                      className="px-3 py-1.5 text-xs text-content-tertiary hover:text-content-secondary transition-colors">
-                      Cancelar
-                    </button>
-                    <button type="button" onClick={handleCrearMateriaPrima}
-                      disabled={isActioning || !nuevaMpData.nombre.trim()}
-                      className="px-3 py-1.5 text-xs font-semibold bg-content-primary text-content-inverse rounded-lg hover:bg-content-secondary disabled:opacity-40 transition-colors">
-                      {isActioning ? 'Creando...' : '+ Crear y agregar'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            <BuscadorIngredientes
+              fieldsLength={fields.length}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              searchInputRef={searchInputRef}
+              mpFiltradas={mpFiltradas}
+              agregarMateriaPrima={agregarMateriaPrima}
+              isActioning={isActioning}
+              showNuevaMp={showNuevaMp}
+              setShowNuevaMp={setShowNuevaMp}
+              nuevaMpData={nuevaMpData}
+              setNuevaMpData={setNuevaMpData}
+              handleCrearMateriaPrima={handleCrearMateriaPrima}
+            />
 
             {/* Sección 3: Cards de ingredientes */}
-            {fields.length === 0 ? (
-              <div className="py-14 text-center border-2 border-dashed border-border-base rounded-2xl">
-                <FlaskConical size={28} className="mx-auto text-content-muted mb-2" />
-                <p className="text-sm font-medium text-content-muted">Busca y agrega materias primas</p>
-                <p className="text-xs text-content-muted mt-1">
-                  Incluye materiales de tu inventario o catálogo de proveedores
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2.5">
-                {fields.map((field, index) => {
-                  const esInstruccion = field.tipo === 'instruccion' || field.tipo === 'fase';
-                  return (
-                  <div key={field.id} className="flex items-start gap-1.5">
-                    {/* Reordenar: el orden = secuencia de proceso (como la libreta) */}
-                    <div className="flex flex-col items-center gap-0.5 pt-1 shrink-0">
-                      <button
-                        type="button"
-                        disabled={index === 0}
-                        onClick={() => move(index, index - 1)}
-                        title="Subir (se agrega antes en el proceso)"
-                        className="w-6 h-6 flex items-center justify-center rounded-md border border-border-base text-content-muted hover:bg-surface-muted hover:text-content-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <ChevronUp size={13} />
-                      </button>
-                      <span className="text-[9px] font-bold text-content-muted tabular-nums">{index + 1}</span>
-                      <button
-                        type="button"
-                        disabled={index === fields.length - 1}
-                        onClick={() => move(index, index + 1)}
-                        title="Bajar (se agrega después en el proceso)"
-                        className="w-6 h-6 flex items-center justify-center rounded-md border border-border-base text-content-muted hover:bg-surface-muted hover:text-content-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <ChevronDown size={13} />
-                      </button>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      {esInstruccion ? (
-                        <div className="flex items-center gap-2 rounded-xl border border-semantic-info/25 bg-semantic-info-subtle/40 px-3 py-2.5">
-                          <ClipboardList size={14} className="text-semantic-info-fg shrink-0" />
-                          <input
-                            {...register(`materias_primas.${index}.texto`)}
-                            placeholder="Paso de proceso (ej. Dispersar x 5 min y agregar)"
-                            className="flex-1 min-w-0 bg-transparent text-xs text-content-primary placeholder:text-content-muted focus:outline-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => remove(index)}
-                            title="Quitar paso"
-                            className="shrink-0 text-content-muted hover:text-semantic-danger transition-colors"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="space-y-1">
-                          <IngredientCard
-                            field={field}
-                            index={index}
-                            quantity={watchedMPs?.[index]?.cantidad}
-                            modoGlobal={modoGlobal}
-                            proveedorId={proveedores[field.id] ?? null}
-                            onProveedorChange={handleProveedorChange}
-                            onCostoChange={handleCostoChange}
-                            onRemove={handleRemove}
-                            register={register}
-                            setValue={setValue}
-                            errors={errors}
-                            tabBase={10 + index * 2}
-                          />
-                          <input
-                            {...register(`materias_primas.${index}.nota`)}
-                            placeholder="Nota del ingrediente (opcional: pH, asociativo, pino…)"
-                            className="w-full rounded-lg border border-border-base bg-surface-base px-2.5 py-1 text-[11px] text-content-secondary placeholder:text-content-muted focus:outline-none focus:ring-1 focus:ring-brand-primary/30"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Paso de proceso / instrucción (se intercala en el orden con los ingredientes) */}
-            <button
-              type="button"
-              onClick={() => append({ tipo: 'instruccion', texto: '', materia_prima_id: '', cantidad: 0 })}
-              className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-semantic-info-fg border border-semantic-info/25 bg-semantic-info-subtle/40 rounded-lg hover:bg-semantic-info-subtle transition-colors"
-            >
-              <PlusCircle size={13} /> Agregar paso / instrucción
-            </button>
+            <IngredientesList
+              fields={fields} move={move} remove={remove} append={append}
+              register={register} setValue={setValue} errors={errors}
+              watchedMPs={watchedMPs} modoGlobal={modoGlobal} proveedores={proveedores}
+              handleProveedorChange={handleProveedorChange}
+              handleCostoChange={handleCostoChange}
+              handleRemove={handleRemove}
+            />
 
             </> }
           </div>
 
           {/* ─── STICKY FOOTER ────────────────────────────────────────────── */}
-          <div className="shrink-0 border-t border-border-subtle bg-surface-base">
-            {fields.length > 0 && (
-              <div className="grid grid-cols-3 divide-x divide-border-subtle border-b border-border-subtle">
-                <div className="px-5 py-3">
-                  <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest flex items-center gap-1 mb-1">
-                    <Package size={8} /> Peso Total
-                  </p>
-                  <p className="text-xl font-black text-content-primary tabular-nums leading-none transition-all duration-300">
-                    {fmtKg(totales.pesoTotal)}
-                    <span className="text-xs font-normal text-content-muted ml-1">kg</span>
-                  </p>
-                </div>
-                <div className="px-5 py-3">
-                  <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest flex items-center gap-1 mb-1">
-                    <DollarSign size={8} /> Costo Total MP
-                  </p>
-                  <p className={`text-xl font-black tabular-nums leading-none transition-colors duration-300 ${
-                    hasAnyDeficit ? 'text-semantic-danger-fg' : 'text-content-primary'
-                  }`}>
-                    {fmtCOP(totales.costoTotal)}
-                  </p>
-                </div>
-                <div className="px-5 py-3">
-                  <p className="text-[9px] font-bold text-content-muted uppercase tracking-widest flex items-center gap-1 mb-1">
-                    <TrendingUp size={8} /> Costo Prom/kg
-                  </p>
-                  <p className="text-xl font-black text-content-primary tabular-nums leading-none transition-all duration-300">
-                    {totales.pesoTotal > 0 ? fmtCOP(totales.costoPorKg) : '—'}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between gap-4 px-6 py-4">
-              <div className="text-[10px] min-w-0">
-                {hasAnyDeficit ? (
-                  <span className="flex items-center gap-1.5 text-semantic-danger-fg font-medium">
-                    <AlertTriangle size={11} className="shrink-0" />
-                    {deficitItems.length} ingrediente{deficitItems.length !== 1 ? 's' : ''} con déficit · revisa antes de producir
-                  </span>
-                ) : (
-                  <span className="text-content-muted">
-                    {modoGlobal === 'MANUAL'
-                      ? 'Modo Manual — simula costos por proveedor sin comprometerlos'
-                      : 'Modo FIFO — al producir se usarán las capas más antiguas automáticamente'}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <Button variant="white" onClick={handleClose} disabled={isSaving} type="button">
-                  Cancelar
-                </Button>
-                {!formulacion && (
-                  <Button
-                    type="button"
-                    variant="white"
-                    disabled={isSaving}
-                    onClick={() => { setSaveAndContinue(true); handleSubmit(onSubmit(true))(); }}
-                  >
-                    {isSaving && saveAndContinue
-                      ? <><span className="w-4 h-4 border-2 border-border-strong border-t-transparent rounded-full animate-spin inline-block mr-1.5" />Guardando...</>
-                      : 'Guardar y continuar →'
-                    }
-                  </Button>
-                )}
-                <Button type="submit" disabled={isSaving || (itemId && isLoadingFormulacion)} icon={(isSaving || (itemId && isLoadingFormulacion)) ? undefined : FlaskConical}>
-                  {isSaving
-                    ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block mr-1.5" />Guardando...</>
-                    : (itemId && isLoadingFormulacion)
-                      ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block mr-1.5" />Cargando...</>
-                      : formulacion ? 'Actualizar Formulación' : 'Crear Formulación'
-                  }
-                </Button>
-              </div>
-            </div>
-          </div>
+          <FormulacionModalFooter
+            fieldsLength={fields.length}
+            totales={totales}
+            hasAnyDeficit={hasAnyDeficit}
+            deficitItems={deficitItems}
+            modoGlobal={modoGlobal}
+            handleClose={handleClose}
+            isSaving={isSaving}
+            formulacion={formulacion}
+            saveAndContinue={saveAndContinue}
+            setSaveAndContinue={setSaveAndContinue}
+            handleSubmit={handleSubmit}
+            onSubmit={onSubmit}
+            itemId={itemId}
+            isLoadingFormulacion={isLoadingFormulacion}
+          />
         </form>
       </div>
     </div>

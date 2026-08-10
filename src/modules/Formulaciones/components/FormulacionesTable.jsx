@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { FlaskConical, Beaker, Scale, DollarSign, Truck, ChevronDown, X, Pencil, Copy, AlertTriangle, Layers, ClipboardList } from 'lucide-react';
+import { parseCOP } from '../utils/handlers';
 
 const fmtCOP = (v) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(v) || 0);
@@ -232,11 +233,15 @@ export const FormulacionesTable = ({
             } else {
                 const esAguaCalc = (f.materia_prima_nombre || '').toUpperCase().trim() === 'AGUA';
                 if (!esAguaCalc) sinProv++;
-                total += Number(
+                // costo_total_materia(_recalculado) llega formateado en COP ("9.600", con
+                // '.' de miles) — Number() lo malinterpreta como decimal (9.6). parseCOP
+                // lo parsea correctamente. Bug real: hacía desaparecer ~99.9% del costo de
+                // cualquier ingrediente sin proveedor vinculado (ej. AGUA) del total.
+                total += parseCOP(
                   recalculatedData
                     ? (f.costo_total_materia_recalculado ?? f.costo_total_materia)
                     : f.costo_total_materia
-                ) || 0;
+                );
             }
         }
         return { totalUnificado: total.toFixed(2), sinProveedor: sinProv };
