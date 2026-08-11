@@ -2408,3 +2408,59 @@ Para poder correr `npm run build`/ESLint/tests desde WSL en esta sesión hubo qu
 ---
 
 > **Snapshot al cierre 2026-08-10**: limpieza general completa (0 código muerto real restante, 3 huérfanos borrados, 3 archivos grandes refactorizados en 15 archivos nuevos, todo validado por build+lint+conteo de tokens+tests). 2 bugs reales de costeo encontrados y corregidos (inconsistencia IVA/matching backend, `Number()` vs `parseCOP` en `FormulacionesTable.jsx`). Falta prueba visual del usuario en Windows.
+
+---
+
+## 39. Sesión 2026-08-11 — Auditoría exhaustiva de limpieza (equivalente a la del backend) + refactor de los 5 componentes más grandes
+
+Continuación del `/goal` de limpieza, esta vez con el mismo nivel de exhaustividad que se aplicó en `pinca_backend_nest` (ver ese `CLAUDE.md`, sesión del mismo día): auditoría de código no usado con un script propio (no solo ESLint) + refactor de los componentes más largos/complejos, uno por uno con validación real en cada paso.
+
+### 39.1 Auditoría de código muerto — más exhaustiva que ESLint
+
+`no-unused-vars` (ESLint) ya daba 0 en 327 archivos, pero solo detecta variables/imports sin uso **dentro de un mismo archivo** — no archivos enteros que nadie importa. Se escribió un script Node (`find_orphans.mjs`, scratchpad, no commiteado) que recorre todo `src/`, extrae el basename de cada `.js`/`.jsx`, y busca ese basename en imports de cualquier otro archivo del proyecto (heurística de grep sobre todo el texto, no resolución real de módulos — pero suficiente para encontrar candidatos y verificarlos a mano uno por uno).
+
+**6 candidatos encontrados, 2 falsos positivos, 4 confirmados y borrados**:
+- `test/setup.js` — falso positivo (referenciado desde `vitest.config.js` vía `setupFiles`, no vía `import`).
+- `shared/ActionMenu.jsx` y `shared/Form/FormSection.jsx` — ya sabíamos que están sin uso actual (decisión explícita de conservarlos, sesión 2026-08-10 §38.1). Confirmado que siguen sin callsites.
+- **`modules/Inventario/api/useCategorias.js` + `categoriaKeys.js`** — duplicado muerto de `useCategorias` (el que realmente se usa vive en `Configuracion/api/useCatalogosMaestros.js`, importado por `CatalogosTab.jsx`). `categoriaKeys.js` solo era importado por el propio `useCategorias.js` muerto → cae con él.
+- **`modules/Inventario/api/useUpdateItem.js`** — hook de mutación completo con cache optimista (`onSuccess` actualiza `inventarioKeys.byBodegaBase` a mano), pero la ruta que llama (`BODEGAS.UPDATE_ITEM`) no se usa desde ninguna pantalla — confirmado que esa ruta del namespace `apiRoutes.js` solo aparecía en ese hook.
+- **`modules/Inventario/services/itemService.js`** — capa de servicios pre-hooks (`getItems`/`getItem`/`createItem`/`updateItem`/`deleteItem` llamando `apiClient` directo), mismo patrón exacto que el ya eliminado `instalacionesServices.js` (sesión 2026-08-10) — superado por `Inventario/api/useItem.js`.
+
+Validado tras borrar: ESLint 0 errores (mismos 5 warnings preexistentes de `react-hooks/incompatible-library`, no relacionados — son de React Compiler detectando `watch()` de react-hook-form y `useReactTable()`, documentados desde antes), build limpio, vitest 33/34 (mismo fallo preexistente en `StatusBadge.test.jsx`).
+
+### 39.2 console.log — ya estaba limpio
+
+`grep` de `console.log`/`console.debug`/`console.info`/`console.table` en todo `src/`: **0 resultados**. Solo 12 usos legítimos de `console.error`/`console.warn`. Nada que hacer acá — ya estaba limpio desde la sesión anterior.
+
+### 39.3 Refactor de los 5 componentes más grandes/complejos (elegido por el usuario de 3 opciones: top 5 / los 24 completos / solo reportar)
+
+Ranking por líneas (24 archivos por encima de 380 líneas — universo mucho más grande que el del backend, y sin poder validar visualmente en navegador desde WSL, así que se acotó a los 5 de mayor riesgo/beneficio). Mismo patrón en los 5: extraer los sub-componentes que **ya vivían nombrados dentro del mismo archivo** a archivos propios, y convertir bloques JSX inline grandes (IIFEs, secciones repetidas) en componentes nombrados nuevos cuando tenía sentido. El archivo original queda como orquestador delgado (estado + handlers + composición). Validación en cada uno: ESLint (`no-undef` detecta imports rotos/faltantes) + conteo de tokens idéntico (grep de patrones como `useState(`, `className=`, `onClick=`, etc. — comparando el original vs la suma de los archivos nuevos) + `npm run build` limpio + `vitest run` sin regresión (33/34, mismo fallo preexistente).
+
+| Componente | Antes | Después | Archivos nuevos |
+|---|---|---|---|
+| `shared/UserPanel.jsx` | 798 | 123 | 7 (`constants.js`, `atoms.jsx`, `MiCuentaTab`, `CambiarPasswordForm`, `SeguridadTab`, `PreferenciasTab`, `RolesTab`+`ModulosMatrix`+`UsuariosRoles`) |
+| `CostosProduccion/components/CostoDetalleDrawer.jsx` | 735 | ~220 | 10 (`HeroCosto`, `CompositionBar`, `Stat`, `EmpaqueModDesglose`, `MargenRealAlert`, `CapacidadProduccionCard`, `LoteCompletoCard`, `IngredientesTable`, `MpsFaltantesCard`, `ProveedoresUsados`) |
+| `Comercial/Cotizaciones/components/CotizacionForm.jsx` | 727 | ~290 | 8 (`SearchSelect`, `helpers.js`, `ClienteFieldset`, `DatosGeneralesFieldset`, `AjustesFieldset`, `ResumenTotales`, `BodegaInventarioPanel`, `ItemsTable`) |
+| `Produccion/components/ProduccionDetailModal.jsx` | 666 | ~260 | 7 (`helpers.js`, `CostosIndirectosSection`, `CostosProduccionSection`, `MateriaPrimaRow`, `InfoRow`, `TransicionFooter`) |
+| `InventarioGlobal/InventarioGlobalPage.jsx` | 665 | ~215 | 7 (`constants.js`, `DiasRestantes`, `ItemRow`, `exportarExcel.js`, `exportarPdf.js`, `AccionesToolbar`, `PaginacionFooter`) |
+
+**Hallazgos de paso** (no bugs, pero vale documentarlos):
+- `CostoDetalleDrawer.jsx` tenía una constante `TONE_DOT` declarada pero **sin ningún uso en todo el archivo** — ESLint no la marcaba porque el `varsIgnorePattern` del proyecto (`eslint.config.js`) ignora identificadores en MAYÚSCULAS (pensado para convenciones de constantes, pero con el efecto colateral de esconder dead code real). Eliminada en la extracción.
+- `InventarioGlobalPage.jsx` tenía la barra de botones Actualizar/Excel/PDF **duplicada byte-a-byte** entre el modo header normal y el modo `embedded` — con la extracción a `AccionesToolbar.jsx` quedó como un solo componente reusado dos veces (mismo JSX resultante en ambos call sites, cero cambio de comportamiento, solo DRY).
+
+**24 componentes en total por encima de 380 líneas** — quedaron 19 sin tocar (decisión explícita del usuario de acotar a los 5 más grandes). Si se retoma esta lista, el ranking completo generado en la sesión era: `UserPanel.jsx` (798), `CostoDetalleDrawer.jsx` (735), `CotizacionForm.jsx` (727), `ProduccionDetailModal.jsx` (666), `InventarioGlobalPage.jsx` (665), `FormulacionesTable.jsx` (650), `RemisionForm.jsx` (610), `SaludSistemaPage.jsx` (572), `ItemProveedorForm.jsx` (556), `PanelPrincipalPage.jsx` (526), `ProveedoresTable.jsx` (512), `ExportProduccion.jsx` (512), `FormCostProducts.jsx` (502), `CapasStockPanel.jsx` (476), `FormulacionModal.jsx` (462), `FacturasTable.jsx` (433), `Sidebar.jsx` (429), `ExportTrazabilidad.jsx` (421), `OrdenForm.jsx` (405), `OrdenesTab.jsx` (397), `FacturaForm.jsx` (392), `CotizacionesTab.jsx` (392), `DisponibilidadModal.jsx` (391), `NumeracionTab.jsx` (385), `RecibirProrrateoModal.jsx` (379).
+
+### Archivos de esta sesión
+
+**Creados**: 39 archivos nuevos entre los 5 componentes refactorizados (ver tabla arriba).
+**Eliminados**: `Inventario/api/{useCategorias.js,categoriaKeys.js,useUpdateItem.js}`, `Inventario/services/itemService.js`.
+**Modificados**: `shared/UserPanel.jsx`, `CostosProduccion/components/CostoDetalleDrawer.jsx`, `Comercial/Cotizaciones/components/CotizacionForm.jsx`, `Produccion/components/ProduccionDetailModal.jsx`, `InventarioGlobal/InventarioGlobalPage.jsx`.
+
+### Pendiente
+
+- Prueba visual completa en `npm run dev` (Windows) de los 5 componentes tocados — no se pudo hacer desde WSL. Riesgo bajo (extracción pura, validado con conteo de tokens + build + tests), pero conviene abrir cada pantalla una vez: UserPanel (las 6 tabs), CostoDetalleDrawer (drawer de Costos de Producción), CotizacionForm (crear/editar cotización con bodega+ítems), ProduccionDetailModal (transición de estado + costos indirectos), InventarioGlobalPage (filtros + export Excel/PDF + ajuste manual desde bodega expandida).
+- Los 19 componentes restantes de la lista de 24 quedan sin tocar — decisión explícita del usuario, no es una tarea olvidada.
+
+---
+
+> **Snapshot al cierre 2026-08-11**: auditoría de código muerto exhaustiva (script de detección de huérfanos, no solo ESLint) — 4 archivos huérfanos más eliminados. Los 5 componentes más grandes del frontend (798 a 665 líneas) refactorizados en 39 archivos nuevos, todos orquestadores delgados ahora. Validado en cada paso con ESLint + conteo de tokens + build + tests (33/34, mismo fallo preexistente). Falta prueba visual del usuario en Windows.
