@@ -317,7 +317,6 @@ Constantes en `Form/styles.js`: `INPUT_BASE`, `INPUT_BASE_DENSE`, `INPUT_ERROR`,
 | `cn.js` | `cn(...args)` — clsx-like, acepta strings/arrays/objects/falsy. Default + named export. |
 | `avatarTheme.js` | `ROL_STYLES`, `AVATAR_PALETTE`, `useAvatarKey()`, `useAvatarGradient(rol)`, `setStoredAvatarKey(key)` |
 | `formatters.js` | `fmt(v)` (COP), `formatoPesoColombiano(v)`, `parsePesoColombiano(v)`, `formatLetterDate(date)`, `stableItemId(item)` |
-| `services.js` | `getDateTheme(dateString)` — retorna `{ classes, punto, estado }` según vencimiento de fecha |
 
 ---
 
@@ -330,10 +329,6 @@ Compuesto por 3 slices:
 - **`authSlice`** — `token`, `user`, `setAuth(token, user)`, `logout()`. Persist localStorage.
 - **`useUISlice`** — `activeDrawer`, `drawerPayload`, `openDrawer(key, payload)`, `closeDrawer()`, `activeModal`, `openModal(key)`, `closeModal()`, `confirmModal`, `openConfirm({title, message, onConfirm, variant})`, `closeConfirm()`, `activeTitle`, `setActiveTitle()`.
 - **`inventorySlice`** — `activeBodegaId`, `sedeName`, `setBodega(id)`, `clearBodega()`. Persist localStorage.
-
-### Hooks custom
-
-- `src/hooks/useTableSorts.js` — `const { sorted, sortBy, sortDir, handleSort } = useTableSort(data)`. Sort con `localeCompare('es', { numeric: true })`. Toggle automático on click mismo campo.
 
 ---
 
@@ -2370,7 +2365,7 @@ Sesión larga disparada por un `/goal` de limpieza de código (código no usado,
 - `src/modules/index.js` — barrel file que re-exportaba ~90 módulos; nadie importaba desde ahí.
 - `src/modules/sedes/services/instalacionesServices.js` — capa de servicios pre-hooks, reemplazada hace tiempo por `sedes/api/useInstalaciones.js`.
 
-**Conservados deliberadamente** (no son código muerto — están documentados en este mismo archivo como parte del sistema de componentes compartidos, ver §5/§6): `ActionMenu.jsx`, `FormSection.jsx`, `useTableSorts.js`, `utils/services.js`. No tienen usos actuales pero borrarlos contradiría las convenciones documentadas del equipo — quedan como sugerencia, no como acción.
+**Decisión del usuario sobre los 4 sin uso actual** (confirmada explícitamente): `ActionMenu.jsx` y `FormSection.jsx` se **conservan** — son piezas de diseño documentadas como convención activa (§5), adoptarlas es un cambio de UI, no de limpieza. `useTableSorts.js` y `utils/services.js` (`getDateTheme`) se **eliminaron** — confirmado por el propio historial del proyecto que quedaron obsoletos (el primero se sacó explícitamente de su último callsite al migrar a paginación server-side; el segundo es redundante con `dateChip.js`). Referencias a estos dos en §6/§7 (tabla de utils, hooks custom) también removidas de la documentación vigente.
 
 ### 38.2 Refactors de componentes grandes (extracción pura, sin cambio de lógica)
 
@@ -2408,7 +2403,7 @@ Para poder correr `npm run build`/ESLint/tests desde WSL en esta sesión hubo qu
 
 - Prueba visual completa en `npm run dev` (Windows) de Formulaciones y Proveedores — no se pudo hacer desde WSL en toda la sesión.
 - `npm install` en Windows (rollup) antes del próximo `npm run dev`.
-- Componentes documentados-pero-no-usados (`ActionMenu`, `FormSection`, `useTableSorts`, `utils/services.js`) — decisión pendiente del usuario: adoptarlos o retirarlos de la documentación.
+- `ActionMenu`/`FormSection` siguen sin adoptarse en ninguna pantalla — decisión del usuario fue conservarlos como convención documentada, no urgente adoptarlos.
 
 ---
 
