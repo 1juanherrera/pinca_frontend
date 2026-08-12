@@ -1,15 +1,13 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
-import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form';
-import { FlaskConical, X, TrendingUp, Layers, Droplets } from 'lucide-react';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { useFormulaciones } from '../api/useFormulaciones';
-import { FormSelect } from '../../../shared/Form/FormSelect';
-import { FormInput } from '../../../shared/Form/FormInput';
-import { FormTextarea } from '../../../shared/Form/FormTextarea';
 import toast from 'react-hot-toast';
-import { NuevoProductoInline } from './NuevoProductoInline';
 import { BuscadorIngredientes } from './BuscadorIngredientes';
 import { IngredientesList } from './IngredientesList';
 import { FormulacionModalFooter } from './FormulacionModalFooter';
+import FormulacionModalHeader from './FormulacionModalHeader';
+import FormulacionModalSkeleton from './FormulacionModalSkeleton';
+import FormulacionModalIdentidad from './FormulacionModalIdentidad';
 
 const EMPTY_PRODUCTO = { nombre: '', codigo: '' };
 const EMPTY_MP       = { nombre: '', codigo: '', costo_unitario: '' };
@@ -229,55 +227,10 @@ const FormulacionModalInner = ({ onClose, itemId = null }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-overlay backdrop-blur-sm">
       <div className="w-full max-w-5xl bg-surface-base rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]">
 
-        {/* ─── HEADER ───────────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-content-primary text-content-inverse rounded-xl flex items-center justify-center shrink-0">
-              <FlaskConical size={18} />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-content-primary tracking-tight leading-none">
-                {formulacion ? 'Editar Formulación' : 'Nueva Formulación'}
-              </h2>
-              <p className="text-[10px] text-content-muted mt-0.5">Dashboard de Composición y Costeo</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Toggle FIFO / Manual */}
-            <div className="flex items-center gap-1 p-1 bg-surface-muted rounded-xl border border-border-base">
-              <button
-                type="button"
-                onClick={() => setModoGlobal('FIFO')}
-                className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all ${
-                  modoGlobal === 'FIFO'
-                    ? 'bg-surface-base text-content-primary shadow-sm'
-                    : 'text-content-muted hover:text-content-secondary'
-                }`}
-              >
-                <Layers size={10} /> FIFO Auto
-              </button>
-              <button
-                type="button"
-                onClick={() => setModoGlobal('MANUAL')}
-                className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all ${
-                  modoGlobal === 'MANUAL'
-                    ? 'bg-surface-base text-content-primary shadow-sm'
-                    : 'text-content-muted hover:text-content-secondary'
-                }`}
-              >
-                <TrendingUp size={10} /> Manual
-              </button>
-            </div>
-            <button
-              onClick={handleClose}
-              aria-label="Cerrar"
-              className="p-2 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-full transition-colors"
-            >
-              <X size={20} />
-            </button>
-          </div>
-        </div>
+        <FormulacionModalHeader
+          formulacion={formulacion} modoGlobal={modoGlobal} setModoGlobal={setModoGlobal}
+          handleClose={handleClose}
+        />
 
         <form onSubmit={(e) => handleSubmit(onSubmit(false))(e)} className="flex flex-col flex-1 overflow-hidden">
 
@@ -285,114 +238,16 @@ const FormulacionModalInner = ({ onClose, itemId = null }) => {
           <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
 
             {/* Skeleton de carga en modo edición */}
-            {itemId && isLoadingFormulacion && (
-              <div className="space-y-5 animate-pulse">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div className="h-3 w-20 bg-surface-strong rounded" />
-                    <div className="h-9 bg-surface-muted rounded-xl" />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-3 w-32 bg-surface-strong rounded" />
-                    <div className="h-9 bg-surface-muted rounded-xl" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="h-3 w-40 bg-surface-strong rounded" />
-                  <div className="h-20 bg-surface-muted rounded-xl" />
-                </div>
-                <div className="h-3 w-28 bg-surface-strong rounded" />
-                <div className="h-10 bg-surface-muted rounded-xl" />
-                <div className="space-y-2.5">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="rounded-2xl border border-border-subtle overflow-hidden">
-                      <div className="h-10 bg-surface-subtle px-3 flex items-center gap-2">
-                        <div className="h-5 w-5 bg-surface-strong rounded" />
-                        <div className="h-3 bg-surface-strong rounded w-40" />
-                      </div>
-                      <div className="grid grid-cols-3 divide-x divide-border-subtle">
-                        <div className="px-3 py-3 space-y-2">
-                          <div className="h-2.5 bg-surface-muted rounded w-12" />
-                          <div className="h-7 bg-surface-muted rounded-lg" />
-                        </div>
-                        <div className="px-3 py-3 space-y-2">
-                          <div className="h-2.5 bg-surface-muted rounded w-16" />
-                          <div className="h-1.5 bg-surface-muted rounded-full" />
-                          <div className="h-2.5 bg-surface-muted rounded w-24" />
-                        </div>
-                        <div className="px-3 py-3 space-y-2">
-                          <div className="h-2.5 bg-surface-muted rounded w-10" />
-                          <div className="h-3 bg-surface-muted rounded w-20" />
-                          <div className="h-5 bg-surface-muted rounded w-24" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {itemId && isLoadingFormulacion && <FormulacionModalSkeleton />}
 
             {/* Contenido real — oculto mientras carga en modo edición */}
             {!(itemId && isLoadingFormulacion) && <>
 
-            {/* Sección 1: Identidad */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Controller
-                  name="item_general_id"
-                  control={control}
-                  rules={{ required: 'Seleccione un producto' }}
-                  render={({ field }) => (
-                    <FormSelect
-                      label="Producto *"
-                      options={opcionesProductos}
-                      value={field.value}
-                      onChange={field.onChange}
-                      error={errors.item_general_id?.message}
-                    />
-                  )}
-                />
-                <NuevoProductoInline
-                  show={showNuevoProducto}
-                  onShow={() => setShowNuevoProducto(true)}
-                  onHide={() => { setShowNuevoProducto(false); setNuevoProductoData(EMPTY_PRODUCTO); }}
-                  data={nuevoProductoData}
-                  setData={setNuevoProductoData}
-                  onCrear={handleCrearProducto}
-                  isActioning={isActioning}
-                />
-              </div>
-              <FormInput
-                label="Nombre de la formulación"
-                placeholder="PREPARACIÓN ESMALTE BLANCO"
-                registration={register('nombre')}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <FormInput
-                  label="Volumen base (galones)"
-                  type="number"
-                  placeholder="Ej: 370"
-                  registration={register('volumen', { min: { value: 0.01, message: 'Debe ser mayor a 0' } })}
-                  error={errors.volumen?.message}
-                />
-                <span className="absolute right-3 top-[34px] text-content-muted text-[10px] font-bold pointer-events-none">gal</span>
-              </div>
-              <div className="flex items-end pb-1">
-                <p className="text-[10px] text-content-muted leading-relaxed flex items-start gap-1.5">
-                  <Droplets size={12} className="text-semantic-info shrink-0 mt-0.5" />
-                  Galones que produce esta fórmula. Se usa para calcular el costo por galón (Costo MP / Volumen).
-                </p>
-              </div>
-            </div>
-
-            <FormTextarea
-              label="Instrucciones de proceso (opcional)"
-              placeholder="Ej: Dispersar pigmentos a alta velocidad 30 min. Añadir resinas lentamente. Verificar viscosidad..."
-              rows={3}
-              registration={register('descripcion')}
+            <FormulacionModalIdentidad
+              control={control} register={register} errors={errors} opcionesProductos={opcionesProductos}
+              showNuevoProducto={showNuevoProducto} setShowNuevoProducto={setShowNuevoProducto}
+              nuevoProductoData={nuevoProductoData} setNuevoProductoData={setNuevoProductoData}
+              handleCrearProducto={handleCrearProducto} isActioning={isActioning} EMPTY_PRODUCTO={EMPTY_PRODUCTO}
             />
 
             {/* Sección 2: Buscador */}
