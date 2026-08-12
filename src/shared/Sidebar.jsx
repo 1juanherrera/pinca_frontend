@@ -1,44 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Boxes,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  Landmark,
-  LogOut,
-  Package,
-  Settings,
-  ShoppingCart,
-  Store,
-} from 'lucide-react';
-import { NavLink, useLocation, useNavigate } from 'react-router';
-import logoPinca from '../assets/pincaicono.png';
+import { ChevronRight } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router';
 import { useBoundStore } from '../store/useBoundStore';
 import { sidebarMenu } from '../config/sidebarMenu';
 import cn from '../utils/cn';
-
-const PINNED_KEY    = 'sidebar_pinned';
-const COLLAPSED_KEY = 'sidebar_collapsed_groups';
-
-// Icono representativo por grupo (cuando el sidebar está plegado).
-// Se eligen iconos diferentes a los de los items individuales para evitar confusión.
-const GROUP_ICONS = {
-  'Inventario': Package,
-  'Producción': Boxes,
-  'Ventas':     ShoppingCart,
-  'Compras':    Store,
-  'Finanzas':   Landmark,
-};
-
-const loadJson = (key, fallback) => {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch { return fallback; }
-};
-const saveJson = (key, val) => {
-  try { localStorage.setItem(key, JSON.stringify(val)); } catch { /* noop */ }
-};
+import { COLLAPSED_KEY, PINNED_KEY, loadJson, saveJson } from './Sidebar/helpers';
+import SidebarHeader from './Sidebar/SidebarHeader';
+import SidebarFooterActions from './Sidebar/SidebarFooterActions';
+import SidebarExpandedItem from './Sidebar/SidebarExpandedItem';
+import SidebarCollapsedSingleItem from './Sidebar/SidebarCollapsedSingleItem';
+import SidebarCollapsedGroupIcon from './Sidebar/SidebarCollapsedGroupIcon';
+import SidebarFlyoutPanel from './Sidebar/SidebarFlyoutPanel';
 
 const Sidebar = () => {
   const [isPinned, setIsPinned]       = useState(() => loadJson(PINNED_KEY, false));
@@ -141,122 +113,6 @@ const Sidebar = () => {
     navigate('/login', { replace: true });
   };
 
-  // ─── Item individual (modo expandido) ────────────────────────────────────
-  const renderExpandedItem = (item) => {
-    const Icon = item.icon;
-    const isActive = activeTitle === item.label;
-    return (
-      <NavLink
-        key={item.link}
-        to={`/${item.link}`}
-        onClick={() => setActiveTitle(item.label)}
-        className={cn(
-          'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 group relative',
-          isActive
-            ? 'bg-brand-subtle text-white'
-            : 'text-content-muted hover:bg-surface-sidebar-hover hover:text-white',
-        )}
-      >
-        {isActive && (
-          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-brand-primary rounded-r" />
-        )}
-        <Icon
-          size={18}
-          className={cn(
-            'shrink-0 transition-colors duration-200',
-            isActive ? 'text-brand-primary' : 'text-content-muted group-hover:text-white',
-          )}
-        />
-        <span className="whitespace-nowrap">{item.label}</span>
-      </NavLink>
-    );
-  };
-
-  // ─── Item del flyout (cuando plegado) ────────────────────────────────────
-  const renderFlyoutItem = (item) => {
-    const Icon = item.icon;
-    const isActive = activeTitle === item.label;
-    return (
-      <NavLink
-        key={item.link}
-        to={`/${item.link}`}
-        onClick={() => { setActiveTitle(item.label); setHoveredGroup(null); }}
-        className={cn(
-          'flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors group',
-          isActive
-            ? 'bg-brand-subtle text-white'
-            : 'text-content-muted hover:bg-surface-sidebar-hover hover:text-white',
-        )}
-      >
-        <Icon size={16} className={cn('shrink-0', isActive ? 'text-brand-primary' : 'text-content-muted group-hover:text-white')} />
-        <span className="whitespace-nowrap text-xs font-medium">{item.label}</span>
-      </NavLink>
-    );
-  };
-
-  // ─── Icono individual cuando plegado (Panel Principal y demás sin grupo) ─
-  const renderCollapsedSingle = (item) => {
-    const Icon = item.icon;
-    const isActive = activeTitle === item.label;
-    return (
-      <NavLink
-        key={item.link}
-        to={`/${item.link}`}
-        onClick={() => setActiveTitle(item.label)}
-        title={item.label}
-        onMouseEnter={() => { cancelClose(); setHoveredGroup(null); }}
-        className={cn(
-          'flex items-center justify-center p-2 rounded-md transition-colors duration-200 group',
-          isActive
-            ? 'bg-brand-subtle text-white'
-            : 'text-content-muted hover:bg-surface-sidebar-hover hover:text-white',
-        )}
-      >
-        <Icon
-          size={18}
-          className={cn(
-            'shrink-0 transition-colors duration-200',
-            isActive ? 'text-brand-primary' : 'text-content-muted group-hover:text-white',
-          )}
-        />
-      </NavLink>
-    );
-  };
-
-  // ─── Icono de grupo cuando plegado (con flyout al hover) ─────────────────
-  const renderCollapsedGroup = (group) => {
-    const Icon = GROUP_ICONS[group.grupo] ?? Package;
-    const hasActiveChild = group.items.some((it) => activeTitle === it.label);
-    const isOpen = hoveredGroup === group.grupo;
-
-    return (
-      <button
-        key={group.grupo}
-        type="button"
-        onMouseEnter={(e) => openFlyout(group.grupo, e)}
-        onMouseLeave={scheduleCloseFlyout}
-        title={group.grupo}
-        className={cn(
-          'flex items-center justify-center p-2 rounded-md transition-colors duration-200 group relative',
-          (hasActiveChild || isOpen)
-            ? 'bg-surface-sidebar-hover text-white'
-            : 'text-content-muted hover:bg-surface-sidebar-hover hover:text-white',
-        )}
-      >
-        {hasActiveChild && (
-          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-brand-primary rounded-r" />
-        )}
-        <Icon
-          size={18}
-          className={cn(
-            'shrink-0 transition-colors',
-            hasActiveChild ? 'text-brand-primary' : '',
-          )}
-        />
-      </button>
-    );
-  };
-
   // ─── Layout principal ────────────────────────────────────────────────────
   const isExpanded = isPinned;
 
@@ -268,42 +124,7 @@ const Sidebar = () => {
           isExpanded ? 'w-64 px-3' : 'w-20 px-3',
         )}
       >
-        {/* Logo + Pin toggle */}
-        <div className={cn('flex items-center mb-5 overflow-hidden', isExpanded ? 'justify-between gap-2 px-1' : 'justify-center')}>
-          <div className={cn('flex items-center min-w-0', isExpanded && 'gap-2.5')}>
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg overflow-hidden shrink-0">
-              <img src={logoPinca} alt="Logo Pinca" className="w-full h-full object-contain" />
-            </div>
-            {isExpanded && (
-              <span className="text-white font-semibold text-sm tracking-wide whitespace-nowrap truncate">
-                Gestor Pinca
-              </span>
-            )}
-          </div>
-
-          {isExpanded && (
-            <button
-              type="button"
-              onClick={togglePin}
-              title="Plegar sidebar"
-              className="shrink-0 p-1.5 rounded-md text-content-muted hover:text-white hover:bg-surface-sidebar-hover transition-colors"
-            >
-              <ChevronsLeft size={14} />
-            </button>
-          )}
-        </div>
-
-        {/* Botón pin cuando plegado (debajo del logo) */}
-        {!isExpanded && (
-          <button
-            type="button"
-            onClick={togglePin}
-            title="Fijar sidebar abierto"
-            className="mx-auto mb-3 p-1.5 rounded-md text-content-muted/60 hover:text-white hover:bg-surface-sidebar-hover transition-colors"
-          >
-            <ChevronsRight size={14} />
-          </button>
-        )}
+        <SidebarHeader isExpanded={isExpanded} togglePin={togglePin} />
 
         {/* Navegación */}
         <nav className="flex-1 p-1 overflow-x-hidden no-scrollbar overflow-y-auto">
@@ -345,7 +166,14 @@ const Sidebar = () => {
                         : 'max-h-[600px] opacity-100 mt-1'),
                     )}
                   >
-                    {group.items.map(renderExpandedItem)}
+                    {group.items.map((item) => (
+                      <SidebarExpandedItem
+                        key={item.link}
+                        item={item}
+                        isActive={activeTitle === item.label}
+                        onClick={() => setActiveTitle(item.label)}
+                      />
+                    ))}
                   </div>
                 </div>
               );
@@ -361,41 +189,31 @@ const Sidebar = () => {
                     <div className="my-1 w-8 border-t border-surface-sidebar-hover/60" aria-hidden />
                   )}
                   {!group.grupo || group.items.length === 1
-                    ? group.items.map(renderCollapsedSingle)
-                    : renderCollapsedGroup(group)}
+                    ? group.items.map((item) => (
+                        <SidebarCollapsedSingleItem
+                          key={item.link}
+                          item={item}
+                          isActive={activeTitle === item.label}
+                          onClick={() => setActiveTitle(item.label)}
+                          onMouseEnter={() => { cancelClose(); setHoveredGroup(null); }}
+                        />
+                      ))
+                    : (
+                        <SidebarCollapsedGroupIcon
+                          group={group}
+                          hasActiveChild={group.items.some((it) => activeTitle === it.label)}
+                          isOpen={hoveredGroup === group.grupo}
+                          onMouseEnter={(e) => openFlyout(group.grupo, e)}
+                          onMouseLeave={scheduleCloseFlyout}
+                        />
+                      )}
                 </div>
               ))}
             </div>
           )}
         </nav>
 
-        {/* Acciones inferiores */}
-        <div className="pt-3 px-1 mt-auto border-t border-surface-sidebar-hover space-y-1 overflow-hidden">
-          <NavLink
-            to="/configuracion"
-            title={!isExpanded ? 'Configuración' : ''}
-            className={cn(
-              'w-full flex items-center rounded-md text-content-muted hover:bg-surface-sidebar-hover hover:text-white transition-colors group',
-              isExpanded ? 'gap-3 px-3 py-2 text-sm font-medium' : 'justify-center p-2',
-            )}
-          >
-            <Settings size={18} className="shrink-0 text-content-muted group-hover:text-white" />
-            {isExpanded && <span className="whitespace-nowrap">Configuración</span>}
-          </NavLink>
-
-          <button
-            type="button"
-            title={!isExpanded ? 'Cerrar Sesión' : ''}
-            onClick={handleLogout}
-            className={cn(
-              'w-full flex items-center rounded-md text-content-muted hover:bg-semantic-danger/10 hover:text-semantic-danger transition-colors group cursor-pointer',
-              isExpanded ? 'gap-3 px-3 py-2 text-sm font-medium' : 'justify-center p-2',
-            )}
-          >
-            <LogOut size={18} className="shrink-0 text-content-muted group-hover:text-semantic-danger" />
-            {isExpanded && <span className="whitespace-nowrap">Cerrar Sesión</span>}
-          </button>
-        </div>
+        <SidebarFooterActions isExpanded={isExpanded} handleLogout={handleLogout} />
       </aside>
 
       {/* ─── FLYOUT (solo cuando plegado) ─── */}
@@ -403,23 +221,14 @@ const Sidebar = () => {
         const group = groups.find((g) => g.grupo === hoveredGroup);
         if (!group) return null;
         return (
-          <div
-            onMouseEnter={cancelClose}
-            onMouseLeave={scheduleCloseFlyout}
-            style={{ top: flyoutTop, left: 88 }}
-            className={cn(
-              'fixed z-[60] w-56 py-2',
-              'bg-surface-sidebar border border-surface-sidebar-hover rounded-lg shadow-2xl',
-              'animate-in fade-in slide-in-from-left-2 duration-150',
-            )}
-          >
-            <p className="px-3 pt-1 pb-2 text-[10px] font-semibold uppercase tracking-wider text-content-muted/70 border-b border-surface-sidebar-hover/60 mb-1">
-              {hoveredGroup}
-            </p>
-            <div className="flex flex-col px-1.5 space-y-0.5">
-              {group.items.map(renderFlyoutItem)}
-            </div>
-          </div>
+          <SidebarFlyoutPanel
+            group={group}
+            top={flyoutTop}
+            cancelClose={cancelClose}
+            scheduleCloseFlyout={scheduleCloseFlyout}
+            activeTitle={activeTitle}
+            onItemClick={(item) => { setActiveTitle(item.label); setHoveredGroup(null); }}
+          />
         );
       })()}
     </div>
