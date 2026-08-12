@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Save, Plus, Trash2, Search } from 'lucide-react';
+import { Save } from 'lucide-react';
 import Drawer from '../../../shared/Drawer';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { FormSelect } from '../../../shared/Form/FormSelect';
@@ -10,7 +10,7 @@ import { useCompras } from '../api/useCompras';
 import { useProveedores } from '../../Proveedores/api/useProveedores';
 import { useBodegas } from '../../Bodegas/api/useBodegas';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
-import { fmt } from '../../../utils/formatters';
+import ProductosSection from './OrdenForm/ProductosSection';
 
 const OrdenForm = () => {
   const activeDrawer = useBoundStore(state => state.activeDrawer);
@@ -265,138 +265,24 @@ const OrdenForm = () => {
         />
 
         {/* Líneas */}
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <label className="text-[10px] font-bold text-content-muted uppercase tracking-widest">
-              Productos {lineas.length > 0 && `(${lineas.length})`}
-            </label>
-            {proveedorSeleccionado && (
-              <button
-                type="button"
-                onClick={() => setShowSearch((v) => !v)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold text-content-tertiary border border-border-base rounded-lg hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all"
-              >
-                <Plus size={11} /> Agregar producto
-              </button>
-            )}
-          </div>
-
-          {/* Buscador de items del proveedor */}
-          {showSearch && (
-            <div className="relative">
-              <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
-              <input
-                type="text"
-                autoFocus
-                value={searchItem}
-                onChange={(e) => setSearchItem(e.target.value)}
-                placeholder="Buscar producto del proveedor..."
-                className="w-full pl-8 pr-3 py-2 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition placeholder:text-content-muted"
-              />
-              {itemsFiltrados.length > 0 && (
-                <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-surface-base border border-border-subtle rounded-lg shadow-xl overflow-hidden max-h-48 overflow-y-auto">
-                  {itemsFiltrados.map((item) => (
-                    <button
-                      key={item.id_item_proveedor}
-                      type="button"
-                      onClick={() => agregarLinea(item)}
-                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-surface-subtle transition-colors text-left border-b border-border-subtle last:border-0"
-                    >
-                      <div>
-                        <p className="text-xs font-semibold text-content-primary">{item.nombre}</p>
-                        <p className="text-[10px] text-content-muted">{item.codigo} · {fmt(item.precio_unitario)}</p>
-                      </div>
-                      <Plus size={12} className="text-content-muted shrink-0" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Tabla de líneas */}
-          {lineas.length === 0 ? (
-            <div className="border border-dashed border-border-base rounded-lg py-8 text-center">
-              <p className="text-xs text-content-muted">
-                {proveedorSeleccionado
-                  ? 'Agrega productos con el botón de arriba'
-                  : 'Selecciona un proveedor primero'}
-              </p>
-            </div>
-          ) : (
-            <div className="border border-border-subtle rounded-lg overflow-hidden">
-              {/* Header de la tabla con toggle IVA */}
-              <div className="px-3 py-2 bg-surface-subtle border-b border-border-subtle flex items-center justify-between">
-                <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">Detalle</span>
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">
-                    {conIva ? 'Con IVA' : 'Sin IVA'}
-                  </span>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={conIva}
-                    onClick={() => setConIva(v => !v)}
-                    className={`relative w-8 h-4 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 focus-visible:ring-offset-1 ${conIva ? 'bg-content-primary' : 'bg-surface-strong'}`}
-                  >
-                    <span className={`absolute top-0.5 left-0.5 w-3 h-3 bg-surface-base rounded-full shadow transition-transform duration-200 ${conIva ? 'translate-x-4' : 'translate-x-0'}`} />
-                  </button>
-                </label>
-              </div>
-
-              <div className="divide-y divide-border-subtle">
-                {lineas.map((linea, idx) => (
-                  <div key={idx} className="px-3 py-2.5 flex items-center gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-content-primary truncate">{linea.item_nombre}</p>
-                      <p className="text-[10px] text-content-muted">{linea.item_codigo}</p>
-                    </div>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      value={linea.cantidad}
-                      onChange={(e) => actualizarLinea(idx, 'cantidad', e.target.value)}
-                      className="w-20 px-2 py-1 text-xs border border-border-base rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-primary/30 text-center tabular-nums"
-                      placeholder="Cant."
-                    />
-                    <span className="text-[10px] text-content-muted w-24 text-right tabular-nums shrink-0">
-                      {fmt(Number(linea.precio_unit))} c/u
-                    </span>
-                    <span className="text-xs font-bold text-content-secondary tabular-nums w-28 text-right shrink-0">
-                      {fmt(Number(linea.cantidad) * Number(linea.precio_unit))}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => quitarLinea(idx)}
-                      className="shrink-0 w-6 h-6 flex items-center justify-center rounded-md text-content-muted hover:bg-semantic-danger-subtle hover:text-semantic-danger transition-all"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="bg-surface-subtle border-t border-border-subtle">
-                <div className="px-3 py-1.5 flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">Subtotal</span>
-                  <span className="text-xs font-semibold text-content-secondary tabular-nums">{fmt(subtotal)}</span>
-                </div>
-                {conIva && (
-                  <div className="px-3 py-1.5 flex items-center justify-between border-t border-border-subtle/50">
-                    <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">IVA ({ivaPct}%)</span>
-                    <span className="text-xs font-semibold text-content-secondary tabular-nums">{fmt(ivaAmount)}</span>
-                  </div>
-                )}
-                <div className="px-3 py-2 flex items-center justify-between border-t border-border-subtle">
-                  <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">
-                    Total {conIva ? '(IVA incluido)' : ''}
-                  </span>
-                  <span className="text-sm font-bold text-content-primary tabular-nums">{fmt(total)}</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        <ProductosSection
+          lineas={lineas}
+          proveedorSeleccionado={proveedorSeleccionado}
+          showSearch={showSearch}
+          setShowSearch={setShowSearch}
+          searchItem={searchItem}
+          setSearchItem={setSearchItem}
+          itemsFiltrados={itemsFiltrados}
+          agregarLinea={agregarLinea}
+          conIva={conIva}
+          setConIva={setConIva}
+          ivaPct={ivaPct}
+          subtotal={subtotal}
+          ivaAmount={ivaAmount}
+          total={total}
+          actualizarLinea={actualizarLinea}
+          quitarLinea={quitarLinea}
+        />
       </form>
     </Drawer>
   );
