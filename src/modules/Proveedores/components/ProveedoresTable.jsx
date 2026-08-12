@@ -1,43 +1,13 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import {
-  Search, X, ChevronLeft, ChevronRight, Filter, Trophy,
-  Pencil, Trash2, Package, Briefcase,
-} from 'lucide-react';
-import { fmt } from '../../../utils/formatters';
-import AmountDisplay from '../../../shared/AmountDisplay';
-import StatusBadge from '../../../shared/StatusBadge';
+import { Package } from 'lucide-react';
 import usePageSize from '../../../hooks/usePageSize';
 import useClientPagination from '../../../hooks/useClientPagination';
-import { getPaginationRange } from '../../Inventario/services/pagination';
 import { useProveedores, useProveedoresPaginated } from '../api/useProveedores';
-import cn from '../../../utils/cn';
-
-// Paletas para avatares (intencionalmente coloridas; identifican proveedores).
-const PALETTES = [
-  'bg-semantic-info',
-  'bg-brand-primary-active',
-  'bg-semantic-success',
-  'bg-semantic-warning',
-  'bg-semantic-danger',
-  'bg-semantic-info',
-];
-
-const getInitials = (name = '') =>
-  name.split(' ').slice(0, 2).map(n => n?.[0] || '').join('').toUpperCase();
-
-const ActionBtn = ({ onClick, icon: Icon, title, danger }) => (
-  <button
-    onClick={(e) => { e.stopPropagation(); onClick(); }}
-    className={`inline-flex items-center justify-center w-7 h-7 rounded-sm border transition-colors ${
-      danger
-        ? 'border-border-base text-content-muted hover:bg-semantic-danger hover:text-white hover:border-semantic-danger'
-        : 'border-border-base text-content-muted hover:bg-content-primary hover:text-content-inverse hover:border-content-primary'
-    }`}
-    title={title}
-  >
-    <Icon size={12} />
-  </button>
-);
+import ToolbarFiltros from './ProveedoresTable/ToolbarFiltros';
+import BannerComparador from './ProveedoresTable/BannerComparador';
+import FilaComparacion from './ProveedoresTable/FilaComparacion';
+import FilaProveedor from './ProveedoresTable/FilaProveedor';
+import PaginacionFooter from './ProveedoresTable/PaginacionFooter';
 
 const ProveedoresTable = ({
   catalogo = [],
@@ -149,118 +119,15 @@ const ProveedoresTable = ({
   return (
     <div className="bg-surface-base border border-border-base rounded-2xl shadow-sm overflow-hidden">
 
-      {/* ── Toolbar ── */}
-      <div className="flex flex-wrap items-center gap-3 border-b border-border-subtle px-4 py-3 bg-surface-subtle">
-        <div className="relative flex-1 min-w-44 max-w-xs">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-content-muted" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-            placeholder="Buscar proveedor..."
-            className="w-full pl-8 pr-8 py-1.5 text-xs bg-surface-base border border-border-base rounded-lg focus:ring-1 focus:ring-border-focus/15 focus:border-border-focus outline-none transition-all duration-150 placeholder:text-content-muted disabled:opacity-30 disabled:cursor-not-allowed"
-            disabled={isComparison}
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-secondary transition-colors">
-              <X size={12} />
-            </button>
-          )}
-        </div>
+      <ToolbarFiltros
+        search={search} setSearch={setSearch} setCurrentPage={setCurrentPage} isComparison={isComparison}
+        productoFilter={productoFilter} setProductoFilter={setProductoFilter}
+        showDropdown={showDropdown} setShowDropdown={setShowDropdown} filterRef={filterRef}
+        productoSearch={productoSearch} setProductoSearch={setProductoSearch} productoSugerencias={productoSugerencias}
+        displayCount={displayCount} isFetching={isFetching}
+      />
 
-        {/* Filtro por producto */}
-        <div className="relative" ref={filterRef}>
-          {!productoFilter ? (
-            <button
-              onClick={() => setShowDropdown(v => !v)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border rounded-lg transition-all duration-150 whitespace-nowrap ${
-                showDropdown
-                  ? 'border-content-primary bg-content-primary text-content-inverse shadow-xs'
-                  : 'border-border-base text-content-tertiary hover:text-content-secondary hover:border-border-strong'
-              }`}
-            >
-              <Filter size={12} />
-              Comparar por producto
-            </button>
-          ) : (
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-bold bg-content-primary text-content-inverse rounded-md shadow-xs">
-              <Filter size={12} />
-              <span className="max-w-48 truncate">{productoFilter.nombre}</span>
-              <button
-                onClick={() => { setProductoFilter(null); setCurrentPage(1); }}
-                className="ml-0.5 hover:bg-content-secondary rounded p-0.5 transition-colors duration-150"
-              >
-                <X size={12} />
-              </button>
-            </div>
-          )}
-
-          {showDropdown && !productoFilter && (
-            <div className="absolute top-full mt-1.5 right-0 z-30 w-72 bg-surface-base border border-border-base rounded-xl shadow-lg overflow-hidden">
-              <div className="p-2.5 border-b border-border-subtle">
-                <div className="relative">
-                  <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-content-muted" />
-                  <input
-                    type="text"
-                    value={productoSearch}
-                    onChange={(e) => setProductoSearch(e.target.value)}
-                    placeholder="Buscar producto del catálogo..."
-                    className="w-full pl-7 pr-3 py-2 text-xs border border-border-base rounded-lg focus:ring-1 focus:ring-border-focus/15 outline-none placeholder:text-content-muted"
-                    autoFocus
-                  />
-                </div>
-              </div>
-              <div className="max-h-60 overflow-y-auto">
-                {productoSugerencias.length === 0 ? (
-                  <div className="flex flex-col items-center gap-1.5 py-6">
-                    <Package size={16} className="text-content-muted" />
-                    <p className="text-xs text-content-muted">Sin productos vinculados</p>
-                  </div>
-                ) : (
-                  productoSugerencias.map(p => (
-                    <button
-                      key={p.id}
-                      onClick={() => {
-                        setProductoFilter(p);
-                        setShowDropdown(false);
-                        setProductoSearch('');
-                        setSearch('');
-                        setCurrentPage(1);
-                      }}
-                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-surface-subtle transition-colors duration-100 text-left border-b border-border-subtle last:border-0"
-                    >
-                      <span className="text-xs font-medium text-content-secondary truncate">{p.nombre}</span>
-                      <span className="text-[10px] font-semibold text-content-muted bg-surface-muted px-1.5 py-0.5 rounded shrink-0 ml-2 tabular-nums">
-                        {p.count}
-                      </span>
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest ml-auto whitespace-nowrap tabular-nums">
-          {displayCount} {isComparison ? 'opciones' : 'proveedores'}{isFetching && !isComparison ? ' · …' : ''}
-        </span>
-      </div>
-
-      {/* ── Banner comparador ── */}
-      {isComparison && mejorCosto != null && (
-        <div className="flex items-center justify-between px-4 py-2.5 bg-semantic-success-subtle/60 border-b border-semantic-success/15">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-md bg-semantic-success flex items-center justify-center">
-              <Trophy size={10} className="text-white" />
-            </div>
-            <span className="text-xs font-semibold text-semantic-success-fg">Mejor costo/kg</span>
-            <span className="text-xs font-bold text-semantic-success-fg tabular-nums">{fmt(mejorCosto)}</span>
-          </div>
-          <span className="text-[10px] font-medium text-semantic-success-fg/80">
-            {displayCount} proveedor{displayCount !== 1 ? 'es' : ''}
-          </span>
-        </div>
-      )}
+      {isComparison && <BannerComparador mejorCosto={mejorCosto} displayCount={displayCount} />}
 
       {/* ── Tabla ── */}
       <div className="overflow-x-auto">
@@ -328,183 +195,30 @@ const ProveedoresTable = ({
                 </td>
               </tr>
             ) : isComparison ? (
-              paginated.map((row) => {
-                const esMejor = row._costoKg === mejorCosto;
-                const factor  = parseFloat(row._item.factor_conversion) || 1;
-                const displayName = row.nombre_empresa || row.nombre_encargado || '';
-                const palette = PALETTES[Number(row.id_proveedor) % PALETTES.length];
-
-                return (
-                  <tr
-                    key={row.id_proveedor}
-                    onClick={() => onPortafolio(row)}
-                    className={`border-b border-border-subtle cursor-pointer transition-colors duration-150 ${
-                      esMejor
-                        ? 'bg-semantic-success-subtle/30 hover:bg-semantic-success-subtle/50 border-l-2 border-l-semantic-success'
-                        : 'hover:bg-surface-subtle border-l-2 border-l-transparent'
-                    }`}
-                  >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className={`shrink-0 w-7 h-7 rounded-lg ${palette} flex items-center justify-center`}>
-                          <span className="text-[9px] font-bold text-white leading-none">{getInitials(displayName)}</span>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            {esMejor && <Trophy size={11} className="text-semantic-success shrink-0" />}
-                            <span className="font-semibold text-content-primary text-xs truncate">{displayName || '—'}</span>
-                          </div>
-                          {row.nombre_empresa && row.nombre_encargado && (
-                            <span className="text-[10px] text-content-muted truncate block">{row.nombre_encargado}</span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-center text-xs text-content-tertiary">
-                      {row._item.unidad_compra_nombre || '—'}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className="text-xs font-mono font-semibold text-content-secondary tabular-nums">
-                        {factor !== 1 ? factor : '1'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <AmountDisplay value={row._item.precio_unitario} />
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className={`text-xs font-bold tabular-nums ${esMejor ? 'text-semantic-success-fg' : 'text-content-secondary'}`}>
-                        {fmt(row._costoKg)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <ActionBtn onClick={() => onPortafolio(row)} icon={Briefcase} title="Ver portafolio" />
-                        <ActionBtn onClick={() => onEdit(row)} icon={Pencil} title="Editar proveedor" />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
+              paginated.map((row) => (
+                <FilaComparacion
+                  key={row.id_proveedor} row={row} mejorCosto={mejorCosto}
+                  onPortafolio={onPortafolio} onEdit={onEdit}
+                />
+              ))
             ) : (
-              paginated.map(prov => {
-                const count       = productosPorProveedor[prov.id_proveedor] || 0;
-                const displayName = prov.nombre_empresa || prov.nombre_encargado || '';
-                const palette     = PALETTES[Number(prov.id_proveedor) % PALETTES.length];
-
-                return (
-                  <tr
-                    key={prov.id_proveedor}
-                    onClick={() => onPortafolio(prov)}
-                    className="border-b border-border-subtle hover:bg-surface-subtle cursor-pointer transition-colors duration-150 group"
-                  >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className={`shrink-0 w-7 h-7 rounded-lg ${palette} flex items-center justify-center`}>
-                          <span className="text-[9px] font-bold text-white leading-none">{getInitials(displayName)}</span>
-                        </div>
-                        <div className="min-w-0">
-                          <span className="font-semibold text-content-primary text-xs block truncate group-hover:text-content-secondary transition-colors duration-150">
-                            {displayName || '—'}
-                          </span>
-                          {prov.nombre_empresa && prov.nombre_encargado && (
-                            <span className="text-[10px] text-content-muted block truncate">{prov.nombre_encargado}</span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs font-mono text-content-tertiary tabular-nums">{prov.numero_documento || '—'}</span>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-content-tertiary">{prov.telefono || '—'}</td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-content-muted truncate block max-w-44">{prov.email || '—'}</span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <StatusBadge
-                        tone={count > 0 ? 'info' : 'neutral'}
-                        label={String(count)}
-                        icon={Package}
-                        dot={false}
-                        size="sm"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <ActionBtn onClick={() => onPortafolio(prov)} icon={Briefcase} title="Ver portafolio" />
-                        <ActionBtn onClick={() => onEdit(prov)} icon={Pencil} title="Editar proveedor" />
-                        <ActionBtn onClick={() => onDelete(prov)} icon={Trash2} title="Eliminar" danger />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
+              paginated.map(prov => (
+                <FilaProveedor
+                  key={prov.id_proveedor} prov={prov}
+                  count={productosPorProveedor[prov.id_proveedor] || 0}
+                  onPortafolio={onPortafolio} onEdit={onEdit} onDelete={onDelete}
+                />
+              ))
             )}
           </tbody>
         </table>
       </div>
 
-      {/* ── Paginación ── */}
-      {totalItems > 0 && (
-        <div className="px-3 py-2 bg-surface-subtle border-t border-border-base flex items-center justify-between">
-          <div className="hidden sm:flex items-center gap-4">
-            <div className="text-xs text-content-tertiary">
-              Mostrando{' '}
-              <span className="text-content-primary font-semibold tabular-nums">{paginated.length}</span>{' '}
-              de{' '}
-              <span className="text-content-primary font-semibold tabular-nums">{totalItems}</span>{' '}
-              {isComparison ? 'opciones' : 'proveedores'}
-            </div>
-            <div className="flex items-center gap-2 border-l border-border-base pl-4">
-              <span className="text-xs text-content-tertiary">Filas:</span>
-              <select
-                value={perPage}
-                onChange={(e) => setPerPage(Number(e.target.value))}
-                className="bg-surface-base border border-border-base text-content-primary text-xs font-medium rounded-md focus:ring-2 focus:ring-border-focus/15 focus:border-border-focus block px-2 py-1 outline-none transition-colors"
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="p-1.5 border border-border-base rounded-md bg-surface-base hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronLeft size={14} />
-            </button>
-            <div className="flex items-center gap-1">
-              {getPaginationRange(currentPage, totalPages).map((page, index) => (
-                <button
-                  key={index}
-                  onClick={() => typeof page === 'number' && setCurrentPage(page)}
-                  disabled={page === '...'}
-                  className={cn(
-                    'min-w-7 h-7 flex items-center justify-center rounded-md text-[11px] font-semibold transition-colors',
-                    page === currentPage
-                      ? 'bg-content-primary text-content-inverse'
-                      : page === '...'
-                        ? 'text-content-muted cursor-default'
-                        : 'bg-surface-base border border-border-base text-content-secondary hover:border-border-strong hover:text-content-primary',
-                  )}
-                >
-                  {page}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage >= totalPages}
-              className="p-1.5 border border-border-base rounded-md bg-surface-base hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
-      )}
+      <PaginacionFooter
+        totalItems={totalItems} paginatedLength={paginated.length} isComparison={isComparison}
+        perPage={perPage} setPerPage={setPerPage}
+        currentPage={currentPage} totalPages={totalPages} setCurrentPage={setCurrentPage}
+      />
     </div>
   );
 };
