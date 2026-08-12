@@ -1,38 +1,19 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { Save, Percent, AlertTriangle, PlusCircle, PackagePlus, ChevronDown } from 'lucide-react';
+import { Save, AlertTriangle, PlusCircle } from 'lucide-react';
 import Drawer from '../../../shared/Drawer';
 import { FormInput } from '../../../shared/Form/FormInput';
 import { FormSelect } from '../../../shared/Form/FormSelect';
-import { InputMoneda } from '../../../shared/Form/InputMoneda';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { useProveedores } from '../api/useProveedores';
 import { useUnidades } from '../../../api/useUnidades';
 import ItemGeneralSearch from '../../../shared/ItemGeneralSearch';
 import NombreAutocomplete from './NombreAutocomplete';
 import { useConfigValue } from '../../Configuracion/api/useConfiguracion';
-
-const DISPONIBLE_OPTIONS = [
-  { value: '1', label: 'Disponible'    },
-  { value: '2', label: 'No disponible' },
-];
-
-const SUBCATEGORIA_OPTIONS = [
-  { value: '',  label: 'Sin subcategoría' },
-  { value: '1', label: 'Esmalte'         },
-  { value: '2', label: 'Pasta'           },
-  { value: '3', label: 'Anticorrosivo'   },
-  { value: '4', label: 'Barniz'          },
-];
-
-const TIPO_OPTIONS = [
-  { value: 'Materia Prima', label: 'Materia Prima' },
-  { value: 'Insumo',        label: 'Insumo'        },
-  { value: 'Empaque',       label: 'Empaque'       },
-  { value: 'Producto',      label: 'Producto'      },
-  { value: 'Servicio',      label: 'Servicio'      },
-];
+import { DISPONIBLE_OPTIONS, TIPO_OPTIONS } from './ItemProveedorForm/constants';
+import CrearEnCatalogoSection from './ItemProveedorForm/CrearEnCatalogoSection';
+import PreciosSection from './ItemProveedorForm/PreciosSection';
 
 // ── Form principal ──────────────────────────────────────────────────────────
 const ItemProveedorForm = () => {
@@ -398,148 +379,25 @@ const ItemProveedorForm = () => {
 
           {/* Sección inline para crear ítem en catálogo si no hay vínculo */}
           {!itemGeneral && (
-            <div className="mt-3">
-              <button
-                type="button"
-                onClick={() => setCrearEnCatalogo(v => !v)}
-                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all text-left ${
-                  crearEnCatalogo
-                    ? 'border-brand-primary bg-brand-subtle'
-                    : 'border-border-base bg-surface-subtle hover:bg-surface-muted'
-                }`}
-              >
-                <PackagePlus size={16} className={crearEnCatalogo ? 'text-brand-primary-active' : 'text-content-tertiary'} />
-                <div className="flex-1 min-w-0">
-                  <p className={`text-xs font-semibold ${crearEnCatalogo ? 'text-brand-primary-active' : 'text-content-secondary'}`}>
-                    Crear nuevo ítem en catálogo
-                  </p>
-                  <p className="text-[10px] text-content-muted">
-                    {crearEnCatalogo ? 'Se creará junto con el producto del proveedor' : 'No existe en el catálogo interno? Créalo aquí mismo'}
-                  </p>
-                </div>
-                <ChevronDown size={14} className={`text-content-muted transition-transform ${crearEnCatalogo ? 'rotate-180' : ''}`} />
-              </button>
-
-              {crearEnCatalogo && (
-                <div className="mt-3 p-4 rounded-xl border border-brand-primary/20 bg-brand-subtle/30 space-y-3 animate-in slide-in-from-top-2 duration-200">
-                  <div className="grid grid-cols-2 gap-3">
-                    <FormInput
-                      label="Código SKU (catálogo)"
-                      placeholder="Ej. REF-001"
-                      value={catalogoCodigo}
-                      onChange={(e) => setCatalogoCodigo(e.target.value)}
-                    />
-                    <FormSelect
-                      label="Subcategoría"
-                      options={SUBCATEGORIA_OPTIONS}
-                      value={catalogoCategoria}
-                      onChange={setCatalogoCategoria}
-                      placeholder="Opcional..."
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <FormSelect
-                      label="Unidad de venta"
-                      options={unidadOptions}
-                      value={catalogoUnidadVenta}
-                      onChange={setCatalogoUnidadVenta}
-                      placeholder="Opcional..."
-                    />
-                    <FormSelect
-                      label="Unidad de almacenaje"
-                      options={unidadOptions}
-                      value={catalogoUnidadAlm}
-                      onChange={setCatalogoUnidadAlm}
-                      placeholder="KILO (por defecto)"
-                    />
-                  </div>
-                  <p className="text-[10px] text-content-muted flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-primary inline-block" />
-                    El nombre y tipo se toman del formulario. Al guardar se crea el ítem en catálogo y se vincula automáticamente.
-                  </p>
-                </div>
-              )}
-            </div>
+            <CrearEnCatalogoSection
+              crearEnCatalogo={crearEnCatalogo} setCrearEnCatalogo={setCrearEnCatalogo}
+              catalogoCodigo={catalogoCodigo} setCatalogoCodigo={setCatalogoCodigo}
+              catalogoCategoria={catalogoCategoria} setCatalogoCategoria={setCatalogoCategoria}
+              catalogoUnidadVenta={catalogoUnidadVenta} setCatalogoUnidadVenta={setCatalogoUnidadVenta}
+              catalogoUnidadAlm={catalogoUnidadAlm} setCatalogoUnidadAlm={setCatalogoUnidadAlm}
+              unidadOptions={unidadOptions}
+            />
           )}
         </div>
 
         {/* ── Precios ── */}
-        <div className="space-y-3">
-          <Controller
-            name="precio_unitario"
-            control={control}
-            rules={{ required: 'Ingresa el precio unitario' }}
-            render={({ field }) => (
-              <InputMoneda
-                label="Precio unitario"
-                value={field.value}
-                onChange={field.onChange}
-                error={errors.precio_unitario?.message}
-              />
-            )}
-          />
-
-          <div className="rounded-xl border border-border-base bg-surface-subtle px-4 py-3 space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2.5 cursor-pointer select-none">
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={aplicarIva}
-                  onClick={() => setAplicarIva(v => !v)}
-                  className={`relative w-9 h-5 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 focus-visible:ring-offset-1 ${aplicarIva ? 'bg-content-primary' : 'bg-surface-strong'}`}
-                >
-                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-surface-base rounded-full shadow transition-transform duration-200 ${aplicarIva ? 'translate-x-4' : 'translate-x-0'}`} />
-                </button>
-                <span className="text-sm font-semibold text-content-secondary">Aplicar IVA</span>
-              </label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="number" min="0" max="100" step="0.1"
-                  value={porcentajeIva}
-                  onChange={e => setPorcentajeIva(Number(e.target.value) || 0)}
-                  disabled={!aplicarIva}
-                  className="w-16 px-2 py-1 text-sm font-bold border border-border-base rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-brand-primary/30 bg-surface-base disabled:opacity-40 disabled:cursor-not-allowed tabular-nums"
-                />
-                <Percent size={14} className={`transition-opacity ${aplicarIva ? 'text-content-tertiary' : 'text-content-muted'}`} />
-              </div>
-            </div>
-            {aplicarIva && (
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-content-muted">
-                  IVA ({porcentajeIva}%) sobre <span className="font-semibold text-content-secondary">$ {Number(precioUnitario || 0).toLocaleString('es-CO')}</span>
-                </span>
-                <span className="font-bold text-content-secondary">+ $ {ivaCalculado.toLocaleString('es-CO')}</span>
-              </div>
-            )}
-          </div>
-
-          <Controller
-            name="precio_con_iva"
-            control={control}
-            render={({ field }) => (
-              <div className="relative">
-                <InputMoneda
-                  label="Precio con IVA"
-                  value={field.value}
-                  onChange={(v) => {
-                    field.onChange(v);
-                    // Sync inverso: si IVA está activo, recalcular el precio unitario.
-                    if (aplicarIva) {
-                      isAutoUpdateRef.current = true;
-                      const unit = (Number(v) || 0) / (1 + porcentajeIva / 100);
-                      setValue('precio_unitario', Math.round(unit * 100) / 100);
-                    }
-                  }}
-                  error={errors.precio_con_iva?.message}
-                />
-                {aplicarIva && (
-                  <span className="absolute right-3 top-1 text-[10px] font-bold text-semantic-success-fg uppercase tracking-wide">Sync</span>
-                )}
-              </div>
-            )}
-          />
-        </div>
+        <PreciosSection
+          control={control} errors={errors}
+          aplicarIva={aplicarIva} setAplicarIva={setAplicarIva}
+          porcentajeIva={porcentajeIva} setPorcentajeIva={setPorcentajeIva}
+          precioUnitario={precioUnitario} ivaCalculado={ivaCalculado}
+          isAutoUpdateRef={isAutoUpdateRef} setValue={setValue}
+        />
 
         <FormInput
           label="Descripción"
