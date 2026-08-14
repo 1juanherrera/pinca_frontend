@@ -5,7 +5,7 @@
  */
 import { useState, lazy, Suspense } from 'react';
 import { PDFViewer } from '@react-pdf/renderer';
-import { X, Download, CheckCircle2, Loader2, FileText, EyeOff, DollarSign, Receipt, LayoutTemplate } from 'lucide-react';
+import { Loader2, FileText, EyeOff, DollarSign, Receipt, LayoutTemplate } from 'lucide-react';
 import { useBoundStore } from '../../../../store/useBoundStore';
 import { useCotizaciones } from '../api/useCotizaciones';
 import logoFallback from '../../../../assets/pincaicono.png';
@@ -15,8 +15,23 @@ import { fmt, fmtCant, downloadDocPdf } from '../../../../shared/pdf/docPdfHelpe
 import { downloadDocTicket } from '../../../../shared/pdf/docTicketHelpers';
 import { CotizacionFactusStyleDoc } from './CotizacionFactusStyleDoc';
 import { downloadCotizacionFactusStyle } from './downloadCotizacionFactusStyle';
+import ExportModalChrome from '../../../../shared/pdf/ExportModalChrome';
+import ExportFormatToggle from '../../../../shared/pdf/ExportFormatToggle';
+import ExportDownloadButton from '../../../../shared/pdf/ExportDownloadButton';
+import PdfPreviewFallback from '../../../../shared/pdf/PdfPreviewFallback';
 
 const DocPdfPreview = lazy(() => import('../../../../shared/pdf/DocPdfPreview'));
+
+const FORMATOS = [
+  { value: 'carta',   label: 'Carta',   icon: FileText },
+  { value: 'tiquete', label: 'Tiquete', icon: Receipt },
+  { value: 'factus',  label: 'Factus',  icon: LayoutTemplate },
+];
+
+const PRECIOS_OPTIONS = [
+  { value: true,  label: 'Con precios', icon: DollarSign },
+  { value: false, label: 'Sin precios', icon: EyeOff },
+];
 
 /** Config para el formato "Factus" — shape distinto al de DocPdf (campos/columnas/filas). */
 const buildFactusConfig = (cot, items, EMPRESA, logo) => ({
@@ -117,101 +132,49 @@ const ExportCotizacionContent = ({ cotizacion, closeModal }) => {
   };
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[110]" onClick={closeModal} />
-      <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-        <div className="w-full max-w-4xl h-[88vh] bg-surface-elevated rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-content-primary rounded-xl flex items-center justify-center">
-                <FileText size={16} className="text-content-inverse" />
-              </div>
-              <div>
-                <h2 className="text-sm font-semibold text-content-primary">Vista previa — {cotizacion.numero}</h2>
-                <p className="text-xs text-content-muted">{cotizacion.nombre_empresa}</p>
-              </div>
-            </div>
-            <button onClick={closeModal} aria-label="Cerrar" className="p-1.5 text-content-muted hover:text-content-secondary hover:bg-surface-muted rounded-lg transition-colors">
-              <X size={18} />
-            </button>
+    <ExportModalChrome
+      icon={FileText}
+      title={`Vista previa — ${cotizacion.numero}`}
+      subtitle={cotizacion.nombre_empresa}
+      onClose={closeModal}
+      body={
+        isLoadingItems ? (
+          <div className="flex-1 flex items-center justify-center gap-3 text-content-muted">
+            <Loader2 size={20} className="animate-spin" />
+            <span className="text-sm font-medium">Cargando ítems...</span>
           </div>
+        ) : formato === 'factus' ? (
+          <PDFViewer showToolbar={false} style={{ width: '100%', height: '100%', border: 'none', backgroundColor: '#fff' }}>
+            <CotizacionFactusStyleDoc {...factusConfig} />
+          </PDFViewer>
+        ) : (
+          <Suspense fallback={<PdfPreviewFallback />}>
+            <DocPdfPreview {...config} formato={formato} />
+          </Suspense>
+        )
+      }
+      footer={
+        <>
+          <p className="text-xs text-content-muted shrink-0">
+            {(items ?? []).length} ítem(s){conPrecios ? <> · Total: <span className="font-semibold text-content-secondary">{fmt(cotizacion.total)}</span></> : null}
+          </p>
 
-          <div className="flex-1 min-h-0 flex flex-col bg-surface-muted">
-            {isLoadingItems ? (
-              <div className="flex-1 flex items-center justify-center gap-3 text-content-muted">
-                <Loader2 size={20} className="animate-spin" />
-                <span className="text-sm font-medium">Cargando ítems...</span>
-              </div>
-            ) : formato === 'factus' ? (
-              <PDFViewer showToolbar={false} style={{ width: '100%', height: '100%', border: 'none', backgroundColor: '#fff' }}>
-                <CotizacionFactusStyleDoc {...factusConfig} />
-              </PDFViewer>
-            ) : (
-              <Suspense fallback={<div className="flex-1 flex items-center justify-center gap-3 text-content-muted"><Loader2 size={20} className="animate-spin" /><span className="text-sm font-medium">Generando vista previa…</span></div>}>
-                <DocPdfPreview {...config} formato={formato} />
-              </Suspense>
-            )}
-          </div>
+          <ExportFormatToggle options={FORMATOS} value={formato} onChange={setFormato} />
 
-          <div className="px-5 py-4 border-t border-border-subtle bg-surface-subtle flex flex-wrap items-center justify-between gap-3 shrink-0">
-            <p className="text-xs text-content-muted shrink-0">
-              {(items ?? []).length} ítem(s){conPrecios ? <> · Total: <span className="font-semibold text-content-secondary">{fmt(cotizacion.total)}</span></> : null}
-            </p>
+          {/* Toggle con/sin precios — no aplica al estilo Factus (siempre priced) */}
+          {formato !== 'factus' && (
+            <ExportFormatToggle options={PRECIOS_OPTIONS} value={conPrecios} onChange={setConPrecios} />
+          )}
 
-            {/* Toggle carta/tiquete */}
-            <div className="flex items-center gap-0.5 bg-surface-strong/60 rounded-lg p-0.5 shrink-0">
-              <button
-                onClick={() => setFormato('carta')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${formato === 'carta' ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
-              >
-                <FileText size={12} /> Carta
-              </button>
-              <button
-                onClick={() => setFormato('tiquete')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${formato === 'tiquete' ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
-              >
-                <Receipt size={12} /> Tiquete
-              </button>
-              <button
-                onClick={() => setFormato('factus')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${formato === 'factus' ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
-              >
-                <LayoutTemplate size={12} /> Factus
-              </button>
-            </div>
-
-            {/* Toggle con/sin precios — no aplica al estilo Factus (siempre priced) */}
-            {formato !== 'factus' && (
-              <div className="flex items-center gap-0.5 bg-surface-strong/60 rounded-lg p-0.5 shrink-0">
-                <button
-                  onClick={() => setConPrecios(true)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${conPrecios ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
-                >
-                  <DollarSign size={12} /> Con precios
-                </button>
-                <button
-                  onClick={() => setConPrecios(false)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${!conPrecios ? 'bg-surface-elevated text-content-primary shadow-sm' : 'text-content-tertiary hover:text-content-secondary'}`}
-                >
-                  <EyeOff size={12} /> Sin precios
-                </button>
-              </div>
-            )}
-
-            <button
-              onClick={handleDownload}
-              disabled={isExporting || isLoadingItems}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 shrink-0
-                ${done ? 'bg-semantic-success text-white' : 'bg-brand-primary text-content-on-brand hover:bg-brand-primary-hover disabled:opacity-50 disabled:pointer-events-none'}`}
-            >
-              {done ? <><CheckCircle2 size={16} /> Descargado</>
-                : isExporting ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando...</>
-                : <><Download size={16} /> Descargar PDF</>}
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
+          <ExportDownloadButton
+            onClick={handleDownload}
+            disabled={isExporting || isLoadingItems}
+            done={done}
+            isExporting={isExporting}
+          />
+        </>
+      }
+    />
   );
 };
 
