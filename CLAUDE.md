@@ -2464,3 +2464,80 @@ Ranking por líneas (24 archivos por encima de 380 líneas — universo mucho m�
 ---
 
 > **Snapshot al cierre 2026-08-11**: auditoría de código muerto exhaustiva (script de detección de huérfanos, no solo ESLint) — 4 archivos huérfanos más eliminados. Los 5 componentes más grandes del frontend (798 a 665 líneas) refactorizados en 39 archivos nuevos, todos orquestadores delgados ahora. Validado en cada paso con ESLint + conteo de tokens + build + tests (33/34, mismo fallo preexistente). Falta prueba visual del usuario en Windows.
+
+---
+
+## 40. Sesión 2026-08-14 — Cierre de la tanda de 24 componentes grandes + barrido de duplicación (bulk-selection + modales Export PDF)
+
+Continuación directa de §39. Primera mitad: terminar los 24 componentes grandes identificados en la auditoría del 2026-08-11 (quedaban 8 de los 24: Sidebar, ExportTrazabilidad, OrdenForm, OrdenesTab, FacturaForm, CotizacionesTab, DisponibilidadModal, NumeracionTab). Segunda mitad: a pedido explícito del usuario, un barrido de **duplicación real** (no solo tamaño de archivo) sobre 3 áreas candidatas identificadas por el propio historial de sesiones.
+
+### 40.1 Cierre de los 24/24 componentes grandes
+
+Mismo patrón de extracción pura ya establecido (orquestador delgado + sub-componentes, validado con ESLint + conteo de tokens idéntico vs `git show HEAD` + build + vitest 33/34 en cada uno, commit individual por componente):
+
+| # | Componente | Antes | Archivos nuevos |
+|---|---|---|---|
+| 19 | `shared/Sidebar.jsx` | 429 | 8 (`Sidebar/{helpers.js,SidebarExpandedItem,SidebarFlyoutItem,SidebarCollapsedSingleItem,SidebarCollapsedGroupIcon,SidebarHeader,SidebarFooterActions,SidebarFlyoutPanel}.jsx`) |
+| 20 | `Trazabilidad/.../ExportTrazabilidad.jsx` | 421 | 3 (`ExportTrazabilidad/{helpers.js,renderPreparacionPDF.js,renderLotePDF.js}` — jsPDF puro, sin `PdfTemplate`) |
+| 21 | `Compras/.../OrdenForm.jsx` | 405 | 3 (`OrdenForm/{BuscadorItemProveedor,LineaRow,ProductosSection}.jsx`) |
+| 22 | `Compras/.../OrdenesTab.jsx` | 397 | 5 (`OrdenesTab/{constants.js,useBulkSelection.js,BulkActionsBar,FiltrosHeader,useOrdenesColumns}.jsx`) |
+| 23 | `Comercial/Facturacion/.../FacturaForm.jsx` | 392 | 6 (`FacturaForm/{helpers.js,RowInput,DatosGeneralesSection,ItemsTable,AjustesFinancierosSection,TotalesSummary}.jsx`) |
+| 24 | `Comercial/Cotizaciones/CotizacionesTab.jsx` | 392 | 5 (`CotizacionesTab/{constants.js,useBulkSelection.js,BulkActionsBar,FiltrosHeader,useCotizacionesColumns}.jsx`) |
+| 25 | `Produccion/.../DisponibilidadModal.jsx` | 391 | 6 (`DisponibilidadModal/{helpers.js,EstadoChip,ProveedorSelector,MaterialRow,ModalHeader,ModalFooter}.jsx`) |
+| 26 | `Configuracion/.../NumeracionTab.jsx` | 385 | 4 (`NumeracionTab/{constants.js,SerieModal,SeriesActivasTable,SeriesInactivasDetails}.jsx`) |
+
+Nota puntual (CotizacionesTab): al mover el `useMemo` de columnas a un hook aparte, React Compiler dejó de poder inferir que `setSelected` (un setter de `useState` del padre) es estable → se agregó explícitamente al array de deps del `useMemo` (semánticamente un no-op, los setters de React son siempre estables) para resolver `react-hooks/preserve-manual-memoization`.
+
+**Con esto los 24/24 componentes de la lista original (>380 líneas) quedaron refactorizados.**
+
+### 40.2 Barrido de duplicación — hook genérico `useBulkEstadoChange`
+
+El usuario pidió explícitamente ("dale") un barrido de duplicación real tras cerrar la lista de 24. Primer candidato: `FacturasTable/useBulkSelection.js`, `OrdenesTab/useBulkSelection.js` y `CotizacionesTab/useBulkSelection.js` (los 3 recién tocados en 40.1/sesión previa) tenían la misma lógica de "selección + cambio de estado masivo" repetida a mano — solo cambiaban el `idKey`, el estado destino y los textos.
+
+Nuevo **`src/hooks/useBulkEstadoChange.js`**: hook genérico parametrizado por `items/idKey/changeEstadoAsync/targetEstado/confirmTitle/confirmMessage/successMessage/failAllMessage`. `changeEstadoAsync` debe devolver una Promise — si la mutation subyacente es `.mutate` sin promesa (caso Cotizaciones, `cambiarEstado`), el wrapping (`new Promise((resolve,reject) => cambiarEstado(payload,{onSuccess:resolve,onError:reject}))`) se hace en el wrapper del módulo, no en el hook genérico.
+
+Los 3 `useBulkSelection.js` de cada módulo quedaron como **wrappers finos** que llaman al hook genérico con su configuración y renombran el resultado de vuelta a los nombres que ya consumían sus columnas/orquestador (`selected`+`handleBulkAnularClick` en Facturas, `handleBulkCancelarClick` en Órdenes, `handleBulkRechazarClick` en Cotizaciones) — **ningún archivo consumidor cambió** (columnas, `BulkActionsBar`, el orquestador de cada tab).
+
+### 40.3 Barrido de duplicación — chrome compartido de los 7 modales Export PDF
+
+Segundo candidato, más grande: los **7 exportadores** basados en la plantilla `DocPdf`/`DocPdfPreview` (`ExportFactura`, `ExportOrdenCompra`, `ExportCotizacion`, `ExportRemision`, `ExportRecibo`, `ExportNotaCredito`, `Nomina/ExportDesprendible`) tenían el mismo modal "Vista previa" repetido **byte a byte**: backdrop + panel + header (icon-box + título + subtítulo + botón X), cada botón de pill de formato, el fallback de `<Suspense>`, y el botón "Descargar PDF" con sus estados done/isExporting — confirmado leyendo los 7 completos antes de tocar nada (no solo por line-count). Solo cambiaban el ícono, los textos, el set de formatos disponibles (2, 3, o Carta/Comprobante) y la condición de `disabled`.
+
+`ExportProduccion.jsx` y `ExportTrazabilidad.jsx` quedaron **deliberadamente sin tocar**: el primero renderiza un preview HTML plano con jsPDF puro y mueve el toggle al header en vez del footer; el segundo es un diálogo de confirmación sin preview ni toggle de formato — ninguno comparte la estructura común de los otros 7.
+
+Nuevo `src/shared/pdf/`:
+- **`ExportModalChrome.jsx`** — backdrop + panel + header, recibe `icon`/`title`/`subtitle`/`onClose` + slots `body`/`footer`.
+- **`ExportFormatToggle.jsx`** — pill de opciones `{value,label,icon}`, cubre los 4 sets distintos usados (Carta/Tiquete, Carta/Tiquete/Factus, Carta/Comprobante, Con-precios/Sin-precios — Cotización usa dos toggles simultáneos, el segundo oculto en formato Factus).
+- **`ExportDownloadButton.jsx`** — botón "Descargar PDF" con estados done/isExporting.
+- **`PdfPreviewFallback.jsx`** — spinner de `<Suspense>` mientras carga el chunk lazy de la preview.
+
+Cada uno de los 7 archivos conserva intactas sus funciones `buildConfig`/`buildFactusConfig`, `handleDownload`, hooks de datos (`useFactura`/`useCotizaciones`/`useCompras`/`useRemisiones`) y toda condición que variaba entre ellos (gate de "Cargando ítems/orden" solo donde existía, condición de `disabled` propia de cada uno) — solo se reestructuró el JSX de retorno.
+
+**Validación**: dado que esto es deduplicación real (JSX movido a componentes compartidos invocados N veces vía props, no extracción mecánica 1:1), el conteo de tokens por archivo individual **no** es comparable contra el original — se usó en su lugar: lectura completa de los 7 archivos originales antes de tocarlos (confirmando que backdrop/header/toggle-button/download-button eran literalmente idénticos), transcripción cuidadosa de cada bloque JSX exacto en cada `Edit` (el tool exige match exacto del `old_string`, lo que actúa como verificación de que no hubo error de transcripción), ESLint 0 issues en los 11 archivos (detecta imports/refs rotos — clave para confirmar que cada archivo importa exactamente los íconos que usa), build limpio y vitest 33/34.
+
+⚠️ **Esta es la sesión con más riesgo visual no verificado del backlog reciente** — la prueba del usuario en `npm run dev` (Windows) de estos 7 modales de exportación es más importante que de costumbre, porque a diferencia de las extracciones puras anteriores, acá sí hubo reestructuración real del árbol JSX (aunque preservando clases/estructura idénticas).
+
+### 40.4 Auditoría de `src/hooks/` y `src/shared/` por complejidad (no solo tamaño)
+
+Pedido explícito del usuario como punto 4 del barrido. Resultado: **nada que refactorizar**.
+- `src/hooks/` — 10 archivos, todos ≤100 líneas, bien documentados, sin lógica duplicada entre sí (cada uno hace algo genuinamente distinto), varios ya con tests propios.
+- `src/shared/` — nada por encima de 330 líneas (`ItemGeneralSearch.jsx`, complejo por necesidad: autocomplete + comparación de precios, no por desorden). Muy por debajo del umbral de 380 usado para la tanda de 24.
+
+### 40.5 Backup de base de datos + cierre de sesión
+
+A pedido del usuario, para poder continuar desde la PC de casa: backup completo de `gestorpincadb` (58/58 tablas) generado y dejado en `pinca_backend_nest/db-backup/gestorpincadb_2026-08-14.sql`, reemplazando los 3 backups anteriores (que ya no aportaban nada al ser dumps completos no-incrementales). Detalle completo en `pinca_backend_nest/CLAUDE.md` §7 (2026-08-14) — cero cambios de código en ese repo, solo el backup.
+
+### Archivos de esta sesión
+
+**Creados**: 8+3+3+5+6+5+6+4 archivos de la tanda 40.1 (ver tabla) + `hooks/useBulkEstadoChange.js` + `shared/pdf/{ExportModalChrome,ExportFormatToggle,ExportDownloadButton,PdfPreviewFallback}.jsx`.
+**Modificados**: los 8 orquestadores de 40.1, los 3 `useBulkSelection.js` (40.2), los 7 `Export*.jsx` (40.3).
+**Commits**: 8 individuales para 40.1 (uno por componente) + 1 para 40.2 + 1 para 40.3 — **sin pushear al cierre de la sesión**, a la espera de retomar desde la PC de casa.
+
+### Pendiente
+
+- **Prueba visual completa en Windows** (`npm run dev`) de TODO lo pendiente de sesiones anteriores + los 24 componentes de esta tanda +, con prioridad especial, los 7 modales Export PDF de §40.3 (mayor riesgo visual por ser dedup real, no extracción mecánica).
+- `git push` de `pinca_frontend` (varios commits acumulados sin pushear) y de `pinca_backend_nest` (backup + CLAUDE.md) — dejado listo pero sin ejecutar, a pedido explícito del usuario ("dejamelo listo para solo hacerle push a los dos repos").
+- Ningún candidato más de refactor/dedup identificado — tanto la lista de componentes grandes (24/24) como el barrido de duplicación pedido (bulk-selection + Export* chrome + hooks/shared) quedaron cerrados.
+
+---
+
+> **Snapshot al cierre 2026-08-14**: 24/24 componentes grandes de la auditoría 2026-08-11 refactorizados. Barrido de duplicación real completo: hook genérico `useBulkEstadoChange` (3→1), chrome compartido de 7 modales Export PDF (`ExportModalChrome`/`ExportFormatToggle`/`ExportDownloadButton`/`PdfPreviewFallback`), hooks/shared auditados sin hallazgos. Backup de BD actualizado en `pinca_backend_nest/db-backup/`. Ambos repos comiteados y listos para `git push` — pendiente de ejecutar a pedido del usuario. Falta prueba visual completa en Windows, con foco en los 7 modales Export PDF.
