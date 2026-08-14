@@ -1,9 +1,10 @@
-import { useState, useMemo, useCallback } from 'react';
-import toast from 'react-hot-toast';
+import { useBulkEstadoChange } from '../../../../hooks/useBulkEstadoChange';
 
 // ── Selección múltiple (bulk actions) + acción bulk "Anular" ──────────────────
 // PATRÓN: Bulk actions con selección + barra flotante.
-// Replicar en CotizacionesTab y OrdenesTab cuando se decida.
+// Replicado en CotizacionesTab y OrdenesTab — lógica compartida vive en
+// src/hooks/useBulkEstadoChange.js; este archivo solo mapea los nombres/textos
+// específicos de Facturas (idKey, estado destino, mensajes).
 // Backend: cada acción se ejecuta como N requests paralelos (Promise.all).
 // Para cambios de estado masivos en el futuro, considerar un endpoint
 // bulk dedicado (ej: POST /facturas/bulk/cambiar-estado).
@@ -21,69 +22,21 @@ import toast from 'react-hot-toast';
 //   - Tras ejecutar: clearSelection() + invalidación implícita via la mutation
 //     onSuccess (en useFactura ya invalida facturaKeys.lists()).
 export const useBulkSelection = ({ facturas, cambiarEstadoAsync, openConfirm }) => {
-  const [selected, setSelected] = useState(() => new Set());
-  const [bulkLoading, setBulkLoading] = useState(false);
-
-  const toggleSelected = useCallback((id) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const clearSelection = useCallback(() => setSelected(new Set()), []);
-
-  // Select-all SOBRE las filas visibles (página actual del server).
-  const visibleIds = useMemo(
-    () => facturas.map((r) => r.id_facturas).filter(Boolean),
-    [facturas],
-  );
-  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));
-  const someVisibleSelected = visibleIds.some((id) => selected.has(id));
-
-  const toggleSelectAllVisible = useCallback(() => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (allVisibleSelected) {
-        visibleIds.forEach((id) => next.delete(id));
-      } else {
-        visibleIds.forEach((id) => next.add(id));
-      }
-      return next;
-    });
-  }, [allVisibleSelected, visibleIds]);
-
-  const runBulkAnular = useCallback(async () => {
-    const ids = Array.from(selected);
-    if (ids.length === 0) return;
-    setBulkLoading(true);
-    const results = await Promise.allSettled(
-      ids.map((id) => cambiarEstadoAsync({ id, estado: 'Anulada' })),
-    );
-    const ok = results.filter((r) => r.status === 'fulfilled').length;
-    const fail = results.length - ok;
-    setBulkLoading(false);
-    clearSelection();
-    if (fail === 0) {
-      toast.success(`${ok} factura(s) anulada(s)`);
-    } else if (ok === 0) {
-      toast.error(`No se pudo anular ninguna (${fail} con error)`);
-    } else {
-      toast.success(`${ok} actualizadas, ${fail} con error`);
-    }
-  }, [selected, cambiarEstadoAsync, clearSelection]);
-
-  const handleBulkAnularClick = useCallback(() => {
-    if (selected.size === 0) return;
-    openConfirm({
-      title: 'Anular facturas seleccionadas',
-      message: `¿Marcar como Anuladas ${selected.size} factura(s)? Esta acción no se puede deshacer fácilmente.`,
-      variant: 'danger',
-      onConfirm: runBulkAnular,
-    });
-  }, [selected.size, openConfirm, runBulkAnular]);
+  const {
+    selectedIds: selected, bulkLoading, toggleSelected, clearSelection,
+    allVisibleSelected, someVisibleSelected, toggleSelectAllVisible,
+    handleBulkChangeClick: handleBulkAnularClick,
+  } = useBulkEstadoChange({
+    items:             facturas,
+    idKey:             'id_facturas',
+    changeEstadoAsync: cambiarEstadoAsync,
+    targetEstado:      'Anulada',
+    openConfirm,
+    confirmTitle:   'Anular facturas seleccionadas',
+    confirmMessage: (n) => `¿Marcar como Anuladas ${n} factura(s)? Esta acción no se puede deshacer fácilmente.`,
+    successMessage: (ok) => `${ok} factura(s) anulada(s)`,
+    failAllMessage: (fail) => `No se pudo anular ninguna (${fail} con error)`,
+  });
 
   return {
     selected, bulkLoading,
