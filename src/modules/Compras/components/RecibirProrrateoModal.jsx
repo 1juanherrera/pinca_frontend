@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Scale, X, Info, TrendingDown, Package, Calculator } from 'lucide-react';
 import { Button } from '../../../shared/Button';
+import ErpTable from '../../../shared/ErpTable';
 import { fmt, parsePesoColombiano } from '../../../utils/formatters';
 import { useLoteSugerido } from '../api/useLoteSugerido';
 
@@ -121,6 +122,69 @@ const RecibirProrrateoModal = ({ orden, onClose, onConfirm, isSubmitting }) => {
     ? 'neutral'
     : calc.factor < 1 ? 'success' : 'danger';
 
+  const columns = useMemo(() => [
+    {
+      key: 'linea', label: 'Producto', sortable: false,
+      render: (_v, f) => (
+        <>
+          <p className="font-semibold text-content-primary text-xs truncate">
+            {f.linea.item_general_nombre ?? f.linea.item_proveedor_nombre ?? 'Item'}
+          </p>
+          {f.linea.item_proveedor_nombre && f.linea.item_general_nombre && (
+            <p className="text-[10px] text-content-muted truncate">{f.linea.item_proveedor_nombre}</p>
+          )}
+        </>
+      ),
+    },
+    {
+      key: '__pend', label: 'Pend.', align: 'right', className: 'w-20', sortable: false,
+      render: (_v, f) => {
+        const pend = Math.max(0, Number(f.linea.cantidad) - Number(f.linea.cantidad_recibida ?? 0));
+        return <span className="tabular-nums text-content-tertiary">{fmtNum(pend)}</span>;
+      },
+    },
+    {
+      key: '__cantRec', label: 'A recibir', align: 'right', className: 'w-24', sortable: false,
+      render: (_v, f) => {
+        const pend = Math.max(0, Number(f.linea.cantidad) - Number(f.linea.cantidad_recibida ?? 0));
+        const sobrepedido = f.cantRec > pend + 0.0001;
+        return (
+          <input
+            type="number"
+            min="0"
+            step="any"
+            value={cantidades[f.linea.id_detalle] ?? ''}
+            onChange={(e) => setCantidad(f.linea.id_detalle, e.target.value)}
+            className={`w-full text-xs text-right tabular-nums px-2 py-1 rounded-md border outline-none focus:ring-1 ${
+              sobrepedido
+                ? 'border-semantic-danger bg-semantic-danger-subtle/30 focus:ring-semantic-danger/30'
+                : 'border-border-base bg-surface-base focus:ring-content-primary/20 focus:border-content-primary'
+            }`}
+            disabled={isSubmitting}
+          />
+        );
+      },
+    },
+    {
+      key: 'precioOrig', label: 'P. unit OC', align: 'right', className: 'w-24', sortable: false,
+      render: (v) => <span className="tabular-nums text-content-secondary">{fmt(v)}</span>,
+    },
+    {
+      key: 'valorLista', label: 'Valor lista', align: 'right', className: 'w-28', sortable: false,
+      render: (v) => <span className="tabular-nums text-content-primary font-medium">{v > 0 ? fmt(v) : <span className="text-content-muted">—</span>}</span>,
+    },
+    {
+      key: 'costoAsignado', label: 'Costo asign.', align: 'right', className: 'w-28', sortable: false,
+      render: (v, f) => <span className="tabular-nums text-content-primary">{calc.factor > 0 && f.valorLista > 0 ? fmt(v) : <span className="text-content-muted">—</span>}</span>,
+    },
+    {
+      key: 'costoUnitReal', label: <span className="text-semantic-success">P. unit real</span>, align: 'right', className: 'w-28', sortable: false,
+      render: (v, f) => calc.factor > 0 && f.valorLista > 0
+        ? <span className="font-semibold text-semantic-success-fg tabular-nums">{fmt(v)}</span>
+        : <span className="text-content-muted tabular-nums">—</span>,
+    },
+  ], [cantidades, calc.factor, isSubmitting]);
+
   return createPortal(
     <div className="fixed inset-0 bg-surface-overlay backdrop-blur-[2px] flex items-center justify-center z-[200] p-4">
       <div className="bg-surface-base rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-border-subtle">
@@ -165,82 +229,15 @@ const RecibirProrrateoModal = ({ orden, onClose, onConfirm, isSubmitting }) => {
 
           {/* Tabla líneas */}
           <div className="px-6 py-4 overflow-y-auto flex-1">
-            <div className="rounded-xl border border-border-subtle overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead className="bg-surface-muted border-b border-border-base">
-                  <tr className="text-content-tertiary">
-                    <th className="px-3 py-2 text-left font-semibold uppercase tracking-wider text-[10px]">Producto</th>
-                    <th className="px-2 py-2 text-right font-semibold uppercase tracking-wider text-[10px] w-20">Pend.</th>
-                    <th className="px-2 py-2 text-right font-semibold uppercase tracking-wider text-[10px] w-24">A recibir</th>
-                    <th className="px-2 py-2 text-right font-semibold uppercase tracking-wider text-[10px] w-24">P. unit OC</th>
-                    <th className="px-2 py-2 text-right font-semibold uppercase tracking-wider text-[10px] w-28">Valor lista</th>
-                    <th className="px-2 py-2 text-right font-semibold uppercase tracking-wider text-[10px] w-28">Costo asign.</th>
-                    <th className="px-3 py-2 text-right font-semibold uppercase tracking-wider text-[10px] w-28 text-semantic-success">P. unit real</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-subtle">
-                  {calc.filas.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="px-3 py-6 text-center text-content-muted">
-                        <Package size={20} className="mx-auto mb-1 opacity-50" />
-                        No hay líneas pendientes de recibir
-                      </td>
-                    </tr>
-                  )}
-                  {calc.filas.map((f) => {
-                    const pend = Math.max(0, Number(f.linea.cantidad) - Number(f.linea.cantidad_recibida ?? 0));
-                    const sobrepedido = f.cantRec > pend + 0.0001;
-                    return (
-                      <tr key={f.linea.id_detalle} className="hover:bg-surface-subtle/60">
-                        <td className="px-3 py-2 min-w-0">
-                          <p className="font-semibold text-content-primary text-xs truncate">
-                            {f.linea.item_general_nombre ?? f.linea.item_proveedor_nombre ?? 'Item'}
-                          </p>
-                          {f.linea.item_proveedor_nombre && f.linea.item_general_nombre && (
-                            <p className="text-[10px] text-content-muted truncate">
-                              {f.linea.item_proveedor_nombre}
-                            </p>
-                          )}
-                        </td>
-                        <td className="px-2 py-2 text-right tabular-nums text-content-tertiary">
-                          {fmtNum(pend)}
-                        </td>
-                        <td className="px-2 py-2">
-                          <input
-                            type="number"
-                            min="0"
-                            step="any"
-                            value={cantidades[f.linea.id_detalle] ?? ''}
-                            onChange={(e) => setCantidad(f.linea.id_detalle, e.target.value)}
-                            className={`w-full text-xs text-right tabular-nums px-2 py-1 rounded-md border outline-none focus:ring-1 ${
-                              sobrepedido
-                                ? 'border-semantic-danger bg-semantic-danger-subtle/30 focus:ring-semantic-danger/30'
-                                : 'border-border-base bg-surface-base focus:ring-content-primary/20 focus:border-content-primary'
-                            }`}
-                            disabled={isSubmitting}
-                          />
-                        </td>
-                        <td className="px-2 py-2 text-right tabular-nums text-content-secondary">
-                          {fmt(f.precioOrig)}
-                        </td>
-                        <td className="px-2 py-2 text-right tabular-nums text-content-primary font-medium">
-                          {f.valorLista > 0 ? fmt(f.valorLista) : <span className="text-content-muted">—</span>}
-                        </td>
-                        <td className="px-2 py-2 text-right tabular-nums text-content-primary">
-                          {calc.factor > 0 && f.valorLista > 0
-                            ? fmt(f.costoAsignado)
-                            : <span className="text-content-muted">—</span>}
-                        </td>
-                        <td className="px-3 py-2 text-right tabular-nums">
-                          {calc.factor > 0 && f.valorLista > 0
-                            ? <span className="font-semibold text-semantic-success-fg">{fmt(f.costoUnitReal)}</span>
-                            : <span className="text-content-muted">—</span>}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="rounded-xl border border-border-subtle overflow-hidden">
+              <ErpTable
+                columns={columns}
+                data={calc.filas.map((f) => ({ ...f, id: f.linea.id_detalle }))}
+                density="compact"
+                EmptyIcon={Package}
+                emptyMessage="No hay líneas pendientes de recibir"
+                borderless
+              />
             </div>
           </div>
 

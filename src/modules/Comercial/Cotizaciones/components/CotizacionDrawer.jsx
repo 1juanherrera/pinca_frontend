@@ -12,7 +12,27 @@ import { useBoundStore } from '../../../../store/useBoundStore';
 import DetailDrawer from '../../../../shared/DetailDrawer';
 import StatusBadge from '../../../../shared/StatusBadge';
 import { Button } from '../../../../shared/Button';
+import ErpTable from '../../../../shared/ErpTable';
 import { fmt } from '../../../../utils/formatters';
+
+const ITEMS_COLUMNS = [
+  {
+    key: 'descripcion', label: 'Descripción',
+    render: (v) => <span className="text-content-secondary">{v}</span>,
+  },
+  {
+    key: 'cantidad', label: 'Cant.', align: 'right',
+    render: (v) => <span className="text-content-tertiary tabular-nums">{v}</span>,
+  },
+  {
+    key: 'precio_unitario', label: 'P. Unit.', align: 'right',
+    render: (v) => <span className="text-content-tertiary tabular-nums">{fmt(v)}</span>,
+  },
+  {
+    key: 'total', label: 'Total', align: 'right',
+    render: (v) => <span className="font-semibold text-content-primary tabular-nums">{fmt(v)}</span>,
+  },
+];
 
 const Section = ({ title, icon: Icon, children }) => (
   <div className="px-5 py-4 border-b border-border-subtle last:border-b-0">
@@ -154,26 +174,12 @@ const CotizacionDrawer = ({ cotizacionId, isOpen, onClose, onCambiarEstado, onCo
               <p className="text-xs text-content-muted py-2">Sin ítems cargados</p>
             ) : (
               <div className="rounded-md border border-border-base overflow-hidden">
-                <table className="w-full text-xs">
-                  <thead className="bg-surface-muted">
-                    <tr>
-                      <th className="px-3 py-2 text-left  text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Descripción</th>
-                      <th className="px-3 py-2 text-right text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Cant.</th>
-                      <th className="px-3 py-2 text-right text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">P. Unit.</th>
-                      <th className="px-3 py-2 text-right text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border-subtle">
-                    {detalle.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-surface-subtle">
-                        <td className="px-3 py-2 text-content-secondary">{item.descripcion ?? `Ítem ${idx + 1}`}</td>
-                        <td className="px-3 py-2 text-right text-content-tertiary tabular-nums">{item.cantidad}</td>
-                        <td className="px-3 py-2 text-right text-content-tertiary tabular-nums">{fmt(item.precio_unitario)}</td>
-                        <td className="px-3 py-2 text-right font-semibold text-content-primary tabular-nums">{fmt(item.total)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <ErpTable
+                  columns={ITEMS_COLUMNS}
+                  data={detalle.map((item, idx) => ({ ...item, id: idx, descripcion: item.descripcion ?? `Ítem ${idx + 1}` }))}
+                  density="compact"
+                  borderless
+                />
               </div>
             )}
           </Section>

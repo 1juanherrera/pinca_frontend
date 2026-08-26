@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   Calculator,
   FlaskConical,
@@ -10,7 +11,16 @@ import {
   Truck
 } from 'lucide-react';
 import { useBoundStore } from '../../../store/useBoundStore';
-import { ButtonSquare } from '../../../shared/Button';
+import ErpTable from '../../../shared/ErpTable';
+
+const COST_DEFINITIONS = {
+    costo_mp_galon: { label: 'COSTO MP/GALÓN', icon: <FlaskConical className="text-semantic-info" size={14} /> },
+    costo_mod:      { label: 'COSTO MOD',       icon: <Briefcase className="text-semantic-success" size={14} /> },
+    envase:         { label: 'ENVASE',          icon: <Box className="text-semantic-warning" size={14} /> },
+    etiqueta:       { label: 'ETIQUETA',        icon: <Tag className="text-semantic-danger" size={14} /> },
+    bandeja:        { label: 'BANDEJA',         icon: <Tag className="text-brand-primary-active" size={14} /> },
+    plastico:       { label: 'PLÁSTICO',        icon: <Droplets className="text-semantic-info" size={14} /> },
+};
 
 export const CostProductsTable = ({
     selectedProductData,
@@ -54,6 +64,115 @@ export const CostProductsTable = ({
         return totalUnificadoMP / volumen;
     })();
 
+    // Filas de costo + 2 filas de total, todas con la misma forma de columnas
+    // (garantiza alineación pixel-perfect entre datos y totales).
+    const rows = useMemo(() => {
+        const costRows = productDetail?.costos
+            ? Object.entries(productDetail.costos)
+                .filter(([key]) => COST_DEFINITIONS[key])
+                .map(([key, value]) => {
+                    const { label, icon } = COST_DEFINITIONS[key];
+                    const mpGalonOverride = key === 'costo_mp_galon' && costoMPGalonConProv != null;
+                    const originalValue = mpGalonOverride ? fmtNum(costoMPGalonConProv) : value;
+                    const recalcValue = mpGalonOverride
+                        ? fmtNum(costoMPGalonConProv)
+                        : (recalculatedData?.recalculados?.[key] ?? value);
+                    return {
+                        id: key, __type: 'costo', label, icon, originalValue, recalcValue,
+                        proveedorValue: costosProveedor?.costos_proveedor?.[key] || value || '-',
+                    };
+                })
+            : [];
+
+        const ventaOriginal = costoTotalConProv != null
+            ? `$ ${fmtNum(costoTotalConProv)}`
+            : `$ ${productDetail?.costos?.total || 0}`;
+        const ventaRecalc = costoTotalConProv != null
+            ? `$ ${fmtNum(costoTotalConProv)}`
+            : (recalculatedData?.recalculados?.total ? `$ ${recalculatedData.recalculados.total}` : '-');
+
+        const pctUtilidad = parseFloat(productDetail?.costos?.porcentaje_utilidad) || 50;
+        const sugeridaOriginal = costoTotalConProv != null
+            ? `$ ${fmtNum(costoTotalConProv * (1 + pctUtilidad / 100))}`
+            : `$ ${productDetail?.costos?.precio_venta || '-'}`;
+        const sugeridaRecalc = costoTotalConProv != null
+            ? `$ ${fmtNum(costoTotalConProv * (1 + pctUtilidad / 100))}`
+            : (recalculatedData?.recalculados?.precio_venta ? `$ ${recalculatedData.recalculados.precio_venta}` : '-');
+
+        return [
+            ...costRows,
+            {
+                id: '__total', __type: 'total', label: 'COSTO TOTAL',
+                originalValue: ventaOriginal, recalcValue: ventaRecalc,
+                proveedorValue: costosProveedor?.costos_proveedor?.total || '-',
+            },
+            {
+                id: '__venta', __type: 'venta', label: 'VENTA SUGERIDA', pctUtilidad,
+                originalValue: sugeridaOriginal, recalcValue: sugeridaRecalc,
+                proveedorValue: costosProveedor?.costos_proveedor?.precio_venta || '-',
+            },
+        ];
+    }, [productDetail, recalculatedData, costosProveedor, costoMPGalonConProv, costoTotalConProv]);
+
+    const columns = useMemo(() => {
+        const cols = [
+            {
+                key: 'label', label: 'Concepto',
+                render: (v, row) => {
+                    if (row.__type === 'costo') {
+                        return (
+                            <div className="flex items-center">
+                                <div className="shrink-0 mr-3 p-1 bg-surface-subtle rounded border border-border-subtle">{row.icon}</div>
+                                <div className="text-xs font-semibold text-content-secondary uppercase tracking-tighter">{v}</div>
+                            </div>
+                        );
+                    }
+                    return (
+                        <div className="flex items-center">
+                            <div className="shrink-0 mr-3">
+                                <DollarSign className={row.__type === 'venta' ? 'text-content-inverse' : 'text-semantic-success-fg'} size={16} />
+                            </div>
+                            <div className={`text-xs font-bold uppercase ${row.__type === 'venta' ? 'text-content-inverse' : ''}`}>
+                                {v}
+                                {row.__type === 'venta' && (
+                                    <span className="ml-1 bg-surface-base text-content-primary px-1.5 py-0.5 rounded text-[9px]">{row.pctUtilidad}%</span>
+                                )}
+                            </div>
+                        </div>
+                    );
+                },
+            },
+            {
+                key: 'originalValue', label: <span className="inline-flex items-center gap-1"><DollarSign size={10} /> Original</span>, align: 'center',
+                render: (v, row) => row.__type === 'costo'
+                    ? <span className="text-xs font-semibold text-content-muted">$ {v || '-'}</span>
+                    : <span className={row.__type === 'venta' ? 'text-xs text-content-inverse opacity-70' : 'text-xs font-semibold text-content-muted'}>{v}</span>,
+            },
+            {
+                key: 'recalcValue', label: <span className="inline-flex items-center gap-1"><DollarSign size={10} /> Valor Recalculado</span>, align: 'center',
+                render: (v, row) => {
+                    if (row.__type === 'costo') {
+                        return <span className={`text-xs font-bold ${v ? 'text-semantic-success-fg' : 'text-content-muted'}`}>$ {v || '-'}</span>;
+                    }
+                    if (row.__type === 'total') {
+                        return <span className="text-lg font-bold text-semantic-success-fg tracking-tighter">{v}</span>;
+                    }
+                    return <span className="text-lg font-bold tracking-tighter text-content-inverse">{v}</span>;
+                },
+            },
+        ];
+        if (costosProveedor) {
+            cols.push({
+                key: 'proveedorValue', label: <span className="inline-flex items-center gap-1 text-semantic-warning-fg"><Truck size={10} /> Proveedor</span>, align: 'center',
+                render: (v, row) => {
+                    if (row.__type === 'costo') return <span className="text-xs font-bold text-semantic-warning-fg">$ {v}</span>;
+                    return <span className="text-lg font-bold tracking-tighter text-semantic-warning">$ {v}</span>;
+                },
+            });
+        }
+        return cols;
+    }, [costosProveedor]);
+
     if (!selectedProductData) {
         return (
             <div className="bg-surface-base rounded-lg shadow-sm p-4 text-center border border-border-base/60">
@@ -69,15 +188,6 @@ export const CostProductsTable = ({
             </div>
         );
     }
-
-    const COST_DEFINITIONS = {
-        costo_mp_galon: { label: 'COSTO MP/GALÓN', icon: <FlaskConical className="text-semantic-info" size={14} /> },
-        costo_mod:      { label: 'COSTO MOD',       icon: <Briefcase className="text-semantic-success" size={14} /> },
-        envase:         { label: 'ENVASE',          icon: <Box className="text-semantic-warning" size={14} /> },
-        etiqueta:       { label: 'ETIQUETA',        icon: <Tag className="text-semantic-danger" size={14} /> },
-        bandeja:        { label: 'BANDEJA',         icon: <Tag className="text-brand-primary-active" size={14} /> },
-        plastico:       { label: 'PLÁSTICO',        icon: <Droplets className="text-semantic-info" size={14} /> },
-    };
 
     return (
         <div className="bg-surface-base rounded-lg shadow-sm overflow-hidden border border-border-base/60">
@@ -120,174 +230,16 @@ export const CostProductsTable = ({
             </div>
 
             {/* Tabla — sin columna Acciones */}
-            <div className="overflow-x-auto">
-                <table className="w-full">
-                    <thead className="bg-surface-subtle border-b border-border-base">
-                        <tr>
-                            <th className="px-3 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">
-                                Concepto
-                            </th>
-                            <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">
-                                <div className="flex items-center justify-center gap-1">
-                                    <DollarSign size={10} /> Original
-                                </div>
-                            </th>
-                            <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">
-                                <div className="flex items-center justify-center gap-1">
-                                    <DollarSign size={10} /> Valor Recalculado
-                                </div>
-                            </th>
-                            {costosProveedor && (
-                                <th className="px-3 py-2 text-center text-[10px] font-semibold text-semantic-warning-fg uppercase tracking-wider">
-                                    <div className="flex items-center justify-center gap-1">
-                                        <Truck size={10} /> Proveedor
-                                    </div>
-                                </th>
-                            )}
-                        </tr>
-                    </thead>
-                    <tbody className="bg-surface-base divide-y divide-border-subtle">
-                        {isLoading
-                            ? [...Array(5)].map((_, i) => (
-                                <tr key={i} className="animate-pulse">
-                                    <td className="px-3 py-2.5">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-6 w-6 bg-surface-strong rounded shrink-0" />
-                                            <div className="h-3 bg-surface-strong rounded w-20" />
-                                        </div>
-                                    </td>
-                                    <td className="px-3 py-2.5 text-center"><div className="h-3 bg-surface-strong rounded w-16 mx-auto" /></td>
-                                    <td className="px-3 py-2.5 text-center"><div className="h-3 bg-surface-strong rounded w-16 mx-auto" /></td>
-                                    {costosProveedor && <td className="px-3 py-2.5 text-center"><div className="h-3 bg-surface-strong rounded w-16 mx-auto" /></td>}
-                                </tr>
-                            ))
-                            : productDetail?.costos &&
-                                Object.entries(productDetail.costos)
-                                    .filter(([key]) => COST_DEFINITIONS[key])
-                                    .map(([key, value]) => {
-                                        const { label, icon } = COST_DEFINITIONS[key];
-                                        const mpGalonOverride = key === 'costo_mp_galon' && costoMPGalonConProv != null;
-                                        const originalValue = mpGalonOverride ? fmtNum(costoMPGalonConProv) : value;
-                                        const recalcValue = mpGalonOverride
-                                            ? fmtNum(costoMPGalonConProv)
-                                            : (recalculatedData?.recalculados?.[key] ?? value);
-                                        return (
-                                            <tr key={key} className="hover:bg-semantic-success-subtle/30 transition-colors">
-                                                <td className="px-3 py-2 whitespace-nowrap">
-                                                    <div className="flex items-center">
-                                                        <div className="shrink-0 mr-3 p-1 bg-surface-subtle rounded border border-border-subtle">
-                                                            {icon}
-                                                        </div>
-                                                        <div className="text-xs font-semibold text-content-secondary uppercase tracking-tighter">
-                                                            {label}
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="whitespace-nowrap text-center">
-                                                    <div className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-content-muted">
-                                                        $ {originalValue || '-'}
-                                                    </div>
-                                                </td>
-                                                <td className="px-3 py-2 whitespace-nowrap text-center text-xs font-semibold text-content-muted">
-                                                    <div className={`text-xs font-bold ${recalcValue ? 'text-semantic-success-fg' : 'text-content-muted'}`}>
-                                                        $ {recalcValue || '-'}
-                                                    </div>
-                                                </td>
-                                                {costosProveedor && (
-                                                    <td className="px-3 py-2 whitespace-nowrap text-center">
-                                                        <div className="text-xs font-bold text-semantic-warning-fg">
-                                                            $ {costosProveedor.costos_proveedor?.[key] || value || '-'}
-                                                        </div>
-                                                    </td>
-                                                )}
-                                            </tr>
-                                        );
-                                    })
-                        }
-                    </tbody>
-
-                    {/* Footer totales */}
-                    <tfoot>
-                        <tr className="font-semibold">
-                            <td className="px-3 py-3 whitespace-nowrap">
-                                <div className="flex items-center">
-                                    <div className="shrink-0 mr-3">
-                                        <DollarSign className="text-semantic-success-fg" size={16} />
-                                    </div>
-                                    <div className="text-xs font-bold text-content-primary uppercase">
-                                        COSTO TOTAL
-                                    </div>
-                                </div>
-                            </td>
-                            <td className="px-3 py-3 whitespace-nowrap text-center">
-                                {isLoading
-                                    ? <div className="h-3 w-16 bg-surface-strong rounded animate-pulse mx-auto" />
-                                    : <div className="text-xs font-semibold text-content-muted">
-                                        {costoTotalConProv != null
-                                            ? `$ ${fmtNum(costoTotalConProv)}`
-                                            : `$ ${productDetail?.costos?.total || 0}`}
-                                    </div>
-                                }
-                            </td>
-                            <td className="px-3 py-3 whitespace-nowrap text-center">
-                                {isLoading
-                                    ? <div className="h-4 w-20 bg-surface-strong rounded animate-pulse mx-auto" />
-                                    : <div className="text-lg font-bold text-semantic-success-fg tracking-tighter">
-                                        {costoTotalConProv != null
-                                            ? `$ ${fmtNum(costoTotalConProv)}`
-                                            : (recalculatedData?.recalculados?.total
-                                                ? `$ ${recalculatedData.recalculados.total}`
-                                                : <span className="text-sm text-content-muted">-</span>)
-                                        }
-                                    </div>
-                                }
-                            </td>
-                            {costosProveedor && (
-                                <td className="px-3 py-3 whitespace-nowrap text-center">
-                                    <div className="text-lg font-bold text-semantic-warning-fg tracking-tighter">
-                                        $ {costosProveedor.costos_proveedor?.total || '-'}
-                                    </div>
-                                </td>
-                            )}
-                        </tr>
-                        <tr className="tbl-header font-semibold">
-                            <td className="px-3 py-3 whitespace-nowrap">
-                                <div className="flex items-center">
-                                    <div className="shrink-0 mr-3">
-                                        <DollarSign className="text-content-inverse" size={16} />
-                                    </div>
-                                    <div className="text-xs font-bold uppercase">
-                                        VENTA SUGERIDA
-                                        <span className="ml-1 bg-surface-base text-content-primary px-1.5 py-0.5 rounded text-[9px]">
-                                            {productDetail?.costos?.porcentaje_utilidad ?? 50}%
-                                        </span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td className="whitespace-nowrap text-center">
-                                <div className="px-3 py-3 whitespace-nowrap text-center text-xs opacity-70">
-                                    {costoTotalConProv != null
-                                        ? `$ ${fmtNum(costoTotalConProv * (1 + (parseFloat(productDetail?.costos?.porcentaje_utilidad) || 50) / 100))}`
-                                        : `$ ${productDetail?.costos?.precio_venta || '-'}`}
-                                </div>
-                            </td>
-                            <td className="text-lg font-bold tracking-tighter text-center">
-                                {costoTotalConProv != null
-                                    ? `$ ${fmtNum(costoTotalConProv * (1 + (parseFloat(productDetail?.costos?.porcentaje_utilidad) || 50) / 100))}`
-                                    : (recalculatedData?.recalculados?.precio_venta
-                                        ? `$ ${recalculatedData.recalculados.precio_venta}`
-                                        : <span className="opacity-50">-</span>)
-                                }
-                            </td>
-                            {costosProveedor && (
-                                <td className="text-lg font-bold tracking-tighter text-center text-semantic-warning">
-                                    $ {costosProveedor.costos_proveedor?.precio_venta || '-'}
-                                </td>
-                            )}
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+            <ErpTable
+                columns={columns}
+                data={rows}
+                isLoading={isLoading}
+                rowClassName={(row) =>
+                    row.__type === 'total' ? 'font-semibold'
+                    : row.__type === 'venta' ? 'tbl-header font-semibold'
+                    : 'hover:bg-semantic-success-subtle/30 transition-colors'}
+                borderless
+            />
 
             {/* Footer fecha */}
             <div className="bg-surface-subtle px-4 py-2 border-t border-border-base flex justify-between items-center text-[9px] font-semibold text-content-muted uppercase">

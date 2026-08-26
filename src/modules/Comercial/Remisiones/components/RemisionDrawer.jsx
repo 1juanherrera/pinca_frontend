@@ -6,6 +6,28 @@ import { useRemisiones } from '../api/useRemisiones';
 import { useBoundStore } from '../../../../store/useBoundStore';
 import DetailDrawer from '../../../../shared/DetailDrawer';
 import StatusBadge from '../../../../shared/StatusBadge';
+import ErpTable from '../../../../shared/ErpTable';
+
+const fmtCOP = (v) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v ?? 0);
+
+const ITEMS_COLUMNS = [
+  {
+    key: 'descripcion', label: 'Producto',
+    render: (v) => <span className="text-content-secondary font-medium">{v}</span>,
+  },
+  {
+    key: 'cantidad', label: 'Cant.', align: 'right',
+    render: (v) => <span className="text-content-secondary tabular-nums">{Number(v).toFixed(2)}</span>,
+  },
+  {
+    key: 'precio_unit', label: 'Vr. Unit.', align: 'right',
+    render: (v) => <span className="text-content-tertiary tabular-nums">{fmtCOP(v)}</span>,
+  },
+  {
+    key: 'subtotal', label: 'Subtotal', align: 'right',
+    render: (v) => <span className="text-content-primary font-semibold tabular-nums">{fmtCOP(v)}</span>,
+  },
+];
 
 const Section = ({ title, icon: Icon, children }) => (
   <div className="px-5 py-4 border-b border-border-subtle last:border-b-0">
@@ -150,41 +172,16 @@ const RemisionDrawer = ({ remisionId, isOpen, onClose, onCambiarEstado, onConver
               <p className="text-xs text-content-muted py-2">Sin ítems registrados</p>
             ) : (
               <div className="rounded-lg border border-border-base overflow-hidden">
-                <table className="w-full text-xs">
-                  <thead className="bg-surface-subtle">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-content-tertiary">Producto</th>
-                      <th className="px-3 py-2 text-right text-content-tertiary">Cant.</th>
-                      <th className="px-3 py-2 text-right text-content-tertiary">Vr. Unit.</th>
-                      <th className="px-3 py-2 text-right text-content-tertiary">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border-subtle">
-                    {items.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-surface-subtle">
-                        <td className="px-3 py-2 text-content-secondary font-medium">{item.descripcion ?? `Ítem ${idx + 1}`}</td>
-                        <td className="px-3 py-2 text-right text-content-secondary  tabular-nums">{Number(item.cantidad).toFixed(2)}</td>
-                        <td className="px-3 py-2 text-right text-content-tertiary  tabular-nums">
-                          {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(item.precio_unit ?? 0)}
-                        </td>
-                        <td className="px-3 py-2 text-right text-content-primary font-semibold  tabular-nums">
-                          {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(item.subtotal ?? 0)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  {/* Total */}
-                  <tfoot>
-                    <tr className="bg-content-primary">
-                      <td colSpan={3} className="px-3 py-2 text-xs font-bold text-content-inverse text-right">Total</td>
-                      <td className="px-3 py-2 text-right text-xs font-bold text-content-inverse  tabular-nums">
-                        {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(
-                          items.reduce((s, i) => s + (Number(i.subtotal) || 0), 0)
-                        )}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
+                <ErpTable
+                  columns={ITEMS_COLUMNS}
+                  data={items.map((item, idx) => ({ ...item, id: idx, descripcion: item.descripcion ?? `Ítem ${idx + 1}` }))}
+                  density="compact"
+                  borderless
+                />
+                <div className="bg-content-primary flex items-center justify-between px-3 py-2 text-xs font-bold text-content-inverse">
+                  <span>Total</span>
+                  <span className="tabular-nums">{fmtCOP(items.reduce((s, i) => s + (Number(i.subtotal) || 0), 0))}</span>
+                </div>
               </div>
             )}
           </Section>

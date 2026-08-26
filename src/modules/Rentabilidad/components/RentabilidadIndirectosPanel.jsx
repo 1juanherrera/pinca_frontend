@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import { Zap, Users, Building2, HelpCircle } from 'lucide-react';
 import { fmt } from '../../../utils/formatters';
+import ErpTable from '../../../shared/ErpTable';
 
 const CATS = {
   servicios:    { label: 'Servicios',      icon: Zap,       color: 'bg-semantic-warning-subtle text-semantic-warning-fg border-semantic-warning/30'  },
@@ -9,6 +11,35 @@ const CATS = {
 };
 
 const RentabilidadIndirectosPanel = ({ lista, porCategoria, totalMensual, isLoading }) => {
+  const columns = useMemo(() => [
+    {
+      key: 'nombre', label: 'Nombre',
+      render: (v) => <span className="font-medium text-content-secondary">{v}</span>,
+    },
+    {
+      key: 'categoria', label: 'Categoría',
+      render: (v) => {
+        const cfg = CATS[v] ?? CATS.otros;
+        const Icon = cfg.icon;
+        return (
+          <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[10px] font-semibold ${cfg.color}`}>
+            <Icon className="w-3 h-3" />{cfg.label}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'valor_mensual', label: 'Valor Mensual', align: 'right',
+      render: (v) => <span className="tabular-nums text-brand-primary-active font-semibold">{fmt(v)}</span>,
+    },
+    {
+      key: 'activo', label: 'Estado', align: 'center',
+      render: (v) => <span className={`inline-block w-2 h-2 rounded-full ${v ? 'bg-semantic-success' : 'bg-surface-strong'}`} />,
+    },
+  ], []);
+
+  const rows = useMemo(() => lista.map((item) => ({ ...item, id: item.id_costos_indirectos })), [lista]);
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -40,43 +71,12 @@ const RentabilidadIndirectosPanel = ({ lista, porCategoria, totalMensual, isLoad
       </div>
 
       {/* Tabla de ítems */}
-      {lista.length > 0 ? (
+      {lista.length > 0 && (
         <div className="bg-surface-base border border-border-base/70 rounded-xl overflow-hidden">
-          <table className="w-full text-xs">
-            <thead className="bg-surface-subtle border-b border-border-subtle">
-              <tr>
-                <th className="px-4 py-2.5 text-left font-semibold text-content-tertiary">Nombre</th>
-                <th className="px-4 py-2.5 text-left font-semibold text-content-tertiary">Categoría</th>
-                <th className="px-4 py-2.5 text-right font-semibold text-content-tertiary">Valor Mensual</th>
-                <th className="px-4 py-2.5 text-center font-semibold text-content-tertiary">Estado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-subtle">
-              {lista.map((item) => {
-                const cfg  = CATS[item.categoria] ?? CATS.otros;
-                const Icon = cfg.icon;
-                return (
-                  <tr key={item.id_costos_indirectos} className="hover:bg-surface-subtle">
-                    <td className="px-4 py-2.5 font-medium text-content-secondary">{item.nombre}</td>
-                    <td className="px-4 py-2.5">
-                      <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[10px] font-semibold ${cfg.color}`}>
-                        <Icon className="w-3 h-3" />
-                        {cfg.label}
-                      </div>
-                    </td>
-                    <td className="px-4 py-2.5 text-right  tabular-nums text-brand-primary-active font-semibold">
-                      {fmt(item.valor_mensual)}
-                    </td>
-                    <td className="px-4 py-2.5 text-center">
-                      <span className={`inline-block w-2 h-2 rounded-full ${item.activo ? 'bg-semantic-success' : 'bg-surface-strong'}`} />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <ErpTable columns={columns} data={rows} density="compact" borderless />
         </div>
-      ) : (
+      )}
+      {lista.length === 0 && (
         <div className="text-center py-10 text-content-muted text-sm">
           No hay costos indirectos registrados en el catálogo.
         </div>

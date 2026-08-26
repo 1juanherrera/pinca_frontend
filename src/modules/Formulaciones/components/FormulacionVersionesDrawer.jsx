@@ -7,6 +7,7 @@ import DetailDrawer from '../../../shared/DetailDrawer';
 import StatusBadge from '../../../shared/StatusBadge';
 import IconBox from '../../../shared/IconBox';
 import EmptyState from '../../../shared/EmptyState';
+import ErpTable from '../../../shared/ErpTable';
 import { Button } from '../../../shared/Button';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { formatLetterDate } from '../../../utils/formatters';
@@ -174,34 +175,34 @@ const VersionSnapshot = ({ versionId, esActual = false, onRestore, isRestoring =
           <EmptyState size="sm" icon={Beaker} title="Sin ingredientes" description="Esta versión no tiene materias primas." />
         ) : (
           <div className="rounded-xl border border-border-base overflow-hidden bg-surface-base">
-            <table className="w-full text-xs">
-              <thead className="bg-surface-muted">
-                <tr>
-                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Materia prima</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Cantidad</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">%</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-subtle">
-                {ingredientes.map((ing) => {
-                  const pct = ing.porcentaje != null
-                    ? Number(ing.porcentaje)
-                    : (totalCantidad > 0 ? (Number(ing.cantidad ?? 0) / totalCantidad) * 100 : 0);
-                  return (
-                    <tr key={ing.item_general_id} className="hover:bg-surface-subtle/40">
-                      <td className="px-3 py-2">
-                        <p className="font-medium text-content-primary truncate">{ing.item_nombre ?? `#${ing.item_general_id}`}</p>
-                        {ing.item_codigo && (
-                          <p className="text-[10px] font-mono text-content-tertiary">{ing.item_codigo}</p>
-                        )}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums text-content-primary">{fmtNum(ing.cantidad)} kg</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-content-tertiary">{pct.toFixed(2)}%</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <ErpTable
+              columns={[
+                {
+                  key: 'item_nombre', label: 'Materia prima',
+                  render: (v, ing) => (
+                    <>
+                      <p className="font-medium text-content-primary truncate">{v ?? `#${ing.item_general_id}`}</p>
+                      {ing.item_codigo && <p className="text-[10px] font-mono text-content-tertiary">{ing.item_codigo}</p>}
+                    </>
+                  ),
+                },
+                {
+                  key: 'cantidad', label: 'Cantidad', align: 'right',
+                  render: (v) => <span className="tabular-nums text-content-primary">{fmtNum(v)} kg</span>,
+                },
+                {
+                  key: '__pct', label: '%', align: 'right',
+                  render: (_v, ing) => {
+                    const pct = ing.porcentaje != null
+                      ? Number(ing.porcentaje)
+                      : (totalCantidad > 0 ? (Number(ing.cantidad ?? 0) / totalCantidad) * 100 : 0);
+                    return <span className="tabular-nums text-content-tertiary">{pct.toFixed(2)}%</span>;
+                  },
+                },
+              ]}
+              data={ingredientes.map((ing) => ({ ...ing, id: ing.item_general_id }))}
+              borderless
+            />
           </div>
         )}
       </div>

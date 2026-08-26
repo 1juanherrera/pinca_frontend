@@ -1,8 +1,53 @@
+import { useMemo } from 'react';
 import { Truck, Warehouse, Check, X as XIcon } from 'lucide-react';
 import { fmt } from '../../../utils/formatters';
 import StatusBadge from '../../../shared/StatusBadge';
+import ErpTable from '../../../shared/ErpTable';
+
+const PROVEEDORES_COLUMNS = [
+  {
+    key: 'nombre_empresa', label: 'Proveedor',
+    render: (v, prov) => (
+      <>
+        <p className="font-semibold text-content-primary text-xs">{v || prov.nombre_encargado || '—'}</p>
+        {prov.nombre && <p className="text-[10px] text-content-muted mt-0.5">{prov.nombre}</p>}
+      </>
+    ),
+  },
+  {
+    key: 'codigo', label: 'Código',
+    render: (v) => <span className="text-xs font-mono text-content-tertiary">{v || '—'}</span>,
+  },
+  {
+    key: 'unidad_compra_nombre', label: 'Unid. Compra',
+    render: (v) => <span className="text-xs text-content-tertiary">{v || '—'}</span>,
+  },
+  {
+    key: 'factor_conversion', label: 'Factor', align: 'right',
+    render: (v) => <span className="text-xs font-semibold text-content-secondary">{v ? `×${parseFloat(v)}` : '—'}</span>,
+  },
+  {
+    key: 'precio_unitario', label: 'Precio Unit.', align: 'right',
+    render: (v) => <span className="text-xs font-semibold text-content-secondary">{v ? fmt(v) : '—'}</span>,
+  },
+  {
+    key: 'precio_con_iva', label: 'Precio + IVA', align: 'right',
+    render: (v) => <span className="text-xs font-semibold text-content-secondary">{v ? fmt(v) : '—'}</span>,
+  },
+  {
+    key: 'disponible', label: 'Estado', align: 'center',
+    render: (v) => Number(v) === 1
+      ? <StatusBadge tone="success" label="Activo" icon={Check} dot={false} size="sm" />
+      : <StatusBadge tone="danger" label="Inactivo" icon={XIcon} dot={false} size="sm" />,
+  },
+];
 
 const SuministroTab = ({ proveedores = [], stockPorBodega = [] }) => {
+  const proveedoresRows = useMemo(
+    () => proveedores.map((p, idx) => ({ ...p, id: p.id_item_proveedor || idx })),
+    [proveedores],
+  );
+
   return (
     <div className="p-6 space-y-6">
 
@@ -23,51 +68,8 @@ const SuministroTab = ({ proveedores = [], stockPorBodega = [] }) => {
             Este ítem no tiene proveedores vinculados
           </div>
         ) : (
-          <div className="border border-border-base rounded-xl overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-surface-subtle border-b border-border-base">
-                  <th className="text-left px-4 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">Proveedor</th>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">Código</th>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">Unid. Compra</th>
-                  <th className="text-right px-4 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">Factor</th>
-                  <th className="text-right px-4 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">Precio Unit.</th>
-                  <th className="text-right px-4 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">Precio + IVA</th>
-                  <th className="text-center px-4 py-2.5 text-[10px] font-bold text-content-muted uppercase tracking-widest">Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {proveedores.map((prov, idx) => {
-                  const disponible = Number(prov.disponible) === 1;
-                  return (
-                    <tr key={prov.id_item_proveedor || idx} className="border-b border-border-subtle last:border-b-0 hover:bg-surface-subtle/50">
-                      <td className="px-4 py-3">
-                        <p className="font-semibold text-content-primary text-xs">{prov.nombre_empresa || prov.nombre_encargado || '—'}</p>
-                        {prov.nombre && (
-                          <p className="text-[10px] text-content-muted mt-0.5">{prov.nombre}</p>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-xs font-mono text-content-tertiary">{prov.codigo || '—'}</td>
-                      <td className="px-4 py-3 text-xs text-content-tertiary">{prov.unidad_compra_nombre || '—'}</td>
-                      <td className="px-4 py-3 text-right text-xs font-semibold text-content-secondary">
-                        {prov.factor_conversion ? `×${parseFloat(prov.factor_conversion)}` : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-right text-xs font-semibold text-content-secondary">
-                        {prov.precio_unitario ? fmt(prov.precio_unitario) : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-right text-xs font-semibold text-content-secondary">
-                        {prov.precio_con_iva ? fmt(prov.precio_con_iva) : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {disponible
-                          ? <StatusBadge tone="success" label="Activo"   icon={Check} dot={false} size="sm" />
-                          : <StatusBadge tone="danger"  label="Inactivo" icon={XIcon} dot={false} size="sm" />}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="border border-border-base rounded-xl overflow-hidden">
+            <ErpTable columns={PROVEEDORES_COLUMNS} data={proveedoresRows} borderless />
           </div>
         )}
       </div>

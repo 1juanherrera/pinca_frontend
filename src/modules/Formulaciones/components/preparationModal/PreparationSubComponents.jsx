@@ -14,7 +14,7 @@ export const UnitIcon = ({ nombre, size = 15, className = '' }) => {
 };
 
 export const OrdenCard = ({ orden, index, volumenBase }) => {
-  const cfg = UNIT_CONFIG[orden.unidad.nombre] ?? { icon: Package, color: 'text-content-secondary', bg: 'bg-surface-muted', border: 'border-border-subtle' };
+  const cfg = UNIT_CONFIG[orden.unidad.nombre] ?? { icon: Package, color: 'text-content-secondary', bg: 'bg-surface-muted', border: 'border-border-subtle', barColor: 'bg-content-secondary' };
   const pct = volumenBase > 0 ? Math.round((orden.volumenCubierto / volumenBase) * 100) : 0;
   return (
     <div className={`rounded-xl border ${cfg.border} overflow-hidden`}>
@@ -27,7 +27,7 @@ export const OrdenCard = ({ orden, index, volumenBase }) => {
         <span className="ml-auto text-[9px] text-content-muted">{orden.volumenCubierto} gal · {pct}%</span>
       </div>
       <div className="h-1 bg-surface-muted">
-        <div className={`h-full ${cfg.bg.replace('50', '300').replace('100', '400')}`} style={{ width: `${pct}%` }} />
+        <div className={`h-full ${cfg.barColor ?? 'bg-content-secondary'}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );

@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  ShieldCheck, ShieldAlert, ArrowDownUp, Search, ChevronLeft, ChevronRight, X,
+  ShieldCheck, ShieldAlert, ArrowDownUp, ChevronLeft, ChevronRight, X,
   Calendar, User, Wifi, AlertCircle,
 } from 'lucide-react';
 import StatusBadge from '../../../shared/StatusBadge';
 import IconBox from '../../../shared/IconBox';
 import EmptyState from '../../../shared/EmptyState';
 import PageTabs from '../../../shared/PageTabs';
+import ErpTable from '../../../shared/ErpTable';
 import { Button } from '../../../shared/Button';
 import { useBoundStore } from '../../../store/useBoundStore';
 import { useLoginAttempts, useMovimientosAudit } from '../api/useAuditoria';
@@ -74,10 +75,37 @@ const Pager = ({ meta, onPage }) => {
 };
 
 // ── Sub-tab: Login attempts ──────────────────────────────────────────────────
+const LOGIN_COLUMNS = [
+  {
+    key: 'created_at', label: 'Fecha', className: 'w-44',
+    render: (v) => (
+      <span className="text-xs text-content-secondary tabular-nums inline-flex items-center gap-1.5">
+        <Calendar size={11} className="text-content-muted" />{fmtDate(v)}
+      </span>
+    ),
+  },
+  {
+    key: 'username_attempt', label: 'Usuario',
+    render: (v) => (
+      <span className="text-xs inline-flex items-center gap-1.5 font-mono">
+        <User size={11} className="text-content-muted" />{v ?? '—'}
+      </span>
+    ),
+  },
+  {
+    key: 'ip_address', label: 'IP', className: 'w-40',
+    render: (v) => (
+      <span className="text-xs font-mono text-content-tertiary inline-flex items-center gap-1.5">
+        <Wifi size={11} className="text-content-muted" />{v}
+      </span>
+    ),
+  },
+];
+
 const LoginAttemptsSubtab = () => {
   const [filters, setFilters] = useState({ ip: '', usuario: '', desde: '', hasta: '', page: 1, per_page: 50 });
-  const { data, isFetching } = useLoginAttempts(filters);
-  const rows = data?.data ?? [];
+  const { data, isLoading } = useLoginAttempts(filters);
+  const rows = useMemo(() => (data?.data ?? []).map((r) => ({ ...r, id: r.id })), [data]);
   const meta = data?.meta;
 
   const setF = (k, v) => setFilters((p) => ({ ...p, [k]: v, page: 1 }));
@@ -97,30 +125,15 @@ const LoginAttemptsSubtab = () => {
         ]}
       />
 
-      {rows.length === 0 ? (
-        <div className="p-8">
-          <EmptyState icon={ShieldCheck} title={isFetching ? 'Cargando…' : 'Sin intentos registrados'} description="Cuando alguien intente loguearse aparecerá acá." size="sm" />
-        </div>
-      ) : (
-        <table className="w-full">
-          <thead className="bg-surface-muted border-b border-border-base">
-            <tr>
-              <th className="px-4 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider w-44">Fecha</th>
-              <th className="px-4 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Usuario</th>
-              <th className="px-4 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider w-40">IP</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border-subtle">
-            {rows.map((r) => (
-              <tr key={r.id} className="hover:bg-surface-subtle">
-                <td className="px-4 py-2 text-xs text-content-secondary tabular-nums inline-flex items-center gap-1.5"><Calendar size={11} className="text-content-muted" />{fmtDate(r.created_at)}</td>
-                <td className="px-4 py-2 text-xs"><span className="inline-flex items-center gap-1.5 font-mono"><User size={11} className="text-content-muted" />{r.username_attempt ?? '—'}</span></td>
-                <td className="px-4 py-2 text-xs font-mono text-content-tertiary inline-flex items-center gap-1.5"><Wifi size={11} className="text-content-muted" />{r.ip_address}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <ErpTable
+        columns={LOGIN_COLUMNS}
+        data={rows}
+        isLoading={isLoading}
+        EmptyIcon={ShieldCheck}
+        emptyMessage="Sin intentos registrados"
+        emptySubMessage="Cuando alguien intente loguearse aparecerá acá."
+        borderless
+      />
       <Pager meta={meta} onPage={(p) => setFilters((prev) => ({ ...prev, page: p }))} />
     </div>
   );
@@ -129,13 +142,54 @@ const LoginAttemptsSubtab = () => {
 // ── Sub-tab: Movimientos audit ───────────────────────────────────────────────
 const TIPO_TONE = { ENTRADA: 'success', SALIDA: 'danger', TRASPASO: 'info', AJUSTE: 'warning' };
 
+const MOVIMIENTOS_COLUMNS = [
+  {
+    key: 'fecha_movimiento', label: 'Fecha', className: 'w-36',
+    render: (v) => <span className="text-[11px] text-content-secondary tabular-nums">{fmtDate(v)}</span>,
+  },
+  {
+    key: 'tipo_movimiento', label: 'Tipo', className: 'w-28',
+    render: (v) => <StatusBadge tone={TIPO_TONE[v] ?? 'neutral'} label={v} dot={false} size="sm" fixedWidth />,
+  },
+  {
+    key: 'item_nombre', label: 'Item', cellClassName: 'align-top',
+    render: (v, r) => (
+      <>
+        <p className="text-xs font-semibold text-content-primary truncate max-w-[200px]">{v ?? '—'}</p>
+        {r.item_codigo && <p className="text-[10px] font-mono text-content-tertiary">{r.item_codigo}</p>}
+      </>
+    ),
+  },
+  {
+    key: 'bodega_nombre', label: 'Bodega',
+    render: (v) => <span className="text-xs text-content-tertiary">{v ?? '—'}</span>,
+  },
+  {
+    key: 'cantidad', label: 'Cantidad', align: 'right',
+    render: (v) => <span className="text-xs font-mono tabular-nums text-content-secondary">{Number(v ?? 0).toLocaleString('es-CO')}</span>,
+  },
+  {
+    key: 'referencia_tipo', label: 'Referencia',
+    render: (v, r) => (
+      <span className="text-[11px]">
+        <span className="font-mono text-content-tertiary">{v ?? '—'}</span>
+        {r.referencia_id && <span className="text-content-muted ml-1">#{r.referencia_id}</span>}
+      </span>
+    ),
+  },
+  {
+    key: 'responsable', label: 'Responsable',
+    render: (v) => <span className="text-xs text-content-secondary truncate max-w-[140px] block">{v ?? 'sistema'}</span>,
+  },
+];
+
 const MovimientosSubtab = () => {
   const [filters, setFilters] = useState({
     tipo: '', referencia_tipo: '', item: '', responsable: '', desde: '', hasta: '',
     page: 1, per_page: 50,
   });
-  const { data, isFetching } = useMovimientosAudit(filters);
-  const rows = data?.data ?? [];
+  const { data, isLoading } = useMovimientosAudit(filters);
+  const rows = useMemo(() => (data?.data ?? []).map((r) => ({ ...r, id: r.id_movimiento_inventario })), [data]);
   const meta = data?.meta;
 
   const setF   = (k, v) => setFilters((p) => ({ ...p, [k]: v, page: 1 }));
@@ -163,48 +217,15 @@ const MovimientosSubtab = () => {
         ]}
       />
 
-      {rows.length === 0 ? (
-        <div className="p-8">
-          <EmptyState icon={ArrowDownUp} title={isFetching ? 'Cargando…' : 'Sin movimientos'} description="Ajustá los filtros o esperá a que ocurran movimientos." size="sm" />
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface-muted border-b border-border-base">
-              <tr>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider w-36">Fecha</th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider w-28">Tipo</th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Item</th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Bodega</th>
-                <th className="px-3 py-2 text-right text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Cantidad</th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Referencia</th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Responsable</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-subtle">
-              {rows.map((r) => (
-                <tr key={r.id_movimiento_inventario} className="hover:bg-surface-subtle align-top">
-                  <td className="px-3 py-2 text-[11px] text-content-secondary tabular-nums">{fmtDate(r.fecha_movimiento)}</td>
-                  <td className="px-3 py-2">
-                    <StatusBadge tone={TIPO_TONE[r.tipo_movimiento] ?? 'neutral'} label={r.tipo_movimiento} dot={false} size="sm" fixedWidth />
-                  </td>
-                  <td className="px-3 py-2">
-                    <p className="text-xs font-semibold text-content-primary truncate max-w-[200px]">{r.item_nombre ?? '—'}</p>
-                    {r.item_codigo && <p className="text-[10px] font-mono text-content-tertiary">{r.item_codigo}</p>}
-                  </td>
-                  <td className="px-3 py-2 text-xs text-content-tertiary">{r.bodega_nombre ?? '—'}</td>
-                  <td className="px-3 py-2 text-right text-xs font-mono tabular-nums text-content-secondary">{Number(r.cantidad ?? 0).toLocaleString('es-CO')}</td>
-                  <td className="px-3 py-2 text-[11px]">
-                    <span className="font-mono text-content-tertiary">{r.referencia_tipo ?? '—'}</span>
-                    {r.referencia_id && <span className="text-content-muted ml-1">#{r.referencia_id}</span>}
-                  </td>
-                  <td className="px-3 py-2 text-xs text-content-secondary truncate max-w-[140px]">{r.responsable ?? 'sistema'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <ErpTable
+        columns={MOVIMIENTOS_COLUMNS}
+        data={rows}
+        isLoading={isLoading}
+        EmptyIcon={ArrowDownUp}
+        emptyMessage="Sin movimientos"
+        emptySubMessage="Ajustá los filtros o esperá a que ocurran movimientos."
+        borderless
+      />
       <Pager meta={meta} onPage={(p) => setFilters((prev) => ({ ...prev, page: p }))} />
     </div>
   );

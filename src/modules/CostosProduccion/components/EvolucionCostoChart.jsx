@@ -128,9 +128,9 @@ const EvolucionCostoChart = ({ productoId, isOpen }) => {
             type="monotone"
             dataKey="costo_total"
             name="Costo total"
-            stroke="#18181B"
+            stroke="var(--content-primary)"
             strokeWidth={2}
-            dot={{ r: 3, fill: '#18181B' }}
+            dot={{ r: 3, fill: 'var(--content-primary)' }}
             activeDot={{ r: 5 }}
             connectNulls
           />
@@ -138,10 +138,10 @@ const EvolucionCostoChart = ({ productoId, isOpen }) => {
             type="monotone"
             dataKey="precio_venta_calc"
             name="Precio sugerido"
-            stroke="#10B981"
+            stroke="var(--semantic-success)"
             strokeWidth={2}
             strokeDasharray="4 4"
-            dot={{ r: 2, fill: '#10B981' }}
+            dot={{ r: 2, fill: 'var(--semantic-success)' }}
             connectNulls
           />
         </LineChart>

@@ -4,7 +4,8 @@
  */
 
 import { useState, useMemo } from 'react';
-import { X, Save } from 'lucide-react';
+import { FileText, Save } from 'lucide-react';
+import Drawer from '../../../../shared/Drawer';
 import { useBoundStore }   from '../../../../store/useBoundStore';
 import { useCotizaciones } from '../api/useCotizaciones';
 import { useInventario }   from '../../../Inventario/api/useInventario'; // ajusta el path
@@ -210,99 +211,71 @@ const CotizacionFormContent = ({ editData, closeDrawer }) => {
     !!clienteLibre.trim() ||
     !!form.observaciones?.trim();
 
-  const requestClose = () => {
-    if (!isDirty) { closeDrawer(); return; }
-    openConfirm({
-      title:   'Cerrar sin guardar',
-      message: 'Tenés cambios sin guardar. ¿Cerrar igual?',
-      variant: 'warning',
-      onConfirm: closeDrawer,
-    });
-  };
-
   return (
-    <>
-      <div className="fixed inset-0 bg-surface-overlay z-40 backdrop-blur-[1px]" onClick={requestClose} />
-      <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-surface-base shadow-2xl z-50 flex flex-col border-l border-border-base">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-surface-subtle shrink-0">
-          <div>
-            <h2 className="text-sm font-bold text-content-primary">
-              {editData ? 'Editar Cotización' : 'Nueva Cotización'}
-            </h2>
-            <p className="text-xs text-content-tertiary mt-0.5">Complete los datos de la propuesta comercial</p>
-          </div>
-          <button onClick={requestClose} aria-label="Cerrar" className="w-8 h-8 rounded-lg flex items-center justify-center text-content-muted hover:bg-surface-strong">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Body — dos columnas */}
-        <div className="flex-1 overflow-hidden flex">
-
-          {/* ── Columna izquierda: datos generales ── */}
-          <div className="w-80 shrink-0 border-r border-border-subtle overflow-y-auto p-5 flex flex-col gap-4">
-            <ClienteFieldset
-              clienteMode={clienteMode} setClienteMode={setClienteMode}
-              clienteSel={clienteSel} setClienteSel={setClienteSel}
-              clienteLibre={clienteLibre} setClienteLibre={setClienteLibre}
-              clientes={clientes} loadingClientes={loadingClientes} v={v}
-            />
-
-            <DatosGeneralesFieldset form={form} setField={setField} v={v} />
-
-            <AjustesFieldset
-              form={form} setField={setField}
-              ivaActivo={ivaActivo} setIvaActivo={setIvaActivo}
-              ivaPct={ivaPct} setIvaPct={setIvaPct}
-              impuestos={impuestos} baseIva={baseIva}
-            />
-
-            <ResumenTotales
-              subtotal={subtotal} form={form} ivaActivo={ivaActivo} ivaPct={ivaPct}
-              impuestos={impuestos} total={total}
-            />
-          </div>
-
-          {/* ── Columna derecha: bodega + inventario + ítems ── */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <BodegaInventarioPanel
-              bodegaSel={bodegaSel} setBodegaSel={setBodegaSel}
-              bodegas={bodegas} loadingBodegas={loadingBodegas}
-              itemSearch={itemSearch} setItemSearch={setItemSearch}
-              inventario={inventario} inventarioFiltrado={inventarioFiltrado}
-              loadingInv={loadingInv} items={items} agregarItem={agregarItem}
-            />
-
-            <ItemsTable
-              items={items} setItemField={setItemField} removeItem={removeItem}
-              agregarItemLibre={agregarItemLibre} errors={errors} fieldErrors={fieldErrors}
-              bodegaSel={bodegaSel} total={total}
-            />
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-5 py-4 border-t border-border-subtle bg-surface-subtle flex justify-between items-center shrink-0">
+    <Drawer
+      isOpen
+      onClose={closeDrawer}
+      icon={FileText}
+      title={editData ? 'Editar Cotización' : 'Nueva Cotización'}
+      description="Complete los datos de la propuesta comercial"
+      size="4xl"
+      isDirty={isDirty}
+      bodyClassName="p-0 flex overflow-hidden"
+      footer={
+        <div className="w-full flex justify-between items-center">
           <p className="text-xs text-content-muted">
             {items.length} ítem(s) · <span className="font-semibold text-content-secondary">{fmtCOP(total)}</span>
           </p>
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={requestClose}
-              className="px-4 py-2 text-sm text-content-secondary border border-border-base rounded-lg hover:bg-surface-muted"
-            >
-              Cancelar
-            </button>
+            <Button variant="secondary" onClick={closeDrawer}>Cancelar</Button>
             <Button variant="black" onClick={handleSubmit} disabled={isCreating || isUpdating} icon={Save}>
               {isCreating || isUpdating ? 'Guardando...' : editData ? 'Actualizar' : 'Crear Cotización'}
             </Button>
           </div>
         </div>
+      }
+    >
+      {/* ── Columna izquierda: datos generales ── */}
+      <div className="w-80 shrink-0 border-r border-border-subtle overflow-y-auto p-5 flex flex-col gap-4">
+        <ClienteFieldset
+          clienteMode={clienteMode} setClienteMode={setClienteMode}
+          clienteSel={clienteSel} setClienteSel={setClienteSel}
+          clienteLibre={clienteLibre} setClienteLibre={setClienteLibre}
+          clientes={clientes} loadingClientes={loadingClientes} v={v}
+        />
+
+        <DatosGeneralesFieldset form={form} setField={setField} v={v} />
+
+        <AjustesFieldset
+          form={form} setField={setField}
+          ivaActivo={ivaActivo} setIvaActivo={setIvaActivo}
+          ivaPct={ivaPct} setIvaPct={setIvaPct}
+          impuestos={impuestos} baseIva={baseIva}
+        />
+
+        <ResumenTotales
+          subtotal={subtotal} form={form} ivaActivo={ivaActivo} ivaPct={ivaPct}
+          impuestos={impuestos} total={total}
+        />
       </div>
-    </>
+
+      {/* ── Columna derecha: bodega + inventario + ítems ── */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <BodegaInventarioPanel
+          bodegaSel={bodegaSel} setBodegaSel={setBodegaSel}
+          bodegas={bodegas} loadingBodegas={loadingBodegas}
+          itemSearch={itemSearch} setItemSearch={setItemSearch}
+          inventario={inventario} inventarioFiltrado={inventarioFiltrado}
+          loadingInv={loadingInv} items={items} agregarItem={agregarItem}
+        />
+
+        <ItemsTable
+          items={items} setItemField={setItemField} removeItem={removeItem}
+          agregarItemLibre={agregarItemLibre} errors={errors} fieldErrors={fieldErrors}
+          bodegaSel={bodegaSel} total={total}
+        />
+      </div>
+    </Drawer>
   );
 };
 

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Calculator, Plus, Trash2, RotateCcw, AlertCircle } from 'lucide-react';
 import Modal from '../../../shared/Modal';
 import { Button } from '../../../shared/Button';
+import ErpTable from '../../../shared/ErpTable';
 import { fmt, parsePesoColombiano } from '../../../utils/formatters';
 
 /**
@@ -57,6 +58,85 @@ const CalculadoraProrrateo = ({ isOpen, onClose }) => {
   const factor = sinBase ? 0 : precioNum / totalLista;
   const diferencia = precioNum - totalLista;
 
+  const columns = useMemo(() => [
+    {
+      key: 'descripcion', label: 'Descripción', sortable: false,
+      render: (v, l) => (
+        <input
+          type="text"
+          value={v}
+          onChange={(e) => updateLinea(l.id, 'descripcion', e.target.value)}
+          placeholder="Descripción del ítem"
+          className="w-full px-2 py-1.5 bg-surface-base border border-border-base rounded-lg focus:outline-none focus:border-border-focus text-content-primary"
+        />
+      ),
+    },
+    {
+      key: 'cantidad', label: 'Cantidad', align: 'right', className: 'w-28', sortable: false,
+      render: (v, l) => (
+        <input
+          type="number"
+          min="0"
+          value={v}
+          onChange={(e) => updateLinea(l.id, 'cantidad', e.target.value)}
+          placeholder="0"
+          className="w-24 px-2 py-1.5 text-right tabular-nums bg-surface-base border border-border-base rounded-lg focus:outline-none focus:border-border-focus text-content-primary"
+        />
+      ),
+    },
+    {
+      key: 'precioLista', label: 'Precio lista unit.', align: 'right', className: 'w-40', sortable: false,
+      render: (v, l) => (
+        <input
+          type="text"
+          inputMode="numeric"
+          value={v}
+          onChange={(e) => updateLinea(l.id, 'precioLista', e.target.value)}
+          placeholder="$ 0"
+          className="w-36 px-2 py-1.5 text-right tabular-nums bg-surface-base border border-border-base rounded-lg focus:outline-none focus:border-border-focus text-content-primary"
+        />
+      ),
+    },
+    {
+      key: '__subtotalLista', label: 'Subtotal lista', align: 'right', className: 'w-36', sortable: false,
+      render: (_v, l) => {
+        const subtotalLista = (Number(l.cantidad) || 0) * (parsePesoColombiano(l.precioLista) || 0);
+        return <span className="tabular-nums text-content-secondary">{subtotalLista > 0 ? fmt(subtotalLista) : <span className="text-content-muted">—</span>}</span>;
+      },
+    },
+    {
+      key: '__costoProrrUnit', label: 'Costo prorr. unit.', align: 'right', className: 'w-40', sortable: false,
+      render: (_v, l) => {
+        const precio = parsePesoColombiano(l.precioLista) || 0;
+        const costoProrrUnit = precio * factor;
+        return <span className="tabular-nums text-content-secondary">{costoProrrUnit > 0 ? fmt(costoProrrUnit) : <span className="text-content-muted">—</span>}</span>;
+      },
+    },
+    {
+      key: '__subtotalProrr', label: 'Subtotal prorr.', align: 'right', className: 'w-36', sortable: false,
+      render: (_v, l) => {
+        const precio = parsePesoColombiano(l.precioLista) || 0;
+        const cant = Number(l.cantidad) || 0;
+        const subtotalProrr = precio * factor * cant;
+        return <span className="tabular-nums font-medium text-content-primary">{subtotalProrr > 0 ? fmt(subtotalProrr) : <span className="text-content-muted">—</span>}</span>;
+      },
+    },
+    {
+      key: '__actions', label: '', align: 'center', className: 'w-12', sortable: false,
+      render: (_v, l) => (
+        <button
+          type="button"
+          onClick={() => removeLinea(l.id)}
+          disabled={lineas.length <= 1}
+          title="Quitar línea"
+          className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-content-tertiary hover:bg-semantic-danger-subtle hover:text-semantic-danger-fg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <Trash2 size={13} />
+        </button>
+      ),
+    },
+  ], [factor, lineas.length]);
+
   return (
     <Modal
       isOpen={isOpen}
@@ -83,82 +163,8 @@ const CalculadoraProrrateo = ({ isOpen, onClose }) => {
         </div>
 
         {/* Tabla de líneas */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-border-base text-xs text-content-muted uppercase tracking-wider">
-                <th className="px-3 py-2">Descripción</th>
-                <th className="px-3 py-2 text-right w-28">Cantidad</th>
-                <th className="px-3 py-2 text-right w-40">Precio lista unit.</th>
-                <th className="px-3 py-2 text-right w-36">Subtotal lista</th>
-                <th className="px-3 py-2 text-right w-40">Costo prorr. unit.</th>
-                <th className="px-3 py-2 text-right w-36">Subtotal prorr.</th>
-                <th className="px-3 py-2 text-center w-12" />
-              </tr>
-            </thead>
-            <tbody>
-              {lineas.map((l) => {
-                const cant = Number(l.cantidad) || 0;
-                const precio = parsePesoColombiano(l.precioLista) || 0;
-                const subtotalLista = cant * precio;
-                const costoProrrUnit = precio * factor;
-                const subtotalProrr = costoProrrUnit * cant;
-                return (
-                  <tr key={l.id} className="border-b border-border-subtle">
-                    <td className="px-3 py-2">
-                      <input
-                        type="text"
-                        value={l.descripcion}
-                        onChange={(e) => updateLinea(l.id, 'descripcion', e.target.value)}
-                        placeholder="Descripción del ítem"
-                        className="w-full px-2 py-1.5 bg-surface-base border border-border-base rounded-lg focus:outline-none focus:border-border-focus text-content-primary"
-                      />
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <input
-                        type="number"
-                        min="0"
-                        value={l.cantidad}
-                        onChange={(e) => updateLinea(l.id, 'cantidad', e.target.value)}
-                        placeholder="0"
-                        className="w-24 px-2 py-1.5 text-right tabular-nums bg-surface-base border border-border-base rounded-lg focus:outline-none focus:border-border-focus text-content-primary"
-                      />
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={l.precioLista}
-                        onChange={(e) => updateLinea(l.id, 'precioLista', e.target.value)}
-                        placeholder="$ 0"
-                        className="w-36 px-2 py-1.5 text-right tabular-nums bg-surface-base border border-border-base rounded-lg focus:outline-none focus:border-border-focus text-content-primary"
-                      />
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums text-content-secondary">
-                      {subtotalLista > 0 ? fmt(subtotalLista) : <span className="text-content-muted">—</span>}
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums text-content-secondary">
-                      {costoProrrUnit > 0 ? fmt(costoProrrUnit) : <span className="text-content-muted">—</span>}
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums font-medium text-content-primary">
-                      {subtotalProrr > 0 ? fmt(subtotalProrr) : <span className="text-content-muted">—</span>}
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      <button
-                        type="button"
-                        onClick={() => removeLinea(l.id)}
-                        disabled={lineas.length <= 1}
-                        title="Quitar línea"
-                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-content-tertiary hover:bg-semantic-danger-subtle hover:text-semantic-danger-fg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="border border-border-base rounded-xl overflow-hidden">
+          <ErpTable columns={columns} data={lineas} density="compact" borderless />
         </div>
 
         <div>

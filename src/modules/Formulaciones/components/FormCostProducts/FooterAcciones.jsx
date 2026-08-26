@@ -1,7 +1,7 @@
 import { Save } from 'lucide-react';
 
-export const FooterAcciones = ({ isDirty, precioManualDirty, isUpdating, isUpdatingPrecio, handleClose }) => (
-  <div className="flex items-center justify-between gap-3 px-6 py-4 bg-surface-subtle border-t border-border-subtle">
+export const FooterAcciones = ({ isDirty, precioManualDirty, isUpdating, isUpdatingPrecio, handleClose, formId }) => (
+  <div className="flex items-center justify-between gap-3 w-full">
     <div className="flex items-center gap-1.5">
       {(isDirty || precioManualDirty) ? (
         <>
@@ -26,6 +26,7 @@ export const FooterAcciones = ({ isDirty, precioManualDirty, isUpdating, isUpdat
       </button>
       <button
         type="submit"
+        form={formId}
         disabled={isUpdating || isUpdatingPrecio || (!isDirty && !precioManualDirty)}
         className="flex items-center gap-2 px-5 py-2.5 border border-transparent rounded-xl text-sm font-semibold text-content-inverse bg-content-primary shadow-md shadow-content-primary/20 hover:bg-content-primary transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
       >

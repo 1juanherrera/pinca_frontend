@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X, Stamp, FlaskConical, TrendingUp, Package, ArrowRight, Layers,
   CheckCircle2, ChevronRight, Boxes, Split,
@@ -12,6 +13,9 @@ import { SuccessView } from './preparationModal/PreparationSubComponents';
 import { ConfirmSubForm } from './preparationModal/ConfirmSubForm';
 import { CombinacionForm } from './preparationModal/CombinacionForm';
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
+
 // ─── Modal principal ──────────────────────────────────────────────────────────
 export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
   const activeDrawer = useBoundStore(state => state.activeDrawer);
@@ -23,6 +27,7 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
   const [modo,            setModo]            = useState(null); // 'single' | 'combinacion'
   const [preparaciones,   setPreparaciones]   = useState(null);
   const [escalaOverrides, setEscalaOverrides] = useState({});
+  const panelRef = useRef(null);
 
   const isOpen = activeDrawer === 'PREPARATION_FORM';
 
@@ -91,6 +96,61 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
   };
   const handleSuccess       = (data) => { setPreparaciones(Array.isArray(data) ? data : [data]); setShowForm(false); };
 
+  // Escape cierra + scroll lock (mismo comportamiento que Modal/Drawer shared)
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e) => { if (e.key === 'Escape') handleClose(); };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  // Autofocus al abrir + focus-trap (Tab/Shift+Tab) + restauración de foco al cerrar
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    const node = panelRef.current;
+    const getFocusable = () =>
+      node
+        ? Array.from(node.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+            (el) => el.offsetParent !== null || el === document.activeElement
+          )
+        : [];
+
+    const focusables = getFocusable();
+    if (focusables.length > 0) focusables[0].focus();
+    else node?.focus();
+
+    const onKeyDown = (e) => {
+      if (e.key !== 'Tab') return;
+      const items = getFocusable();
+      if (items.length === 0) { e.preventDefault(); node?.focus(); return; }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey) {
+        if (active === first || !node?.contains(active)) { e.preventDefault(); last.focus(); }
+      } else if (active === last || !node?.contains(active)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    node?.addEventListener('keydown', onKeyDown);
+    return () => {
+      node?.removeEventListener('keydown', onKeyDown);
+      previouslyFocused?.focus?.();
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const titulo = preparaciones
@@ -99,10 +159,13 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
     : showForm ? 'Confirmar preparación'
     : 'Preparación por unidades';
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-overlay backdrop-blur-sm">
-      <div className="w-full max-w-7xl bg-surface-base rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-
+  return createPortal(
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-surface-overlay backdrop-blur-sm" role="dialog" aria-modal="true">
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        className="w-full max-w-7xl bg-surface-base rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle shrink-0">
           <div className="flex items-center gap-3">
@@ -260,6 +323,7 @@ export const PreparationModal = ({ unidades = DEFAULT_UNITS }) => {
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };

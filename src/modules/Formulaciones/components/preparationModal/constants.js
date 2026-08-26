@@ -4,14 +4,14 @@ import {
 
 // ─── Config visual ────────────────────────────────────────────────────────────
 export const UNIT_CONFIG = {
-  'TAMBOR':     { icon: Cylinder,   color: 'text-content-secondary',    bg: 'bg-surface-muted',    border: 'border-border-base',    ring: 'ring-border-strong'    },
-  'CUÑETE':     { icon: Package,    color: 'text-semantic-info-fg',    bg: 'bg-semantic-info-subtle',     border: 'border-semantic-info/15',    ring: 'ring-semantic-info/40'    },
-  'GALON':      { icon: GlassWater, color: 'text-semantic-success-fg', bg: 'bg-semantic-success-subtle',  border: 'border-semantic-success/15', ring: 'ring-semantic-success/70' },
-  '1/2 GALON':  { icon: GlassWater, color: 'text-semantic-info-fg',    bg: 'bg-semantic-info-subtle',     border: 'border-semantic-info-subtle',    ring: 'ring-semantic-info/70'    },
-  '1/4 GALON':  { icon: TestTube,   color: 'text-semantic-info-fg',     bg: 'bg-semantic-info-subtle',      border: 'border-semantic-info/15',     ring: 'ring-semantic-info/80'     },
-  '1/8 GALON':  { icon: TestTube,   color: 'text-brand-primary-active',  bg: 'bg-brand-subtle',   border: 'border-brand-primary/15',  ring: 'ring-brand-primary'  },
-  '1/16 GALON': { icon: Pipette,    color: 'text-brand-primary-active',  bg: 'bg-brand-subtle',   border: 'border-brand-primary/20',  ring: 'ring-brand-primary'  },
-  '1/32 GALON': { icon: Pipette,    color: 'text-brand-primary-active',  bg: 'bg-brand-subtle',   border: 'border-brand-subtle',  ring: 'ring-brand-primary'  },
+  'TAMBOR':     { icon: Cylinder,   color: 'text-content-secondary',    bg: 'bg-surface-muted',    border: 'border-border-base',    ring: 'ring-border-strong',    barColor: 'bg-content-secondary'  },
+  'CUÑETE':     { icon: Package,    color: 'text-semantic-info-fg',    bg: 'bg-semantic-info-subtle',     border: 'border-semantic-info/15',    ring: 'ring-semantic-info/40',    barColor: 'bg-semantic-info'    },
+  'GALON':      { icon: GlassWater, color: 'text-semantic-success-fg', bg: 'bg-semantic-success-subtle',  border: 'border-semantic-success/15', ring: 'ring-semantic-success/70', barColor: 'bg-semantic-success' },
+  '1/2 GALON':  { icon: GlassWater, color: 'text-semantic-info-fg',    bg: 'bg-semantic-info-subtle',     border: 'border-semantic-info-subtle',    ring: 'ring-semantic-info/70',    barColor: 'bg-semantic-info'    },
+  '1/4 GALON':  { icon: TestTube,   color: 'text-semantic-info-fg',     bg: 'bg-semantic-info-subtle',      border: 'border-semantic-info/15',     ring: 'ring-semantic-info/80',     barColor: 'bg-semantic-info'     },
+  '1/8 GALON':  { icon: TestTube,   color: 'text-brand-primary-active',  bg: 'bg-brand-subtle',   border: 'border-brand-primary/15',  ring: 'ring-brand-primary',  barColor: 'bg-brand-primary-active'  },
+  '1/16 GALON': { icon: Pipette,    color: 'text-brand-primary-active',  bg: 'bg-brand-subtle',   border: 'border-brand-primary/20',  ring: 'ring-brand-primary',  barColor: 'bg-brand-primary-active'  },
+  '1/32 GALON': { icon: Pipette,    color: 'text-brand-primary-active',  bg: 'bg-brand-subtle',   border: 'border-brand-subtle',  ring: 'ring-brand-primary',  barColor: 'bg-brand-primary-active'  },
 };
 
 export const DEFAULT_UNITS = [

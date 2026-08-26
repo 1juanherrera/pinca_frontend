@@ -15,7 +15,27 @@ import { useFactura } from '../api/useFactura';
 import DetailDrawer from '../../../../shared/DetailDrawer';
 import StatusBadge from '../../../../shared/StatusBadge';
 import AmountDisplay from '../../../../shared/AmountDisplay';
+import ErpTable from '../../../../shared/ErpTable';
 import { fmt } from '../../../../utils/formatters';
+
+const ITEMS_COLUMNS = [
+  {
+    key: 'descripcion', label: 'Descripción',
+    render: (v) => <span className="text-content-secondary">{v}</span>,
+  },
+  {
+    key: 'cantidad', label: 'Cant.', align: 'right',
+    render: (v) => <span className="text-content-secondary">{v}</span>,
+  },
+  {
+    key: 'precio_unitario', label: 'P. Unit.', align: 'right',
+    render: (v) => <span className="tabular-nums text-content-secondary">{fmt(v)}</span>,
+  },
+  {
+    key: 'total', label: 'Total', align: 'right',
+    render: (v) => <span className="tabular-nums font-semibold text-content-primary">{fmt(v)}</span>,
+  },
+];
 
 // ── Sub-componente: sección con título ────────────────────────────────────
 const Section = ({ title, icon: Icon, children }) => (
@@ -104,26 +124,12 @@ const FacturaDrawer = ({ facturaId, isOpen, onClose }) => {
               <p className="text-xs text-content-muted py-2">Sin ítems registrados</p>
             ) : (
               <div className="rounded-lg border border-border-base overflow-hidden">
-                <table className="w-full text-xs">
-                  <thead className="bg-surface-subtle">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-content-tertiary font-medium">Descripción</th>
-                      <th className="px-3 py-2 text-right text-content-tertiary font-medium">Cant.</th>
-                      <th className="px-3 py-2 text-right text-content-tertiary font-medium">P. Unit.</th>
-                      <th className="px-3 py-2 text-right text-content-tertiary font-medium">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border-subtle">
-                    {items.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-surface-subtle">
-                        <td className="px-3 py-2 text-content-secondary">{item.descripcion ?? item.nombre ?? `Ítem ${idx + 1}`}</td>
-                        <td className="px-3 py-2 text-right text-content-secondary">{item.cantidad}</td>
-                        <td className="px-3 py-2 text-right  tabular-nums text-content-secondary">{fmt(item.precio_unitario)}</td>
-                        <td className="px-3 py-2 text-right  tabular-nums font-semibold text-content-primary">{fmt(item.total)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <ErpTable
+                  columns={ITEMS_COLUMNS}
+                  data={items.map((item, idx) => ({ ...item, id: idx, descripcion: item.descripcion ?? item.nombre ?? `Ítem ${idx + 1}` }))}
+                  density="compact"
+                  borderless
+                />
               </div>
             )}
           </Section>

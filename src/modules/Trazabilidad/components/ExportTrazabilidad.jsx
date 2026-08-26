@@ -77,7 +77,7 @@ const ExportTrazContent = ({ payload, closeModal }) => {
       : 'Cargando…';
 
   return (
-    <div className="fixed inset-0 z-[110] bg-black/60 flex items-center justify-center p-4" onClick={closeModal}>
+    <div className="fixed inset-0 z-[110] bg-surface-overlay flex items-center justify-center p-4" onClick={closeModal}>
       <div
         className="bg-surface-elevated rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}

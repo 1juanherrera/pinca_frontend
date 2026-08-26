@@ -2541,3 +2541,66 @@ A pedido del usuario, para poder continuar desde la PC de casa: backup completo 
 ---
 
 > **Snapshot al cierre 2026-08-14**: 24/24 componentes grandes de la auditoría 2026-08-11 refactorizados. Barrido de duplicación real completo: hook genérico `useBulkEstadoChange` (3→1), chrome compartido de 7 modales Export PDF (`ExportModalChrome`/`ExportFormatToggle`/`ExportDownloadButton`/`PdfPreviewFallback`), hooks/shared auditados sin hallazgos. Backup de BD actualizado en `pinca_backend_nest/db-backup/`. Ambos repos comiteados y listos para `git push` — pendiente de ejecutar a pedido del usuario. Falta prueba visual completa en Windows, con foco en los 7 modales Export PDF.
+
+---
+
+## 41. Sesión 2026-08-26 — Resolución completa de `AUDITORIA_DESIGN_TOKENS_2026-08-19.md`
+
+El usuario pidió resolver los 6 hallazgos de una auditoría de consistencia del design system generada el 2026-08-19 (archivo standalone en la raíz de `pinca_frontend/`, no una sesión de este `CLAUDE.md`). Los 6 puntos quedaron cerrados esta sesión — 3 en el primer tramo (bugs puntuales), 2 grandes en el segundo (refactor de modales y tablas), 1 ya estaba resuelto de fábrica (radius).
+
+### 41.1 Bugs puntuales (#1, #2, #3-parcial)
+
+- **`EvolucionCostoChart.jsx`**: las líneas del chart de Recharts usaban hex hardcoded (`#18181B`, `#10B981`) → invisibles en dark mode. Fix: `stroke="var(--content-primary)"` / `var(--semantic-success)`, mismo patrón que ya usaban `CartesianGrid`/`XAxis`/`YAxis` en el mismo archivo — Recharts sí soporta `var()` en atributos de presentación SVG, no hacía falta `getComputedStyle` como sugería el doc.
+- **Barra de progreso en `preparationModal/PreparationSubComponents.jsx`**: `cfg.bg.replace('50','300')` no matcheaba contra clases de token (`bg-semantic-info-subtle`), la barra quedaba del mismo color que el fondo. Fix: agregado `barColor` real a cada entrada de `UNIT_CONFIG` (`preparationModal/constants.js`).
+- **`ExportTrazabilidad.jsx`**: `bg-black/60` → `bg-surface-overlay`.
+
+### 41.2 Investigación #5 (radius) — confirmado que NO era un bug
+
+`--radius-lg` (y el resto de la escala) está declarado dentro de `@theme {}` en `index.css` (línea ~256), igual que los tokens de color. En Tailwind v4 eso hace que la clase `rounded-lg` **ya use automáticamente** el valor custom (12px) en vez del default de Tailwind (8px) — mismo mecanismo que `--color-brand-primary` etc. Sin cambios necesarios, la sospecha del propio doc de que podía ser un no-issue se confirmó.
+
+### 41.3 #3 — Modales/drawers custom → shared (6 de 7; el 7º ya se había resuelto en 41.1)
+
+| Archivo | Antes | Después |
+|---|---|---|
+| `Catalogo/components/CatalogoForm.jsx` | overlay a mano | `<Modal size="2xl">` |
+| `Formulaciones/components/FormCostProducts.jsx` | overlay a mano | `<Modal size="lg">` (footer con `form="costos-form"` — el botón vive fuera del `<form>` portalado, el atributo HTML `form` lo conecta igual) |
+| `Formulaciones/components/ClonarFormulacionModal.jsx` | overlay a mano | `<Modal size="lg">` |
+| `Comercial/Cotizaciones/components/CotizacionForm.jsx` | drawer a mano, **sin** Escape-to-close ni focus-trap | `<Drawer size="4xl">` — ganó ambos gratis |
+| `Comercial/Remisiones/components/RemisionForm.jsx` | ídem | `<Drawer size="3xl">` — ídem |
+| `Formulaciones/components/preparationModal.jsx` | overlay a mano, z-50, sin portal | **NO** forzado a `<Modal>` (ver abajo) — pero sí ganó `createPortal`, focus-trap, Escape-to-close y z-index `110` consistente, replicando a mano el mismo mecanismo de `Modal.jsx`/`Drawer.jsx` |
+
+**Por qué `preparationModal.jsx` no se migró al componente literal**: es un wizard con 4 vistas de layout incompatible entre sí — tabla+footer a todo el ancho, dos formularios de 2 columnas con su botón de confirmación embebido solo en la columna izquierda (no a ancho completo), y una vista de éxito sin footer. `<Modal>` solo soporta un footer único a todo el ancho para todo el panel; forzarlo habría roto ese layout. Se aplicó el arreglo real (la preocupación de fondo de la auditoría: consistencia de foco/cierre/z-index), sin tocar la estructura visual.
+
+### 41.4 #4 — Tablas raw → `ErpTable` (20 archivos migrados, 7 excepciones documentadas)
+
+Migradas en 2 tandas: primero las 6 que el propio doc marcaba como prioritarias (`CatalogoTable`, `ClientesTable`, `AuditoriaTab` ×2, `CatalogosTab` ×2), después el resto del universo real de tablas raw encontrado por grep (`<table` en `src/modules`, 26 archivos totales).
+
+**Migradas** (columnas + `render()` por celda, preservando badges/inputs/acciones existentes 1:1): `CatalogoTable`, `ClientesTable`, `AuditoriaTab` (login attempts + movimientos), `CatalogosTab` (categorías + unidades), `ProveedoresTable` (2 modos: normal y "comparar por producto", con `rowClassName` para resaltar el mejor precio), `Inventario/Components/DataTable`, `NumeracionTab/SeriesActivasTable`, `Catalogo/SuministroTab`, `CostoDetalleDrawer/IngredientesTable`, `Comercial/{Cotizacion,Factura,Remision}Drawer` (3), `Proveedores/ProveedorPortafolioDrawer` (2 tablas → 1), `Sincronizacion/MaestroDetailDrawer`, `Formulaciones/FormulacionVersionesDrawer`, `Formulaciones/CostProductsTable`, `Formulaciones/ProductSpecificationsTable`, `Rentabilidad/RentabilidadIndirectosPanel`, `Compras/CalculadoraProrrateo` (editable), `Compras/RecibirProrrateoModal` (editable), y las 3 tablas de ítems editables de `CotizacionForm`/`FacturaForm`/`RemisionForm`.
+
+**Patrón para filas con `<tfoot>` de totales** (varios drawers/tablas lo tenían): `ErpTable` no soporta pie de tabla. Donde el total era simple (una fila con label+monto), se reemplazó por una barra `bg-content-primary` full-width debajo del `<ErpTable>` — mismo lenguaje visual, sin alinear a una columna específica. Donde había 2 filas de totales con distinto fondo/estilo (`CostProductsTable`, con fila "COSTO TOTAL" y fila "VENTA SUGERIDA" con clase `.tbl-header`), se inyectaron como filas normales del `data` array con un flag `__type`, para que las columnas se rendericen con el mismo `<td>` que las filas de datos — garantiza alineación pixel-perfect automáticamente, a costa de un poco de lógica condicional en cada `render()`.
+
+**Bug real encontrado y corregido en el camino**: `ErpTable` aplica `text-content-primary` a **cada** `<td>` incondicionalmente (línea fija en el componente). Esto rompía la fila "VENTA SUGERIDA" de `CostProductsTable`, que depende de la clase `.tbl-header` en el `<tr>` (fondo `#3f3f46` + texto `#fafafa` fijos, el mismo mecanismo del fix de dark-mode de headers documentado en §32) — el `text-content-primary` del `<td>`, al ser una propiedad puesta directamente sobre el elemento, gana sobre el color heredado del `.tbl-header` del `<tr>` padre, dejando texto oscuro sobre fondo oscuro. Fix: forzar `text-content-inverse` explícito en los `<span>` de esa fila (mismo patrón que ya usaba el ícono `<DollarSign>` original). **Riesgo latente**: cualquier otra fila que dependa de `.tbl-header`/`.tbl-header .text-content-inverse` para su contraste y se migre a `ErpTable` en el futuro necesita el mismo tratamiento explícito — el `<td>` de `ErpTable` nunca hereda color del `<tr>`.
+
+**7 excepciones documentadas** (no son deuda pendiente, son incompatibilidades reales con la forma actual de `ErpTable`):
+
+| Archivo | Motivo |
+|---|---|
+| `InventarioGlobal/InventarioGlobalPage.jsx` (`ItemRow`) | Fila expandible master-detail (`colSpan` de una 2ª `<tr>` por ítem) — `ErpTable` no soporta una fila extra por dato |
+| `Formulaciones/FormulacionesTable.jsx` | Filas de "instrucción/fase" a todo el ancho intercaladas con ingredientes — mismo problema de forma |
+| `Produccion/ProduccionTable.jsx` | Ya tiene virtualización dual (`react-window` + tabla normal) con header **idéntico** compartido entre ambos modos — migrar solo uno rompería la paridad visual |
+| `Nomina/LiquidacionTable.jsx` | Ya usa `@tanstack/react-table` (implementación deliberada de la sesión 34.2, no deuda) |
+| `Configuracion/NumeracionTab/SeriesInactivasDetails.jsx` | Tabla sin `<thead>`, puramente clave-valor dentro de un `<details>` — `ErpTable` fuerza un header con labels que no aplica acá |
+| `Movimientos/components/MovimientoDetailDrawer.jsx` | Mismo caso: metadata JSON clave-valor sin header real |
+| `Produccion/components/ExportProduccion/PdfTemplate.jsx` | PDF (jsPDF/html2canvas) — excluido explícitamente por el propio doc de auditoría |
+
+### Validación
+
+Sin poder correr `npm run dev`/build (limitación de siempre en WSL): ESLint 0 errores en todo `src/` en cada paso (mismos 5 warnings preexistentes de `react-hooks/incompatible-library`), y `esbuild --jsx=automatic` sin errores de sintaxis en los ~28 archivos tocados. **Falta la prueba visual del usuario en Windows** — el propio usuario la pospuso explícitamente para después de esta sesión. Prioridad sugerida al probarla: los 2 drawers grandes (Cotización/Remisión, ahora con Escape-to-close que antes no tenían), las 3 tablas de ítems editables (verificar que el foco no se pierda al escribir), y `CostProductsTable` (por el fix de contraste).
+
+### Archivo de auditoría
+
+`AUDITORIA_DESIGN_TOKENS_2026-08-19.md` (raíz de `pinca_frontend/`) queda con sus 6 puntos resueltos o cerrados con justificación — listo para borrar una vez el usuario confirme la prueba visual. No se borró en esta sesión (a la espera de esa confirmación).
+
+---
+
+> **Snapshot al cierre 2026-08-26**: los 6 hallazgos de `AUDITORIA_DESIGN_TOKENS_2026-08-19.md` resueltos — 3 bugs puntuales (chart dark mode, barra de progreso, overlay token), radius confirmado no-issue, 6/7 modales custom migrados a `Modal`/`Drawer` shared (el 7º arreglado a mano por incompatibilidad de layout), y 20 tablas raw migradas a `ErpTable` con 7 excepciones documentadas por limitaciones reales del componente (filas expandibles, virtualización dual, tabla headless deliberada, listas clave-valor sin header, PDF). Bug real de contraste encontrado y corregido en `ErpTable` (`text-content-primary` fijo en cada `<td>` rompe filas con fondo `.tbl-header`). Falta prueba visual del usuario en Windows — pospuesta explícitamente para después de esta sesión. El `.md` de auditoría queda listo para borrar tras esa confirmación.

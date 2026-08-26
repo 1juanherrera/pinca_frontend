@@ -8,12 +8,12 @@ import {
 import { useBoundStore } from '../../../store/useBoundStore';
 import { NavTabs } from './NavTabs';
 import { formatoPesoColombiano } from '../../../utils/formatters';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import usePageSize from '../../../hooks/usePageSize';
-import { SkeletonRow } from '../../../shared/Skeletons';
 import { useInventario } from '../api/useInventario';
 import ConfirmModal from '../../../shared/ConfirmModal';
 import StatusBadge from '../../../shared/StatusBadge';
+import ErpTable from '../../../shared/ErpTable';
 import { getPaginationRange } from '../services/pagination';
 import { ExcelModal } from './ExcelModal';
 import { TraspasoModal } from './TraspasoModal';
@@ -44,7 +44,7 @@ const DataTable = () => {
   );
   const { bodegas } = useBodegas();
 
-  const inventario = items?.inventario || [];
+  const inventario = useMemo(() => items?.inventario || [], [items]);
   const pagination = items?.pagination || { totalPages: 1, totalItems: 0 };
 
   const getNombre    = (item) => item.nombre || item.nombre_item_general || '-';
@@ -65,6 +65,98 @@ const DataTable = () => {
   const handleSearchChange = (value) => { setSearchTerm(value); setCurrentPage(1); };
   const handleTipoChange   = (value) => { setTipoFilter(value); setCurrentPage(1); };
 
+  const columns = useMemo(() => [
+    {
+      key: '__id', label: '#', align: 'center', className: 'w-16',
+      render: (_v, item) => <span className="text-xs font-medium text-content-tertiary tabular-nums">{getId(item)}</span>,
+    },
+    {
+      key: '__codigo', label: 'Código',
+      render: (_v, item) => <span className="text-xs text-content-tertiary font-mono font-medium">{getCodigo(item)}</span>,
+    },
+    {
+      key: '__nombre', label: 'Nombre',
+      render: (_v, item) => (
+        <span className="font-medium text-content-primary text-xs max-w-[260px] truncate block" title={getNombre(item)}>{getNombre(item)}</span>
+      ),
+    },
+    {
+      key: 'cantidad', label: 'Cantidad', align: 'center',
+      render: (v) => <span className="text-xs font-semibold text-content-secondary tabular-nums">{v ?? '—'}</span>,
+    },
+    {
+      key: '__almacenaje', label: 'Almacenaje', align: 'center',
+      render: (_v, item) => {
+        const s = getStockAlmacenaje(item);
+        if (!s) return <span className="text-content-muted text-xs">—</span>;
+        return (
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-xs font-semibold text-semantic-warning-fg tabular-nums">
+              {s.total % 1 === 0 ? Math.floor(s.total) : s.total.toFixed(1)}
+            </span>
+            <span className="text-[9px] font-semibold text-semantic-warning uppercase tracking-wide">{s.nombre}</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'tipo', label: 'Tipo', align: 'center',
+      render: (v) => <StatusBadge estado={getTipoLabel(v)} dot={false} size="sm" fixedWidth />,
+    },
+    {
+      key: 'unidad', label: 'Unidad', align: 'center',
+      render: (v) => v ? <StatusBadge tone="neutral" label={v} dot={false} size="sm" /> : <span className="text-content-muted text-xs">—</span>,
+    },
+    {
+      key: '__costo', label: 'Costo unit.', align: 'right',
+      render: (_v, item) => <span className="text-xs text-content-secondary tabular-nums">{formatoPesoColombiano(getCostoUnit(item))}</span>,
+    },
+    {
+      key: '__precio', label: 'Precio venta', align: 'right',
+      render: (_v, item) => <span className="text-xs text-semantic-success-fg font-medium tabular-nums">{formatoPesoColombiano(getPrecio(item))}</span>,
+    },
+    {
+      key: '__actions', label: 'Acciones', align: 'center', sortable: false,
+      render: (_v, item) => (
+        <div className="flex items-center justify-center gap-1">
+          <button
+            onClick={() => openConfirm({
+              title:   'Eliminar item',
+              message: `¿Eliminar "${getNombre(item)}" de esta bodega?`,
+              onConfirm: async () => await removeFromBodegaAsync({
+                itemId:   getId(item),
+                bodegaId: id_bodega,
+              }),
+            })}
+            title="Eliminar"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-colors"
+          >
+            <Trash2 size={12} />
+          </button>
+          <button
+            onClick={() => setItemTraspaso(item)}
+            title="Traspasar a otra bodega"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-info hover:text-white hover:border-semantic-info transition-colors"
+          >
+            <ArrowRightLeft size={12} />
+          </button>
+          <button
+            onClick={() => setItemAjuste(item)}
+            title="Ajuste manual (rotura, derrame, conteo)"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-warning hover:text-white hover:border-semantic-warning transition-colors"
+          >
+            <Wrench size={12} />
+          </button>
+        </div>
+      ),
+    },
+  ], [id_bodega, openConfirm, removeFromBodegaAsync]);
+
+  const rowsWithId = useMemo(
+    () => inventario.map((item) => ({ ...item, id: getId(item) })),
+    [inventario],
+  );
+
   return (
     <>
       <NavTabs
@@ -77,131 +169,14 @@ const DataTable = () => {
       />
       <div className="flex flex-col gap-3 w-full">
         <div className="bg-surface-base border border-border-base rounded-md shadow-xs w-full overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left whitespace-nowrap">
-              <thead className="bg-surface-muted border-b border-border-base">
-                <tr>
-                  {['#','Código','Nombre'].map((h, i) => (
-                    <th key={h} className={cn(
-                      'px-3 py-2 text-[10px] font-semibold text-content-tertiary uppercase tracking-wider',
-                      i === 0 && 'w-16 text-center',
-                    )}>{h}</th>
-                  ))}
-                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Cantidad</th>
-                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Almacenaje</th>
-                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Tipo</th>
-                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Unidad</th>
-                  <th className="px-3 py-2 text-right  text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Costo unit.</th>
-                  <th className="px-3 py-2 text-right  text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Precio venta</th>
-                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-subtle">
-                {isLoadingItems ? (
-                  Array.from({ length: 10 }).map((_, i) => <SkeletonRow key={`skeleton-${i}`} />)
-                ) : inventario.length > 0 ? (
-                  inventario.map((item) => (
-                    <tr key={item.id_item_general} className="hover:bg-surface-subtle transition-colors">
-                      <td className="px-3 py-1.5 text-center text-xs font-medium text-content-tertiary tabular-nums">{getId(item)}</td>
-                      <td className="px-3 py-1.5">
-                        <span className="text-xs text-content-tertiary font-mono font-medium">{getCodigo(item)}</span>
-                      </td>
-                      <td className="px-3 py-1.5 font-medium text-content-primary text-xs max-w-[260px] truncate" title={getNombre(item)}>{getNombre(item)}</td>
-                      <td className="px-3 py-1.5 text-center">
-                        <span className="text-xs font-semibold text-content-secondary tabular-nums">
-                          {item.cantidad ?? '—'}
-                        </span>
-                      </td>
-
-                      <td className="px-3 py-1.5 text-center">
-                        {(() => {
-                          const s = getStockAlmacenaje(item);
-                          if (!s) return <span className="text-content-muted text-xs">—</span>;
-                          return (
-                            <div className="flex flex-col items-center gap-0.5">
-                              <span className="text-xs font-semibold text-semantic-warning-fg tabular-nums">
-                                {s.total % 1 === 0 ? Math.floor(s.total) : s.total.toFixed(1)}
-                              </span>
-                              <span className="text-[9px] font-semibold text-semantic-warning uppercase tracking-wide">
-                                {s.nombre}
-                              </span>
-                            </div>
-                          );
-                        })()}
-                      </td>
-
-                      <td className="px-3 py-1.5 text-center">
-                        <StatusBadge
-                          estado={getTipoLabel(item.tipo)}
-                          dot={false}
-                          size="sm"
-                          fixedWidth
-                        />
-                      </td>
-
-                      <td className="px-3 py-1.5 text-center">
-                        {item.unidad ? (
-                          <StatusBadge tone="neutral" label={item.unidad} dot={false} size="sm" />
-                        ) : (
-                          <span className="text-content-muted text-xs">—</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-1.5 text-right text-xs text-content-secondary tabular-nums">
-                        {formatoPesoColombiano(getCostoUnit(item))}
-                      </td>
-                      <td className="px-3 py-1.5 text-right text-xs text-semantic-success-fg font-medium tabular-nums">
-                        {formatoPesoColombiano(getPrecio(item))}
-                      </td>
-
-                      <td className="px-3 py-1.5">
-                        <div className="flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => openConfirm({
-                              title:   'Eliminar item',
-                              message: `¿Eliminar "${getNombre(item)}" de esta bodega?`,
-                              onConfirm: async () => await removeFromBodegaAsync({
-                                itemId:   getId(item),
-                                bodegaId: id_bodega,
-                              }),
-                            })}
-                            title="Eliminar"
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-colors"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                          <button
-                            onClick={() => setItemTraspaso(item)}
-                            title="Traspasar a otra bodega"
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-info hover:text-white hover:border-semantic-info transition-colors"
-                          >
-                            <ArrowRightLeft size={12} />
-                          </button>
-                          <button
-                            onClick={() => setItemAjuste(item)}
-                            title="Ajuste manual (rotura, derrame, conteo)"
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-sm border border-border-base text-content-tertiary hover:bg-semantic-warning hover:text-white hover:border-semantic-warning transition-colors"
-                          >
-                            <Wrench size={12} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="10" className="px-3 py-6 text-center">
-                      <div className="flex flex-col items-center justify-center text-content-tertiary h-40">
-                        <span className="text-sm font-medium">No hay items para mostrar en este inventario.</span>
-                        <span className="text-xs text-content-muted mt-1">
-                          El stock se crea automáticamente al recibir órdenes de compra o cerrar órdenes de producción.
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <ErpTable
+            columns={columns}
+            data={rowsWithId}
+            isLoading={isLoadingItems}
+            emptyMessage="No hay items para mostrar en este inventario."
+            emptySubMessage="El stock se crea automáticamente al recibir órdenes de compra o cerrar órdenes de producción."
+            borderless
+          />
 
           {/* Paginación */}
           <div className="px-3 py-2 bg-surface-subtle border-t border-border-base flex items-center justify-between">

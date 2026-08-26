@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  Layers, Tag, Ruler, ArrowDownUp, Plus, Edit, Trash2, Save, Check,
+  Layers, Tag, Ruler, ArrowDownUp, Plus, Edit, Trash2, Save,
 } from 'lucide-react';
 import { Button } from '../../../shared/Button';
 import StatusBadge from '../../../shared/StatusBadge';
 import IconBox from '../../../shared/IconBox';
-import EmptyState from '../../../shared/EmptyState';
+import ErpTable from '../../../shared/ErpTable';
 import Modal from '../../../shared/Modal';
 import PageTabs from '../../../shared/PageTabs';
 import { useBoundStore } from '../../../store/useBoundStore';
@@ -78,9 +78,43 @@ const CategoriasSubtab = ({ esAdmin }) => {
     else          crear.mutate(form, { onSuccess: () => setCreando(false) });
   };
 
-  if (isLoading) {
-    return <div className="space-y-2 p-4">{Array.from({length:4}).map((_,i)=><div key={i} className="h-10 bg-surface-muted rounded animate-pulse" />)}</div>;
-  }
+  const columns = useMemo(() => {
+    const base = [
+      {
+        key: 'id_categoria', label: 'ID', className: 'w-16',
+        render: (v) => <span className="text-xs font-mono text-content-tertiary tabular-nums">{v}</span>,
+      },
+      {
+        key: 'nombre', label: 'Nombre',
+        render: (v) => <span className="text-xs font-semibold text-content-primary">{v}</span>,
+      },
+    ];
+    if (!esAdmin) return base;
+    return [...base, {
+      key: '__actions', label: 'Acciones', align: 'right', className: 'w-24', sortable: false,
+      render: (_v, r) => (
+        <div className="inline-flex items-center gap-1">
+          <button onClick={() => setEditando(r)} title="Editar"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all">
+            <Edit size={12} />
+          </button>
+          <button
+            onClick={() => openConfirm({
+              title: 'Eliminar categoría',
+              message: `¿Eliminar "${r.nombre}"? Items con esta categoría quedarán sin clasificar.`,
+              variant: 'danger',
+              onConfirm: async () => await eliminar.mutateAsync(r.id_categoria),
+            })}
+            title="Eliminar"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-all">
+            <Trash2 size={12} />
+          </button>
+        </div>
+      ),
+    }];
+  }, [esAdmin, openConfirm, eliminar]);
+
+  const rowsWithId = useMemo(() => rows.map((r) => ({ ...r, id: r.id_categoria })), [rows]);
 
   return (
     <div>
@@ -89,48 +123,15 @@ const CategoriasSubtab = ({ esAdmin }) => {
           <Button size="sm" variant="primary" icon={Plus} onClick={() => setCreando(true)}>Nueva categoría</Button>
         </div>
       )}
-      {rows.length === 0 ? (
-        <div className="p-8"><EmptyState icon={Tag} title="Sin categorías" description="Creá la primera para clasificar los items." size="sm" /></div>
-      ) : (
-        <table className="w-full">
-          <thead className="bg-surface-muted border-b border-border-base">
-            <tr>
-              <th className="px-4 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider w-16">ID</th>
-              <th className="px-4 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Nombre</th>
-              {esAdmin && <th className="px-4 py-2 text-right text-[10px] font-semibold text-content-tertiary uppercase tracking-wider w-24">Acciones</th>}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border-subtle">
-            {rows.map((r) => (
-              <tr key={r.id_categoria} className="hover:bg-surface-subtle">
-                <td className="px-4 py-2 text-xs font-mono text-content-tertiary tabular-nums">{r.id_categoria}</td>
-                <td className="px-4 py-2 text-xs font-semibold text-content-primary">{r.nombre}</td>
-                {esAdmin && (
-                  <td className="px-4 py-2 text-right">
-                    <div className="inline-flex items-center gap-1">
-                      <button onClick={() => setEditando(r)} title="Editar"
-                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all">
-                        <Edit size={12} />
-                      </button>
-                      <button
-                        onClick={() => openConfirm({
-                          title: 'Eliminar categoría',
-                          message: `¿Eliminar "${r.nombre}"? Items con esta categoría quedarán sin clasificar.`,
-                          variant: 'danger',
-                          onConfirm: async () => await eliminar.mutateAsync(r.id_categoria),
-                        })}
-                        title="Eliminar"
-                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-all">
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <ErpTable
+        columns={columns}
+        data={rowsWithId}
+        isLoading={isLoading}
+        EmptyIcon={Tag}
+        emptyMessage="Sin categorías"
+        emptySubMessage="Creá la primera para clasificar los items."
+        borderless
+      />
 
       {editando && <ItemModal titulo={`Editar categoría · ${editando.nombre}`} item={editando} fields={fields} onSave={handleSave} onClose={() => setEditando(null)} isSaving={actualizar.isPending} />}
       {creando  && <ItemModal titulo="Nueva categoría" item={null} fields={fields} onSave={handleSave} onClose={() => setCreando(false)} isSaving={crear.isPending} />}
@@ -158,9 +159,55 @@ const UnidadesSubtab = ({ esAdmin }) => {
     else          crear.mutate(payload, { onSuccess: () => setCreando(false) });
   };
 
-  if (isLoading) {
-    return <div className="space-y-2 p-4">{Array.from({length:4}).map((_,i)=><div key={i} className="h-10 bg-surface-muted rounded animate-pulse" />)}</div>;
-  }
+  const columns = useMemo(() => {
+    const base = [
+      {
+        key: 'id_unidad', label: 'ID', className: 'w-16',
+        render: (v) => <span className="text-xs font-mono text-content-tertiary tabular-nums">{v}</span>,
+      },
+      {
+        key: 'nombre', label: 'Nombre',
+        render: (v) => <span className="text-xs font-semibold text-content-primary uppercase">{v}</span>,
+      },
+      {
+        key: 'descripcion', label: 'Descripción',
+        render: (v) => <span className="text-xs text-content-tertiary">{v || '—'}</span>,
+      },
+      {
+        key: 'escala', label: 'Escala', align: 'right', className: 'w-24',
+        render: (v) => (
+          <span className="text-xs font-mono tabular-nums text-content-secondary">
+            {Number(v ?? 1).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 5 })}
+          </span>
+        ),
+      },
+    ];
+    if (!esAdmin) return base;
+    return [...base, {
+      key: '__actions', label: 'Acciones', align: 'right', className: 'w-24', sortable: false,
+      render: (_v, r) => (
+        <div className="inline-flex items-center gap-1">
+          <button onClick={() => setEditando(r)} title="Editar"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all">
+            <Edit size={12} />
+          </button>
+          <button
+            onClick={() => openConfirm({
+              title: 'Eliminar unidad',
+              message: `¿Eliminar "${r.nombre}"? Esta acción puede afectar items y conversiones existentes.`,
+              variant: 'danger',
+              onConfirm: async () => await eliminar.mutateAsync(r.id_unidad),
+            })}
+            title="Eliminar"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-all">
+            <Trash2 size={12} />
+          </button>
+        </div>
+      ),
+    }];
+  }, [esAdmin, openConfirm, eliminar]);
+
+  const rowsWithId = useMemo(() => rows.map((r) => ({ ...r, id: r.id_unidad })), [rows]);
 
   return (
     <div>
@@ -169,52 +216,15 @@ const UnidadesSubtab = ({ esAdmin }) => {
           <Button size="sm" variant="primary" icon={Plus} onClick={() => setCreando(true)}>Nueva unidad</Button>
         </div>
       )}
-      {rows.length === 0 ? (
-        <div className="p-8"><EmptyState icon={Ruler} title="Sin unidades" description="Creá la primera unidad de medida." size="sm" /></div>
-      ) : (
-        <table className="w-full">
-          <thead className="bg-surface-muted border-b border-border-base">
-            <tr>
-              <th className="px-4 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider w-16">ID</th>
-              <th className="px-4 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Nombre</th>
-              <th className="px-4 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">Descripción</th>
-              <th className="px-4 py-2 text-right text-[10px] font-semibold text-content-tertiary uppercase tracking-wider w-24">Escala</th>
-              {esAdmin && <th className="px-4 py-2 text-right text-[10px] font-semibold text-content-tertiary uppercase tracking-wider w-24">Acciones</th>}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border-subtle">
-            {rows.map((r) => (
-              <tr key={r.id_unidad} className="hover:bg-surface-subtle">
-                <td className="px-4 py-2 text-xs font-mono text-content-tertiary tabular-nums">{r.id_unidad}</td>
-                <td className="px-4 py-2 text-xs font-semibold text-content-primary uppercase">{r.nombre}</td>
-                <td className="px-4 py-2 text-xs text-content-tertiary">{r.descripcion || '—'}</td>
-                <td className="px-4 py-2 text-right text-xs font-mono tabular-nums text-content-secondary">{Number(r.escala ?? 1).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 5 })}</td>
-                {esAdmin && (
-                  <td className="px-4 py-2 text-right">
-                    <div className="inline-flex items-center gap-1">
-                      <button onClick={() => setEditando(r)} title="Editar"
-                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-content-primary hover:text-content-inverse hover:border-content-primary transition-all">
-                        <Edit size={12} />
-                      </button>
-                      <button
-                        onClick={() => openConfirm({
-                          title: 'Eliminar unidad',
-                          message: `¿Eliminar "${r.nombre}"? Esta acción puede afectar items y conversiones existentes.`,
-                          variant: 'danger',
-                          onConfirm: async () => await eliminar.mutateAsync(r.id_unidad),
-                        })}
-                        title="Eliminar"
-                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-border-base text-content-tertiary hover:bg-semantic-danger hover:text-white hover:border-semantic-danger transition-all">
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <ErpTable
+        columns={columns}
+        data={rowsWithId}
+        isLoading={isLoading}
+        EmptyIcon={Ruler}
+        emptyMessage="Sin unidades"
+        emptySubMessage="Creá la primera unidad de medida."
+        borderless
+      />
 
       {editando && <ItemModal titulo={`Editar unidad · ${editando.nombre}`} item={editando} fields={fields} onSave={handleSave} onClose={() => setEditando(null)} isSaving={actualizar.isPending} />}
       {creando  && <ItemModal titulo="Nueva unidad" item={null} fields={fields} onSave={handleSave} onClose={() => setCreando(false)} isSaving={crear.isPending} />}

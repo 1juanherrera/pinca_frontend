@@ -6,6 +6,7 @@ import DetailDrawer from '../../../shared/DetailDrawer';
 import StatusBadge from '../../../shared/StatusBadge';
 import EmptyState from '../../../shared/EmptyState';
 import IconBox from '../../../shared/IconBox';
+import ErpTable from '../../../shared/ErpTable';
 import { fmt } from '../../../utils/formatters';
 
 const TIPO_LABEL = { 1: 'Materia Prima', 2: 'Insumo' };
@@ -42,6 +43,52 @@ const MaestroDetailDrawer = ({ item, onClose }) => {
     return a.precio_kg - b.precio_kg;
   });
   const mejorPrecioKg = sortedProv[0]?.precio_kg ?? null;
+
+  const provColumns = [
+    {
+      key: 'nombre_empresa', label: 'Proveedor',
+      render: (v, p) => {
+        const idx = sortedProv.indexOf(p);
+        const esMejor = idx === 0 && p.precio_kg != null;
+        return (
+          <div className="flex items-center gap-2 min-w-0">
+            <Building2 size={12} className="text-content-muted shrink-0" />
+            <span className="font-medium text-content-primary truncate">{v}</span>
+            {esMejor && <StatusBadge tone="success" label="Mejor" icon={Award} dot={false} size="sm" />}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'precio_unitario', label: 'Precio compra', align: 'right',
+      render: (v) => <span className="tabular-nums text-content-primary">{fmtCOP(v)}</span>,
+    },
+    {
+      key: 'unidad_compra_nombre', label: 'Unidad', align: 'center',
+      render: (v, p) => (
+        <span className="text-content-tertiary">
+          {v ?? 'UND'}
+          {p.factor_conversion > 0 && p.factor_conversion !== 1 && (
+            <span className="text-content-muted ml-1">×{p.factor_conversion}</span>
+          )}
+        </span>
+      ),
+    },
+    {
+      key: 'precio_kg', label: '$/kg', align: 'right',
+      render: (v, p) => {
+        const idx = sortedProv.indexOf(p);
+        const esMejor = idx === 0 && v != null;
+        return (
+          <span className={`font-mono tabular-nums font-semibold ${esMejor ? 'text-semantic-success-fg' : 'text-content-primary'}`}>
+            {v != null ? fmtCOP(v) : '—'}
+          </span>
+        );
+      },
+    },
+  ];
+
+  const provRows = sortedProv.map((p) => ({ ...p, id: p.id_item_proveedor }));
 
   return (
     <DetailDrawer
@@ -126,61 +173,13 @@ const MaestroDetailDrawer = ({ item, onClose }) => {
           />
         ) : (
           <div className="overflow-hidden rounded-lg border border-border-base">
-            <table className="w-full text-xs">
-              <thead className="bg-surface-muted">
-                <tr>
-                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">
-                    Proveedor
-                  </th>
-                  <th className="px-3 py-2 text-right text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">
-                    Precio compra
-                  </th>
-                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">
-                    Unidad
-                  </th>
-                  <th className="px-3 py-2 text-right text-[10px] font-semibold text-content-tertiary uppercase tracking-wider">
-                    $/kg
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-subtle bg-surface-base">
-                {sortedProv.map((p, idx) => {
-                  const esMejor = idx === 0 && p.precio_kg != null;
-                  return (
-                    <tr
-                      key={p.id_item_proveedor}
-                      className={esMejor ? 'bg-semantic-success-subtle/30' : ''}
-                    >
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Building2 size={12} className="text-content-muted shrink-0" />
-                          <span className="font-medium text-content-primary truncate">
-                            {p.nombre_empresa}
-                          </span>
-                          {esMejor && (
-                            <StatusBadge tone="success" label="Mejor" icon={Award} dot={false} size="sm" />
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2.5 text-right tabular-nums text-content-primary">
-                        {fmtCOP(p.precio_unitario)}
-                      </td>
-                      <td className="px-3 py-2.5 text-center text-content-tertiary">
-                        {p.unidad_compra_nombre ?? 'UND'}
-                        {p.factor_conversion > 0 && p.factor_conversion !== 1 && (
-                          <span className="text-content-muted ml-1">×{p.factor_conversion}</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2.5 text-right">
-                        <span className={`font-mono tabular-nums font-semibold ${esMejor ? 'text-semantic-success-fg' : 'text-content-primary'}`}>
-                          {p.precio_kg != null ? fmtCOP(p.precio_kg) : '—'}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <ErpTable
+              columns={provColumns}
+              data={provRows}
+              density="compact"
+              rowClassName={(p) => sortedProv.indexOf(p) === 0 && p.precio_kg != null ? 'bg-semantic-success-subtle/30' : undefined}
+              borderless
+            />
           </div>
         )}
 

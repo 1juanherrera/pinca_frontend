@@ -1,12 +1,16 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Package } from 'lucide-react';
+import { Package, Trophy, Briefcase, Pencil, Trash2 } from 'lucide-react';
 import usePageSize from '../../../hooks/usePageSize';
 import useClientPagination from '../../../hooks/useClientPagination';
 import { useProveedores, useProveedoresPaginated } from '../api/useProveedores';
+import ErpTable from '../../../shared/ErpTable';
+import StatusBadge from '../../../shared/StatusBadge';
+import AmountDisplay from '../../../shared/AmountDisplay';
+import { fmt } from '../../../utils/formatters';
 import ToolbarFiltros from './ProveedoresTable/ToolbarFiltros';
 import BannerComparador from './ProveedoresTable/BannerComparador';
-import FilaComparacion from './ProveedoresTable/FilaComparacion';
-import FilaProveedor from './ProveedoresTable/FilaProveedor';
+import { PALETTES, getInitials } from './ProveedoresTable/helpers';
+import ActionBtn from './ProveedoresTable/ActionBtn';
 import PaginacionFooter from './ProveedoresTable/PaginacionFooter';
 
 const ProveedoresTable = ({
@@ -114,7 +118,121 @@ const ProveedoresTable = ({
   const displayCount = isComparison ? (comparacionData?.length ?? 0) : meta.total;
   const tableLoading = isComparison ? false : (loadingList || isFetching);
   const mejorCosto = comparacionData?.length > 0 ? comparacionData[0]._costoKg : null;
-  const colCount = 6;
+
+  const columnsNormal = useMemo(() => [
+    {
+      key: 'nombre_empresa', label: 'Proveedor',
+      render: (_v, prov) => {
+        const displayName = prov.nombre_empresa || prov.nombre_encargado || '';
+        const palette = PALETTES[Number(prov.id_proveedor) % PALETTES.length];
+        return (
+          <div className="flex items-center gap-2.5">
+            <div className={`shrink-0 w-7 h-7 rounded-lg ${palette} flex items-center justify-center`}>
+              <span className="text-[9px] font-bold text-white leading-none">{getInitials(displayName)}</span>
+            </div>
+            <div className="min-w-0">
+              <span className="font-semibold text-content-primary text-xs block truncate">{displayName || '—'}</span>
+              {prov.nombre_empresa && prov.nombre_encargado && (
+                <span className="text-[10px] text-content-muted block truncate">{prov.nombre_encargado}</span>
+              )}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'numero_documento', label: 'NIT / Documento',
+      render: (v) => <span className="text-xs font-mono text-content-tertiary tabular-nums">{v || '—'}</span>,
+    },
+    {
+      key: 'telefono', label: 'Teléfono',
+      render: (v) => <span className="text-xs text-content-tertiary">{v || '—'}</span>,
+    },
+    {
+      key: 'email', label: 'Email',
+      render: (v) => <span className="text-xs text-content-muted truncate block max-w-44">{v || '—'}</span>,
+    },
+    {
+      key: '__count', label: 'Productos', align: 'center',
+      render: (_v, prov) => {
+        const count = productosPorProveedor[prov.id_proveedor] || 0;
+        return <StatusBadge tone={count > 0 ? 'info' : 'neutral'} label={String(count)} icon={Package} dot={false} size="sm" />;
+      },
+    },
+    {
+      key: '__actions', label: '', align: 'right', className: 'w-32', sortable: false,
+      render: (_v, prov) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <ActionBtn onClick={() => onPortafolio(prov)} icon={Briefcase} title="Ver portafolio" />
+          <ActionBtn onClick={() => onEdit(prov)} icon={Pencil} title="Editar proveedor" />
+          <ActionBtn onClick={() => onDelete(prov)} icon={Trash2} title="Eliminar" danger />
+        </div>
+      ),
+    },
+  ], [productosPorProveedor, onPortafolio, onEdit, onDelete]);
+
+  const columnsComparacion = useMemo(() => [
+    {
+      key: 'nombre_empresa', label: 'Proveedor',
+      render: (_v, row) => {
+        const esMejor = row._costoKg === mejorCosto;
+        const displayName = row.nombre_empresa || row.nombre_encargado || '';
+        const palette = PALETTES[Number(row.id_proveedor) % PALETTES.length];
+        return (
+          <div className="flex items-center gap-2.5">
+            <div className={`shrink-0 w-7 h-7 rounded-lg ${palette} flex items-center justify-center`}>
+              <span className="text-[9px] font-bold text-white leading-none">{getInitials(displayName)}</span>
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                {esMejor && <Trophy size={11} className="text-semantic-success shrink-0" />}
+                <span className="font-semibold text-content-primary text-xs truncate">{displayName || '—'}</span>
+              </div>
+              {row.nombre_empresa && row.nombre_encargado && (
+                <span className="text-[10px] text-content-muted truncate block">{row.nombre_encargado}</span>
+              )}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: '__unidad', label: 'Und. Compra', align: 'center',
+      render: (_v, row) => <span className="text-xs text-content-tertiary">{row._item.unidad_compra_nombre || '—'}</span>,
+    },
+    {
+      key: '__factor', label: 'Factor Conv.', align: 'center',
+      render: (_v, row) => {
+        const factor = parseFloat(row._item.factor_conversion) || 1;
+        return <span className="text-xs font-mono font-semibold text-content-secondary tabular-nums">{factor !== 1 ? factor : '1'}</span>;
+      },
+    },
+    {
+      key: '__precio', label: 'Precio Unit.', align: 'right',
+      render: (_v, row) => <AmountDisplay value={row._item.precio_unitario} />,
+    },
+    {
+      key: '_costoKg', label: 'Costo / Kg', align: 'right',
+      render: (v, row) => {
+        const esMejor = row._costoKg === mejorCosto;
+        return <span className={`text-xs font-bold tabular-nums ${esMejor ? 'text-semantic-success-fg' : 'text-content-secondary'}`}>{fmt(v)}</span>;
+      },
+    },
+    {
+      key: '__actions', label: '', align: 'right', className: 'w-24', sortable: false,
+      render: (_v, row) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <ActionBtn onClick={() => onPortafolio(row)} icon={Briefcase} title="Ver portafolio" />
+          <ActionBtn onClick={() => onEdit(row)} icon={Pencil} title="Editar proveedor" />
+        </div>
+      ),
+    },
+  ], [mejorCosto, onPortafolio, onEdit]);
+
+  const rowsWithId = useMemo(
+    () => paginated.map((r) => ({ ...r, id: r.id_proveedor })),
+    [paginated],
+  );
 
   return (
     <div className="bg-surface-base border border-border-base rounded-2xl shadow-sm overflow-hidden">
@@ -130,89 +248,19 @@ const ProveedoresTable = ({
       {isComparison && <BannerComparador mejorCosto={mejorCosto} displayCount={displayCount} />}
 
       {/* ── Tabla ── */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border-subtle">
-              {isComparison ? (
-                <>
-                  <th className="text-left px-4 py-3 text-[10px] font-bold text-content-muted uppercase tracking-widest">Proveedor</th>
-                  <th className="text-center px-4 py-3 text-[10px] font-bold text-content-muted uppercase tracking-widest">Und. Compra</th>
-                  <th className="text-center px-4 py-3 text-[10px] font-bold text-content-muted uppercase tracking-widest">Factor Conv.</th>
-                  <th className="text-right px-4 py-3 text-[10px] font-bold text-content-muted uppercase tracking-widest">Precio Unit.</th>
-                  <th className="text-right px-4 py-3 text-[10px] font-bold text-content-muted uppercase tracking-widest">Costo / Kg</th>
-                  <th className="text-right px-4 py-3 text-[10px] font-bold text-content-muted uppercase tracking-widest w-24" />
-                </>
-              ) : (
-                <>
-                  <th className="text-left px-4 py-3 text-[10px] font-bold text-content-muted uppercase tracking-widest">Proveedor</th>
-                  <th className="text-left px-4 py-3 text-[10px] font-bold text-content-muted uppercase tracking-widest">NIT / Documento</th>
-                  <th className="text-left px-4 py-3 text-[10px] font-bold text-content-muted uppercase tracking-widest">Teléfono</th>
-                  <th className="text-left px-4 py-3 text-[10px] font-bold text-content-muted uppercase tracking-widest">Email</th>
-                  <th className="text-center px-4 py-3 text-[10px] font-bold text-content-muted uppercase tracking-widest">Productos</th>
-                  <th className="text-right px-4 py-3 text-[10px] font-bold text-content-muted uppercase tracking-widest w-32" />
-                </>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {tableLoading ? (
-              Array.from({ length: 8 }).map((_, i) => (
-                <tr key={i} className="border-b border-border-subtle">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="shrink-0 w-7 h-7 rounded-lg bg-surface-muted animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
-                      <div className="flex-1 space-y-1.5">
-                        <div className="h-3.5 bg-surface-muted rounded animate-pulse" style={{ width: `${60 + (i * 7) % 30}%`, animationDelay: `${i * 80}ms` }} />
-                        <div className="h-2.5 bg-surface-subtle rounded animate-pulse" style={{ width: `${40 + (i * 11) % 25}%`, animationDelay: `${i * 80 + 40}ms` }} />
-                      </div>
-                    </div>
-                  </td>
-                  {Array.from({ length: colCount - 1 }).map((_, j) => (
-                    <td key={j} className="px-4 py-3">
-                      <div
-                        className="h-4 bg-surface-muted rounded animate-pulse"
-                        style={{ width: `${50 + ((i + j) * 13) % 45}%`, animationDelay: `${i * 80 + j * 30}ms` }}
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : paginated.length === 0 ? (
-              <tr>
-                <td colSpan={colCount} className="text-center py-16">
-                  <div className="flex flex-col items-center gap-2.5">
-                    <div className="w-12 h-12 rounded-2xl bg-surface-subtle flex items-center justify-center border border-border-subtle">
-                      <Package size={20} className="text-content-muted" />
-                    </div>
-                    <p className="text-sm font-semibold text-content-muted">
-                      {isComparison ? 'Ningún proveedor ofrece este producto' : 'No se encontraron proveedores'}
-                    </p>
-                    {isComparison && (
-                      <p className="text-xs text-content-muted">Prueba seleccionando otro producto del catálogo</p>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ) : isComparison ? (
-              paginated.map((row) => (
-                <FilaComparacion
-                  key={row.id_proveedor} row={row} mejorCosto={mejorCosto}
-                  onPortafolio={onPortafolio} onEdit={onEdit}
-                />
-              ))
-            ) : (
-              paginated.map(prov => (
-                <FilaProveedor
-                  key={prov.id_proveedor} prov={prov}
-                  count={productosPorProveedor[prov.id_proveedor] || 0}
-                  onPortafolio={onPortafolio} onEdit={onEdit} onDelete={onDelete}
-                />
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ErpTable
+        columns={isComparison ? columnsComparacion : columnsNormal}
+        data={rowsWithId}
+        isLoading={tableLoading}
+        onRowClick={(row) => onPortafolio(row)}
+        rowClassName={(row) => isComparison && row._costoKg === mejorCosto
+          ? 'bg-semantic-success-subtle/30 hover:bg-semantic-success-subtle/50 border-l-2 border-l-semantic-success'
+          : undefined}
+        EmptyIcon={Package}
+        emptyMessage={isComparison ? 'Ningún proveedor ofrece este producto' : 'No se encontraron proveedores'}
+        emptySubMessage={isComparison ? 'Prueba seleccionando otro producto del catálogo' : ''}
+        borderless
+      />
 
       <PaginacionFooter
         totalItems={totalItems} paginatedLength={paginated.length} isComparison={isComparison}
